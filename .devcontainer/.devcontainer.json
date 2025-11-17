@@ -1,0 +1,33 @@
+{
+	"name": "Full Stack -- Trancendence",
+
+	//pre-built container that already has Node.js (version 20) and TypeScript.
+	"image": "mcr.microsoft.com/devcontainers/typescript-node:20",
+
+	// 3000: Your backend API
+	// 5173: The default Vite frontend port
+	"forwardPorts": [3000, 5173],
+
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"dbaeumer.vscode-eslint",   // For TypeScript linting
+				"esbenp.prettier-vscode",   // For code formatting
+				"bradlc.vscode-tailwindcss", // For Tailwind CSS
+				"ms-azuretools.vscode-docker" // To manage your container
+			]
+		}
+	},
+
+	// This makes sure the 'better-sqlite3' package can be built
+	// by installing its dependencies (Python, C++ compiler)
+	"features": {
+		"ghcr.io/devcontainers/features/common-utils:2": {
+		"installZsh": false,
+		"installOhMyZsh": false,
+		"upgradePackages": true,
+		"configureGpg": false,
+		"nonFreePackages": true
+		}
+	}
+}
