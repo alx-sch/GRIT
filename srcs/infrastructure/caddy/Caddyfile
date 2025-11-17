@@ -1,0 +1,12 @@
+localhost {
+	# Send all API requests to the 'backend' service
+	reverse_proxy /api/* backend:8000
+
+	# Handle all other requests for the frontend SPA
+	handle_path /* {
+		# Try to find the file (e.g., /main.css)
+		# If not, send index.html
+		try_files {path} /index.html
+		reverse_proxy frontend:3000
+	}
+}

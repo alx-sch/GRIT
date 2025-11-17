@@ -1,0 +1,27 @@
+services:
+  caddy:
+    build:
+      context: ${CADDY_CONTEXT}
+      args:
+        - CADDY_VERSION=${CADDY_VERSION}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data
+    depends_on:
+      - backend
+      - frontend
+
+  backend:
+    build: ./backend
+    # This service will be reachable at http://backend:8000
+    # (No ports are exposed to the host)
+
+  frontend:
+    build: ./frontend
+    # This service will be reachable at http://frontend:3000
+    # (No ports are exposed to the host)
+
+volumes:
+  caddy_data:
