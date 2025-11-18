@@ -2,33 +2,42 @@
 	"name": "Full Stack -- Trancendence",
 
 	//pre-built container that already has Node.js (version 20) and TypeScript.
-	"image": "mcr.microsoft.com/devcontainers/typescript-node:20",
+	"image": "mcr.microsoft.com/devcontainers/base:bookworm",
 
 	// 3000: Backend API
 	// 5173: The default Vite frontend port
 	"forwardPorts": [3000, 5173],
 
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"dbaeumer.vscode-eslint",   // For TypeScript linting
-				"esbenp.prettier-vscode",   // For code formatting
-				"bradlc.vscode-tailwindcss", // For Tailwind CSS
-				"ms-azuretools.vscode-docker" // To manage your container
-			]
-		}
-	},
+	// First install Node.js
+	"postCreateCommand": [
+		"sudo apt-get update && sudo apt-get install -y libsqlite3-dev ca-certificates curl gnupg && NODE_MAJOR=20 && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && echo 'deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_'$NODE_MAJOR'.x nodistro main' | sudo tee /etc/apt/sources.list.d/nodesource.list && sudo apt-get update && sudo apt-get install -y nodejs && sudo npm install -g npm@11.6.2"
+	]
+}
+
+	// "customizations": {
+	// 	"vscode": {
+	// 		"extensions": [
+	// 			"dbaeumer.vscode-eslint",   // For TypeScript linting
+	// 			"esbenp.prettier-vscode",   // For code formatting
+	// 			"bradlc.vscode-tailwindcss", // For Tailwind CSS
+	// 			"ms-azuretools.vscode-docker" // To manage your container
+	// 		]
+	// 	}
+	// },
 
 	// This makes sure the 'better-sqlite3' package can be built
 	// by installing its dependencies (Python, C++ compiler)
-	"features": {
-		"ghcr.io/devcontainers/features/common-utils:2": {
-		"installZsh": false,
-		"installOhMyZsh": false,
-		"upgradePackages": true,
-		"configureGpg": false,
-		"nonFreePackages": true
-		},
-		"ghcr.io/devcontainers/features/git-lfs:1": {}
-	}
-}
+	// "features": {
+	// 	"ghcr.io/devcontainers/features/node:1": {
+	// 		"version": "20",
+	// 		"nodeGypDependencies": true
+	// 	}
+		// "ghcr.io/devcontainers/features/common-utils:2": {
+		// "installZsh": false,
+		// "installOhMyZsh": false,
+		// "upgradePackages": true,
+		// "configureGpg": false,
+		// "nonFreePackages": true
+		// },
+		//"ghcr.io/devcontainers/features/git-lfs:1": {}
+	// }
