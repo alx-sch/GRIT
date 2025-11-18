@@ -1,0 +1,26 @@
+# For local testing:
+localhost {
+    # 1. Handle API requests
+    # Proxy all /api requests to the backend service
+    reverse_proxy /api/* backend:3000
+
+    # 2. Handle Frontend
+    # Serve the static files from the 'dist' folder
+    root * /srv/dist
+    # try_files is needed for Single Page Apps (SPAs)
+    # It makes sure /profile or /users still load index.html
+    try_files {path} /index.html
+    file_server
+}
+
+# For real production (delete the 'localhost' block above and use this):
+#
+# your-domain.com {
+#     # 1. Handle API requests
+#     reverse_proxy /api/* backend:3000
+#
+#     # 2. Handle Frontend
+#     root * /srv/dist
+#     try_files {path} /index.html
+#     file_server
+# }

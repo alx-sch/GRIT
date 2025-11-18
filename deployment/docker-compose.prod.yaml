@@ -1,0 +1,50 @@
+services:
+  # 1. Caddy (Web Server / Reverse Proxy)
+  # This is the ONLY service exposed to the internet.
+  caddy:
+    image: caddy:2
+    ports:
+      - "${HTTP_PORT}:80"
+      - "${HTTPS_PORT}:443"
+    volumes:
+      # Mount the Caddyfile from its new location
+      - ${CADDY_CONTEXT}/Caddyfile:/etc/caddy/Caddyfile
+      # Mount the built frontend files to be served
+      - ${CADDY_CONTEXT}/src/dist:/srv/dist
+      # Create named volumes for Caddy's certificates
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+
+  # 2. Backend (Fastify API)
+  # This is NOT exposed to the internet. Caddy talks to it.
+  backend:
+    build:
+      context: ${BACKEND_CONTEXT}
+      dockerfile: Dockerfile
+    environment:
+      # Use an internal port for the backend
+      PORT: 3000
+    volumes:
+      # Mount the database directory to persist data
+      - ${BACKEND_CONTEXT}/db:/app/db
+    # healthcheck:
+    #   test: ["CMD", "wget", "-q", "http://localhost:3000"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
+
+volumes:
+  caddy_data: # Storage for Caddy's SSL/TLS certificates
+    driver: local
+    driver_opts:
+      type: "none"
+      device: "${VOLUME_PATH}/${VOLUME_CADDY_DATA}"
+      o: "bind"
+  caddy_config: # Storage for Caddy's interal config and state
+    driver: local
+    driver_opts:
+      type: "none"
+      device: "${VOLUME_PATH}/${VOLUME_CADDY_CONFIG}"
+      o: "bind"
