@@ -42,10 +42,13 @@ clean:	dev-stop
 # Stop all running containers and remove all Docker resources system-wide
 purge:
 	@echo "$(BOLD)$(RED)☢️  SYSTEM-WIDE PURGE: Stopping ALL running Docker containers...$(RESET)"
-	@docker stop $$(docker ps -aq) || true
-	@echo "$(BOLD)$(RED)🔥 Removing ALL unused Docker resources (containers, ALL images, volumes, cache)...$(RESET)"
+	@docker stop $$(docker ps -aq) 2>/dev/null || true
+	
+	@echo "$(BOLD)$(RED)💥 Deleting persistent volumes...$(RESET)"
+	@docker run --rm -v $$(pwd):/clean -w /clean alpine rm -rf $(VOLUME_FOLDER)
+	
+	@echo "$(BOLD)$(RED)🔥 Removing ALL unused Docker resources (containers, images, volumes)...$(RESET)"
 	@docker system prune -af -a --volumes
-	@rm -rf $(VOLUME_FOLDER)
 	@docker system df
 	@echo "$(BOLD)$(RED)🗑️  All Docker resources have been purged.$(RESET)"
 

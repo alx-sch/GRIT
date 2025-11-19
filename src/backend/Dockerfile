@@ -17,7 +17,7 @@ ENV		NODE_ENV=${NODE_ENV}
 
 # Copy package files and install production dependencies
 COPY	package.json package-lock.json ./
-RUN		npm ci --production --build-from-source
+RUN		npm ci --omit=dev --build-from-source
 
 # Copy the rest of the source code
 COPY	. .
