@@ -24,7 +24,7 @@ export function router(): void {
       root.append(UsersPage());
       break;
     case "/profile":
-      root.innerHTML = "<h1>Profile</h1>";
+      root.innerHTML = "<main class='p-8'><h1>Profile</h1></main>";
       break;
     default:
       root.textContent = "404";
