@@ -1,4 +1,5 @@
 import "../views/home-page.js";
+import "../views/tictactoe-page.js";
 import { UsersPage } from "../views/users-page.js";
 
 export function router(): void {
@@ -15,6 +16,9 @@ export function router(): void {
     case "/":
     case "/home":
       root.innerHTML = "<home-page></home-page>";
+      break;
+    case "/tictactoe":
+      root.innerHTML = "<tictactoe-page></tictactoe-page>";
       break;
     case "/users":
       root.append(UsersPage());
