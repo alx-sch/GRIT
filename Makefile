@@ -27,9 +27,9 @@ DC = docker compose -f $(DOCKER_COMP_FILE) --env-file $(ENV_FILE)
 # Installs all dependencies for frontend and backend
 install:
 	@echo "$(BOLD)$(YELLOW)--- Installing backend dependencies... ---$(RESET)"
-	cd ${BACKEND_FOLDER} && npm install
+	cd ${BACKEND_FOLDER} && npm install -g npm@11.6.2 -D tsx
 	@echo "$(BOLD)$(YELLOW)\n--- Installing frontend dependencies... ---$(RESET)"
-	cd ${FRONTEND_FOLDER} && npm install
+	cd ${FRONTEND_FOLDER} && npm install -g npm@11.6.2 -D tsx
 
 # Cleans the entire project (removes node_modules and build artifacts)
 clean:	dev-stop

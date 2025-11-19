@@ -1,4 +1,5 @@
 import "../views/home-page.js";
+import "../views/game-page.js"
 import { UsersPage } from "../views/users-page.js";
 
 export function router(): void {
@@ -22,6 +23,9 @@ export function router(): void {
     case "/profile":
       root.innerHTML = "<h1>Profile</h1>";
       break;
+    case "/game":
+      root.innerHTML = "<game-page></game-page>";
+    break;
     default:
       root.textContent = "404";
   }
