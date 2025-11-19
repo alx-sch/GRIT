@@ -40,6 +40,7 @@ clean:	dev-stop
 	rm -rf ${SRC_FOLDER}/dist
 
 # Stop all running containers and remove all Docker resources system-wide
+# Uses a temp container to delete persistent volume data (to avoid permission issues on rootless hosts)
 purge:
 	@echo "$(BOLD)$(RED)☢️  SYSTEM-WIDE PURGE: Stopping ALL running Docker containers...$(RESET)"
 	@docker stop $$(docker ps -aq) 2>/dev/null || true
