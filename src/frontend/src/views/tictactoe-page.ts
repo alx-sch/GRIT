@@ -5,16 +5,16 @@ export class TicTacToe extends Component {
     return `
       <section class="p-8">
         <h1 class="text-2xl font-bold mb-4">Tic Tac Toe</h1>
-        <div id="tic-tac-toe" class="grid grid-cols-3 gap-2 w-40">
-          <div class="cell border p-4 text-center"></div>
-          <div class="cell border p-4 text-center"></div>
-          <div class="cell border p-4 text-center"></div>
-          <div class="cell border p-4 text-center"></div>
-          <div class="cell border p-4 text-center"></div>
-          <div class="cell border p-4 text-center"></div>
-          <div class="cell border p-4 text-center"></div>
-          <div class="cell border p-4 text-center"></div>
-          <div class="cell border p-4 text-center"></div>
+        <div id="tic-tac-toe" class="grid grid-cols-3 gap-2 w-50">
+          <div class="cell border p-4 text-center size-15 cursor-pointer"></div>
+          <div class="cell border p-4 text-center size-15 cursor-pointer"></div>
+          <div class="cell border p-4 text-center size-15 cursor-pointer"></div>
+          <div class="cell border p-4 text-center size-15 cursor-pointer"></div>
+          <div class="cell border p-4 text-center size-15 cursor-pointer"></div>
+          <div class="cell border p-4 text-center size-15 cursor-pointer"></div>
+          <div class="cell border p-4 text-center size-15 cursor-pointer"></div>
+          <div class="cell border p-4 text-center size-15 cursor-pointer"></div>
+          <div class="cell border p-4 text-center size-15 cursor-pointer"></div>
         </div>
         <p id="winner"></p>
       </section>
