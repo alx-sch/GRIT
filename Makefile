@@ -58,6 +58,7 @@ clean:	dev-stop
 	@for service in $(SERVICES_BE); do \
 		echo "Cleaning $$service..."; \
 		rm -rf ${BACKEND_FOLDER}/$$service/node_modules; \
+		rm -rf ${BACKEND_FOLDER}/$$service/dist; \
 	done
 	@echo "$(GREEN)Project cleaned up.$(RESET)"
 

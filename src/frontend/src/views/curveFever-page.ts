@@ -11,7 +11,7 @@ import {
   Mesh,
 } from '@babylonjs/core';
 
-export class PongPage3d extends Component {
+export class curveFever extends Component {
   private canvas: HTMLCanvasElement | null = null;
   private engine: Engine | null = null;
   private scene: Scene | null = null;
@@ -234,4 +234,4 @@ export class PongPage3d extends Component {
 // Helper utility for Lerp (or import Scalar from @babylonjs/core)
 import { Scalar } from '@babylonjs/core';
 
-customElements.define('pong3d-page', PongPage3d);
+customElements.define('curveFever-page', curveFever);
