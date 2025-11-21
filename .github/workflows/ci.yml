@@ -8,14 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@4
+        uses: actions/checkout@v4
       - name: Install Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@vv4
         with:
           node-version: 24.1
       - name: Install dependencies
         run: Make install
-      - name: Start Frontend
-        run: Make dev-fe
-      - name: Start Backend
-        run: Make dev-be
