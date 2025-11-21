@@ -24,10 +24,11 @@ DOCKER_COMP_FILE :=	${DEPL_PATH}/docker-compose.prod.yaml
 DC = docker compose -f $(DOCKER_COMP_FILE) --env-file $(ENV_FILE)
 
 # Formatting
-RESET =				\033[0m
-BOLD =				\033[1m
-GREEN =				\033[32m
-YELLOW =			\033[33m
+RESET :=			\033[0m
+BOLD :=				\033[1m
+GREEN :=			\033[32m
+YELLOW :=			\033[33m
+BLUE :=				\033[34m
 RED :=				\033[91m
 
 #########################
@@ -38,17 +39,19 @@ RED :=				\033[91m
 install:	install-be install-fe
 
 install-be:
-	@echo "$(BOLD)$(YELLOW)--- Installing backend dependencies... ---$(RESET)"
-	@echo "$(YELLOW)Installing concurrently in backend root...$(RESET)"
+	@echo "$(BOLD)$(YELLOW)--- Installing backend dependencies...$(RESET)"
+	@echo "$(YELLOW)Installing general dependencies...$(RESET)"
 	cd ${BACKEND_FOLDER} && npm install --no-save concurrently
 	@for service in $(SERVICES_BE); do \
-		echo "$(YELLOW)Installing $$service$(RESET)..."; \
+		echo "$(YELLOW)Installing dependencies for '$$service'...$(RESET)"; \
 		cd ${BACKEND_FOLDER}/$$service && npm install; \
 	done
+	@echo "$(BOLD)$(GREEN)Backend dependencies installed.$(RESET)"
 
 install-fe:
-	@echo "$(BOLD)$(YELLOW)\n--- Installing frontend dependencies... ---$(RESET)"
+	@echo "$(BOLD)$(YELLOW)--- Installing frontend dependencies...$(RESET)"
 	cd ${FRONTEND_FOLDER} && npm install
+	@echo "$(BOLD)$(GREEN)Frontend dependencies installed.$(RESET)"
 
 # Cleans all generated files (installed 'node_modules', 'dist' folders etc.)
 clean: dev-stop
@@ -68,7 +71,7 @@ clean: dev-stop
 
 # Remove all SQLite databases for all backend services
 clean-db:
-	@echo "$(BOLD)$(RED)--- Deleting all backend SQLite databases... ---$(RESET)"
+	@echo "$(BOLD)$(RED)--- Deleting all backend SQLite databases...$(RESET)"
 	@for service in $(SERVICES_BE); do \
 		DB_DIR="${BACKEND_FOLDER}/$$service/db"; \
 		if [ -d $$DB_DIR ]; then \
@@ -78,7 +81,7 @@ clean-db:
 			echo "No DB directory found for $$service"; \
 		fi \
 	done
-	@echo "$(GREEN)All databases deleted.$(RESET)"
+	@echo "$(GREEN)$(BOLD)All databases deleted.$(RESET)"
 
 
 # Stop all running containers and remove all Docker resources system-wide
@@ -107,7 +110,7 @@ dev:
 
 # Starts the backend API server
 dev-be:
-	@echo "$(BOLD)--- Starting Backend [dev] ($(YELLOW)http://localhost:3000$(RESET)$(BOLD)) ---$(RESET)"
+	@echo "$(BOLD)$(YELLOW)--- Starting Backend [dev] ($(BLUE)http://localhost:3000$(RESET)$(BOLD)$(YELLOW))$(RESET)"
 	@if [ ! -f "${BACKEND_FOLDER}/node_modules/.bin/concurrently" ]; then \
 		echo "Dependencies missing — installing backend packages..."; \
 		$(MAKE) -s install-be;\
@@ -119,7 +122,7 @@ dev-be:
 
 # Starts the frontend Vite server
 dev-fe:
-	@echo "$(BOLD)--- Starting Frontend [dev] ($(YELLOW)http://localhost:5173$(RESET)$(BOLD)) ---$(RESET)"
+	@echo "$(BOLD)$(YELLOW)--- Starting Frontend [dev] ($(BLUE)http://localhost:5173$(RESET)$(BOLD)$(YELLOW))$(RESET)"
 	@if [ ! -f "${FRONTEND_FOLDER}/node_modules/.bin/vite" ]; then \
 		echo "Dependencies missing — installing frontend packages..."; \
 		$(MAKE) -s install-fe;\
@@ -128,7 +131,7 @@ dev-fe:
 
 # Forcibly stops all dev server processes
 dev-stop:
-	@echo "$(BOLD)$(YELLOW)--- Stopping all dev processes... ---$(RESET)"
+	@echo "$(BOLD)$(YELLOW)--- Stopping all dev processes...$(RESET)"
 	pkill -f "[s]erver.ts" || true
 	pkill -f "[v]ite" || true
 	sleep 1

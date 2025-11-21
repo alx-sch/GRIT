@@ -19,5 +19,8 @@ Thumbs.db
 # Environment files: You'd usually don't synch local env files but have these set by CI/CD
 # .env
 
+#Database folder
+db/
+
 # Temp NFS files
 .nfs*

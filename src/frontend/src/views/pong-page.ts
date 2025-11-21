@@ -1,6 +1,6 @@
 import { Component } from '../core/Component.js';
 
-export class GamePage extends Component {
+export class PongPage extends Component {
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
   private requestID: number = 0; // To stop the loop later
@@ -161,4 +161,4 @@ export class GamePage extends Component {
   };
 }
 
-customElements.define('game-page', GamePage);
+customElements.define('pong-page', PongPage);

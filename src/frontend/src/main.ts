@@ -1,19 +1,20 @@
-import { router, navigate } from "./controllers/router.js";
+import { router, navigate } from './controllers/router.js';
 
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener('DOMContentLoaded', () => {
   router();
 
-  document.body.addEventListener("click", (event) => {
-    const target = event.target as HTMLElement;
+  document.body.addEventListener('click', (event) => {
+    // Use closest to handle clicks on icons/text inside the link
+    const target = (event.target as HTMLElement).closest('a');
 
-    if (target.matches("a[href^='/']")) {
+    if (target && target.getAttribute('href')?.startsWith('/')) {
       event.preventDefault();
-      const url = target.getAttribute("href")!;
+      const url = target.getAttribute('href')!;
       navigate(url);
     }
   });
 
-  window.addEventListener("popstate", () => {
+  window.addEventListener('popstate', () => {
     router();
   });
 });
