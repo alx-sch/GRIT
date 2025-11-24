@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "npm run typecheck && vite build",
     "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview --port 5173"
+    "preview": "vite preview --port 5173",
+    "typecheck": "tsc --noEmit"
   },
   "author": "",
   "license": "ISC",

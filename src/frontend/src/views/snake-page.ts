@@ -97,6 +97,7 @@ export class SnakePage extends Component {
     this.createScene();
     this.setupInput();
 
+    if (!this.engine) return;
     this.engine.runRenderLoop(() => {
       if (this.scene) {
         this.updateGameLogic();
@@ -137,6 +138,8 @@ export class SnakePage extends Component {
     const B = this.B; // IMPORTANT: Use this shortcut!
 
     this.scene = new B.Scene(this.engine);
+
+    if (!this.scene) return;
     this.scene.clearColor = new B.Color3(0.05, 0.05, 0.08).toColor4();
 
     const gl = new B.GlowLayer('glow', this.scene);
@@ -193,6 +196,7 @@ export class SnakePage extends Component {
     if (this.headLight) this.headLight.dispose();
 
     this.head = B.MeshBuilder.CreateSphere('head', { diameter: 1 }, this.scene);
+    if(!this.head) return;
     this.head.position = new B.Vector3(0, 0.5, 0);
 
     const matHead = new B.StandardMaterial('matHead', this.scene);
@@ -201,6 +205,7 @@ export class SnakePage extends Component {
     this.head.material = matHead;
 
     this.headLight = new B.PointLight('headLight', new B.Vector3(0, 2, 0), this.scene);
+    if(!this.headLight) return;
     this.headLight.parent = this.head;
     this.headLight.diffuse = new B.Color3(0, 1, 0);
     this.headLight.intensity = 0.5;
