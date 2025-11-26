@@ -1,5 +1,5 @@
 {
-  "name": "Full Stack -- Trancendence",
+  "name": "Full Stack -- Transcendence",
 
   // Debian OS with Node.js/Type 20
   "image": "mcr.microsoft.com/devcontainers/javascript-node:20-bookworm",

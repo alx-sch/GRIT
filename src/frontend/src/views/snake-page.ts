@@ -189,14 +189,17 @@ export class SnakePage extends Component {
   }
 
   private createHead() {
+    // Safety check for library
     if (!this.B || !this.scene) return;
     const B = this.B;
 
+    // Clean up old objects
     if (this.head) this.head.dispose();
     if (this.headLight) this.headLight.dispose();
 
+    // Create Head Mesh
     this.head = B.MeshBuilder.CreateSphere('head', { diameter: 1 }, this.scene);
-    if(!this.head) return;
+    if (!this.head) return;
     this.head.position = new B.Vector3(0, 0.5, 0);
 
     const matHead = new B.StandardMaterial('matHead', this.scene);
@@ -204,11 +207,12 @@ export class SnakePage extends Component {
     matHead.emissiveColor = new B.Color3(1, 1, 1);
     this.head.material = matHead;
 
-    this.headLight = new B.PointLight('headLight', new B.Vector3(0, 2, 0), this.scene);
-    this.headLight.parent = this.head;
-    this.headLight.diffuse = new B.Color3(0, 1, 0);
-    this.headLight.intensity = 0.5;
-    this.headLight.range = 20;
+    const light = new B.PointLight('headLight', new B.Vector3(0, 2, 0), this.scene);
+    light.parent = this.head;
+    light.diffuse = new B.Color3(0, 1, 0);
+    light.intensity = 0.5;
+    light.range = 20;
+    this.headLight = light;
 
     this.direction = 0;
     this.lastPosition = this.head.position.clone();

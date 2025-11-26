@@ -9,15 +9,14 @@
   "scripts": {
     "dev": "cd ../.. && make dev-be",
     "prebuild": "npm run build -w utils",
-    "build": "npm run build -w user-service",
+    "build": "npm run build --workspaces --if-present",
     "typecheck": "npm run typecheck -w utils && npm run typecheck -w user-service"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
     "concurrently": "^8.2.2",
     "tsx": "^4.20.6",
-    "typescript": "^5.0.0",
-    "@types/node": "^20.0.0"
+    "typescript": "^5.0.0"
   },
   "dependencies": {
     "pino": "^10.1.0",

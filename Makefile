@@ -4,32 +4,46 @@ SRC_FOLDER :=		src
 BACKEND_FOLDER :=	$(SRC_FOLDER)/backend
 FRONTEND_FOLDER :=	$(SRC_FOLDER)/frontend
 
-# Backend services
-SERVICES_BE :=		utils \
-					user-service \
+# ---------------------------------------------------
+# CONFIGURATION
+# ---------------------------------------------------
 
-SERVICES_BE_CLR :=	bgBlue.bold \
-					bgMagenta.bold
+# Libraries (Watched in Dev, Ignored in Start)
+LIBS_BE :=			utils
+LIBS_CLR :=			bgBlue.bold
 
-# Create the comma-separated names: "utils,user-service,..."
-NAMES_ARG := $(shell echo $(SERVICES_BE) | tr ' ' ',')
+# Applications (Watched in Dev, Started in Prod)
+APPS_BE :=			user-service
+APPS_CLR :=			bgMagenta.bold
 
-# Create the comma-separated colors: "blue,magenta"
-COLORS_ARG := $(shell echo $(SERVICES_BE_CLR) | tr ' ' ',')
+# ---------------------------------------------------
+# VARIABLE GENERATION
+# ---------------------------------------------------
 
-# Create the command list: "npm run dev -w utils" "npm run dev -w user-service" ...
-CMDS_ARG := $(foreach s,$(SERVICES_BE),"npm run dev -w $(s)")
+# FOR DEV MODE
+DEV_LIST :=			$(LIBS_BE) $(APPS_BE)
+DEV_CLR :=			$(LIBS_CLR) $(APPS_CLR)
 
-DEV_BE_CMD :=	$(foreach s,$(SERVICES_BE),"npm run dev --prefix $(s)")
-BUILD_BE_CMD :=	$(foreach s,$(SERVICES_BE),"npm run build --prefix $(s)")
-START_BE_CM := $(foreach s,$(SERVICES_BE),"npm run start --prefix $(s)")
+DEV_NAMES_ARG :=	$(shell echo $(DEV_LIST) | tr ' ' ',')
+DEV_COLORS_ARG :=	$(shell echo $(DEV_CLR) | tr ' ' ',')
+
+DEV_CMD :=		$(foreach s,$(DEV_LIST),"npm run dev -w $(s)")
+
+# FOR PROD MODE
+PROD_LIST :=		$(APPS_BE)
+PROD_CLR :=			$(APPS_CLR)
+
+PROD_NAMES_ARG :=	$(shell echo $(PROD_LIST) | tr ' ' ',')
+PROD_COLORS_ARG :=	$(shell echo $(PROD_CLR) | tr ' ' ',')
+
+PROD_CMD :=			$(foreach s,$(PROD_LIST),"npm run start -w $(s)")
 
 # Docker Compose
-DEPL_PATH :=		deployment
-ENV_FILE :=			${DEPL_PATH}/.env
-DOCKER_COMP_FILE :=	${DEPL_PATH}/docker-compose.prod.yaml
+# DEPL_PATH :=		deployment
+# ENV_FILE :=			${DEPL_PATH}/.env
+# DOCKER_COMP_FILE :=	${DEPL_PATH}/docker-compose.prod.yaml
 
-DC = docker compose -f $(DOCKER_COMP_FILE) --env-file $(ENV_FILE)
+# DC = docker compose -f $(DOCKER_COMP_FILE) --env-file $(ENV_FILE)
 
 # Formatting
 RESET :=			\033[0m
@@ -111,27 +125,23 @@ dev:
 
 # Starts the backend API server
 dev-be:
-	@echo "$(BOLD)$(YELLOW)--- Starting Backend [dev] ($(BLUE)http://localhost:3000$(RESET)$(BOLD)$(YELLOW))...$(RESET)"
-	@if [ ! -f "${BACKEND_FOLDER}/node_modules/.bin/concurrently" ]; then \
+	@echo "$(BOLD)$(YELLOW)--- Starting Backend [DEV] ($(BLUE)http://localhost:3000$(RESET)$(BOLD)$(YELLOW))...$(RESET)"
+	@if [ ! -d "${BACKEND_FOLDER}/node_modules/" ]; then \
 		echo "Dependencies missing — installing backend packages..."; \
 		$(MAKE) -s install-be;\
 	fi
 	@echo "$(YELLOW)Building shared utils...$(RESET)"
 	@cd $(BACKEND_FOLDER) && npm run build -w utils
-
-	@echo "$(BOLD)$(YELLOW)--- Starting Services: [$(SERVICES_BE)]...$(RESET)"
 	
-# 2. Run concurrently with our dynamically generated arguments
 	@cd $(BACKEND_FOLDER) && npx concurrently \
-		--kill-others \
-		--names "$(NAMES_ARG)" \
-		--prefix-colors "$(COLORS_ARG)" \
-		$(CMDS_ARG)
+		--names "$(DEV_NAMES_ARG)" \
+		--prefix-colors "$(DEV_COLORS_ARG)" \
+		$(DEV_CMD)
 
 # Starts the frontend Vite server
 dev-fe:
-	@echo "$(BOLD)$(YELLOW)--- Starting Frontend [dev] ($(BLUE)http://localhost:5173$(RESET)$(BOLD)$(YELLOW))...$(RESET)"
-	@if [ ! -f "${FRONTEND_FOLDER}/node_modules/.bin/vite" ]; then \
+	@echo "$(BOLD)$(YELLOW)--- Starting Frontend [DEV] ($(BLUE)http://localhost:5173$(RESET)$(BOLD)$(YELLOW))...$(RESET)"
+	@if [ ! -d "${FRONTEND_FOLDER}/node_modules/" ]; then \
 		echo "Dependencies missing — installing frontend packages..."; \
 		$(MAKE) -s install-fe;\
 	fi
@@ -153,23 +163,22 @@ dev-stop:
 build:	build-be build-fe
 
 build-be:
-	@echo "$(BOLD)$(YELLOW)--- Building Backend Microservices...$(RESET)"
-	@if [ ! -f "${BACKEND_FOLDER}/node_modules/.bin/concurrently" ]; then \
+	@echo "$(BOLD)$(YELLOW)--- Building Backend...$(RESET)"
+	@if [ ! -d "${BACKEND_FOLDER}/node_modules/" ]; then \
 		echo "Dependencies missing — installing backend packages..."; \
 		$(MAKE) -s install-be; \
 	fi
-	cd ${BACKEND_FOLDER} && npx concurrently \
-		--names $(shell echo $(SERVICES_BE) | tr ' ' ',') \
-		--prefix-colors $(shell echo $(SERVICES_BE_CLR) | tr ' ' ',') \
-		$(BUILD_BE_CMD)
+	@cd $(BACKEND_FOLDER) && npm run build
+	@echo "$(BOLD)$(GREEN)BackendBuild Complete.$(RESET)"
 
 build-fe:
 	@echo "$(BOLD)$(YELLOW)--- Building Frontend...$(RESET)"
-	@if [ ! -f "${FRONTEND_FOLDER}/node_modules/.bin/vite" ]; then \
+	@if [ ! -d "${FRONTEND_FOLDER}/node_modules/" ]; then \
 		echo "Dependencies missing — installing frontend packages..."; \
 		$(MAKE) -s install-fe;\
 	fi
 	cd ${FRONTEND_FOLDER} && npm run build
+	@echo "$(BOLD)$(GREEN)Frontend Build Complete.$(RESET)"
 
 # 2. Starts production services using Vite Preview
 start:
@@ -178,18 +187,18 @@ start:
 	@echo "Run '$(YELLOW)make start-fe$(RESET)' in a separate terminal (frontend)."
 
 start-be:
-	@echo "$(BOLD)$(YELLOW)--- Starting Backend [prod] ($(BLUE)http://localhost:3000$(RESET)$(BOLD)$(YELLOW))...-$(RESET)"
-	@if [  ! -f "${BACKEND_FOLDER}/node_modules/.bin/concurrently" -o ! -d "${BACKEND_FOLDER}/user-service/dist" ]; then \
+	@echo "$(BOLD)$(YELLOW)--- Starting Backend [PROD] ($(BLUE)http://localhost:3000$(RESET)$(BOLD)$(YELLOW))...-$(RESET)"
+	@if [  ! -d "${BACKEND_FOLDER}/node_modules/" -o ! -d "${BACKEND_FOLDER}/user-service/dist" ]; then \
 		echo "Build missing — building backend microservice..."; \
 		$(MAKE) -s build-be; \
 	fi
 	cd ${BACKEND_FOLDER} && npx concurrently \
-		--names $(shell echo $(SERVICES_BE) | tr ' ' ',') \
-		--prefix-colors $(shell echo $(SERVICES_BE_CLR) | tr ' ' ',') \
-		$(START_BE_CM)
+		--names $(shell echo $(PROD_NAMES_ARG) | tr ' ' ',') \
+		--prefix-colors $(shell echo $(PROD_COLORS_ARG) | tr ' ' ',') \
+		$(PROD_CMD)
 
 start-fe:
-	@echo "$(BOLD)$(YELLOW)--- Starting Frontend [prod] ($(BLUE)http://localhost:5173$(RESET)$(BOLD)$(YELLOW))...$(RESET)"
+	@echo "$(BOLD)$(YELLOW)--- Starting Frontend [PROD] ($(BLUE)http://localhost:5173$(RESET)$(BOLD)$(YELLOW))...$(RESET)"
 	@if [ ! -f "${FRONTEND_FOLDER}/node_modules/.bin/vite" -o ! -d "${FRONTEND_FOLDER}/dist" ]; then \
 		echo "Build missing — building frontend..."; \
 		$(MAKE) -s build-fe; \
