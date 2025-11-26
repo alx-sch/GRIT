@@ -7,7 +7,8 @@
     "dev": "NODE_ENV=development tsx watch src/server.ts",
     "build": "tsc",
     "postbuild": "cp -r db dist/db",
-    "start": "NODE_ENV=production node dist/server.js"
+    "start": "NODE_ENV=production node dist/server.js",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "better-sqlite3": "^12.4.1",

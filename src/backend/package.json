@@ -9,7 +9,8 @@
   "scripts": {
     "dev": "cd ../.. && make dev-be",
     "prebuild": "npm run build -w utils",
-    "build": "npm run build -w user-service"
+    "build": "npm run build -w user-service",
+    "typecheck": "npm run typecheck -w utils && npm run typecheck -w user-service"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
