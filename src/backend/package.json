@@ -3,23 +3,17 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "user-service",
-    "utils"
+    "user-service"
   ],
   "scripts": {
     "dev": "cd ../.. && make dev-be",
-    "prebuild": "npm run build -w utils",
     "build": "npm run build --workspaces --if-present",
-    "typecheck": "npm run typecheck -w utils && npm run typecheck -w user-service"
+    "typecheck": "npm run typecheck -w user-service"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
     "concurrently": "^8.2.2",
     "tsx": "^4.20.6",
     "typescript": "^5.0.0"
-  },
-  "dependencies": {
-    "pino": "^10.1.0",
-    "pino-pretty": "^13.1.2"
   }
 }

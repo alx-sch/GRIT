@@ -1,14 +1,20 @@
 import pino from 'pino';
 
+// Check if we are in development mode
+const isDev = process.env.NODE_ENV === 'development';
+
 const logger = pino({
-  transport: {
-    target: 'pino-pretty',
-    options: {
-      colorize: true,
-      translateTime: 'SYS:HH:MM:ss',
-      ignore: 'pid,hostname', // Removes the noise (process ID, etc)
-    },
-  },
+  // Only use pino-pretty if in development -> human-readable logs
+  ...(isDev ? {
+      transport: {
+        target: 'pino-pretty',
+        options: {
+          colorize: true,
+          translateTime: 'SYS:HH:MM:ss',
+          ignore: 'pid,hostname',
+        },
+      }
+    } : {})
 });
 
 const info = (msg: string, data?: object) => logger.info(data, msg);

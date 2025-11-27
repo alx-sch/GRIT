@@ -13,12 +13,13 @@
   "dependencies": {
     "better-sqlite3": "^12.4.1",
     "fastify": "^5.6.2",
-    "@transcendence/utils": "*"
+    "pino": "^10.1.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^24.10.1",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "pino-pretty": "^13.1.2"
   }
 }

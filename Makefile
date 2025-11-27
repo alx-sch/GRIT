@@ -5,38 +5,23 @@ BACKEND_FOLDER :=	$(SRC_FOLDER)/backend
 FRONTEND_FOLDER :=	$(SRC_FOLDER)/frontend
 
 # ---------------------------------------------------
-# CONFIGURATION
+# LIST BACKEND SERVICES
 # ---------------------------------------------------
 
-# Libraries (Watched in Dev, Ignored in Start)
-LIBS_BE :=			utils
-LIBS_CLR :=			bgBlue.bold
+BE_APPS :=			user-service
 
-# Applications (Watched in Dev, Started in Prod)
-APPS_BE :=			user-service
-APPS_CLR :=			bgMagenta.bold
+# Logging in different colors for each backend service (using NPM 'concurrently')
+BE_APPS_CLR :=		bgBlue.bold
 
 # ---------------------------------------------------
 # VARIABLE GENERATION
 # ---------------------------------------------------
 
-# FOR DEV MODE
-DEV_LIST :=			$(LIBS_BE) $(APPS_BE)
-DEV_CLR :=			$(LIBS_CLR) $(APPS_CLR)
+BE_NAMES_ARG :=		$(shell echo $(BE_APPS) | tr ' ' ',')
+BE_COLORS_ARG :=	$(shell echo $(BE_APPS_CLR) | tr ' ' ',')
 
-DEV_NAMES_ARG :=	$(shell echo $(DEV_LIST) | tr ' ' ',')
-DEV_COLORS_ARG :=	$(shell echo $(DEV_CLR) | tr ' ' ',')
-
-DEV_CMD :=		$(foreach s,$(DEV_LIST),"npm run dev -w $(s)")
-
-# FOR PROD MODE
-PROD_LIST :=		$(APPS_BE)
-PROD_CLR :=			$(APPS_CLR)
-
-PROD_NAMES_ARG :=	$(shell echo $(PROD_LIST) | tr ' ' ',')
-PROD_COLORS_ARG :=	$(shell echo $(PROD_CLR) | tr ' ' ',')
-
-PROD_CMD :=			$(foreach s,$(PROD_LIST),"npm run start -w $(s)")
+BE_DEV_CMD :=		$(foreach s,$(BE_APPS),"npm run dev -w $(s)")
+BE_PROD_CMD :=		$(foreach s,$(BE_APPS),"npm run start -w $(s)")
 
 # Docker Compose
 # DEPL_PATH :=		deployment
@@ -61,24 +46,24 @@ RED :=				\033[91m
 install:	install-be install-fe
 
 install-be:
-	@echo "$(BOLD)$(YELLOW)--- Installing backend dependencies...$(RESET)"
+	@echo "$(BOLD)$(YELLOW)--- Installing Backend Dependencies...$(RESET)"
 	cd ${BACKEND_FOLDER} && npm install
 	@echo "$(BOLD)$(GREEN)Backend dependencies installed.$(RESET)"
 
 install-fe:
-	@echo "$(BOLD)$(YELLOW)--- Installing frontend dependencies...$(RESET)"
+	@echo "$(BOLD)$(YELLOW)--- Installing Frontend Dependencies...$(RESET)"
 	cd ${FRONTEND_FOLDER} && npm install
 	@echo "$(BOLD)$(GREEN)Frontend dependencies installed.$(RESET)"
 
 # Cleans all generated files (installed 'node_modules', 'dist' folders etc.)
-clean: dev-stop
-	@echo "$(BOLD)$(YELLOW)--- Cleaning up project...$(RESET)"
+clean:	dev-stop
+	@echo "$(BOLD)$(YELLOW)--- Cleaning Up Project...$(RESET)"
 	rm -rf ${BACKEND_FOLDER}/node_modules || true
 	rm -rf ${BACKEND_FOLDER}/dist || true
 	rm -rf ${FRONTEND_FOLDER}/node_modules || true
 	rm -rf ${FRONTEND_FOLDER}/dist || true
-	@for service in $(SERVICES_BE); do \
-		echo "Cleaning $$service..."; \
+	@for service in $(BE_APPS); do \
+		echo "Cleaning '$$service'..."; \
 		rm -rf ${BACKEND_FOLDER}/$$service/node_modules 2>/dev/null || true; \
 		rm -rf ${BACKEND_FOLDER}/$$service/dist 2>/dev/null || true; \
 		rm -rf ${BACKEND_FOLDER}/$$service/*.tsbuildinfo 2>/dev/null || true; \
@@ -87,28 +72,51 @@ clean: dev-stop
 
 # Remove all SQLite databases for all backend services
 clean-db:
-	@echo "$(BOLD)$(RED)--- Deleting all backend SQLite databases...$(RESET)"
-	@for service in $(SERVICES_BE); do \
+	@echo "$(BOLD)$(RED)--- Deleting All Databases...$(RESET)"
+	@for service in $(BE_APPS); do \
 		DB_DIR="${BACKEND_FOLDER}/$$service/db"; \
 		if [ -d $$DB_DIR ]; then \
-			echo "Deleting databases in $$service..."; \
+			echo "Deleting databases in '$$service'..."; \
 			rm -f $$DB_DIR/*.sqlite $$DB_DIR/*.sqlite-wal $$DB_DIR/*.sqlite-shm; \
 		else \
-			echo "No DB directory found for $$service"; \
+			echo "No DB directory found for '$$service'"; \
 		fi \
 	done
 	@echo "$(GREEN)$(BOLD)All databases deleted.$(RESET)"
 
+typecheck:	typecheck-be typecheck-fe
+
+typecheck-be:
+	@echo "$(BOLD)$(YELLOW)--- Typechecking Backend...$(RESET)"
+	@if [ ! -d "${BACKEND_FOLDER}/node_modules/" ]; then \
+		echo "Dependencies missing — installing backend packages..."; \
+		$(MAKE) -s install-be;\
+	fi
+	@for service in $(BE_APPS); do \
+		echo "typechecking '$$service'..."; \
+		(cd ${BACKEND_FOLDER}/$$service && npm run typecheck) || exit 1; \
+	done
+	@echo "$(BOLD)$(GREEN)Backend typecheck complete.$(RESET)"
+
+typecheck-fe:
+	@echo "$(BOLD)$(YELLOW)--- Typechecking Frontend...$(RESET)"
+	@if [ ! -d "${FRONTEND_FOLDER}/node_modules/" ]; then \
+		echo "Dependencies missing — installing frontend packages..."; \
+		$(MAKE) -s install-fe;\
+	fi
+	(cd ${FRONTEND_FOLDER} && npm run typecheck) || exit 1;
+	@echo "$(BOLD)$(GREEN)Frontend typecheck complete.$(RESET)"
+
 # 'clean' + 'clean-db' + stops all running containers and remove all Docker resources system-wide
 # Uses a temp container to delete persistent volume data (to avoid permission issues on rootless hosts)
 purge:	clean clean-db
-	@echo "$(BOLD)$(RED)☢️  SYSTEM-WIDE PURGE: Stopping ALL running Docker containers...$(RESET)"
+	@echo "$(BOLD)$(RED)☢️  SYSTEM-WIDE PURGE: Stopping All Running Docker Containers...$(RESET)"
 	@docker stop $$(docker ps -aq) 2>/dev/null || true
 	
 	@echo "$(BOLD)$(RED)💥 Deleting persistent volumes...$(RESET)"
 	@docker run --rm -v $$(pwd):/clean -w /clean alpine rm -rf $(VOLUME_FOLDER)
 	
-	@echo "$(BOLD)$(RED)🔥 Removing ALL unused Docker resources (containers, images, volumes)...$(RESET)"
+	@echo "$(BOLD)$(RED)🔥 Removing all unused Docker resources (containers, images, volumes)...$(RESET)"
 	@docker system prune -af --volumes
 	@docker system df
 	@echo "$(BOLD)$(GREEN)🗑️  All Docker resources have been purged.$(RESET)"
@@ -130,13 +138,10 @@ dev-be:
 		echo "Dependencies missing — installing backend packages..."; \
 		$(MAKE) -s install-be;\
 	fi
-	@echo "$(YELLOW)Building shared utils...$(RESET)"
-	@cd $(BACKEND_FOLDER) && npm run build -w utils
-	
 	@cd $(BACKEND_FOLDER) && npx concurrently \
-		--names "$(DEV_NAMES_ARG)" \
-		--prefix-colors "$(DEV_COLORS_ARG)" \
-		$(DEV_CMD)
+		--names "$(BE_NAMES_ARG)" \
+		--prefix-colors "$(BE_APPS_CLR)" \
+		$(BE_DEV_CMD)
 
 # Starts the frontend Vite server
 dev-fe:
@@ -149,11 +154,11 @@ dev-fe:
 
 # Forcibly stops all dev server processes
 dev-stop:
-	@echo "$(BOLD)$(YELLOW)--- Stopping all dev processes...$(RESET)"
+	@echo "$(BOLD)$(YELLOW)--- Stopping All DEV Processes...$(RESET)"
 	pkill -f "[s]erver.ts" || true
 	pkill -f "[v]ite" || true
 	sleep 1
-	@echo "$(BOLD)$(GREEN)All dev processes stopped.$(RESET)"
+	@echo "$(BOLD)$(GREEN)All DEV processes stopped.$(RESET)"
 
 ############################
 ## 📦 PRODUCTION COMMANDS ##
@@ -169,7 +174,7 @@ build-be:
 		$(MAKE) -s install-be; \
 	fi
 	@cd $(BACKEND_FOLDER) && npm run build
-	@echo "$(BOLD)$(GREEN)BackendBuild Complete.$(RESET)"
+	@echo "$(BOLD)$(GREEN)Backend build complete.$(RESET)"
 
 build-fe:
 	@echo "$(BOLD)$(YELLOW)--- Building Frontend...$(RESET)"
@@ -178,7 +183,7 @@ build-fe:
 		$(MAKE) -s install-fe;\
 	fi
 	cd ${FRONTEND_FOLDER} && npm run build
-	@echo "$(BOLD)$(GREEN)Frontend Build Complete.$(RESET)"
+	@echo "$(BOLD)$(GREEN)Frontend build complete.$(RESET)"
 
 # 2. Starts production services using Vite Preview
 start:
@@ -189,13 +194,13 @@ start:
 start-be:
 	@echo "$(BOLD)$(YELLOW)--- Starting Backend [PROD] ($(BLUE)http://localhost:3000$(RESET)$(BOLD)$(YELLOW))...-$(RESET)"
 	@if [  ! -d "${BACKEND_FOLDER}/node_modules/" -o ! -d "${BACKEND_FOLDER}/user-service/dist" ]; then \
-		echo "Build missing — building backend microservice..."; \
+		echo "Build missing — building backend microservices..."; \
 		$(MAKE) -s build-be; \
 	fi
 	cd ${BACKEND_FOLDER} && npx concurrently \
-		--names $(shell echo $(PROD_NAMES_ARG) | tr ' ' ',') \
-		--prefix-colors $(shell echo $(PROD_COLORS_ARG) | tr ' ' ',') \
-		$(PROD_CMD)
+		--names $(shell echo $(BE_NAMES_ARG) | tr ' ' ',') \
+		--prefix-colors $(shell echo $(BE_COLORS_ARG) | tr ' ' ',') \
+		$(BE_PROD_CMD)
 
 start-fe:
 	@echo "$(BOLD)$(YELLOW)--- Starting Frontend [PROD] ($(BLUE)http://localhost:5173$(RESET)$(BOLD)$(YELLOW))...$(RESET)"

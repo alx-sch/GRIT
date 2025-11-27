@@ -3,14 +3,14 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import Fastify from 'fastify';
 import Database from 'better-sqlite3';
-import { info, warn, error } from '@transcendence/utils';
+import { info, warn, error } from './utils/logger.js';
 
 // __filename and __dirname in ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const fastify = Fastify({ logger: true });
 
-const isDev = process.env.NODE_ENV !== 'production';
+const isDev = process.env.NODE_ENV === 'development';
 
 const rootDir = process.cwd();
 const dbDir = path.join(rootDir, isDev ? 'db' : 'dist/db');
