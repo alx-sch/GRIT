@@ -4,5 +4,45 @@
     // Tell TypeScript: "Here are the sub-projects you need to build."
     { "path": "./utils" },
     { "path": "./user-service" }
-  ]
+  ],
+  "compilerOptions": {
+    // File Layout
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    // Environment Settings
+    // See also https://aka.ms/tsconfig/module
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true,
+
+    // Other Outputs
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+
+    // Stricter Typechecking Options
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+
+    // Style Options
+    // "noImplicitReturns": true,
+    // "noImplicitOverride": true,
+    // "noUnusedLocals": true,
+    // "noUnusedParameters": true,
+    // "noFallthroughCasesInSwitch": true,
+    // "noPropertyAccessFromIndexSignature": true,
+
+    // Recommended Options
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
+    "noEmitOnError": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
