@@ -27,13 +27,14 @@ BE_PROD_CMD :=		$(foreach s,$(BE_APPS),"npm run start -w $(s)")
 # DOCKER COMPOSE / DEPLOYMENT
 # ---------------------------------------------------
 
-DEPL_PATH :=		deployment
-ENV_FILE :=			${DEPL_PATH}/.env
-DOCKER_COMP_FILE :=	${DEPL_PATH}/docker-compose.prod.yaml
+DEPL_PATH :=			deployment
+ENV_FILE :=				${DEPL_PATH}/.env
+DOCKER_COMP_FILE :=		${DEPL_PATH}/docker-compose.prod.yaml
 
 # Volume Management
 VOLUME_FOLDER :=		./host_volumes
-REQQUIRED_VOLUMES :=	caddy/data \
+
+REQUIRED_VOLUMES :=		caddy/data \
 						caddy/config
 
 # Docker Compose command shortcut
@@ -199,44 +200,27 @@ build-fe:
 	@echo "$(BOLD)$(GREEN)Frontend build complete.$(RESET)"
 
 # 2. Starts production services using Vite Preview
-start:
+start:	
 	@echo "$(BOLD)$(YELLOW)--- Starting Production Services via Docker Compose...$(RESET)"
+
 	@echo "$(BOLD)$(YELLOW)📁 Creating host directories for volumes...$(RESET)"
+	@for dir in $(REQUIRED_VOLUMES); do \
+		FULL_PATH="$(VOLUME_FOLDER)/$$dir"; \
+		if [ ! -d $$FULL_PATH ]; then \
+			echo "Creating directory: $$FULL_PATH"; \
+			mkdir -p $$FULL_PATH; \
+		fi \
+	done
+	@echo "$(BOLD)$(GREEN)All host volume directories are set up.$(RESET)"
 
-	@echo "$(BOLD)$(YELLOW)--- Starting Prodcution Mode...$(RESET)"
-	@echo "Run '$(YELLOW)make start-be$(RESET)' in one terminal (backend)."
-	@echo "Run '$(YELLOW)make start-fe$(RESET)' in a separate terminal (frontend)."
+	@echo "$(DC) up -d --build"
+	$(DC) up -d --build
+	@echo "$(BOLD)$(GREEN)Production services started in detached mode. Check logs with: $(YELLOW)$(DC) logs -f$(RESET)"
 
-start-be:
-	@echo "$(BOLD)$(YELLOW)--- Starting Backend [PROD] ($(BLUE)http://localhost:3000$(RESET)$(BOLD)$(YELLOW))...-$(RESET)"
-	@if [  ! -d "${BACKEND_FOLDER}/node_modules/" -o ! -d "${BACKEND_FOLDER}/user-service/dist" ]; then \
-		echo "Build missing — building backend microservices..."; \
-		$(MAKE) -s build-be; \
-	fi
-	cd ${BACKEND_FOLDER} && npx concurrently \
-		--names $(shell echo $(BE_NAMES_ARG) | tr ' ' ',') \
-		--prefix-colors $(shell echo $(BE_COLORS_ARG) | tr ' ' ',') \
-		$(BE_PROD_CMD)
-
-start-fe:
-	@echo "$(BOLD)$(YELLOW)--- Starting Frontend [PROD] ($(BLUE)http://localhost:5173$(RESET)$(BOLD)$(YELLOW))...$(RESET)"
-	@if [ ! -f "${FRONTEND_FOLDER}/node_modules/.bin/vite" -o ! -d "${FRONTEND_FOLDER}/dist" ]; then \
-		echo "Build missing — building frontend..."; \
-		$(MAKE) -s build-fe; \
-	fi
-	cd ${FRONTEND_FOLDER} && npm run preview
-
-# 	@echo "$(BOLD)$(YELLOW)--- Starting production services via Docker Compose... ---$(RESET)"
-# 	@echo "$(BOLD)$(YELLOW)📁 Creating host directories for volumes...$(RESET)"
-	mkdir -p $(VOLUME_FOLDER)/${VOLUME_CADDY_DATA}
-	mkdir -p $(VOLUME_FOLDER)/${VOLUME_CADDY_CONFIG}
-# 	@echo "$(DC)"
-# 	$(DC) up -d --build
-
-# 3. Stops production services
-# stop:
-# 	@echo "$(BOLD)$(GREEN)--- Stopping production services... ---$(RESET)"
-# 	$(DC) down
+# Stops production services
+stop:
+	@echo "$(BOLD)$(GREEN)--- Stopping production services... ---$(RESET)"
+	$(DC) down
 
 .PHONY:	install install-be install-fe \
 		clean clean-db purge \
