@@ -23,14 +23,26 @@ BE_COLORS_ARG :=	$(shell echo $(BE_APPS_CLR) | tr ' ' ',')
 BE_DEV_CMD :=		$(foreach s,$(BE_APPS),"npm run dev -w $(s)")
 BE_PROD_CMD :=		$(foreach s,$(BE_APPS),"npm run start -w $(s)")
 
-# Docker Compose
-# DEPL_PATH :=		deployment
-# ENV_FILE :=			${DEPL_PATH}/.env
-# DOCKER_COMP_FILE :=	${DEPL_PATH}/docker-compose.prod.yaml
+# ---------------------------------------------------
+# DOCKER COMPOSE / DEPLOYMENT
+# ---------------------------------------------------
 
-# DC = docker compose -f $(DOCKER_COMP_FILE) --env-file $(ENV_FILE)
+DEPL_PATH :=		deployment
+ENV_FILE :=			${DEPL_PATH}/.env
+DOCKER_COMP_FILE :=	${DEPL_PATH}/docker-compose.prod.yaml
 
-# Formatting
+# Volume Management
+VOLUME_FOLDER :=		./host_volumes
+REQQUIRED_VOLUMES :=	caddy/data \
+						caddy/config
+
+# Docker Compose command shortcut
+DC = docker compose -f $(DOCKER_COMP_FILE) --env-file $(ENV_FILE)
+
+# ---------------------------------------------------
+# FORMATTING CONSTANTS
+# ---------------------------------------------------
+
 RESET :=			\033[0m
 BOLD :=				\033[1m
 GREEN :=			\033[32m
@@ -164,7 +176,8 @@ dev-stop:
 ## 📦 PRODUCTION COMMANDS ##
 ############################
 
-# 1. Builds both apps for production, checks for required tools
+# 'build-be' + 'build-fe' are used for building locally;
+# build step otherwise handled by Docker in deployment
 build:	build-be build-fe
 
 build-be:
@@ -187,6 +200,9 @@ build-fe:
 
 # 2. Starts production services using Vite Preview
 start:
+	@echo "$(BOLD)$(YELLOW)--- Starting Production Services via Docker Compose...$(RESET)"
+	@echo "$(BOLD)$(YELLOW)📁 Creating host directories for volumes...$(RESET)"
+
 	@echo "$(BOLD)$(YELLOW)--- Starting Prodcution Mode...$(RESET)"
 	@echo "Run '$(YELLOW)make start-be$(RESET)' in one terminal (backend)."
 	@echo "Run '$(YELLOW)make start-fe$(RESET)' in a separate terminal (frontend)."
@@ -212,8 +228,8 @@ start-fe:
 
 # 	@echo "$(BOLD)$(YELLOW)--- Starting production services via Docker Compose... ---$(RESET)"
 # 	@echo "$(BOLD)$(YELLOW)📁 Creating host directories for volumes...$(RESET)"
-# 	mkdir -p $(VOLUME_FOLDER)/${VOLUME_CADDY_DATA}
-# 	mkdir -p $(VOLUME_FOLDER)/${VOLUME_CADDY_CONFIG}
+	mkdir -p $(VOLUME_FOLDER)/${VOLUME_CADDY_DATA}
+	mkdir -p $(VOLUME_FOLDER)/${VOLUME_CADDY_CONFIG}
 # 	@echo "$(DC)"
 # 	$(DC) up -d --build
 
@@ -226,4 +242,4 @@ start-fe:
 		clean clean-db purge \
 		dev dev-be dev-fe dev-stop \
 		build build-be build-fe \
-		start start-be start-fe
+		start stop
