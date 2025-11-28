@@ -22,7 +22,7 @@ BE_NAMES_ARG :=		$(shell echo $(BE_APPS) | tr ' ' ',')
 BE_COLORS_ARG :=	$(shell echo $(BE_APPS_CLR) | tr ' ' ',')
 
 BE_DEV_CMD :=		$(foreach s,$(BE_APPS),"npm run dev -w $(s)")
-BE_PROD_CMD :=		$(foreach s,$(BE_APPS),"npm run start -w $(s)")
+BE_RUN_CMD :=		$(foreach s,$(BE_APPS),"npm run start -w $(s)")
 
 # ---------------------------------------------------
 # DOCKER COMPOSE / DEPLOYMENT
@@ -259,15 +259,50 @@ build-fe:
 	cd ${FRONTEND_FOLDER} && npm run build
 	@echo "$(BOLD)$(GREEN)Frontend build complete.$(RESET)"
 
+###############################
+
+# Run / start the production-ready builds (for testing purposes)
+
+run:
+	@echo "$(BOLD)$(YELLOW)--- Running Build...$(RESET)"
+	@echo "Run '$(YELLOW)make run-be$(RESET)' in one terminal (backend)."
+	@echo "Run '$(YELLOW)make run-fe$(RESET)' in a separate terminal (frontend)."
+
+run-be:
+	@echo "$(BOLD)$(YELLOW)--- Running Backend Build ($(BLUE)http://localhost:3000$(RESET)$(BOLD)$(YELLOW))...-$(RESET)"
+	@if [  ! -d "${BACKEND_FOLDER}/node_modules/" -o ! -d "${BACKEND_FOLDER}/user-service/dist" ]; then \
+		echo "Build missing — building backend microservices..."; \
+		$(MAKE) -s build-be; \
+	fi
+	cd ${BACKEND_FOLDER} && npx concurrently \
+		--names $(shell echo $(BE_APPS) | tr ' ' ',') \
+		--prefix-colors $(shell echo $(BE_APPS_CLR) | tr ' ' ',') \
+		$(BE_RUN_CMD)
+
+run-fe:
+	@echo "$(BOLD)$(YELLOW)--- Running Frontend Build ($(BLUE)http://localhost:5173$(RESET)$(BOLD)$(YELLOW))...$(RESET)"
+	@if [ ! -f "${FRONTEND_FOLDER}/node_modules/.bin/vite" -o ! -d "${FRONTEND_FOLDER}/dist" ]; then \
+		echo "Build missing — building frontend..."; \
+		$(MAKE) -s build-fe; \
+	fi
+	cd ${FRONTEND_FOLDER} && npm run preview
+
+###############################
+
+# Starts production services via Docker Compose
 start:	
 	@echo "$(BOLD)$(YELLOW)--- Starting Production Services via Docker Compose...$(RESET)"
 	$(DC) up -d --build
 	@echo "$(BOLD)$(GREEN)Production services started in detached mode. Check logs with: $(YELLOW)$(DC) logs -f$(RESET)"
 
-# Stops production services
+# Stops production services via Docker Compose
 stop:
 	@echo "$(BOLD)$(GREEN)--- Stopping production services... ---$(RESET)"
 	$(DC) down
+
+######################
+## 📌 PHONY TARGETS ##
+######################
 
 .PHONY:	install install-be install-fe \
 		clean clean-db clean-backup \
@@ -276,4 +311,5 @@ stop:
 		dev dev-be dev-fe dev-stop \
 		vol-ls vol-inspect vol-backup vol-restore \
 		build build-be build-fe \
+		run run-be run-fe \
 		start stop
