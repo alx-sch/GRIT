@@ -1,6 +1,0 @@
-# Avoid copying huge node_module folder (if present) -> installed within the Docker image
-node_modules
-
-# Also generated within the container: Build artifacts
-dist
-storage

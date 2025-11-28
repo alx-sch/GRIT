@@ -5,11 +5,11 @@ FROM    node:20-alpine
 WORKDIR /app
 
 # Copy dependency files and install them
-COPY    package*.json tsconfig.json ./
+COPY    src/backend/user-service/package*.json src/backend/user-service/tsconfig.json ./
 RUN     npm install
 
 # Copy the rest (source files)
-COPY    . .
+COPY    src/backend/user-service/. .
 
 # Build TS to JS
 RUN     npm run build

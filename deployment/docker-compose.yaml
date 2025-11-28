@@ -1,7 +1,8 @@
 services:
-  ##########################################
+  ########################################
+  ## Caddy (Web Server / Reverse Proxy) ##
+  ########################################
 
-  # Caddy (Web Server / Reverse Proxy)
   # This is the ONLY service exposed to the internet / outside Docker network.
   # Caddy will talk to the backend and frontend services internally.
   caddy:
@@ -12,23 +13,23 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
-      - ${CADDY_CONTEXT}/Caddyfile:/etc/caddy/Caddyfile:ro
-      - ${FRONTEND_CONTEXT}/dist:/srv/dist:ro
+      - ${CADDY_PATH}/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${FRONTEND_PATH}/dist:/srv/dist:ro
     command: caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
     depends_on:
       - user-service
     networks:
       - app_network
 
-  ##########################################
-
-  # BACKEND MICROSERVICES
+  ###########################
+  ## BACKEND MICROSERVICES ##
+  ###########################
 
   # User Service (storing user information: email, username, pw, etc.)
   user-service:
     build:
-      context: ${USER_SERVICE_CONTEXT}
-      dockerfile: Dockerfile.user-service
+      context: ${PROJECT_CONTEXT}
+      dockerfile: ${USER_SERVICE_REL_PATH}/Dockerfile.user-service
     environment:
       PORT: 3000
       DB_STORAGE_PATH: ${USER_SERVICE_DB_DIR}
@@ -37,14 +38,18 @@ services:
     networks:
       - app_network
 
-##########################################
+#############
+## Volumes ##
+#############
 
 volumes:
   caddy_data: # Storage for Caddy's SSL/TLS certificates
   caddy_config: # Storage for Caddy's configuration
   user_database: # Storage for user info (SQLite database)
 
-##########################################
+##############
+## Networks ##
+##############
 
 networks:
   app_network:

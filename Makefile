@@ -55,6 +55,12 @@ YELLOW :=			\033[33m
 BLUE :=				\033[34m
 RED :=				\033[91m
 
+# ---------------------------------------------------
+# TARGETS
+# ---------------------------------------------------
+
+all:	start
+
 #########################
 ## 🛠️ UTILITY COMMANDS ##
 #########################
@@ -316,7 +322,8 @@ stop:
 ## 📌 PHONY TARGETS ##
 ######################
 
-.PHONY:	install install-be install-fe \
+.PHONY:	all \
+		install install-be install-fe \
 		clean clean-db clean-backup \
 		typecheck typecheck-be typecheck-fe \
 		purge \
