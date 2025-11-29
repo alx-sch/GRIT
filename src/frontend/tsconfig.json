@@ -10,6 +10,9 @@
     "isolatedModules": true,
     "esModuleInterop": true,
     "noEmit": true, // Because we are using vite
-    "skipLibCheck": true
-  }
+    "skipLibCheck": true,
+    "incremental": true // For faster ts->js builds (creates .tsbuildinfo files)
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "storage"]
 }

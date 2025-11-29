@@ -22,7 +22,7 @@ BE_NAMES_ARG :=		$(shell echo $(BE_APPS) | tr ' ' ',')
 BE_COLORS_ARG :=	$(shell echo $(BE_APPS_CLR) | tr ' ' ',')
 
 BE_DEV_CMD :=		$(foreach s,$(BE_APPS),"cd $(s) && npm run dev")
-BE_RUN_CMD :=		$(foreach s,$(BE_APPS),"npm run start -w $(s)")
+BE_RUN_CMD :=		$(foreach s,$(BE_APPS),"cd $(s) && npm run start")
 
 # ---------------------------------------------------
 # DOCKER COMPOSE / DEPLOYMENT
@@ -84,12 +84,12 @@ install-fe:
 # Cleans all generated files (installed 'node_modules', 'dist' folders etc.)
 clean:	dev-stop
 	@echo "$(BOLD)$(YELLOW)--- Cleaning Up Project...$(RESET)"
-	rm -rf ${BACKEND_FOLDER}/node_modules || true
-	rm -rf ${BACKEND_FOLDER}/dist || true
-	rm -rf ${FRONTEND_FOLDER}/node_modules || true
-	rm -rf ${FRONTEND_FOLDER}/dist || true
+	@echo "Cleaning frontend..."
+	@rm -rf ${FRONTEND_FOLDER}/node_modules 2>/dev/null || true;
+	@rm -rf ${FRONTEND_FOLDER}/dist 2>/dev/null || true;
+	@rm -rf ${FRONTEND_FOLDER}/*.tsbuildinfo 2>/dev/null || true;
 	@for service in $(BE_APPS); do \
-		echo "Cleaning '$$service'..."; \
+		echo "Cleaning backend '$$service'..."; \
 		rm -rf ${BACKEND_FOLDER}/$$service/node_modules 2>/dev/null || true; \
 		rm -rf ${BACKEND_FOLDER}/$$service/dist 2>/dev/null || true; \
 		rm -rf ${BACKEND_FOLDER}/$$service/*.tsbuildinfo 2>/dev/null || true; \
@@ -172,7 +172,7 @@ dev-be:
 
 # Starts the frontend Vite server
 dev-fe:
-	@echo "$(BOLD)$(YELLOW)--- Starting Frontend [DEV] ($(BLUE)http://localhost:5173$(RESET)$(BOLD)$(YELLOW))...$(RESET)"
+	@echo "$(BOLD)$(YELLOW)--- Starting Frontend [DEV]...$(RESET)"
 	@if [ ! -d "${FRONTEND_FOLDER}/node_modules/" ]; then \
 		echo "Dependencies missing — installing frontend packages..."; \
 		$(MAKE) -s install-fe;\
@@ -256,7 +256,10 @@ build-be:
 		echo "Dependencies missing — installing backend packages..."; \
 		$(MAKE) -s install-be;\
 	fi
-	@cd $(BACKEND_FOLDER) && npm run build
+	@for service in $(BE_APPS); do \
+		echo "Building '$$service'..."; \
+		(cd ${BACKEND_FOLDER}/$$service && npm run build) || exit 1; \
+	done
 	@echo "$(BOLD)$(GREEN)Backend build complete.$(RESET)"
 
 build-fe:
@@ -270,7 +273,7 @@ build-fe:
 
 ###############################
 
-# Run / start the production-ready builds (for testing purposes)
+# Run / start the production-ready builds, not in containers (for testing)
 
 run:
 	@echo "$(BOLD)$(YELLOW)--- Running Build...$(RESET)"
@@ -278,10 +281,10 @@ run:
 	@echo "Run '$(YELLOW)make run-fe$(RESET)' in a separate terminal (frontend)."
 
 run-be:
-	@echo "$(BOLD)$(YELLOW)--- Running Backend Build ($(BLUE)http://localhost:3000$(RESET)$(BOLD)$(YELLOW))...-$(RESET)"
-	@if [  ! -d "${BACKEND_FOLDER}/node_modules/" -o ! -d "${BACKEND_FOLDER}/user-service/dist" ]; then \
-		echo "Build missing — building backend microservices..."; \
-		$(MAKE) -s build-be; \
+	@echo "$(BOLD)$(YELLOW)--- Running Backend Build...$(RESET)"
+	@if [ ! -d "${BACKEND_FOLDER}/user-service/node_modules" -o ! -d "${BACKEND_FOLDER}/user-service/dist" ]; then \
+		echo "Build missing — building backend..."; \
+		$(MAKE) -s build-be;\
 	fi
 	cd ${BACKEND_FOLDER} && npx concurrently \
 		--names $(shell echo $(BE_APPS) | tr ' ' ',') \
@@ -289,8 +292,8 @@ run-be:
 		$(BE_RUN_CMD)
 
 run-fe:
-	@echo "$(BOLD)$(YELLOW)--- Running Frontend Build ($(BLUE)http://localhost:5173$(RESET)$(BOLD)$(YELLOW))...$(RESET)"
-	@if [ ! -f "${FRONTEND_FOLDER}/node_modules/.bin/vite" -o ! -d "${FRONTEND_FOLDER}/dist" ]; then \
+	@echo "$(BOLD)$(YELLOW)--- Running Frontend Build...$(RESET)"
+	@if [ ! -d "${FRONTEND_FOLDER}/node_modules/" -o ! -d "${FRONTEND_FOLDER}/dist" ]; then \
 		echo "Build missing — building frontend..."; \
 		$(MAKE) -s build-fe; \
 	fi

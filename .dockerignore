@@ -5,3 +5,4 @@ dist
 deployment
 backups
 storage
+*.tsbuildinfo
