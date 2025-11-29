@@ -9,7 +9,7 @@ BACKUP_FOLDER :=	backups
 # LIST BACKEND SERVICES
 # ---------------------------------------------------
 
-BE_APPS :=			user-service
+BE_APPS :=			user-service 
 
 # Logging in different colors for each backend service (using NPM 'concurrently')
 BE_APPS_CLR :=		bgBlue.bold
@@ -21,7 +21,7 @@ BE_APPS_CLR :=		bgBlue.bold
 BE_NAMES_ARG :=		$(shell echo $(BE_APPS) | tr ' ' ',')
 BE_COLORS_ARG :=	$(shell echo $(BE_APPS_CLR) | tr ' ' ',')
 
-BE_DEV_CMD :=		$(foreach s,$(BE_APPS),"npm run dev -w $(s)")
+BE_DEV_CMD :=		$(foreach s,$(BE_APPS),"cd $(s) && npm run dev")
 BE_RUN_CMD :=		$(foreach s,$(BE_APPS),"npm run start -w $(s)")
 
 # ---------------------------------------------------
@@ -70,7 +70,10 @@ install:	install-be install-fe
 
 install-be:
 	@echo "$(BOLD)$(YELLOW)--- Installing Backend Dependencies...$(RESET)"
-	cd ${BACKEND_FOLDER} && npm install
+	@for service in $(BE_APPS); do \
+		echo "Installing dependencies for '$$service'..."; \
+		(cd ${BACKEND_FOLDER}/$$service && npm install) || exit 1; \
+	done
 	@echo "$(BOLD)$(GREEN)Backend dependencies installed.$(RESET)"
 
 install-fe:
@@ -122,7 +125,7 @@ typecheck-be:
 		$(MAKE) -s install-be;\
 	fi
 	@for service in $(BE_APPS); do \
-		echo "typechecking '$$service'..."; \
+		echo "Typechecking '$$service'..."; \
 		(cd ${BACKEND_FOLDER}/$$service && npm run typecheck) || exit 1; \
 	done
 	@echo "$(BOLD)$(GREEN)Backend typecheck complete.$(RESET)"
@@ -157,12 +160,12 @@ dev:
 
 # Starts the backend API server
 dev-be:
-	@echo "$(BOLD)$(YELLOW)--- Starting Backend [DEV] ($(BLUE)http://localhost:3000$(RESET)$(BOLD)$(YELLOW))...$(RESET)"
+	@echo "$(BOLD)$(YELLOW)--- Starting Backend [DEV]...$(RESET)"
 	@if [ ! -d "${BACKEND_FOLDER}/node_modules/" ]; then \
 		echo "Dependencies missing — installing backend packages..."; \
 		$(MAKE) -s install-be;\
 	fi
-	@cd $(BACKEND_FOLDER) && npx concurrently \
+	@cd $(BACKEND_FOLDER) && npx -y concurrently \
 		--names "$(BE_NAMES_ARG)" \
 		--prefix-colors "$(BE_COLORS_ARG)" \
 		$(BE_DEV_CMD)
@@ -249,9 +252,9 @@ build:	build-be build-fe
 
 build-be:
 	@echo "$(BOLD)$(YELLOW)--- Building Backend...$(RESET)"
-	@if [ ! -d "${BACKEND_FOLDER}/node_modules/" ]; then \
+	@if [ ! -d "${BACKEND_PATH}/user-service/node_modules/" ]; then \
 		echo "Dependencies missing — installing backend packages..."; \
-		$(MAKE) -s install-be; \
+		$(MAKE) -s install-be;\
 	fi
 	@cd $(BACKEND_FOLDER) && npm run build
 	@echo "$(BOLD)$(GREEN)Backend build complete.$(RESET)"
