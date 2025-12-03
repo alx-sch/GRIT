@@ -303,11 +303,6 @@ run-fe:
 
 # Starts production services via Docker Compose
 start:
-	@ if [ ! -d "${FRONTEND_FOLDER}/dist" ]; then \
-		echo "$(BOLD)$(YELLOW)Frontend build not found...$(RESET)"; \
-		$(MAKE) -s build-fe; \
-	fi
-
 	@echo "$(BOLD)$(YELLOW)--- Starting Production Services via Docker Compose...$(RESET)"
 	$(DC) up -d --build
 	@echo "$(BOLD)$(GREEN)Production services started in detached mode.$(RESET)"
