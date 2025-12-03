@@ -18,8 +18,20 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
+    # Healthcheck: Verify Caddy is serving traffic on port 80
+    healthcheck:
+      # like 'curl' (but lighter weight, 'wget' also comes with Alpine)
+      # returns an exit code of 0 on success -> healthy
+      # local self-signed certificates only for 'localhost' (not '127.0.0.1')
+      # As Caddy listens to all available interfaces, 'localhost' works here.docker
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:80']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
     depends_on:
-      - user-service
+      user-service:
+        condition: service_healthy
     networks:
       - app_network
 
@@ -37,6 +49,14 @@ services:
       PORT: 3000
     volumes:
       - user_database:${USER_SERVICE_DB_DIR}
+    # Healthcheck: Verify the Fastify server is listening on port 3000
+    # 'localhost' resolves to IPv6 (::1) on Alpine, so we use '127.0.0.1' directly
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://127.0.0.1:3000/']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
     networks:
       - app_network
 

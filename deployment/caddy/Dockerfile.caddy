@@ -30,7 +30,7 @@ COPY    --from=builder /app/dist /srv/dist
 # Copy Caddyfile into container
 COPY    ${CADDY_REL_PATH}/Caddyfile /etc/caddy/Caddyfile
 
-# Make read-only
+# Make read-only (good practice)
 RUN     chmod 444 /etc/caddy/Caddyfile
 
 # Caddy image will automatically run Caddy when started, no need to specify a CMD
