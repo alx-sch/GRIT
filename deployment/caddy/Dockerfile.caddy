@@ -1,0 +1,36 @@
+# Multi-Stage Build
+# --- Stage 1: Build the Frontend ---
+FROM    node:20-alpine AS builder
+
+# Set working directory inside container
+WORKDIR /app
+
+# Copy dependency files and install them
+COPY    src/frontend/package*.json src/frontend/tsconfig.json ./
+RUN     npm install
+
+# Install dependencies
+RUN     npm install
+
+# Copy the rest (source files)
+COPY    src/frontend/ .
+
+# Build the static files (creates /app/dist)
+RUN     npm run build
+
+# --- Stage 2: Serve with Caddy ---
+# Build stage above is discarded, we only keep the final image
+FROM    caddy:2
+
+ARG     CADDY_REL_PATH
+
+# Copy static files from the 'builder' stage into Caddy's web root
+COPY    --from=builder /app/dist /srv/dist
+
+# Copy Caddyfile into container
+COPY    ${CADDY_REL_PATH}/Caddyfile /etc/caddy/Caddyfile
+
+# Make read-only (good practice)
+RUN     chmod 444 /etc/caddy/Caddyfile
+
+# Caddy image will automatically run Caddy when started, no need to specify a CMD

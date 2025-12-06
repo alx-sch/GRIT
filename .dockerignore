@@ -3,6 +3,7 @@ dist
 .git
 .env
 deployment
+!deployment/caddy/Caddyfile
 backups
 storage
 *.tsbuildinfo
