@@ -1,4 +1,4 @@
-import { Component } from '../core/Component.js';
+import { Component, html } from '../core/Component.js';
 
 export class PongPage extends Component {
   private canvas: HTMLCanvasElement | null = null;
@@ -13,12 +13,11 @@ export class PongPage extends Component {
   private com = { x: 790, y: 250, score: 0, color: 'white' };
 
   render(): string {
-    return `
-        <section class="game-container" style="display:flex; flex-direction:column; align-items:center;">
-        <h1 class="text-2xl font-bold mb-4">Pong</h1>
-        <canvas id="pongCanvas" width="800" height="600" style="background: #000; border: 2px solid #fff;"></canvas>
-        <p>Use your mouse to move the left paddle</p>
-        </section>
+    return html`
+      <section class="flex flex-col items-center gap-4">
+        <h1 class="text-2xl font-bold">Pong</h1>
+        <canvas id="pongCanvas" width="800" height="600" class="bg-black border-2 border-white shadow-lg"></canvas>
+      </section>
     `;
   }
 
