@@ -10,17 +10,6 @@
     "isolatedModules": true,
     "esModuleInterop": true,
     "noEmit": true, // Because we are using vite
-    "skipLibCheck": true,
-    "plugins": [
-      {
-        "name": "typescript-lit-html-plugin"
-      }
-    ],
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/frontend/src/*"]
-    }
-  },
-  "include": ["src/**/*", "postcss.config.cjs", "tailwind.config.js"],
-  "exclude": ["node_modules", "dist*"]
+    "skipLibCheck": true
+  }
 }

@@ -1,7 +1,8 @@
 NAME :=				grit
 
-SRC_FOLDER :=		src
 BACKUP_FOLDER :=	backups
+BACKEND_FOLDER :=	apps/backend
+FRONTEND_FOLDER :=	apps/frontend
 
 # ---------------------------------------------------
 # DOCKER COMPOSE / DEPLOYMENT
@@ -27,12 +28,12 @@ PREF_VOLUMES :=	$(foreach v,$(VOLUMES),$(NAME)_$(v))
 # FORMATTING CONSTANTS
 # ---------------------------------------------------
 
-RESET :=			\033[0m
-BOLD :=				\033[1m
-GREEN :=			\033[32m
-YELLOW :=			\033[33m
-BLUE :=				\033[34m
-RED :=				\033[91m
+RESET :=		\033[0m
+BOLD :=			\033[1m
+GREEN :=		\033[32m
+YELLOW :=		\033[33m
+BLUE :=			\033[34m
+RED :=			\033[91m
 
 # ---------------------------------------------------
 # TARGETS
@@ -47,28 +48,19 @@ all:	start
 # Installs all dependencies
 install:
 	@echo "$(BOLD)$(YELLOW)--- Installing  Dependencies...$(RESET)"
-	pnpm install
+	@pnpm install --reporter=silent
 	@echo "$(BOLD)$(GREEN)Dependencies installed.$(RESET)"
 
 # Cleans all generated files (installed 'node_modules', 'dist' folders etc.)
-clean:	dev-stop
+clean: stop-dev
 	@echo "$(BOLD)$(YELLOW)--- Cleaning Up Project...$(RESET)"
-	@rm -rf node_modules 2>/dev/null || true;
-	@rm -rf dist* || true;
+	pnpm -r exec rm -rf dist .vite .turbo node_modules
+	rm -rf node_modules
 	@echo "$(BOLD)$(GREEN)Project cleaned up.$(RESET)"
 
 # WIP: WILL EVENTUALLY HANDLE POSTGRES
 clean-db:
 	@echo "$(BOLD)$(RED)--- Deleting All Databases...$(RESET)"
-	@for service in $(BE_APPS); do \
-		DB_DIR="${BACKEND_FOLDER}/$$service/storage"; \
-		if [ -d $$DB_DIR ]; then \
-			echo "Deleting databases in '$$service'..."; \
-			rm -rf $$DB_DIR; \
-		else \
-			echo "No DB directory found for '$$service'"; \
-		fi \
-	done
 	@echo "$(GREEN)$(BOLD)All databases deleted.$(RESET)"
 
 # Removes the local backup folder
@@ -77,30 +69,18 @@ clean-backup:
 	rm -rf $(BACKUP_FOLDER)
 	@echo "$(GREEN)$(BOLD)Backup folder deleted.$(RESET)"
 
-typecheck:
+typecheck: install
 	@echo "$(BOLD)$(YELLOW)--- Typechecking...$(RESET)"
-	@if [ ! -d "node_modules/" ]; then \
-		echo "Dependencies missing — installing packages..."; \
-		$(MAKE) -s install;\
-	fi
-	pnpm run typecheck;
-	@echo "$(BOLD)$(GREEN)Backend typecheck complete.$(RESET)"
+	pnpm run -r typecheck;
+	@echo "$(BOLD)$(GREEN)Typecheck complete.$(RESET)"
 
-lint:
+lint: install
 	@echo "$(BOLD)$(YELLOW)--- Linting...$(RESET)"
-	@if [ ! -d "node_modules/" ]; then \
-		echo "Dependencies missing — installing packages..."; \
-		$(MAKE) -s install;\
-	fi
 	pnpm run lint;
 	@echo "$(BOLD)$(GREEN)Linting complete.$(RESET)"
 
-format:
+format: install
 	@echo "$(BOLD)$(YELLOW)--- Formating...$(RESET)"
-	@if [ ! -d "node_modules/" ]; then \
-		echo "Dependencies missing — installing packages..."; \
-		$(MAKE) -s install;\
-	fi
 	pnpm run format;
 	@echo "$(BOLD)$(GREEN)Formating complete.$(RESET)"
 
@@ -117,7 +97,7 @@ purge:	clean clean-db clean-backup
 ## 🚀 DEVELOPMENT COMMANDS ##
 #############################
 
-dev:
+dev: stop-dev
 	@echo "$(BOLD)$(YELLOW)--- Starting Backend & Frontend [DEV]...$(RESET)"
 	@if [ ! -d "node_modules/" ]; then \
 		echo "Dependencies missing — installing packages..."; \
@@ -125,31 +105,12 @@ dev:
 	fi
 	pnpm run dev;
 
-# Starts the backend API server
-dev-be:
-	@echo "$(BOLD)$(YELLOW)--- Starting Backend [DEV]...$(RESET)"
-	@if [ ! -d "node_modules/" ]; then \
-		echo "Dependencies missing — installing packages..."; \
-		$(MAKE) -s install;\
-	fi
-	pnpm run dev:be;
-
-# Starts the frontend Vite server
-dev-fe:
-	@echo "$(BOLD)$(YELLOW)--- Starting Frontend [DEV]...$(RESET)"
-	@if [ ! -d "node_modules/" ]; then \
-		echo "Dependencies missing — installing packages..."; \
-		$(MAKE) -s install;\
-	fi
-	pnpm run dev:fe
-
 # Forcibly stops all dev server processes
-dev-stop:
-	@echo "$(BOLD)$(YELLOW)--- Stopping All DEV Processes...$(RESET)"
-	pkill -f "[s]erver.ts" || true
-	pkill -f "[v]ite" || true
-	sleep 1
-	@echo "$(BOLD)$(GREEN)All DEV processes stopped.$(RESET)"
+stop-dev:
+	@echo "$(BOLD)$(YELLOW)--- Stopping Workspace Processes...$(RESET)"
+	-@pkill -f "pnpm" 2>/dev/null || true
+	-@pkill -f "vite" 2>/dev/null || true
+	@echo "$(BOLD)$(GREEN)Workspace processes stopped.$(RESET)"
 
 ###############################
 ## 🔍 DOCKER VOLUME COMMANDS ##
@@ -210,59 +171,23 @@ vol-restore:
 ## 📦 PRODUCTION COMMANDS ##
 ############################
 
-# 'build-be' + 'build-fe' are used for building locally;
-# build step otherwise handled by Docker in deployment
-build:
+build: install
 	@echo "$(BOLD)$(YELLOW)--- Building Backend & Fronted...$(RESET)"
-	@if [ ! -d "node_modules/" ]; then \
-		echo "Dependencies missing — installing packages..."; \
-		$(MAKE) -s install;\
-	fi
-	pnpm run build
+	pnpm -r --parallel run build
 	@echo "$(BOLD)$(GREEN)Backend & Frontend build complete.$(RESET)"
 
-build-be:
-	@echo "$(BOLD)$(YELLOW)--- Building Backend...$(RESET)"
-	@if [ ! -d "node_modules/" ]; then \
-		echo "Dependencies missing — installing packages..."; \
-		$(MAKE) -s install;\
-	fi
-	pnpm run build:be
-	@echo "$(BOLD)$(GREEN)Backend build complete.$(RESET)"
-
-build-fe:
-	@echo "$(BOLD)$(YELLOW)--- Building Frontend...$(RESET)"
-	@if [ ! -d "node_modules/" ]; then \
-		echo "Dependencies missing — installing frontend packages..."; \
-		$(MAKE) -s install;\
-	fi
-	pnpm run build:fe
-	@echo "$(BOLD)$(GREEN)Frontend build complete.$(RESET)"
-
-###############################
-
-# Run / start the production-ready builds, not in containers (for testing)
-
-run:
+run: stop-dev build
 	@echo "$(BOLD)$(YELLOW)--- Running Build...$(RESET)"
-	@echo "Run '$(YELLOW)make run-be$(RESET)' in one terminal (backend)."
-	@echo "Run '$(YELLOW)make run-fe$(RESET)' in a separate terminal (frontend)."
+	pnpm -r --parallel run start
 
-run-be:
+## run-be / run-fe can envetually be removed once there is a backend ('build' craches otherwise)
+run-be: build
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Build...$(RESET)"
-	@if [ ! -d "node_modules" -o ! -d "dist-be" ]; then \
-		echo "Build missing — building backend..."; \
-		$(MAKE) -s build-be;\
-	fi
-	pnpm run start
+	pnpm --filter @grit/backend start
 
-run-fe:
-	@echo "$(BOLD)$(YELLOW)--- Running Frontend Build...$(RESET)"
-	@if [ ! -d "node_modules" -o ! -d "dist-fe" ]; then \
-		echo "Build missing — building frontend..."; \
-		$(MAKE) -s build-fe; \
-	fi
-	pnpm run preview
+run-fe: build
+	@echo "$(BOLD)$(YELLOW)--- Running Frontend Preview...$(RESET)"
+	pnpm --filter @grit/frontend start
 
 ###############################
 
@@ -289,11 +214,11 @@ stop:
 ######################
 
 .PHONY:	all \
-		install install-be install-fe \
+		install \
 		clean clean-db clean-backup \
-		typecheck typecheck-be typecheck-fe \
+		typecheck \
 		purge \
-		dev dev-be dev-fe dev-stop \
+		dev stop-dev \
 		vol-ls vol-inspect vol-backup vol-restore \
 		build build-be build-fe \
 		run run-be run-fe \

@@ -18,7 +18,6 @@
         "ms-azuretools.vscode-docker", // Docker
         "matthewpi.caddyfile-support", // Caddyfile
         "jeff-hykin.better-dockerfile-syntax", // Dockerfile syntax
-        "runem.lit-plugin", // Lit HTML support (if needed)
         "dsznajder.es7-react-js-snippets", // React snippets
         "johnpapa.vscode-zustand-snippets" // Zustand snippets
       ]

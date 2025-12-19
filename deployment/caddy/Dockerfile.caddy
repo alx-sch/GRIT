@@ -8,16 +8,22 @@ RUN     npm install -g pnpm
 # Set working directory inside container
 WORKDIR /app
 
-# Copy dependency files and install them
-COPY    package.json pnpm-lock.yaml tsconfig.json vite.config.ts ./
+# Copy workspace configuration and lockfile
+COPY    pnpm-workspace.yaml pnpm-lock.yaml package.json tsconfig.base.json ./
 
-RUN     pnpm install
+# Copy the frontend package.json
+COPY    apps/frontend/package.json ./apps/frontend/
 
-# Copy the frontend source files
-COPY    src/ ./src/
+# Install dependencies 
+# --frozen-lockfile ensures the build is reproducible
+# --filter @grit/frontend tells pnpm to only install what the frontend needs
+RUN     pnpm install --frozen-lockfile --filter @grit/frontend...
 
-# Build the static files (creates /app/dist)
-RUN     npm run build:fe
+# Copy the frontend source code
+COPY    apps/frontend ./apps/frontend
+
+# Build the frontend
+RUN     pnpm --filter @grit/frontend build
 
 # --- Stage 2: Serve with Caddy ---
 # Build stage above is discarded, we only keep the final image
@@ -26,7 +32,7 @@ FROM    caddy:2
 ARG     CADDY_REL_PATH
 
 # Copy static files from the 'builder' stage into Caddy's web root
-COPY    --from=builder /app/dist-fe /srv/dist
+COPY    --from=builder app/apps/frontend/dist /srv/dist
 
 # Copy Caddyfile into container
 COPY    ${CADDY_REL_PATH}/Caddyfile /etc/caddy/Caddyfile
