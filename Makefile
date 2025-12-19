@@ -97,12 +97,8 @@ purge:	clean clean-db clean-backup
 ## 🚀 DEVELOPMENT COMMANDS ##
 #############################
 
-dev: stop-dev
+dev: stop-dev install
 	@echo "$(BOLD)$(YELLOW)--- Starting Backend & Frontend [DEV]...$(RESET)"
-	@if [ ! -d "node_modules/" ]; then \
-		echo "Dependencies missing — installing packages..."; \
-		$(MAKE) -s install;\
-	fi
 	pnpm run dev;
 
 # Forcibly stops all dev server processes
