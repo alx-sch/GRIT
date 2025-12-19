@@ -2,7 +2,7 @@
 README.md
 assets/
 *.tsbuildinfo
-dist/
+dist*/
 node_modules/
 
 # IDE and editor configuration

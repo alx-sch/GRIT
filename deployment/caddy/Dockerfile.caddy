@@ -2,21 +2,22 @@
 # --- Stage 1: Build the Frontend ---
 FROM    node:20-alpine AS builder
 
+# Install pnpm
+RUN     npm install -g pnpm
+
 # Set working directory inside container
 WORKDIR /app
 
 # Copy dependency files and install them
-COPY    src/frontend/package*.json src/frontend/tsconfig.json ./
-RUN     npm install
+COPY    package.json pnpm-lock.yaml tsconfig.json vite.config.ts ./
 
-# Install dependencies
-RUN     npm install
+RUN     pnpm install
 
-# Copy the rest (source files)
-COPY    src/frontend/ .
+# Copy the frontend source files
+COPY    src/ ./src/
 
 # Build the static files (creates /app/dist)
-RUN     npm run build
+RUN     npm run build:fe
 
 # --- Stage 2: Serve with Caddy ---
 # Build stage above is discarded, we only keep the final image
@@ -25,7 +26,7 @@ FROM    caddy:2
 ARG     CADDY_REL_PATH
 
 # Copy static files from the 'builder' stage into Caddy's web root
-COPY    --from=builder /app/dist /srv/dist
+COPY    --from=builder /app/dist-fe /srv/dist
 
 # Copy Caddyfile into container
 COPY    ${CADDY_REL_PATH}/Caddyfile /etc/caddy/Caddyfile

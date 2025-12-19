@@ -11,7 +11,6 @@
     "esModuleInterop": true,
     "noEmit": true, // Because we are using vite
     "skipLibCheck": true,
-    "incremental": true, // For faster ts->js builds (creates .tsbuildinfo files)
     "plugins": [
       {
         "name": "typescript-lit-html-plugin"
@@ -19,5 +18,5 @@
     ]
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "storage"]
+  "exclude": ["node_modules", "dist*"]
 }

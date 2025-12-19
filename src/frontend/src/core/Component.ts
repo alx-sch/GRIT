@@ -1,4 +1,6 @@
-export function html(strings: TemplateStringsArray, ...values: any[]) {
+type HTML_content = string | number | boolean | null | undefined;
+
+export function html(strings: TemplateStringsArray, ...values: HTML_content[]) {
   return String.raw({ raw: strings }, ...values);
 }
 
