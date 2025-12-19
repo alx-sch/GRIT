@@ -14,9 +14,14 @@
     "plugins": [
       {
         "name": "typescript-lit-html-plugin"
-      }
-    ]
+      },
+
+    ],
+	"baseUrl": ".",
+		"paths": {
+		"@/*": ["./src/frontend/src/*"]
+		}
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "postcss.config.cjs", "tailwind.config.js"],
   "exclude": ["node_modules", "dist*"]
 }
