@@ -1,8 +1,8 @@
 # Dependencies
 node_modules
-package-lock.json
+pnpm-lock.yaml
 *.tsbuildinfo
 
 # Build & Dist
 build
-dist
+dist*

@@ -1,28 +1,8 @@
-NAME :=				ft_transcendence
+NAME :=				grit
 
-SRC_FOLDER :=		src
-BACKEND_FOLDER :=	$(SRC_FOLDER)/backend
-FRONTEND_FOLDER :=	$(SRC_FOLDER)/frontend
 BACKUP_FOLDER :=	backups
-
-# ---------------------------------------------------
-# LIST BACKEND SERVICES
-# ---------------------------------------------------
-
-BE_APPS :=			user-service
-
-# Logging in different colors for each backend service (using NPM 'concurrently')
-BE_APPS_CLR :=		bgBlue.bold
-
-# ---------------------------------------------------
-# VARIABLE GENERATION
-# ---------------------------------------------------
-
-BE_NAMES_ARG :=		$(shell echo $(BE_APPS) | tr ' ' ',')
-BE_COLORS_ARG :=	$(shell echo $(BE_APPS_CLR) | tr ' ' ',')
-
-BE_DEV_CMD :=		$(foreach s,$(BE_APPS),"cd $(s) && npm run dev")
-BE_RUN_CMD :=		$(foreach s,$(BE_APPS),"cd $(s) && npm run start")
+BACKEND_FOLDER :=	apps/backend
+FRONTEND_FOLDER :=	apps/frontend
 
 # ---------------------------------------------------
 # DOCKER COMPOSE / DEPLOYMENT
@@ -48,12 +28,12 @@ PREF_VOLUMES :=	$(foreach v,$(VOLUMES),$(NAME)_$(v))
 # FORMATTING CONSTANTS
 # ---------------------------------------------------
 
-RESET :=			\033[0m
-BOLD :=				\033[1m
-GREEN :=			\033[32m
-YELLOW :=			\033[33m
-BLUE :=				\033[34m
-RED :=				\033[91m
+RESET :=		\033[0m
+BOLD :=			\033[1m
+GREEN :=		\033[32m
+YELLOW :=		\033[33m
+BLUE :=			\033[34m
+RED :=			\033[91m
 
 # ---------------------------------------------------
 # TARGETS
@@ -65,49 +45,22 @@ all:	start
 ## 🛠️ UTILITY COMMANDS ##
 #########################
 
-# Installs all dependencies for frontend and backend
-install:	install-be install-fe
-
-install-be:
-	@echo "$(BOLD)$(YELLOW)--- Installing Backend Dependencies...$(RESET)"
-	@for service in $(BE_APPS); do \
-		echo "Installing dependencies for '$$service'..."; \
-		(cd ${BACKEND_FOLDER}/$$service && npm install) || exit 1; \
-	done
-	@echo "$(BOLD)$(GREEN)Backend dependencies installed.$(RESET)"
-
-install-fe:
-	@echo "$(BOLD)$(YELLOW)--- Installing Frontend Dependencies...$(RESET)"
-	cd ${FRONTEND_FOLDER} && npm install
-	@echo "$(BOLD)$(GREEN)Frontend dependencies installed.$(RESET)"
+# Installs all dependencies
+install:
+	@echo "$(BOLD)$(YELLOW)--- Installing  Dependencies...$(RESET)"
+	@pnpm install --reporter=silent
+	@echo "$(BOLD)$(GREEN)Dependencies installed.$(RESET)"
 
 # Cleans all generated files (installed 'node_modules', 'dist' folders etc.)
-clean:	dev-stop
+clean: stop-dev
 	@echo "$(BOLD)$(YELLOW)--- Cleaning Up Project...$(RESET)"
-	@echo "Cleaning frontend..."
-	@rm -rf ${FRONTEND_FOLDER}/node_modules 2>/dev/null || true;
-	@rm -rf ${FRONTEND_FOLDER}/dist 2>/dev/null || true;
-	@rm -rf ${FRONTEND_FOLDER}/*.tsbuildinfo 2>/dev/null || true;
-	@for service in $(BE_APPS); do \
-		echo "Cleaning backend '$$service'..."; \
-		rm -rf ${BACKEND_FOLDER}/$$service/node_modules 2>/dev/null || true; \
-		rm -rf ${BACKEND_FOLDER}/$$service/dist 2>/dev/null || true; \
-		rm -rf ${BACKEND_FOLDER}/$$service/*.tsbuildinfo 2>/dev/null || true; \
-	done
+	pnpm -r exec rm -rf dist .vite .turbo node_modules
+	rm -rf node_modules
 	@echo "$(BOLD)$(GREEN)Project cleaned up.$(RESET)"
 
-# Remove all SQLite databases for all backend services
+# WIP: WILL EVENTUALLY HANDLE POSTGRES
 clean-db:
 	@echo "$(BOLD)$(RED)--- Deleting All Databases...$(RESET)"
-	@for service in $(BE_APPS); do \
-		DB_DIR="${BACKEND_FOLDER}/$$service/storage"; \
-		if [ -d $$DB_DIR ]; then \
-			echo "Deleting databases in '$$service'..."; \
-			rm -rf $$DB_DIR; \
-		else \
-			echo "No DB directory found for '$$service'"; \
-		fi \
-	done
 	@echo "$(GREEN)$(BOLD)All databases deleted.$(RESET)"
 
 # Removes the local backup folder
@@ -116,28 +69,20 @@ clean-backup:
 	rm -rf $(BACKUP_FOLDER)
 	@echo "$(GREEN)$(BOLD)Backup folder deleted.$(RESET)"
 
-typecheck:	typecheck-be typecheck-fe
+typecheck: install
+	@echo "$(BOLD)$(YELLOW)--- Typechecking...$(RESET)"
+	pnpm run -r typecheck;
+	@echo "$(BOLD)$(GREEN)Typecheck complete.$(RESET)"
 
-typecheck-be:
-	@echo "$(BOLD)$(YELLOW)--- Typechecking Backend...$(RESET)"
-	@if [ ! -d "${BACKEND_FOLDER}/node_modules/" ]; then \
-		echo "Dependencies missing — installing backend packages..."; \
-		$(MAKE) -s install-be;\
-	fi
-	@for service in $(BE_APPS); do \
-		echo "Typechecking '$$service'..."; \
-		(cd ${BACKEND_FOLDER}/$$service && npm run typecheck) || exit 1; \
-	done
-	@echo "$(BOLD)$(GREEN)Backend typecheck complete.$(RESET)"
+lint: install
+	@echo "$(BOLD)$(YELLOW)--- Linting...$(RESET)"
+	pnpm run lint;
+	@echo "$(BOLD)$(GREEN)Linting complete.$(RESET)"
 
-typecheck-fe:
-	@echo "$(BOLD)$(YELLOW)--- Typechecking Frontend...$(RESET)"
-	@if [ ! -d "${FRONTEND_FOLDER}/node_modules/" ]; then \
-		echo "Dependencies missing — installing frontend packages..."; \
-		$(MAKE) -s install-fe;\
-	fi
-	(cd ${FRONTEND_FOLDER} && npm run typecheck) || exit 1;
-	@echo "$(BOLD)$(GREEN)Frontend typecheck complete.$(RESET)"
+format: install
+	@echo "$(BOLD)$(YELLOW)--- Formating...$(RESET)"
+	pnpm run format;
+	@echo "$(BOLD)$(GREEN)Formating complete.$(RESET)"
 
 # 'clean' + 'clean-db' + stops all running containers and remove all Docker resources system-wide
 purge:	clean clean-db clean-backup
@@ -152,40 +97,16 @@ purge:	clean clean-db clean-backup
 ## 🚀 DEVELOPMENT COMMANDS ##
 #############################
 
-# Main 'dev' command. Requires two separate terminals.
-dev:
-	@echo "$(BOLD)$(YELLOW)--- Starting Development Mode...$(RESET)"
-	@echo "Run '$(YELLOW)make dev-be$(RESET)' in one terminal (backend)."
-	@echo "Run '$(YELLOW)make dev-fe$(RESET)' in a separate terminal (frontend)."
-
-# Starts the backend API server
-dev-be:
-	@echo "$(BOLD)$(YELLOW)--- Starting Backend [DEV]...$(RESET)"
-	@if [ ! -d "${BACKEND_FOLDER}/node_modules/" ]; then \
-		echo "Dependencies missing — installing backend packages..."; \
-		$(MAKE) -s install-be;\
-	fi
-	@cd $(BACKEND_FOLDER) && npx -y concurrently \
-		--names "$(BE_NAMES_ARG)" \
-		--prefix-colors "$(BE_COLORS_ARG)" \
-		$(BE_DEV_CMD)
-
-# Starts the frontend Vite server
-dev-fe:
-	@echo "$(BOLD)$(YELLOW)--- Starting Frontend [DEV]...$(RESET)"
-	@if [ ! -d "${FRONTEND_FOLDER}/node_modules/" ]; then \
-		echo "Dependencies missing — installing frontend packages..."; \
-		$(MAKE) -s install-fe;\
-	fi
-	cd ${FRONTEND_FOLDER} && npm run dev
+dev: stop-dev install
+	@echo "$(BOLD)$(YELLOW)--- Starting Backend & Frontend [DEV]...$(RESET)"
+	pnpm run dev;
 
 # Forcibly stops all dev server processes
-dev-stop:
-	@echo "$(BOLD)$(YELLOW)--- Stopping All DEV Processes...$(RESET)"
-	pkill -f "[s]erver.ts" || true
-	pkill -f "[v]ite" || true
-	sleep 1
-	@echo "$(BOLD)$(GREEN)All DEV processes stopped.$(RESET)"
+stop-dev:
+	@echo "$(BOLD)$(YELLOW)--- Stopping Workspace Processes...$(RESET)"
+	-@pkill -f "pnpm" 2>/dev/null || true
+	-@pkill -f "vite" 2>/dev/null || true
+	@echo "$(BOLD)$(GREEN)Workspace processes stopped.$(RESET)"
 
 ###############################
 ## 🔍 DOCKER VOLUME COMMANDS ##
@@ -202,7 +123,7 @@ vol-ls:
 			docker run --rm -v $$vol:/data alpine ls -R /data 2>/dev/null; \
 			echo ""; \
 		else \
-			echo "$(RED)Volume '$$vol' does not exist!$(RESET)"; \
+			echo "$(RED)Volume '$$vol' does not exist.$(RESET)"; \
 		fi; \
 	done
 
@@ -214,7 +135,7 @@ vol-inspect:
 			docker volume inspect $$vol; \
 			echo ""; \
 		else \
-			echo "$(RED)Volume '$$vol' does not exist!$(RESET)"; \
+			echo "$(RED)Volume '$$vol' does not exist.$(RESET)"; \
 		fi; \
 	done
 
@@ -226,7 +147,7 @@ vol-backup:
 			echo "Backing up '$$vol' to '$(BACKUP_FOLDER)/$$vol.tar.gz'"; \
 			docker run --rm -v $$vol:/data -v $$(pwd)/$(BACKUP_FOLDER):/backup alpine sh -c "cd /data && tar czf /backup/$$vol.tar.gz ."; \
 		else \
-			echo "$(RED)Volume '$$vol' does not exist!$(RESET)"; \
+			echo "$(RED)Volume '$$vol' does not exist.$(RESET)"; \
 		fi; \
 	done
 
@@ -238,7 +159,7 @@ vol-restore:
 			echo "Restoring '$$vol' from '$(BACKUP_FOLDER)/$$vol.tar.gz'"; \
 			docker run --rm -v $$vol:/data -v $$(pwd)/$(BACKUP_FOLDER):/backup alpine sh -c "cd /data && tar xzf /backup/$$vol.tar.gz"; \
 		else \
-			echo "$(RED)Backup for volume '$$vol' does not exist!$(RESET)"; \
+			echo "$(RED)Backup for volume '$$vol' does not exist.$(RESET)"; \
 		fi; \
 	done
 
@@ -246,58 +167,23 @@ vol-restore:
 ## 📦 PRODUCTION COMMANDS ##
 ############################
 
-# 'build-be' + 'build-fe' are used for building locally;
-# build step otherwise handled by Docker in deployment
-build:	build-be build-fe
+build: install
+	@echo "$(BOLD)$(YELLOW)--- Building Backend & Fronted...$(RESET)"
+	pnpm -r --parallel run build
+	@echo "$(BOLD)$(GREEN)Backend & Frontend build complete.$(RESET)"
 
-build-be:
-	@echo "$(BOLD)$(YELLOW)--- Building Backend...$(RESET)"
-	@if [ ! -d "${BACKEND_PATH}/user-service/node_modules/" ]; then \
-		echo "Dependencies missing — installing backend packages..."; \
-		$(MAKE) -s install-be;\
-	fi
-	@for service in $(BE_APPS); do \
-		echo "Building '$$service'..."; \
-		(cd ${BACKEND_FOLDER}/$$service && npm run build) || exit 1; \
-	done
-	@echo "$(BOLD)$(GREEN)Backend build complete.$(RESET)"
-
-build-fe:
-	@echo "$(BOLD)$(YELLOW)--- Building Frontend...$(RESET)"
-	@if [ ! -d "${FRONTEND_FOLDER}/node_modules/" ]; then \
-		echo "Dependencies missing — installing frontend packages..."; \
-		$(MAKE) -s install-fe;\
-	fi
-	cd ${FRONTEND_FOLDER} && npm run build
-	@echo "$(BOLD)$(GREEN)Frontend build complete.$(RESET)"
-
-###############################
-
-# Run / start the production-ready builds, not in containers (for testing)
-
-run:
+run: stop-dev build
 	@echo "$(BOLD)$(YELLOW)--- Running Build...$(RESET)"
-	@echo "Run '$(YELLOW)make run-be$(RESET)' in one terminal (backend)."
-	@echo "Run '$(YELLOW)make run-fe$(RESET)' in a separate terminal (frontend)."
+	pnpm -r --parallel run start
 
-run-be:
+## run-be / run-fe can envetually be removed once there is a backend ('build' craches otherwise)
+run-be: build
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Build...$(RESET)"
-	@if [ ! -d "${BACKEND_FOLDER}/user-service/node_modules" -o ! -d "${BACKEND_FOLDER}/user-service/dist" ]; then \
-		echo "Build missing — building backend..."; \
-		$(MAKE) -s build-be;\
-	fi
-	cd ${BACKEND_FOLDER} && npx -y concurrently \
-		--names $(shell echo $(BE_APPS) | tr ' ' ',') \
-		--prefix-colors $(shell echo $(BE_APPS_CLR) | tr ' ' ',') \
-		$(BE_RUN_CMD)
+	pnpm --filter @grit/backend start
 
-run-fe:
-	@echo "$(BOLD)$(YELLOW)--- Running Frontend Build...$(RESET)"
-	@if [ ! -d "${FRONTEND_FOLDER}/node_modules/" -o ! -d "${FRONTEND_FOLDER}/dist" ]; then \
-		echo "Build missing — building frontend..."; \
-		$(MAKE) -s build-fe; \
-	fi
-	cd ${FRONTEND_FOLDER} && npm run preview
+run-fe: build
+	@echo "$(BOLD)$(YELLOW)--- Running Frontend Preview...$(RESET)"
+	pnpm --filter @grit/frontend start
 
 ###############################
 
@@ -324,11 +210,11 @@ stop:
 ######################
 
 .PHONY:	all \
-		install install-be install-fe \
+		install \
 		clean clean-db clean-backup \
-		typecheck typecheck-be typecheck-fe \
+		typecheck \
 		purge \
-		dev dev-be dev-fe dev-stop \
+		dev stop-dev \
 		vol-ls vol-inspect vol-backup vol-restore \
 		build build-be build-fe \
 		run run-be run-fe \

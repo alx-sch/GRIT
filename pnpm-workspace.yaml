@@ -1,0 +1,3 @@
+# Tell pnpm where the packages live
+packages:
+  - 'apps/*'

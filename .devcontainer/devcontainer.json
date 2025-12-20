@@ -1,31 +1,29 @@
 {
-  "name": "Full Stack -- Transcendence",
+  "name": "GRIT -- the event social network webapp",
 
-  // Debian OS with Node.js/Type 20
+  // Debian OS with Node.js 20 and TypeScript
   "image": "mcr.microsoft.com/devcontainers/javascript-node:20-bookworm",
 
   "features": {
-    // This feature installs Docker inside the Codespace,
+    // Docker inside the dev container
     "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
 
   "customizations": {
     "vscode": {
       "extensions": [
-        "dbaeumer.vscode-eslint", // For TypeScript linting
-        "esbenp.prettier-vscode", // For code formatting
-        "bradlc.vscode-tailwindcss", // For Tailwind CSS
-        "ms-azuretools.vscode-docker", // Docker support
-        "matthewpi.caddyfile-support", // Caddyfile support
+        "dbaeumer.vscode-eslint", // ESLint
+        "esbenp.prettier-vscode", // Prettier
+        "bradlc.vscode-tailwindcss", // Tailwind CSS
+        "ms-azuretools.vscode-docker", // Docker
+        "matthewpi.caddyfile-support", // Caddyfile
         "jeff-hykin.better-dockerfile-syntax", // Dockerfile syntax
-        "runem.lit-plugin" // Lit HTML support
+        "dsznajder.es7-react-js-snippets", // React snippets
+        "johnpapa.vscode-zustand-snippets" // Zustand snippets
       ]
     }
   },
 
-  // 3000: Backend API
-  // 5173: The default Vite frontend port
-  "forwardPorts": [3000, 5173]
-
-  //"postCreateCommand": "sudo npm install -g npm@11.6.2 && sudo npm install -D tsx"
+  // Ports to forward: backend (3000), frontend(8080), vite (5173)
+  "forwardPorts": [3000, 5173, 8080]
 }

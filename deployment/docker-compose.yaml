@@ -1,7 +1,7 @@
 services:
-  ########################################
-  ## Caddy (Web Server / Reverse Proxy) ##
-  ########################################
+  ########################
+  ## Caddy (Web Server) ##
+  ########################
 
   # This is the ONLY service exposed to the internet / outside Docker network.
   # Caddy will talk to the backend and frontend services internally.
@@ -29,36 +29,17 @@ services:
       timeout: 5s
       retries: 5
       start_period: 5s
-    depends_on:
-      user-service:
-        condition: service_healthy
+    # depends_on:
+    #   user-service:
+    #     condition: service_healthy
     networks:
       - app_network
 
-  ###########################
-  ## BACKEND MICROSERVICES ##
-  ###########################
+  ##############
+  ## BACKEND  ##
+  ##############
 
-  # User Service (storing user information: email, username, pw, etc.)
-  user-service:
-    build:
-      context: ${PROJECT_CONTEXT}
-      dockerfile: ${USER_SERVICE_REL_PATH}/Dockerfile.user-service
-    restart: unless-stopped
-    environment:
-      PORT: 3000
-    volumes:
-      - user_database:${USER_SERVICE_DB_DIR}
-    # Healthcheck: Verify the Fastify server is listening on port 3000
-    # 'localhost' resolves to IPv6 (::1) on Alpine, so we use '127.0.0.1' directly
-    healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://127.0.0.1:3000/']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 5s
-    networks:
-      - app_network
+  # backend:
 
 #############
 ## Volumes ##
@@ -67,7 +48,7 @@ services:
 volumes:
   caddy_data: # Storage for Caddy's SSL/TLS certificates
   caddy_config: # Storage for Caddy's configuration
-  user_database: # Storage for user info (SQLite database)
+  # user_database: # Storage for user info (SQLite database)
 
 ##############
 ## Networks ##
