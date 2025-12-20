@@ -15,18 +15,19 @@ export function Navbar() {
       <NavigationMenu>
         <NavigationMenuList>
           <NavigationMenuItem>
-            <Link to="/">
-              {/* 'asChild' is crucial here for merging React Router with Shadcn styles */}
-              <NavigationMenuLink className={navigationMenuTriggerStyle()}>Home</NavigationMenuLink>
-            </Link>
+            <NavigationMenuLink asChild>
+              <Link to="/" className={navigationMenuTriggerStyle()}>
+                Home
+              </Link>
+            </NavigationMenuLink>
           </NavigationMenuItem>
 
           <NavigationMenuItem>
-            <Link to="/login">
-              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+            <NavigationMenuLink asChild>
+              <Link to="/users" className={navigationMenuTriggerStyle()}>
                 Users
-              </NavigationMenuLink>
-            </Link>
+              </Link>
+            </NavigationMenuLink>
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>

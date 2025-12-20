@@ -1,36 +1,39 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useUserStore } from '@/store/useUserStore';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export default function Users() {
   const { users, loading, error, fetchUsers } = useUserStore();
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const debouncedSearch = useDebounce(searchTerm, 500);
 
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
 
-  if (loading) {
-    return (
-      <main className="p-8">
-        <h1 className="text-2xl font-bold mb-4">Users</h1>
-        <p className="text-gray-500">Loading...</p>
-      </main>
-    );
-  }
+  const filteredUsers = users.filter((user) =>
+    user.name.toLowerCase().includes(debouncedSearch.toLowerCase())
+  );
 
-  if (error) {
-    return (
-      <main className="p-8">
-        <h1 className="text-2xl font-bold mb-4">Users</h1>
-        <p className="text-red-500">Failed to load users. Is the backend running?</p>
-      </main>
-    );
-  }
+  if (loading) return <div className="p-8">Loading...</div>;
+  if (error) return <div className="p-8 text-red-500">Error loading users.</div>;
 
   return (
     <main className="p-8">
       <h1 className="text-2xl font-bold mb-4">Users</h1>
+
+      {/* Search Input */}
+      <input
+        type="text"
+        placeholder="Search users..."
+        className="mb-6 p-2 border rounded w-full max-w-sm"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
+
       <ul className="list-disc pl-5">
-        {users.map((user) => (
+        {filteredUsers.map((user) => (
           <li key={user.id} className="mb-2">
             <span className="font-medium">{user.name}</span>
             {' – '}
@@ -38,6 +41,8 @@ export default function Users() {
           </li>
         ))}
       </ul>
+
+      {filteredUsers.length === 0 && <p className="text-gray-500">No users found.</p>}
     </main>
   );
 }

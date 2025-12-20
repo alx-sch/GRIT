@@ -11,7 +11,7 @@ function App() {
       <main className="container mx-auto py-6">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Users />} />
+          <Route path="/users" element={<Users />} />
           <Route path="/profile" element={<div>Profile Page (Todo)</div>} />
         </Routes>
       </main>
