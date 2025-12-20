@@ -7,7 +7,7 @@ import {
   navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu';
 
-export function AppNavigation() {
+export function Navbar() {
   return (
     <div className="border-b p-4 flex justify-between items-center bg-background">
       <div className="font-bold text-xl px-4">GRIT</div>
