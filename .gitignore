@@ -19,10 +19,13 @@ Thumbs.db
 *.log
 
 # Environment files: You'd usually don't synch local env files but have these set by CI/CD
-# .env
+.env
 
 #Database folder
 storage/
 
 # Temp NFS files
 .nfs*
+
+# Prisma
+/src/generated/prisma
