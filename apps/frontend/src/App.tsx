@@ -1,17 +1,17 @@
 import { Routes, Route } from 'react-router-dom';
-import { AppNavigation } from '@/components/AppNavigation';
-import Home from './views/Home';
-import Login from './views/Login';
+import { Navbar } from '@/components/layout/Navbar';
+import Home from './pages/Home';
+import Users from './pages/Users';
 
 function App() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <AppNavigation />
+      <Navbar />
 
       <main className="container mx-auto py-6">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/users" element={<Users />} />
           <Route path="/profile" element={<div>Profile Page (Todo)</div>} />
         </Routes>
       </main>
