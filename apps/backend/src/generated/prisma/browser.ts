@@ -27,3 +27,8 @@ export type User = Prisma.UserModel
  * 
  */
 export type Post = Prisma.PostModel
+/**
+ * Model Event
+ * 
+ */
+export type Event = Prisma.EventModel

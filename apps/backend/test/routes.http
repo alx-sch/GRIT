@@ -39,7 +39,7 @@ POST http://localhost:3000/posts HTTP/1.1
 content-type: application/json
 
 {
-    "title": "Hello World",
+    "title": "Another Title",
     "authorEmail": "alice@prisma.io"
 }
 ###

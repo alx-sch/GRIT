@@ -18,10 +18,19 @@ model User {
   email       String      @unique
   name        String?
   posts       Post[]
-
+  events      Event[]
 }
 
 model Post {
+  id          Int         @id @default(autoincrement())
+  title       String
+  content     String?
+  published   Boolean?    @default(false)
+  author      User?       @relation(fields: [authorId], references: [id])
+  authorId    Int?
+}
+
+model Event {
   id          Int         @id @default(autoincrement())
   title       String
   content     String?
