@@ -5,10 +5,10 @@ import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { PostModule } from './post/post.module';
 import { PrismaModule } from './prisma/prisma.module';
-import { EventsModule } from './events/events.module';
+import { EventModule } from './event/event.module';
 
 @Module({
-  imports: [ConfigModule.forRoot(), UserModule, PostModule, PrismaModule, EventsModule],
+  imports: [ConfigModule.forRoot(), UserModule, PostModule, PrismaModule, EventModule],
   controllers: [AppController],
   providers: [AppService],
 })

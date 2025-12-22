@@ -7,6 +7,39 @@ http://localhost:3000
 ###
 
 
+// ========== EVENTS ========== //
+
+// Get all events
+http://localhost:3000/events
+###
+
+// Get event by event id
+http://localhost:3000/events/1
+###
+
+// Search for event by string
+http://localhost:3000/events?search=Event
+###
+
+// Create event
+POST http://localhost:3000/events HTTP/1.1
+content-type: application/json
+
+{
+    "title": "Berghain 1",
+    "authorEmail": "alice@prisma.io"
+}
+###
+
+// Publish event
+PUT http://localhost:3000/events/2/publish
+###
+
+// Delete event
+DELETE http://localhost:3000/events/1 HTTP/1.1
+###
+
+
 // ========== USERS ========== //
 
 // Create new user
@@ -45,7 +78,7 @@ content-type: application/json
 ###
 
 // Publish post
-PUT http://localhost:3000/posts/10/publish
+PUT http://localhost:3000/posts/1/publish
 ###
 
 // Delete post
