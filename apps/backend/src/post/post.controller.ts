@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Post, Body, Put, Delete, Query } from '@nestjs/common';
-import { PostService } from './post.service.js';
-import { Post as PostModel } from '../generated/prisma/client.js';
+import { PostService } from './post.service';
+import { Post as PostModel } from '../generated/prisma/client';
 
 @Controller()
 export class PostController {

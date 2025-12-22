@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller.js';
-import { AppService } from './app.service.js';
-import { UserModule } from './user/user.module.js';
-import { PostModule } from './post/post.module.js';
-import { PrismaModule } from './prisma/prisma.module.js';
-import { EventsModule } from './events/events.module.js';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { UserModule } from './user/user.module';
+import { PostModule } from './post/post.module';
+import { PrismaModule } from './prisma/prisma.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [ConfigModule.forRoot(), UserModule, PostModule, PrismaModule, EventsModule],
