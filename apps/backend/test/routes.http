@@ -14,8 +14,8 @@ POST http://localhost:3000/users HTTP/1.1
 content-type: application/json
 
 {
-    "name": "user6",
-    "email": "user6@asdfasdfe3.de"
+    "name": "user7",
+    "email": "user7@asdfasdfe3.de"
 }
 ###
 
@@ -45,9 +45,9 @@ content-type: application/json
 ###
 
 // Publish post
-PUT http://localhost:3000/posts/5/publish
+PUT http://localhost:3000/posts/10/publish
 ###
 
 // Delete post
-DELETE http://localhost:3000/posts/5 HTTP/1.1
+DELETE http://localhost:3000/posts/4 HTTP/1.1
 ###

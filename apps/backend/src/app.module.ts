@@ -5,9 +5,10 @@ import { AppService } from './app.service.js';
 import { UserModule } from './user/user.module.js';
 import { PostModule } from './post/post.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
+import { EventsModule } from './events/events.module.js';
 
 @Module({
-  imports: [ConfigModule.forRoot(), UserModule, PostModule, PrismaModule],
+  imports: [ConfigModule.forRoot(), UserModule, PostModule, PrismaModule, EventsModule],
   controllers: [AppController],
   providers: [AppService],
 })
