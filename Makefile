@@ -48,7 +48,7 @@ all:	start
 # Installs all dependencies
 install:
 	@echo "$(BOLD)$(YELLOW)--- Installing  Dependencies...$(RESET)"
-	@pnpm install --reporter=silent
+	@pnpm install
 	@echo "$(BOLD)$(GREEN)Dependencies installed.$(RESET)"
 
 # Cleans all generated files (installed 'node_modules', 'dist' folders etc.)
@@ -117,13 +117,14 @@ stop-dev:
 #############################
 
 # Starts only the database Docker container for local development
-db: install
+db: install 
 	@echo "$(BOLD)$(YELLOW)--- Starting Postgres [DOCKER]...$(RESET)"
 	$(DC) up -d db
 	@echo "$(BOLD)$(YELLOW)--- Waiting for DB to wake up...$(RESET)"
 	@sleep 3
 	@pnpm --filter @grit/backend exec prisma db push
-	@echo "$(BOLD)$(GREEN)Database is ready and schema is synced.$(RESET)"
+	@$(MAKE) seed-db --no-print-directory
+	@echo "$(BOLD)$(GREEN)Database is ready, schema is synced and initial users are seeded.$(RESET)"
 	@echo "•   View logs:  '$(YELLOW)make logs$(RESET)'"
 	@echo "•   DB Browser: '$(YELLOW)make view-db$(RESET)'"
 

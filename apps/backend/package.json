@@ -17,7 +17,9 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -28,7 +30,7 @@
     "pg": "^8.16.3",
     "rxjs": "^7.8.1",
     "@prisma/adapter-pg": "^7.2.0",
-    "@prisma/client": "^7.2.0"
+    "@prisma/client": "^6.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
