@@ -125,8 +125,8 @@ db: install
 	@pnpm --filter @grit/backend exec prisma db push
 	@$(MAKE) seed-db --no-print-directory
 	@echo "$(BOLD)$(GREEN)Database is ready, schema is synced and initial users are seeded.$(RESET)"
-	@echo "•   View logs:  '$(YELLOW)make logs$(RESET)'"
-	@echo "•   DB Browser: '$(YELLOW)make view-db$(RESET)'"
+	@echo "•   View logs:     '$(YELLOW)make logs$(RESET)'"
+	@echo "•   View database: '$(YELLOW)make view-db$(RESET)'"
 
 # Populates the database with initial test data
 seed-db:
