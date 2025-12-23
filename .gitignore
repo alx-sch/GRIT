@@ -4,12 +4,11 @@
 # =====================
 # Build / Compiled output
 # =====================
-/dist
-/dist*
-/build
+dist/
+build/
 node_modules
 *.tsbuildinfo
-**/src/generated/client
+**/generated/client
 
 # =====================
 # Logs
@@ -25,8 +24,8 @@ lerna-debug.log*
 # =====================
 # Test / Coverage
 # =====================
-/coverage
-/.nyc_output
+coverage/
+.nyc_output/
 
 # =====================
 # Environment variables

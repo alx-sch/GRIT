@@ -2,14 +2,44 @@ name: Basic CI
 
 on:
   pull_request:
+    branches: [ main, master ] # Runs PRs targeting these branches
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # The Host Machine (hardware)
+
+    # Use the same as in devcontainer
+    container:
+      image: mcr.microsoft.com/devcontainers/javascript-node:20-bookworm
+
     steps:
+      # Download your code into the container
       - name: Check out repository
         uses: actions/checkout@v4
+
+      # Install pnpm
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      # Setup Node with pnpm caching
       - name: Install Node
         uses: actions/setup-node@v4
         with:
-          node-version: 24.1
+          node-version: 20
+          cache: 'pnpm'
+
+      # Clean install for pnpm; if lockfile needs to ne updated, fail the build
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Linting
+        run: make lint
+
+      # As generated/client is .gitignored, needed for tests (likely)
+      # - name: Generate Database Client
+      #   run: pnpm --filter @grit/backend exec prisma generate
+
+      # - name: Run Tests
+      #   run: make test
