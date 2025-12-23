@@ -2,6 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "composite": true,
+    "types": ["vitest", "node"],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "noEmit": true,

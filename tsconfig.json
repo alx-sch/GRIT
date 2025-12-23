@@ -11,5 +11,5 @@
     "isolatedModules": true
   },
   "files": [], // do not look for any source files in this root folder
-  "references": [{ "path": "./src/frontend" }, { "path": "./src/backend" }]
+  "references": [{ "path": "./apps/frontend" }, { "path": "./apps/backend" }]
 }

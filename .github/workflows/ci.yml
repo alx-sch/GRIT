@@ -33,6 +33,9 @@ jobs:
       - name: Run Linting
         run: make lint
 
+      - name: Run Typecheck
+        run: make typecheck
+
       # As generated/client is .gitignored, needed for tests (likely)
       # - name: Generate Database Client
       #   run: pnpm --filter @grit/backend exec prisma generate
