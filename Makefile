@@ -15,7 +15,7 @@ ENV_FILE :=	.env
 # sed 's/#.*//g;': Deletes anything after a # on any line (removes comments).
 # /^[[:space:]]*$$/d: Deletes lines that are empty or only contain spaces.
 # This ensures that xargs only sees only sees KEY=VALUE pairs.
-LOAD_ENV := [ -f $(ENV_FILE) ] && export $$(sed 's/\#.*//g; /^[[:space:]]*$$/d' $(ENV_FILE) | xargs) || true
+LOAD_ENV := [ -f $(ENV_FILE) ] && export $$(sed 's/\#.*//g; /^[[:space:]]*$$/d' $(ENV_FILE) | xargs)
 
 # Docker Compose command shortcut
 DC = docker compose -f $(DOCKER_COMP_FILE) -p $(NAME)
@@ -45,6 +45,26 @@ RED :=			\033[91m
 # ---------------------------------------------------
 
 all:	start
+
+#########################
+## 🛡️ VALIDATION       ##
+#########################
+
+# List required variables here
+REQUIRED_VARS :=	DATABASE_URL
+
+check-env:
+	@if [ ! -f $(ENV_FILE) ]; then \
+		echo "$(BOLD)$(RED)❌ Error: $(ENV_FILE) is missing!$(RESET)"; \
+		echo "Please create a .env file based on .env.example"; \
+		exit 1; \
+	fi
+	@for var in $(REQUIRED_VARS); do \
+		if ! grep -q "^$$var=" $(ENV_FILE) || [ -z "$$(grep "^$$var=" $(ENV_FILE) | cut -d'=' -f2-)" ]; then \
+			echo "$(BOLD)$(RED)❌ Error: $$var is not set in $(ENV_FILE)$(RESET)"; \
+			exit 1; \
+		fi \
+	done
 
 #########################
 ## 🛠️ UTILITY COMMANDS ##
@@ -142,12 +162,12 @@ dev: stop-dev install db
 	pnpm run dev;
 
 # Run only Backend with DB check; NEST clears terminal before printing
-dev-be: db
+dev-be: check-env db
 	@echo "$(BOLD)$(GREEN)--- Starting BACKEND (API) ---$(RESET)"
 	$(LOAD_ENV); pnpm --filter @grit/backend dev
 
 # Run only Frontend
-dev-fe: install-fe
+dev-fe: check-env install-fe
 	@echo "$(BOLD)$(GREEN)--- Starting FRONTEND (UI) ---$(RESET)"
 	$(LOAD_ENV); pnpm --filter @grit/frontend dev
 
@@ -257,13 +277,13 @@ build: build-be build-fe
 	@echo "$(BOLD)$(GREEN)Full project build complete.$(RESET)"
 
 # Build only Backend
-build-be: install-be
+build-be: check-env install-be
 	@echo "$(BOLD)$(YELLOW)--- Building Backend...$(RESET)"
 	$(LOAD_ENV); pnpm --filter @grit/backend run build
 	@echo "$(BOLD)$(GREEN)Backend build complete.$(RESET)"
 
 # Build only Frontend
-build-fe: install-fe
+build-fe: check-env install-fe
 	@echo "$(BOLD)$(YELLOW)--- Building Frontend...$(RESET)"
 	$(LOAD_ENV); pnpm --filter @grit/frontend run build
 	@echo "$(BOLD)$(GREEN)Frontend build complete.$(RESET)"
@@ -287,7 +307,7 @@ run-fe: build-fe
 ###############################
 
 # Starts production services via Docker Compose
-start:
+start: check-env
 	@echo "$(BOLD)$(YELLOW)--- Starting Production Services via Docker Compose...$(RESET)"
 	$(DC) up -d --build
 	@echo "$(BOLD)$(GREEN)Production services started in detached mode.$(RESET)"
@@ -305,7 +325,7 @@ stop:
 ######################
 
 .PHONY:	all \
-		install install-fe install-be \
+		install install-fe install-be check-env \
 		clean clean-db clean-backup kill-ports purge\
 		typecheck lint lint-fix format logs \
 		dev dev-be dev-fe stop-dev \
