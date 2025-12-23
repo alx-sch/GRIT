@@ -7,7 +7,7 @@
 /dist
 /dist*
 /build
-/node_modules
+node_modules
 *.tsbuildinfo
 **/src/generated/client
 
