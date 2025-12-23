@@ -78,6 +78,7 @@ clean: stop-dev
 	rm -rf $(BACKEND_FOLDER)/src/generated
 	pnpm -r exec rm -rf dist .vite .turbo node_modules
 	rm -rf node_modules
+	find . -name "*.tsbuildinfo" -type f -delete
 	@echo "$(BOLD)$(GREEN)Project cleaned up.$(RESET)"
 
 # Removes the database container and its persistent data volume
