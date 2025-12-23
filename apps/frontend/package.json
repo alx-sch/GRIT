@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "vite build",
     "start": "vite preview",
-    "lint": "eslint \"{src,apps,libs,tests}/**/*.{ts,tsx}\" --fix",
+    "lint": "eslint \"{src,tests}/**/*.{ts,tsx}\" --fix",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

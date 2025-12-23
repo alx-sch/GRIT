@@ -33,7 +33,7 @@ services:
     #   user-service:
     #     condition: service_healthy
     networks:
-      - grit_network
+      - network
 
   ##############
   ## BACKEND  ##
@@ -57,7 +57,7 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     networks:
-      - grit_network
+      - network
 
 #############
 ## Volumes ##
@@ -73,5 +73,5 @@ volumes:
 ##############
 
 networks:
-  grit_network:
+  network:
     driver: bridge

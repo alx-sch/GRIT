@@ -10,6 +10,7 @@
     "incremental": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "sourceMap": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
@@ -17,6 +18,6 @@
       "@prisma/*": ["./src/prisma/*"]
     }
   },
-  "include": ["src/**/*", "tests/**/*"],
+  "include": ["src/**/*", "tests/**/*", "prisma/**/*"],
   "exclude": ["node_modules", "dist"]
 }
