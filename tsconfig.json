@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    // Shared Rules; backend/frontend can override if needed
+    "target": "ES2023",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "isolatedModules": true
+  },
+  "files": [], // do not look for any source files in this root folder
+  "references": [{ "path": "./src/frontend" }, { "path": "./src/backend" }]
+}
