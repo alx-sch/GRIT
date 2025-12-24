@@ -3,7 +3,9 @@ import { useUserStore } from '@/store/useUserStore';
 import { useDebounce } from '@/hooks/useDebounce';
 
 export default function Users() {
-  const { users, loading, error, fetchUsers } = useUserStore();
+  const { users, loading, error } = useUserStore();
+  const fetchUsers = useUserStore((state) => state.fetchUsers);
+
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDebounce(searchTerm, 500);
 

@@ -31,10 +31,10 @@ RUNTIME_GOALS := start stop dev dev-be db clean-db seed-db run run-be purge logs
 # Check if any of the current goals are in the Runtime list
 ifneq ($(filter $(RUNTIME_GOALS),$(MAKECMDGOALS)),)
     ifeq ($(wildcard $(ENV_SECRETS)),)
-        $(error $(shell echo -e "$(RED)$(BOLD)❌ Missing $(ENV_SECRETS)!$(RESET) $(YELLOW)Please copy $(ENV_SECRETS).example to $(ENV_SECRETS)$(RESET)"))
+        $(error $(shell echo -e "$(RED)$(BOLD)❌ Missing $(ENV_SECRETS)!$(RESET)\n$(BLUE)➜ Run $(BOLD)make init$(RESET) $(BLUE)to generate it from the template$(RESET)"))
     endif
     ifeq ($(wildcard $(ENV_CONFIG)),)
-        $(error $(shell echo -e "$(RED)$(BOLD)❌ Missing $(ENV_CONFIG)!$(RESET) Please ensure it exists before running commands"))
+        $(error $(shell echo -e "$(RED)$(BOLD)❌ Missing $(ENV_CONFIG)!$(RESET)\n$(BLUE)➜ Run $(BOLD)make init$(RESET) $(BLUE)to generate default configuration$(RESET)"))
     endif
 endif
 
@@ -88,7 +88,8 @@ REQUIRED_VARS :=	POSTGRES_DB \
 check-env:
 	@for file in $(ALL_ENV_FILES); do \
 		if [ ! -f $$file ]; then \
-			echo "$(BOLD)$(RED)❌ Error: $(YELLOW)$$file$(RED) is missing!$(RESET)"; \
+			echo "$(BOLD)$(RED)❌ Environment Error: $(YELLOW)$$file$(RED) not found.$(RESET)"; \
+			echo "$(BLUE)➜ Run $(BOLD)make init$(RESET) $(BLUE)to generate missing configuration.$(RESET)"; \
 			exit 1; \
 		fi; \
 	done
@@ -111,6 +112,11 @@ check-env:
 #########################
 
 # -- INSTALLATION TARGETS --
+
+# Init needed env files if not present
+init:
+	@test -f .env.secrets || (cp .env.secrets.example .env.secrets && echo "Created .env.secrets")
+	@test -f .env.config || (echo "HTTP_PORT=8080\nHTTPS_PORT=8443\n" > .env.config && echo "Created .env.config")
 
 # Installs all dependencies
 install: install-be install-fe
@@ -366,7 +372,7 @@ stop:
 ######################
 
 .PHONY:	all \
-		install install-fe install-be check-env \
+		init install install-fe install-be check-env \
 		clean clean-db clean-backup kill-ports purge\
 		typecheck lint lint-fix format logs \
 		dev dev-be dev-fe stop-dev \

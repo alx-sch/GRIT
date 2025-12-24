@@ -31,12 +31,6 @@ export default tseslint.config(
         tsconfigRootDir: import.meta.dirname,
       },
     },
-    // -> @ts-expect-error - specific to react plugin setup in flat config
-    settings: {
-      react: {
-        version: 'detect',
-      },
-    },
     rules: {
       // Standard Strict Rules (Matches Backend)
       '@typescript-eslint/no-explicit-any': 'error',
