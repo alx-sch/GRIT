@@ -2,13 +2,18 @@
 # LOCAL PRODUCTION (visit localhost)
 # ==================================
 
-# Redirect HTTP (80) to HTTPS (8843) explicitly
-localhost:80 {
-    redir https://localhost:8443{uri} 308
+{
+    # This prevents Caddy from trying to manage its own redirects
+    auto_https disable_redirects
+}
+
+# Redirect HTTP to HTTPS explicitly
+:80 {
+    redir https://{host}:{$HTTPS_PORT}{uri} 308
 }
 
 # HTTPS Site Configuration
-localhost:8443 {
+localhost:443 {
     # Use self-signed certs for local production
     tls internal
 

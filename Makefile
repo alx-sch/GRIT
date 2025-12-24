@@ -5,31 +5,6 @@ BACKEND_FOLDER :=	apps/backend
 FRONTEND_FOLDER :=	apps/frontend
 
 # ---------------------------------------------------
-# DOCKER COMPOSE / DEPLOYMENT
-# ---------------------------------------------------
-
-DEPL_PATH :=			deployment
-DOCKER_COMP_FILE :=		${DEPL_PATH}/docker-compose.yaml
-
-ENV_FILE :=	.env
-# sed 's/#.*//g;': Deletes anything after a # on any line (removes comments).
-# /^[[:space:]]*$$/d: Deletes lines that are empty or only contain spaces.
-# This ensures that xargs only sees only sees KEY=VALUE pairs.
-LOAD_ENV := [ -f $(ENV_FILE) ] && export $$(sed 's/\#.*//g; /^[[:space:]]*$$/d' $(ENV_FILE) | xargs)
-
-# Docker Compose command shortcut
-DC = docker compose -f $(DOCKER_COMP_FILE) -p $(NAME)
-
-# ---------------------------------------------------
-# NAMED DOCKER VOLUMES
-# ---------------------------------------------------
-
-VOLUMES :=		caddy_data \
-				caddy_config
-
-PREF_VOLUMES :=	$(foreach v,$(VOLUMES),$(NAME)_$(v))
-
-# ---------------------------------------------------
 # FORMATTING CONSTANTS
 # ---------------------------------------------------
 
@@ -41,6 +16,49 @@ BLUE :=			\033[34m
 RED :=			\033[91m
 
 # ---------------------------------------------------
+# DOCKER COMPOSE / DEPLOYMENT
+# ---------------------------------------------------
+
+DEPL_PATH :=			deployment
+DOCKER_COMP_FILE :=		${DEPL_PATH}/docker-compose.yaml
+
+ENV_SECRETS :=			.env.secrets
+ENV_CONFIG :=			.env.config
+
+# Check if .env.secrets exists
+ifeq ($(wildcard $(ENV_SECRETS)),)
+    $(error $(shell echo -e "$(RED)$(BOLD)❌ Missing $(ENV_SECRETS)!$(RESET) $(YELLOW)Please copy $(ENV_SECRETS).example to $(ENV_SECRETS)$(RESET)"))
+endif
+
+# Check if .env.config exists
+ifeq ($(wildcard $(ENV_CONFIG)),)
+   $(error $(shell echo -e "$(RED)$(BOLD)❌ Missing $(ENV_SECRETS)!$(RESET) Please ensure it exists before running commands)
+endif
+
+include $(ENV_SECRETS)
+include $(ENV_CONFIG)
+
+# Default values if not set in .env files
+BE_PORT ?= 3000
+DB_PORT ?= 5432
+FE_PORT ?= 5173
+
+# Export all included variables to any shell commands called by make
+export
+
+# Docker Compose command shortcut
+DC = docker compose -f $(DOCKER_COMP_FILE) -p $(NAME) --env-file $(ENV_SECRETS) --env-file $(ENV_CONFIG)
+
+# ---------------------------------------------------
+# NAMED DOCKER VOLUMES
+# ---------------------------------------------------
+
+VOLUMES :=		caddy_data \
+				caddy_config
+
+PREF_VOLUMES :=	$(foreach v,$(VOLUMES),$(NAME)_$(v))
+
+# ---------------------------------------------------
 # TARGETS
 # ---------------------------------------------------
 
@@ -50,20 +68,34 @@ all:	start
 ## 🛡️ VALIDATION       ##
 #########################
 
+ALL_ENV_FILES :=	$(ENV_SECRETS) $(ENV_CONFIG)
+
 # List required variables here
-REQUIRED_VARS :=	DATABASE_URL
+REQUIRED_VARS :=	POSTGRES_DB \
+					POSTGRES_USER \
+					POSTGRES_PASSWORD \
+					HTTP_PORT \
+					HTTPS_PORT
 
 check-env:
-	@if [ ! -f $(ENV_FILE) ]; then \
-		echo "$(BOLD)$(RED)❌ Error: $(ENV_FILE) is missing!$(RESET)"; \
-		echo "Please create a .env file based on .env.example"; \
-		exit 1; \
-	fi
-	@for var in $(REQUIRED_VARS); do \
-		if ! grep -q "^$$var=" $(ENV_FILE) || [ -z "$$(grep "^$$var=" $(ENV_FILE) | cut -d'=' -f2-)" ]; then \
-			echo "$(BOLD)$(RED)❌ Error: $$var is not set in $(ENV_FILE)$(RESET)"; \
+	@for file in $(ALL_ENV_FILES); do \
+		if [ ! -f $$file ]; then \
+			echo "$(BOLD)$(RED)❌ Error: $(YELLOW)$$file$(RED) is missing!$(RESET)"; \
 			exit 1; \
-		fi \
+		fi; \
+	done
+	@for var in $(REQUIRED_VARS); do \
+		found=0; \
+		for file in $(ALL_ENV_FILES); do \
+			if grep -q "^$$var=" $$file && [ -n "$$(grep "^$$var=" $$file | cut -d'=' -f2-)" ]; then \
+				found=1; \
+				break; \
+			fi; \
+		done; \
+		if [ $$found -eq 0 ]; then \
+			echo "$(BOLD)$(RED)❌ Error: $(YELLOW)$$var$(RED) is not set in any env file ($(ALL_ENV_FILES))$(RESET)"; \
+			exit 1; \
+		fi; \
 	done
 
 #########################
@@ -80,7 +112,7 @@ install: install-be install-fe
 install-be:
 	@echo "$(BOLD)$(YELLOW)--- Installing Backend Dependencies...$(RESET)"
 	@pnpm --filter @grit/backend install
-	@$(LOAD_ENV); pnpm --filter @grit/backend exec prisma generate
+	@pnpm --filter @grit/backend exec prisma generate
 	@echo "$(BOLD)$(GREEN)Backend dependencies installed.$(RESET)"
 
 # Installs only Frontend dependencies
@@ -91,11 +123,12 @@ install-fe:
 
 # -- CLEANUP TARGETS --
 
-# Clear (ghost) processes on backend (3000) and frontend (5173) ports
+# Clear (ghost) processes on ports
 kill-ports:
-	@echo "$(BOLD)$(YELLOW)--- Clearing Ghost Processes on Ports 3000 & 5173...$(RESET)"
-	-@lsof -t -i:3000 | xargs -r kill -9 2>/dev/null || true
-	-@lsof -t -i:5173 | xargs -r kill -9 2>/dev/null || true
+	@echo "$(BOLD)$(YELLOW)--- Clearing Ports: ${BE_PORT}, ${DB_PORT}, ${FE_PORT}...$(RESET)"
+	@lsof -t -i:$${BE_PORT} | xargs -r kill -9 || true
+	@lsof -t -i:$${DB_PORT} | xargs -r kill -9 || true
+	@lsof -t -i:$${FE_PORT} | xargs -r kill -9 || true
 
 # Cleans all generated files (installed 'node_modules', 'dist' folders etc.)
 clean: stop-dev
@@ -136,12 +169,12 @@ typecheck: install
 
 lint: install
 	@echo "$(BOLD)$(YELLOW)--- Linting...$(RESET)"
-	@$(LOAD_ENV); pnpm run lint;
+	@pnpm run lint;
 	@echo "$(BOLD)$(GREEN)Linting complete.$(RESET)"
 
 lint-fix: install
 	@echo "$(BOLD)$(YELLOW)--- Linting...$(RESET)"
-	@$(LOAD_ENV); pnpm run lint:fix;
+	@pnpm run lint:fix;
 	@echo "$(BOLD)$(GREEN)Linting complete.$(RESET)"
 
 format: install
@@ -164,12 +197,12 @@ dev: stop-dev install db
 # Run only Backend with DB check; NEST clears terminal before printing
 dev-be: check-env db
 	@echo "$(BOLD)$(GREEN)--- Starting BACKEND (API) ---$(RESET)"
-	$(LOAD_ENV); pnpm --filter @grit/backend dev
+	pnpm --filter @grit/backend dev
 
 # Run only Frontend
 dev-fe: check-env install-fe
 	@echo "$(BOLD)$(GREEN)--- Starting FRONTEND (UI) ---$(RESET)"
-	$(LOAD_ENV); pnpm --filter @grit/frontend dev
+	pnpm --filter @grit/frontend dev
 
 # Forcibly stops all dev server processes
 stop-dev:
@@ -190,7 +223,7 @@ db: install-be
 	$(DC) up -d db
 	@echo "$(BOLD)$(YELLOW)--- Waiting for DB to wake up...$(RESET)"
 	@sleep 3
-	@$(LOAD_ENV); pnpm --filter @grit/backend exec prisma db push
+	@pnpm --filter @grit/backend exec prisma db push
 	@$(MAKE) seed-db --no-print-directory
 	@echo "$(BOLD)$(GREEN)Database is ready, schema is synced and initial users are seeded.$(RESET)"
 	@echo "•   View logs (db): '$(YELLOW)make logs$(RESET)'"
@@ -199,12 +232,12 @@ db: install-be
 # Populates the database with initial test data
 seed-db:
 	@echo "$(BOLD)$(YELLOW)--- Seeding Database...$(RESET)"
-	@$(LOAD_ENV); pnpm --filter @grit/backend exec prisma db seed
+	@pnpm --filter @grit/backend exec prisma db seed
 
 # Opens the Prisma Studio GUI for database management
 view-db:
 	@echo "$(BOLD)$(YELLOW)--- Opening Prisma Studio...$(RESET)"
-	@$(LOAD_ENV); cd $(BACKEND_FOLDER) && npx prisma studio
+	@cd $(BACKEND_FOLDER) && npx prisma studio
 
 # Stops the database container
 stop-db:
@@ -279,13 +312,13 @@ build: build-be build-fe
 # Build only Backend
 build-be: check-env install-be
 	@echo "$(BOLD)$(YELLOW)--- Building Backend...$(RESET)"
-	$(LOAD_ENV); pnpm --filter @grit/backend run build
+	pnpm --filter @grit/backend run build
 	@echo "$(BOLD)$(GREEN)Backend build complete.$(RESET)"
 
 # Build only Frontend
 build-fe: check-env install-fe
 	@echo "$(BOLD)$(YELLOW)--- Building Frontend...$(RESET)"
-	$(LOAD_ENV); pnpm --filter @grit/frontend run build
+	pnpm --filter @grit/frontend run build
 	@echo "$(BOLD)$(GREEN)Frontend build complete.$(RESET)"
 
 # -- RUN TARGETS (PROD MODE) --
@@ -297,12 +330,12 @@ run: stop-dev build
 # Runs only the compiled Backend (dist/main.js)
 run-be: build-be
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Build...$(RESET)"
-	$(LOAD_ENV); pnpm --filter @grit/backend start
+	pnpm --filter @grit/backend start
 
 # Runs only the Frontend preview (dist/index.html)
 run-fe: build-fe
 	@echo "$(BOLD)$(YELLOW)--- Running Frontend Preview...$(RESET)"
-	$(LOAD_ENV); pnpm --filter @grit/frontend start
+	pnpm --filter @grit/frontend start
 
 ###############################
 
@@ -312,7 +345,7 @@ start: check-env
 	$(DC) up -d --build
 	@echo "$(BOLD)$(GREEN)Production services started in detached mode.$(RESET)"
 	@echo "•   View live logs: '$(YELLOW)make logs$(RESET)'"
-	@echo "•   View app:       '$(YELLOW)https://localhost:8443$(RESET)' / '$(YELLOW)http://localhost:8080$(RESET)'"
+	@echo "•   View app:       '$(YELLOW)https://localhost:$(HTTPS_PORT)$(RESET)' / '$(YELLOW)http://localhost:$(HTTP_PORT)$(RESET)'"
 
 # Stops production services via Docker Compose
 stop:

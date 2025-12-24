@@ -11,6 +11,16 @@ node_modules
 **/generated/client
 
 # =====================
+# Environment variables
+# =====================
+# Ignore the actual secrets file
+.env*
+
+# DO NOT ignore these env files
+!.env.config
+!.env.secrets.example
+
+# =====================
 # Logs
 # =====================
 logs

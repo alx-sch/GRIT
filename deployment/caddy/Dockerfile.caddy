@@ -29,13 +29,11 @@ RUN     pnpm --filter @grit/frontend build
 # Build stage above is discarded, we only keep the final image
 FROM    caddy:2
 
-ARG     CADDY_REL_PATH
-
 # Copy static files from the 'builder' stage into Caddy's web root
 COPY    --from=builder app/apps/frontend/dist /srv/dist
 
 # Copy Caddyfile into container
-COPY    ${CADDY_REL_PATH}/Caddyfile /etc/caddy/Caddyfile
+COPY    deployment/caddy/Caddyfile /etc/caddy/Caddyfile
 
 # Make read-only (good practice)
 RUN     chmod 444 /etc/caddy/Caddyfile
