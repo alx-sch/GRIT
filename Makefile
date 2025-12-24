@@ -44,12 +44,12 @@ endif
 
 ifeq ($(SHOULD_CHECK),1)
     ifeq ($(wildcard $(ENV_SECRETS)),)
-        $(shell printf "$(RED)$(BOLD)❌ Missing $(ENV_SECRETS)!$(RESET)\n$(BLUE)➜ Run $(BOLD)make init-env$(RESET) $(BLUE)to restore missing environment files.$(RESET)\n" >&2)
+        $(shell printf "$(RED)$(BOLD)❌ Missing $(ENV_SECRETS)!$(RESET)\n$(BLUE)➜ Run $(BOLD)make init-env$(RESET) $(BLUE)to create/restore missing env files.$(RESET)\n" >&2)
         $(error )
     endif
 
     ifeq ($(wildcard $(ENV_CONFIG)),)
-        $(shell printf "$(RED)$(BOLD)❌ Missing $(ENV_CONFIG)!$(RESET)\n$(BLUE)➜ Run $(BOLD)make init-env$(RESET) $(BLUE)to restore missing environment files.$(RESET)\n" >&2)
+        $(shell printf "$(RED)$(BOLD)❌ Missing $(ENV_CONFIG)!$(RESET)\n$(BLUE)➜ Run $(BOLD)make init-env$(RESET) $(BLUE)to create/restore missing env files.$(RESET)\n" >&2)
         $(error )
     endif
 endif
@@ -110,7 +110,7 @@ check-env:
 		done; \
 		if [ $$found -eq 0 ]; then \
 			echo "$(BOLD)$(RED)❌ Error: $(YELLOW)$$var$(RED) is not set in any env file ($(ALL_ENV_FILES))!$(RESET)"; \
-			echo "$(BLUE)➜ Run $(BOLD)make init-env$(RESET) $(BLUE)or check your .env files manually.$(RESET)"; \
+			echo "$(BLUE)➜ Run $(BOLD)make init-env$(RESET) $(BLUE)or check your env files manually.$(RESET)"; \
 			exit 1; \
 		fi; \
 	done
