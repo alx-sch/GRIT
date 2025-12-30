@@ -15,28 +15,28 @@ async function main() {
 
   // upsert: "Update or Insert" - prevents errors if the user already exists
   const user1 = await prisma.user.upsert({
-    where: { email: 'alice@grit.com' },
+    where: { email: 'alice@example.com' },
     update: {},
     create: {
-      email: 'alice@grit.com',
+      email: 'alice@example.com',
       name: 'Alice',
     },
   });
 
   const user2 = await prisma.user.upsert({
-    where: { email: 'bob@google.com' },
+    where: { email: 'bob@example.com' },
     update: {},
     create: {
-      email: 'bob@google.com',
+      email: 'bob@example.com',
       name: 'Bob',
     },
   });
 
   const user3 = await prisma.user.upsert({
-    where: { email: 'Cindy@yahoo.com' },
+    where: { email: 'Cindy@example.com' },
     update: {},
     create: {
-      email: 'Cindy@yahoo.com',
+      email: 'Cindy@example.com',
       name: 'Cindy',
     },
   });
