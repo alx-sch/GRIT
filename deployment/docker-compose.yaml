@@ -7,14 +7,14 @@ services:
   # Caddy will talk to the backend and frontend services internally.
   caddy:
     build:
-      context: ${PROJECT_CONTEXT}
-      dockerfile: ${CADDY_REL_PATH}/Dockerfile.caddy
-      args:
-        CADDY_REL_PATH: ${CADDY_REL_PATH}
+      context: ..
+      dockerfile: deployment/caddy/Dockerfile.caddy
     restart: unless-stopped
     ports:
       - '${HTTP_PORT}:80'
-      - '${HTTPS_PORT}:8443'
+      - '${HTTPS_PORT}:443'
+    environment:
+      - HTTPS_PORT=${HTTPS_PORT}
     volumes:
       - caddy_data:/data
       - caddy_config:/config

@@ -3,13 +3,15 @@ import { useUserStore } from '@/store/useUserStore';
 import { useDebounce } from '@/hooks/useDebounce';
 
 export default function Users() {
-  const { users, loading, error, fetchUsers } = useUserStore();
+  const { users, loading, error } = useUserStore();
+  const fetchUsers = useUserStore((state) => state.fetchUsers);
+
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDebounce(searchTerm, 500);
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    void fetchUsers();
+  }, [fetchUsers]);
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => user.name.toLowerCase().includes(debouncedSearch.toLowerCase()));
@@ -44,7 +46,9 @@ export default function Users() {
         placeholder="Search users..."
         className="mb-6 p-2 border rounded w-full max-w-sm"
         value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
+        onChange={(e) => {
+          setSearchTerm(e.target.value);
+        }}
       />
 
       <ul className="list-disc pl-5">

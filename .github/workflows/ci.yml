@@ -2,7 +2,7 @@ name: Basic CI
 
 on:
   pull_request:
-    branches: [ main, master ] # Runs PRs targeting these branches
+    branches: [main, master] # Runs PRs targeting these branches
 
 jobs:
   test:

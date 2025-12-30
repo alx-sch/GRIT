@@ -7,6 +7,7 @@
     "build": "pnpm -r build",
     "format": "prettier --write .",
     "lint": "pnpm -r lint",
+    "lint:fix": "pnpm -r lint:fix",
     "typecheck": "pnpm -r typecheck",
     "preinstall": "npx only-allow pnpm"
   },

@@ -16,13 +16,19 @@ const api = axios.create({
 // Response Interceptor
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      console.warn('Unauthorized! Redirecting to login...');
-      // TODO: here we could add logic to redirect to login page
+  (error: unknown) => {
+    // Use Type Guard to safely access .response
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 401) {
+        console.warn('Unauthorized! Redirecting to login...');
+      }
+      // Rejecting with an AxiosError is allowed because it extends Error
+      return Promise.reject(error);
     }
-    // TODO: Add another global error handling logic if needed
-    return Promise.reject(error);
+
+    // Fallback for non-Axios errors to satisfy rejection rule
+    const finalError = error instanceof Error ? error : new Error(String(error));
+    return Promise.reject(finalError);
   }
 );
 
