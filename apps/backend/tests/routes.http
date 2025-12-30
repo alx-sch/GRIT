@@ -27,7 +27,7 @@ http://localhost:3000/events
 ###
 
 // Get event by event id
-http://localhost:3000/events/1
+http://localhost:3000/events/3
 ###
 
 // Search for event by string
@@ -47,8 +47,12 @@ content-type: application/json
 }
 ###
 
-// Publish event; check for ID returned above in event creation!
-PUT http://localhost:3000/events/4/publish
+PATCH http://localhost:3000/events/2 HTTP/1.1
+content-type: application/json
+
+{
+    "endAt": "2025-01-02T02:00:33Z"
+}
 ###
 
 // Delete event

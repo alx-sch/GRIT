@@ -5,8 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
   output   = "../src/generated/client"
+  provider = "prisma-client"
 }
 
 datasource db {
@@ -15,32 +15,32 @@ datasource db {
 
 model Post {
   id          Int         @id @default(autoincrement())
-  createdAt   DateTime    @default(now())
-  title       String
-  content     String?
-  published   Boolean?    @default(false)
   author      User?       @relation(fields: [authorId], references: [id])
   authorId    Int?
+  content     String?
+  createdAt   DateTime    @default(now())
+  published   Boolean?    @default(false)
+  title       String
 }
 
 model User {
   id          Int         @id @default(autoincrement())
   createdAt   DateTime    @default(now())
   email       String      @unique
+  events      Event[]
   name        String?
   posts       Post[]
-  events      Event[]
 }
 
 model Event {
   id          Int         @id @default(autoincrement())
-  createdAt   DateTime    @default(now())
-  title       String
-  content     String?
-  isPublished Boolean?    @default(false)
   author      User?       @relation(fields: [authorId], references: [id])
   authorId    Int?
-  startAt     DateTime?
+  createdAt   DateTime    @default(now())
+  content     String?
   endAt       DateTime?
   isPublic    Boolean     @default(true)
+  isPublished Boolean?    @default(false)
+  startAt     DateTime?
+  title       String
 }

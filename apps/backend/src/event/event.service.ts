@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Event, Prisma } from '@generated/client/client';
-import { ReqEventGetPublishedDto, ReqEventCreateDraftDto } from './event.schema';
+import { ReqEventGetPublishedDto, ReqEventCreateDraftDto, ReqEventPatchDto } from './event.schema';
 
 @Injectable()
 export class EventService {
@@ -58,14 +58,22 @@ export class EventService {
     });
   }
 
-  async updateEvent(params: {
-    where: Prisma.EventWhereUniqueInput;
-    data: Prisma.EventUpdateInput;
-  }): Promise<Event> {
-    const { data, where } = params;
+  eventPatch(id: number, data: ReqEventPatchDto) {
+    const newData: Prisma.EventUpdateInput = {};
+    if (data.content !== undefined) newData.content = data.content;
+    if (data.endAt !== undefined) newData.endAt = data.endAt;
+    if (data.isPublic !== undefined) newData.isPublic = data.isPublic;
+    if (data.isPublished !== undefined) newData.isPublished = data.isPublished;
+    if (data.startAt !== undefined) newData.startAt = data.startAt;
+    if (data.title !== undefined) newData.title = data.title;
+
+    if (Object.keys(newData).length === 0) {
+      throw new BadRequestException('No fields to update');
+    }
+
     return this.prisma.event.update({
-      data,
-      where,
+      where: { id },
+      data: newData,
     });
   }
 
