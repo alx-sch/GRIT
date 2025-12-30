@@ -72,3 +72,9 @@ export const ReqEventPatchSchema = z.strictObject({
   title: z.string().optional(),
 });
 export class ReqEventPatchDto extends createZodDto(ReqEventPatchSchema) {}
+
+// Request schema for deleting an event
+export const ReqEventDeleteSchema = z.strictObject({
+  id: z.coerce.number().int().positive(),
+});
+export class ReqEventDeleteDto extends createZodDto(ReqEventDeleteSchema) {}

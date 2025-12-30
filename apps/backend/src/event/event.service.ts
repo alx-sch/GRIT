@@ -77,7 +77,7 @@ export class EventService {
     });
   }
 
-  async deleteEvent(where: Prisma.EventWhereUniqueInput): Promise<Event> {
+  deleteEvent(where: { id: number }) {
     return this.prisma.event.delete({
       where,
     });

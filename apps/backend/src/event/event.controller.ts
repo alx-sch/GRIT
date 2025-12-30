@@ -3,6 +3,7 @@ import { EventService } from './event.service';
 import { Event as EventModel } from '@generated/client/client';
 import {
   ReqEventCreateDraftDto,
+  ReqEventDeleteDto,
   ReqEventGetPublishedDto,
   ReqEventGetByIdDto,
   ReqEventPatchDto,
@@ -44,7 +45,7 @@ export class EventController {
   }
 
   @Delete(':id')
-  async eventDelete(@Param('id') id: string): Promise<EventModel> {
-    return this.eventService.deleteEvent({ id: Number(id) });
+  eventDelete(@Param() param: ReqEventDeleteDto) {
+    return this.eventService.deleteEvent({ id: param.id });
   }
 }
