@@ -23,8 +23,5 @@
         "humao.rest-client" // REST cliet: Execute HTTP requests directly in vscode (backend/test/routes.http)
       ]
     }
-  },
-
-  // Ports to forward: backend (3000), frontend(8080), vite (5173)
-  "forwardPorts": [3000, 5173, 8080]
+  }
 }

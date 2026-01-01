@@ -1,10 +1,10 @@
 import { PrismaClient } from '@generated/client/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
-import 'dotenv/config'; // load DATABASE_URL
+import { env } from '@config/env';
 
 // Setup the connection pool
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const pool = new Pool({ connectionString: env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 
 // Initialize the client WITH the adapter
@@ -15,28 +15,28 @@ async function main() {
 
   // upsert: "Update or Insert" - prevents errors if the user already exists
   const user1 = await prisma.user.upsert({
-    where: { email: 'alice@grit.com' },
+    where: { email: 'alice@example.com' },
     update: {},
     create: {
-      email: 'alice@grit.com',
+      email: 'alice@example.com',
       name: 'Alice',
     },
   });
 
   const user2 = await prisma.user.upsert({
-    where: { email: 'bob@google.com' },
+    where: { email: 'bob@example.com' },
     update: {},
     create: {
-      email: 'bob@google.com',
+      email: 'bob@example.com',
       name: 'Bob',
     },
   });
 
   const user3 = await prisma.user.upsert({
-    where: { email: 'Cindy@yahoo.com' },
+    where: { email: 'Cindy@example.com' },
     update: {},
     create: {
-      email: 'Cindy@yahoo.com',
+      email: 'Cindy@example.com',
       name: 'Cindy',
     },
   });
@@ -52,7 +52,7 @@ main()
     await pool.end();
   })
   // Handle errors and ensure connection closes even on failure
-  .catch(async (e) => {
+  .catch(async (e: unknown) => {
     console.error(e);
     await prisma.$disconnect();
     await pool.end();

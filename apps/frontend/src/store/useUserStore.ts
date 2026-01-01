@@ -25,7 +25,8 @@ export const useUserStore = create<UserState>((set) => ({
       let message = 'Failed to load users';
 
       if (axios.isAxiosError(err)) {
-        message = err.response?.data?.message || err.message || message;
+        const axiosData = err.response?.data as { message?: string } | undefined;
+        message = axiosData?.message ?? err.message;
       } else if (err instanceof Error) {
         message = err.message;
       }

@@ -8,7 +8,13 @@ export default function Home() {
         Welcome to your new single-page application. This is the home page.
       </p>
 
-      <Button onClick={() => alert('You clicked the shadcn button!')}>Shadcn Button</Button>
+      <Button
+        onClick={() => {
+          alert('You clicked the shadcn button!');
+        }}
+      >
+        Shadcn Button
+      </Button>
     </section>
   );
 }

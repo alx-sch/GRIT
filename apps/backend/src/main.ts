@@ -3,6 +3,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ZodValidationPipe } from 'nestjs-zod';
+import { env } from '@config/env';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -19,10 +20,12 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, cleanupOpenApiDoc(openApiDoc));
 
   // Start Server
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(env.BE_PORT);
+  console.log(`🚀 Server running on: http://localhost:${String(env.BE_PORT)}`);
 }
 
-bootstrap().catch((err) => {
-  console.error('Fatal Error during startup:', err);
+bootstrap().catch((err: unknown) => {
+  const message = err instanceof Error ? err.message : String(err);
+  console.error('Fatal Error during startup:', message);
   process.exit(1);
 });
