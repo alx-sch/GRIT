@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ReqUserPostDto } from './user.schema';
 import { ResUserPostSchema, ResUserGetAllSchema } from './user.schema';
 import { UserService } from './user.service';
