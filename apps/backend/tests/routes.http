@@ -10,13 +10,18 @@ http://localhost:3000
 
 // ========== USERS ========== //
 
+// Get all users
+http://localhost:3000/users
+###
+
+
 // Create new user
 POST http://localhost:3000/users HTTP/1.1
 content-type: application/json
 
 {
     "name": "22",
-    "email": "tester_v2342@grit.com"
+    "email": "tester_v332@grit.com"
 }
 ###
 

@@ -1,29 +1,22 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { EventService } from './event.service';
 import {
-  ReqEventCreateDraftDto,
   ReqEventDeleteDto,
   ReqEventGetByIdDto,
   ReqEventGetPublishedDto,
   ReqEventPatchDto,
-  ResEventCreateDraftSchema,
+  ReqEventPostDraftDto,
   ResEventDeleteSchema,
   ResEventGetByIdSchema,
   ResEventGetPublishedSchema,
   ResEventPatchSchema,
+  ResEventPostDraftSchema,
 } from './event.schema';
 import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('events')
 export class EventController {
   constructor(private readonly eventService: EventService) {}
-
-  // Post a new event draft
-  @Post()
-  @ZodSerializerDto(ResEventCreateDraftSchema)
-  eventCreateDraft(@Body() data: ReqEventCreateDraftDto) {
-    return this.eventService.eventCreateDraft(data);
-  }
 
   // Delete an event
   @Delete(':id')
@@ -51,5 +44,12 @@ export class EventController {
   @ZodSerializerDto(ResEventPatchSchema)
   eventPatch(@Body() data: ReqEventPatchDto, @Param() param: ReqEventGetByIdDto) {
     return this.eventService.eventPatch(param.id, data);
+  }
+
+  // Post a new event draft
+  @Post()
+  @ZodSerializerDto(ResEventPostDraftSchema)
+  eventCreateDraft(@Body() data: ReqEventPostDraftDto) {
+    return this.eventService.eventPostDraft(data);
   }
 }

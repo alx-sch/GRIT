@@ -29,18 +29,6 @@ export const ResEventBaseSchema = z.object({
  * REQ / RES SCHEMAS FOR ROUTES
  */
 
-// Post a new event draft
-export const ReqEventCreateDraftSchema = z.strictObject({
-  authorId: z.number().int().positive(),
-  content: z.string().optional(),
-  endAt: z.iso.datetime(),
-  isPublic: z.boolean(),
-  startAt: z.iso.datetime(),
-  title: z.string(),
-});
-export class ReqEventCreateDraftDto extends createZodDto(ReqEventCreateDraftSchema) {}
-export const ResEventCreateDraftSchema = ResEventBaseSchema;
-
 // Delete an event
 export const ReqEventDeleteSchema = z.strictObject({
   id: z.coerce.number().int().positive(),
@@ -88,3 +76,15 @@ export const ReqEventPatchSchema = z.strictObject({
 });
 export class ReqEventPatchDto extends createZodDto(ReqEventPatchSchema) {}
 export const ResEventPatchSchema = ResEventBaseSchema;
+
+// Post a new event draft
+export const ReqEventPostDraftSchema = z.strictObject({
+  authorId: z.number().int().positive(),
+  content: z.string().optional(),
+  endAt: z.iso.datetime(),
+  isPublic: z.boolean(),
+  startAt: z.iso.datetime(),
+  title: z.string(),
+});
+export class ReqEventPostDraftDto extends createZodDto(ReqEventPostDraftSchema) {}
+export const ResEventPostDraftSchema = ResEventBaseSchema;

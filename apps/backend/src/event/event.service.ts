@@ -1,11 +1,18 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@generated/client/client';
-import { ReqEventGetPublishedDto, ReqEventCreateDraftDto, ReqEventPatchDto } from './event.schema';
+import { ReqEventGetPublishedDto, ReqEventPostDraftDto, ReqEventPatchDto } from './event.schema';
 
 @Injectable()
 export class EventService {
   constructor(private prisma: PrismaService) {}
+
+  eventDelete(where: { id: number }) {
+    return this.prisma.event.delete({
+      where,
+      include: { author: true },
+    });
+  }
 
   eventGetPublished(input: ReqEventGetPublishedDto) {
     const where: Prisma.EventWhereInput = {
@@ -41,23 +48,6 @@ export class EventService {
     return event;
   }
 
-  eventCreateDraft(data: ReqEventCreateDraftDto) {
-    return this.prisma.event.create({
-      data: {
-        title: data.title,
-        content: data.content,
-        startAt: data.startAt,
-        endAt: data.endAt,
-        isPublic: data.isPublic,
-        isPublished: false,
-        author: {
-          connect: { id: data.authorId },
-        },
-      },
-      include: { author: true },
-    });
-  }
-
   eventPatch(id: number, data: ReqEventPatchDto) {
     const newData: Prisma.EventUpdateInput = {};
     if (data.content !== undefined) newData.content = data.content;
@@ -78,9 +68,19 @@ export class EventService {
     });
   }
 
-  eventDelete(where: { id: number }) {
-    return this.prisma.event.delete({
-      where,
+  eventPostDraft(data: ReqEventPostDraftDto) {
+    return this.prisma.event.create({
+      data: {
+        title: data.title,
+        content: data.content,
+        startAt: data.startAt,
+        endAt: data.endAt,
+        isPublic: data.isPublic,
+        isPublished: false,
+        author: {
+          connect: { id: data.authorId },
+        },
+      },
       include: { author: true },
     });
   }
