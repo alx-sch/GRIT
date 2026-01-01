@@ -1,51 +1,56 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { EventService } from './event.service';
 import { Event as EventModel } from '@generated/client/client';
 import {
   ReqEventCreateDraftDto,
   ReqEventDeleteDto,
-  ReqEventGetPublishedDto,
   ReqEventGetByIdDto,
+  ReqEventGetPublishedDto,
   ReqEventPatchDto,
+  ResEventCreateDraftSchema,
+  ResEventDeleteSchema,
   ResEventGetByIdSchema,
   ResEventGetPublishedSchema,
+  ResEventPatchSchema,
 } from './event.schema';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @Controller('events')
 export class EventController {
   constructor(private readonly eventService: EventService) {}
 
-  @Get()
-  @ApiOperation({
-    summary: 'List published events',
-    description:
-      'Returns all public events. Supports optional full-text search and date range filtering.',
-  })
-  @ZodSerializerDto(ResEventGetPublishedSchema)
-  eventGetPublished(@Query() query: ReqEventGetPublishedDto) {
-    return this.eventService.eventGetPublished(query);
+  // Post a new event draft
+  @Post()
+  @ZodSerializerDto(ResEventCreateDraftSchema)
+  eventCreateDraft(@Body() data: ReqEventCreateDraftDto) {
+    return this.eventService.eventCreateDraft(data);
   }
 
+  // Delete an event
+  @Delete(':id')
+  @ZodSerializerDto(ResEventDeleteSchema)
+  eventDelete(@Param() param: ReqEventDeleteDto) {
+    return this.eventService.eventDelete({ id: param.id });
+  }
+
+  // Get an individual event by id
   @Get(':id')
   @ZodSerializerDto(ResEventGetByIdSchema)
   eventGetById(@Param() param: ReqEventGetByIdDto) {
     return this.eventService.eventGetById(param.id);
   }
 
-  @Post()
-  eventCreateDraft(@Body() data: ReqEventCreateDraftDto) {
-    return this.eventService.eventCreateDraft(data);
+  // Get all published events or search published events
+  @Get()
+  @ZodSerializerDto(ResEventGetPublishedSchema)
+  eventGetPublished(@Query() query: ReqEventGetPublishedDto) {
+    return this.eventService.eventGetPublished(query);
   }
 
+  // Patch an event (Update)
   @Patch(':id')
+  @ZodSerializerDto(ResEventPatchSchema)
   eventPatch(@Body() data: ReqEventPatchDto, @Param() param: ReqEventGetByIdDto) {
     return this.eventService.eventPatch(param.id, data);
-  }
-
-  @Delete(':id')
-  eventDelete(@Param() param: ReqEventDeleteDto) {
-    return this.eventService.deleteEvent({ id: param.id });
   }
 }

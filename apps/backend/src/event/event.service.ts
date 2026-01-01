@@ -14,14 +14,13 @@ export class EventService {
     if (input.search) {
       where.OR = [{ title: { contains: input.search } }, { content: { contains: input.search } }];
     }
-    if (input.authorId) {
-      where.authorId = input.authorId;
+    if (input.author_id) {
+      where.authorId = input.author_id;
     }
-    if (input.startFrom) {
-      where.startAt = { gte: input.startFrom };
-    }
-    if (input.startUntil) {
-      where.startAt = { lte: input.startUntil };
+    if (input.start_from || input.start_until) {
+      where.startAt = {};
+      if (input.start_from) where.startAt.gte = input.start_from;
+      if (input.start_until) where.startAt.lte = input.start_until;
     }
     return this.prisma.event.findMany({
       where,
@@ -55,6 +54,7 @@ export class EventService {
           connect: { id: data.authorId },
         },
       },
+      include: { author: true },
     });
   }
 
@@ -74,12 +74,14 @@ export class EventService {
     return this.prisma.event.update({
       where: { id },
       data: newData,
+      include: { author: true },
     });
   }
 
-  deleteEvent(where: { id: number }) {
+  eventDelete(where: { id: number }) {
     return this.prisma.event.delete({
       where,
+      include: { author: true },
     });
   }
 }
