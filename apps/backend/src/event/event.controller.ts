@@ -1,6 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { EventService } from './event.service';
-import { Event as EventModel } from '@generated/client/client';
 import {
   ReqEventCreateDraftDto,
   ReqEventDeleteDto,

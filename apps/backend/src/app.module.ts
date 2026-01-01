@@ -53,7 +53,7 @@ class HttpExceptionFilter extends BaseExceptionFilter {
 }
 
 @Module({
-  imports: [ConfigModule.forRoot(), UserModule, PostModule, PrismaModule, EventModule],
+  imports: [ConfigModule.forRoot(), UserModule, EventModule, PostModule, PrismaModule],
   controllers: [AppController],
   providers: [
     // Zod integration for custom validation pipe. No need to add it individually to each route anymore.

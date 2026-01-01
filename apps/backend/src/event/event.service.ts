@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { Event, Prisma } from '@generated/client/client';
+import { Prisma } from '@generated/client/client';
 import { ReqEventGetPublishedDto, ReqEventCreateDraftDto, ReqEventPatchDto } from './event.schema';
 
 @Injectable()
@@ -36,7 +36,7 @@ export class EventService {
       include: { author: true },
     });
     if (!event) {
-      throw new NotFoundException(`Event with id ${id} not found`);
+      throw new NotFoundException(`Event with id ${id.toString()} not found`);
     }
     return event;
   }

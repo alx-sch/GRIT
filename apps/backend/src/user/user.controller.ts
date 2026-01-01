@@ -1,6 +1,5 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { UserService } from './user.service';
-import { User as UserModel } from '@generated/client/client';
 import { ReqUserCreateDto } from './user.schema';
 
 @Controller('users')

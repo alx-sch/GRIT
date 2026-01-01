@@ -27,11 +27,11 @@ http://localhost:3000/events
 ###
 
 // Get event by event id
-http://localhost:3000/events/899
+http://localhost:3000/events/1
 ###
 
 // Search for event by string
-http://localhost:3000/events?search=Berghainf
+http://localhost:3000/events?search=Sack
 ###
 
 // Create event, use Alice email from seed
@@ -40,23 +40,24 @@ content-type: application/json
 
 {
     "authorId": 1,
-    "titlef": "Sackhüpfen",
+    "title": "Sackhüpfen",
     "startAt": "2026-05-01T18:00:00Z",
     "endAt": "2026-05-02T02:00:00Z",
     "isPublic": false
 }
 ###
 
-PATCH http://localhost:3000/events/23 HTTP/1.1
+PATCH http://localhost:3000/events/1 HTTP/1.1
 content-type: application/json
 
 {
-    "endAt": "2025-01-02T02:00:33Z"
+    "endAt": "2025-01-02T02:00:33Z",
+    "isPublished": true
 }
 ###
 
 // Delete event
-DELETE http://localhost:3000/events/3 HTTP/1.1
+DELETE http://localhost:3000/events/1 HTTP/1.1
 ###
 
 
