@@ -4,6 +4,8 @@ BACKUP_FOLDER :=	backups
 BACKEND_FOLDER :=	apps/backend
 FRONTEND_FOLDER :=	apps/frontend
 
+PROJECT_ROOT := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+
 # ---------------------------------------------------
 # FORMATTING CONSTANTS
 # ---------------------------------------------------
@@ -116,9 +118,9 @@ install-fe:
 
 # Forcibly stops all project-related processes
 stop-dev-processes:
-	@echo "$(BOLD)$(YELLOW)--- Cleaning Up Dev Processes...$(RESET)"
-	pgrep -f '[v]ite|[n]est|[e]sbuild|[p]npm' | xargs kill -9 2>/dev/null || true
-	$(DC) down --remove-orphans
+	@echo "$(BOLD)$(YELLOW)--- Cleaning Up Dev Processes for $(PROJECT_ROOT)...$(RESET)"
+	@pgrep -f '$(PROJECT_ROOT).*[n]ode.*([v]ite|[n]est|[e]sbuild|[p]npm)' | xargs kill -9 2>/dev/null || true
+	@$(DC) down --remove-orphans
 	@echo "$(BOLD)$(GREEN)Dev processes stopped.$(RESET)"
 
 # Cleans all generated files (installed 'node_modules', 'dist' folders etc.)
