@@ -114,24 +114,15 @@ install-fe:
 
 # -- CLEANUP TARGETS --
 
-# Clear (ghost) processes on ports
-kill-ports:
-	@echo "$(BOLD)$(YELLOW)--- Clearing Ports: ${BE_PORT}, ${DB_PORT}, ${FE_PORT}...$(RESET)"
-	@lsof -t -i:$${BE_PORT} | xargs -r kill -9 || true
-	@lsof -t -i:$${DB_PORT} | xargs -r kill -9 || true
-	@lsof -t -i:$${FE_PORT} | xargs -r kill -9 || true
-
-# Forcibly stops all project-related processes (if not running in containers)
-stop-proc:
-	@echo "$(BOLD)$(YELLOW)--- Stopping Workspace Processes...$(RESET)"
-	-@pkill -f "pnpm" 2>/dev/null || true
-	-@pkill -f "vite" 2>/dev/null || true
-	-@pkill -f "nest" 2>/dev/null || true
-	@$(MAKE) kill-ports --no-print-directory
-	@echo "$(BOLD)$(GREEN)Workspace processes stopped.$(RESET)"
+# Forcibly stops all project-related processes
+stop-dev-processes:
+	@echo "$(BOLD)$(YELLOW)--- Cleaning Up Dev Processes...$(RESET)"
+	pgrep -f '[v]ite|[n]est|[e]sbuild|[p]npm' | xargs kill -9 2>/dev/null || true
+	$(DC) down --remove-orphans
+	@echo "$(BOLD)$(GREEN)Dev processes stopped.$(RESET)"
 
 # Cleans all generated files (installed 'node_modules', 'dist' folders etc.)
-clean: stop-proc
+clean: stop-dev-processes
 	@echo "$(BOLD)$(YELLOW)--- Cleaning Up Project...$(RESET)"
 	rm -rf $(BACKEND_FOLDER)/src/generated
 	pnpm -r exec rm -rf dist .vite .turbo node_modules
@@ -196,17 +187,17 @@ logs:
 ## 🚀 DEVELOPMENT COMMANDS ##
 #############################
 
-dev: stop-proc install db
+dev: check-env stop-dev-processes install db
 	@echo "$(BOLD)$(YELLOW)--- Starting Backend & Frontend [DEV]...$(RESET)"
 	pnpm run dev;
 
 # Run only Backend with DB check; NEST clears terminal before printing
-dev-be: check-env stop-proc db
+dev-be: check-env db
 	@echo "$(BOLD)$(GREEN)--- Starting BACKEND (API) ---$(RESET)"
 	pnpm --filter @grit/backend dev
 
 # Run only Frontend
-dev-fe: check-env stop-proc install-fe
+dev-fe: check-env install-fe
 	@echo "$(BOLD)$(GREEN)--- Starting FRONTEND (UI) ---$(RESET)"
 	pnpm --filter @grit/frontend dev
 
@@ -320,7 +311,7 @@ build-fe: check-env install-fe
 
 # -- RUN TARGETS (PROD MODE) --
 
-run: stop-proc build
+run: stop-dev-processes build
 	@echo "$(BOLD)$(YELLOW)--- Running Build...$(RESET)"
 	pnpm -r --parallel run start
 
@@ -356,7 +347,7 @@ stop:
 
 .PHONY:	all \
 		init-env install install-fe install-be check-env \
-		clean clean-db clean-backup kill-ports stop-proc purge\
+		clean clean-db clean-backup stop-dev-processes purge\
 		typecheck lint lint-fix format logs \
 		dev dev-be dev-fe \
 		db seed-db view-db stop-db \
