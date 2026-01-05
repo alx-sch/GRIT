@@ -147,11 +147,12 @@ clean-backup:
 # Cleans everything related to this project: builds, node_modules, DB container, volumes, backups:
 fclean: clean clean-backup
 	$(DC) down --volumes --rmi local
+	rm -f $(ENV_FILE)
 	@echo "$(GREEN)$(BOLD)Project fully cleaned.$(RESET)"
 
 ## WARNING ##
 # Purge: One command to rule them all! Stops all running containers and remove all Docker resources system-wide
-purge: clean clean-backup
+purge: fclean
 	@$(PURGE_WARN)
 	@docker stop $$(docker ps -aq) 2>/dev/null || true
 	$(DC) down --volumes --rmi all
