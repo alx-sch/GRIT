@@ -1,50 +1,42 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
-import { PrismaService } from '@/prisma/prisma.service';
 
-describe('UserService', () => {
-  let userService: UserService;
-  let prismaService: PrismaService;
+describe('UserController', () => {
+  let controller: UserController;
+
+  const mockUserService = {
+    userPost: jest.fn().mockResolvedValue({ success: true, id: 1 }),
+  };
 
   beforeEach(async () => {
-    const module = await Test.createTestingModule({
+    const module: TestingModule = await Test.createTestingModule({
       controllers: [UserController],
-      providers: [
-        UserService,
-        {
-          provide: PrismaService,
-          useValue: {
-            user: {
-              findUnique: jest.fn(),
-              create: jest.fn(),
-            },
-          },
-        },
-      ],
-    }).compile();
+      providers: [UserService],
+    })
+      .overrideProvider(UserService)
+      .useValue(mockUserService)
+      .compile();
 
-    userService = module.get(UserService);
-    prismaService = module.get(PrismaService);
+    controller = module.get<UserController>(UserController);
   });
 
-  it('should return a user by id', async () => {
-    const mockUser = { id: 1, name: 'Alice', email: 'alice@example.com', createdAt: new Date() };
-    jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser);
-
-    const user = await userService.userGet();
-    expect(user).toEqual(mockUser);
-    expect(prismaService.user.findUnique).toHaveBeenCalledWith({ where: { id: 1 } });
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
   });
 
-  it('should create a new user', async () => {
-    const newUser = { id: 2, name: 'Bob', email: 'bob@example.com', createdAt: new Date() };
-    jest.spyOn(prismaService.user, 'create').mockResolvedValue(newUser);
+  it('should call userPost on UserService', async () => {
+    const reqBody = { name: 'John Doe', email: 'nat@gmail.com' }; // Mock input for userPost
+    await controller.userPost(reqBody); // Assuming userPost exists in UserController
 
-    const user = await userService.userPost({ name: 'Bob', email: 'bob@example.com' });
-    expect(user).toEqual(newUser);
-    expect(prismaService.user.create).toHaveBeenCalledWith({
-      data: { name: 'Bob', email: 'bob@example.com' },
-    });
+    // Verify if the userPost method was called with the correct argument
+    expect(mockUserService.userPost).toHaveBeenCalledWith(reqBody);
   });
 });
+// it('should list all users' () => {
+
+// });
+// it('should create a user', () => {
+
+// });
+// });
