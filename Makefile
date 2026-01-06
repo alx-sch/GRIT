@@ -60,7 +60,7 @@ ifeq ($(shell [ -n "$$CODESPACES" ] && echo 1),1)
 	PURGE_WARN := @echo "$(BOLD)$(RED)SYSTEM-WIDE PURGE: Removing All Docker Resources...$(RESET)"
 else
 	PURGE_WARN := \
-		echo "$(BOLD)$(RED)⚠️ WARNING: This will remove ALL Docker resources on this machine!$(RESET)"; \
+		echo "$(BOLD)$(RED)⚠️  WARNING: This will remove ALL Docker resources on this machine!$(RESET)"; \
 		read -p "Are you sure you want to continue? [y/n] " confirm; \
 		if [ "$$confirm" != "y" ]; then \
 			echo "Purge cancelled."; \
@@ -209,11 +209,27 @@ dev-fe: check-env install-fe
 #############################
 
 # Starts only the database Docker container for local development
+# In Production, db availabilty (and starting of backend container) is checked in 'docker compose' via healthchecks.
 db: install-be
 	@echo "$(BOLD)$(YELLOW)--- Starting Postgres [DOCKER]...$(RESET)"
 	$(DC) up -d db
 	@echo "$(BOLD)$(YELLOW)--- Waiting for DB to wake up...$(RESET)"
-	@sleep 3
+	@RETRIES=10; \
+	while [ $$RETRIES -gt 0 ]; do \
+	    if docker exec grit-db-1 pg_isready -U $(POSTGRES_USER) > /dev/null 2>&1; then \
+	        echo "$(GREEN)Postgres is accepting connections!$(RESET)"; \
+	        sleep 2; \
+	        RETRIES=-1; \
+	        break; \
+	    fi; \
+	    echo "Waiting for Postgres to initialize... ($$RETRIES attempts left)"; \
+	    RETRIES=$$((RETRIES - 1)); \
+	    sleep 1; \
+	done; \
+	if [ $$RETRIES -eq 0 ]; then \
+	    echo "$(RED)DB failed to start.$(RESET)"; \
+	    exit 1; \
+	fi
 	@pnpm --filter @grit/backend exec prisma db push
 	@$(MAKE) seed-db --no-print-directory
 	@echo "$(BOLD)$(GREEN)Database is ready, schema is synced and initial users are seeded.$(RESET)"
