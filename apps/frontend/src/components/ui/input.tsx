@@ -13,13 +13,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         className={cn(
           'flex h-10 w-full bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50',
 
-          // 2. NEO-BRUTALIST BORDERS (Sharp & Thick)
           'border-2 border-black rounded-none',
 
-          // 3. FOCUS STATE (Hard Shadow Pop)
           'focus-visible:outline-none focus-visible:ring-0 focus-visible:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-shadow duration-200',
 
-          // 4. ERROR STATE (Red Border & Red Shadow)
           error && 'border-destructive focus-visible:shadow-[4px_4px_0px_0px_var(--destructive)]',
 
           className

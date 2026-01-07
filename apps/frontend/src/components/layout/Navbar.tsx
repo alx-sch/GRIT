@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Menu } from 'lucide-react';
+import { Menu, X } from 'lucide-react'; // 1. Import X icon
 import { cn } from '@/lib/utils';
 import {
   NavigationMenu,
@@ -69,9 +69,19 @@ export function Navbar() {
             </Button>
           </SheetTrigger>
 
-          <SheetContent side="right" className="w-75 border-l-2 border-black sm:w-100">
-            <SheetHeader className="text-left border-b-2 border-black pb-4 mb-4">
+          <SheetContent
+            side="right"
+            className="w-75 border-l-2 border-black sm:w-100 [&>button]:hidden"
+          >
+            <SheetHeader className="flex flex-row items-center justify-between border-b-2 border-black pb-4 mb-4 space-y-0 text-left">
               <SheetTitle className="font-bold uppercase tracking-wider">Menu</SheetTitle>
+
+              <SheetClose asChild>
+                <button className="focus:outline-none focus:ring-0 hover:opacity-70 transition-opacity">
+                  <X className="h-8 w-8 text-black" strokeWidth={3} />
+                  <span className="sr-only">Close</span>
+                </button>
+              </SheetClose>
             </SheetHeader>
 
             <div className="flex flex-col gap-4">
