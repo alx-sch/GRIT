@@ -1,20 +1,51 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import App from './App';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import './index.css';
+
+import App from './App';
+
+import Home from '@/pages/Home';
+import Users, { usersLoader } from '@/pages/Users';
+import Design from '@/pages/Design';
+import ErrorPage from '@/pages/ErrorPage';
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <App />,
+    errorElement: <ErrorPage />,
+    children: [
+      {
+        index: true,
+        element: <Home />,
+      },
+      {
+        path: 'design',
+        element: <Design />,
+      },
+      {
+        path: 'users',
+        element: <Users />,
+        loader: usersLoader,
+        errorElement: <ErrorPage />,
+      },
+      {
+        path: 'profile',
+        element: <div>Profile Page (Todo)</div>,
+      },
+    ],
+  },
+]);
 
 const rootElement = document.getElementById('root');
 
-// The linter wants to explicitly handle the case where 'root' is missing
 if (!rootElement) {
-  throw new Error('Failed to find the root element. Rendering aborted.');
+  throw new Error('Failed to find the root element');
 }
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <RouterProvider router={router} />
   </React.StrictMode>
 );

@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
 @import 'tailwindcss';
+@import 'nprogress/nprogress.css';
 
 @plugin "tailwindcss-animate";
 
@@ -162,4 +163,13 @@
   .button-txt {
     @apply text-sm font-semibold tracking-wide uppercase font-sans;
   }
+}
+
+#nprogress .bar {
+  @apply bg-primary;
+  height: 4px;
+}
+
+#nprogress .spinner {
+  display: none !important;
 }
