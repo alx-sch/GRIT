@@ -162,8 +162,7 @@ kill-be-port:
 			kill -9 $$PORT_PID; \
 			echo "$(GREEN)Done. Process $$PORT_PID has been terminated.$(RESET)"; \
 		else \
-			echo "$(RED)Aborted. Port remains occupied.$(RESET)"; \
-			exit 1; \
+			echo "$(RED)Port $(BE_PORT) remains occupied.$(RESET)"; \
 		fi; \
 	else \
 		echo "$(GREEN)Port $(BE_PORT) is clear.$(RESET)"; \
@@ -179,7 +178,7 @@ kill-fe-port:
 			echo "$(GREEN)Process $$PORT_PID terminated.$(RESET)"; \
 			sleep 1; \
 		else \
-			echo "$(RED)Action cancelled.$(RESET)"; exit 1; \
+			echo "$(RED)Port $(FE_PORT) remains occupied.$(RESET)"; \
 		fi; \
 	else \
 		echo "$(GREEN)Port $(FE_PORT) is already clear!$(RESET)"; \
