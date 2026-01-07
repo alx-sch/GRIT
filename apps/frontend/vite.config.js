@@ -7,13 +7,21 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      //  @/ points to src folder
       '@': path.resolve(__dirname, './src'),
     },
   },
   server: {
+    host: true,
     watch: {
       ignored: ['**/node_modules/**', '**/dist/**'],
+    },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
     },
   },
 });
