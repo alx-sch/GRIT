@@ -1,13 +1,14 @@
 import { useState, useMemo } from 'react';
-import { LoaderFunctionArgs, useLoaderData } from 'react-router-dom';
+import { LoaderFunctionArgs } from 'react-router-dom';
 import { userService } from '@/services/userService';
-import type { User } from '@/types/user';
 
 import { Container } from '@/components/layout/Container';
 import { Heading, Text } from '@/components/ui/typography';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { User } from '@/types/user';
+import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 
 export const usersLoader = async ({ request }: LoaderFunctionArgs) => {
   console.log(request); //we can use this to fitler or smth
@@ -15,7 +16,7 @@ export const usersLoader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function Users() {
-  const users = useLoaderData() as User[];
+  const users = useTypedLoaderData<User[]>();
 
   const [searchTerm, setSearchTerm] = useState('');
 
