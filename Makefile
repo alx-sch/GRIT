@@ -118,7 +118,6 @@ install-fe:
 kill-ports:
 	@echo "$(BOLD)$(YELLOW)--- Clearing Ports: ${BE_PORT}, ${DB_PORT}, ${FE_PORT}...$(RESET)"
 	@lsof -t -i:$${BE_PORT} | xargs -r kill -9 || true
-	#@lsof -t -i:$${DB_PORT} | xargs -r kill -9 || true
 	@lsof -t -i:$${FE_PORT} | xargs -r kill -9 || true
 
 # Forcibly stops all project-related processes (if not running in containers)

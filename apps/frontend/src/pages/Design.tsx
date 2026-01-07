@@ -39,8 +39,8 @@ export default function Design() {
 
         <Separator />
         <div className="grid gap-8 md:grid-cols-2">
-          <div className="space-y-4">
-            <Card>
+          <div className="flex space-y-4 h-full w-full">
+            <Card className="w-full">
               <CardHeader>
                 <CardTitle>Headings</CardTitle>
               </CardHeader>
@@ -52,19 +52,26 @@ export default function Design() {
               </CardContent>
             </Card>
           </div>
-          <div className="space-y-4">
-            <Text size="lg">
-              <strong>Body Large:</strong> The quick brown fox jumps over the lazy dog. Used for
-              introductory text or leads.
-            </Text>
-            <Text size="base">
-              <strong>Body Base:</strong> The standard paragraph size. Good for long form content
-              and readability. It has comfortable line height.
-            </Text>
-            <Text size="sm">
-              <strong>Body Small:</strong> Compact text for dense interfaces.
-            </Text>
-            <Caption>Caption: Used for timestamps, hints, or footnotes.</Caption>
+          <div className="space-y-4 h-full w-full">
+            <Card>
+              <CardHeader>
+                <CardTitle>Bodies</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Text size="lg">
+                  <strong>Body Large:</strong> The quick brown fox jumps over the lazy dog. Used for
+                  introductory text or leads.
+                </Text>
+                <Text size="base">
+                  <strong>Body Base:</strong> The standard paragraph size. Good for long form
+                  content and readability. It has comfortable line height.
+                </Text>
+                <Text size="sm">
+                  <strong>Body Small:</strong> Compact text for dense interfaces.
+                </Text>
+                <Caption>Caption: Used for timestamps, hints, or footnotes.</Caption>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
