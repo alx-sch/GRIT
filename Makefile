@@ -150,14 +150,14 @@ fclean: clean clean-backup
 	rm -f $(ENV_FILE)
 	@echo "$(GREEN)$(BOLD)Project fully cleaned.$(RESET)"
 
-kill-be-port:
+kill-port-be:
 	@PORT_PID=$$(lsof -t -i:$(BE_PORT)); \
 	if [ ! -z "$$PORT_PID" ]; then \
 		echo "$(BOLD)$(YELLOW)--- Port $(BE_PORT) is occupied (Backend Port)---$(RESET)"; \
 		echo "$(BLUE)Process Details:$(RESET)"; \
 		ps -p $$PORT_PID -o pid,user,start,etime,command | sed 's/^/  /'; \
 		echo ""; \
-		read -p "⚠️  Kill this process? [y/N] " confirm; \
+		printf "⚠️  Kill this process? [y/N] " && read confirm < /dev/tty; \
 		if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
 			kill -9 $$PORT_PID; \
 			echo "$(GREEN)Done. Process $$PORT_PID has been terminated.$(RESET)"; \
@@ -168,20 +168,22 @@ kill-be-port:
 		echo "$(GREEN)Port $(BE_PORT) is clear.$(RESET)"; \
 	fi
 
-kill-fe-port:
+kill-port-fe:
 	@PORT_PID=$$(lsof -t -i:$(FE_PORT)); \
 	if [ ! -z "$$PORT_PID" ]; then \
-		echo "$(YELLOW)Found PID $$PORT_PID on port $(FE_PORT) (Frontend Port).$(RESET)"; \
-		read -p "⚠️  Kill it? [y/N] " confirm; \
+		echo "$(BOLD)$(YELLOW)--- Port $(FE_PORT) is occupied (Frontend Port)---$(RESET)"; \
+		echo "$(BLUE)Process Details:$(RESET)"; \
+		ps -p $$PORT_PID -o pid,user,start,etime,command | sed 's/^/  /'; \
+		echo ""; \
+		printf "⚠️  Kill this process? [y/N] " && read confirm < /dev/tty; \
 		if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
 			kill -9 $$PORT_PID; \
-			echo "$(GREEN)Process $$PORT_PID terminated.$(RESET)"; \
-			sleep 1; \
+			echo "$(GREEN)Done. Process $$PORT_PID has been terminated.$(RESET)"; \
 		else \
 			echo "$(RED)Port $(FE_PORT) remains occupied.$(RESET)"; \
 		fi; \
 	else \
-		echo "$(GREEN)Port $(FE_PORT) is already clear!$(RESET)"; \
+		echo "$(GREEN)Port $(FE_PORT) is clear.$(RESET)"; \
 	fi
 
 ## WARNING ##
@@ -224,17 +226,17 @@ logs:
 ## 🚀 DEVELOPMENT COMMANDS ##
 #############################
 
-dev: check-env stop-dev-processes kill-be-port kill-fe-port install db
+dev: check-env stop-dev-processes kill-port-be kill-port-fe install db
 	@echo "$(BOLD)$(YELLOW)--- Starting Backend & Frontend [DEV]...$(RESET)"
 	pnpm run dev;
 
 # Run only Backend with DB check; NEST clears terminal before printing
-dev-be: check-env kill-be-port db
+dev-be: check-env kill-port-be db
 	@echo "$(BOLD)$(GREEN)--- Starting BACKEND (API) ---$(RESET)"
 	pnpm --filter @grit/backend dev
 
 # Run only Frontend
-dev-fe: check-env kill-fe-port install-fe
+dev-fe: check-env kill-port-fe install-fe
 	@echo "$(BOLD)$(GREEN)--- Starting FRONTEND (UI) ---$(RESET)"
 	pnpm --filter @grit/frontend dev
 
@@ -364,17 +366,17 @@ build-fe: check-env install-fe
 
 # -- RUN TARGETS (PROD MODE) --
 
-run: stop-dev-processes kill-be-port kill-fe-port build
+run: stop-dev-processes kill-port-be kill-port-fe build
 	@echo "$(BOLD)$(YELLOW)--- Running Build...$(RESET)"
 	pnpm -r --parallel run start
 
 # Runs only the compiled Backend (dist/main.js)
-run-be: build-be kill-be-port
+run-be: build-be kill-port-be
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Build...$(RESET)"
 	pnpm --filter @grit/backend start
 
 # Runs only the Frontend preview (dist/index.html)
-run-fe: build-fe kill-fe-port
+run-fe: build-fe kill-port-fe
 	@echo "$(BOLD)$(YELLOW)--- Running Frontend Preview...$(RESET)"
 	pnpm --filter @grit/frontend start
 
