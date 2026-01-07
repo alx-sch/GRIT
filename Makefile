@@ -61,7 +61,7 @@ ifeq ($(shell [ -n "$$CODESPACES" ] && echo 1),1)
 else
 	PURGE_WARN := \
 		echo "$(BOLD)$(RED)⚠️  WARNING: This will remove ALL Docker resources on this machine!$(RESET)"; \
-		read -p "Are you sure you want to continue? [y/n] " confirm; \
+		read -p "Are you sure you want to continue? [y/N] " confirm; \
 		if [ "$$confirm" != "y" ]; then \
 			echo "Purge cancelled."; \
 			exit 1; \
@@ -150,6 +150,41 @@ fclean: clean clean-backup
 	rm -f $(ENV_FILE)
 	@echo "$(GREEN)$(BOLD)Project fully cleaned.$(RESET)"
 
+kill-be-port:
+	@PORT_PID=$$(lsof -t -i:$(BE_PORT)); \
+	if [ ! -z "$$PORT_PID" ]; then \
+		echo "$(BOLD)$(YELLOW)--- Port $(BE_PORT) is occupied (Backend Port)---$(RESET)"; \
+		echo "$(BLUE)Process Details:$(RESET)"; \
+		ps -p $$PORT_PID -o pid,user,start,etime,command | sed 's/^/  /'; \
+		echo ""; \
+		read -p "⚠️  Kill this process? [y/N] " confirm; \
+		if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
+			kill -9 $$PORT_PID; \
+			echo "$(GREEN)Done. Process $$PORT_PID has been terminated.$(RESET)"; \
+		else \
+			echo "$(RED)Aborted. Port remains occupied.$(RESET)"; \
+			exit 1; \
+		fi; \
+	else \
+		echo "$(GREEN)Port $(BE_PORT) is clear.$(RESET)"; \
+	fi
+
+kill-fe-port:
+	@PORT_PID=$$(lsof -t -i:$(FE_PORT)); \
+	if [ ! -z "$$PORT_PID" ]; then \
+		echo "$(YELLOW)Found PID $$PORT_PID on port $(FE_PORT) (Frontend Port).$(RESET)"; \
+		read -p "⚠️  Kill it? [y/N] " confirm; \
+		if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
+			kill -9 $$PORT_PID; \
+			echo "$(GREEN)Process $$PORT_PID terminated.$(RESET)"; \
+			sleep 1; \
+		else \
+			echo "$(RED)Action cancelled.$(RESET)"; exit 1; \
+		fi; \
+	else \
+		echo "$(GREEN)Port $(FE_PORT) is already clear!$(RESET)"; \
+	fi
+
 ## WARNING ##
 # Purge: One command to rule them all! Stops all running containers and remove all Docker resources system-wide
 purge: fclean
@@ -190,17 +225,17 @@ logs:
 ## 🚀 DEVELOPMENT COMMANDS ##
 #############################
 
-dev: check-env stop-dev-processes install db
+dev: check-env stop-dev-processes kill-be-port kill-fe-port install db
 	@echo "$(BOLD)$(YELLOW)--- Starting Backend & Frontend [DEV]...$(RESET)"
 	pnpm run dev;
 
 # Run only Backend with DB check; NEST clears terminal before printing
-dev-be: check-env db
+dev-be: check-env kill-be-port db
 	@echo "$(BOLD)$(GREEN)--- Starting BACKEND (API) ---$(RESET)"
 	pnpm --filter @grit/backend dev
 
 # Run only Frontend
-dev-fe: check-env install-fe
+dev-fe: check-env kill-fe-port install-fe
 	@echo "$(BOLD)$(GREEN)--- Starting FRONTEND (UI) ---$(RESET)"
 	pnpm --filter @grit/frontend dev
 
@@ -330,17 +365,17 @@ build-fe: check-env install-fe
 
 # -- RUN TARGETS (PROD MODE) --
 
-run: stop-dev-processes build
+run: stop-dev-processes kill-be-port kill-fe-port build
 	@echo "$(BOLD)$(YELLOW)--- Running Build...$(RESET)"
 	pnpm -r --parallel run start
 
 # Runs only the compiled Backend (dist/main.js)
-run-be: build-be
+run-be: build-be kill-be-port
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Build...$(RESET)"
 	pnpm --filter @grit/backend start
 
 # Runs only the Frontend preview (dist/index.html)
-run-fe: build-fe
+run-fe: build-fe kill-fe-port
 	@echo "$(BOLD)$(YELLOW)--- Running Frontend Preview...$(RESET)"
 	pnpm --filter @grit/frontend start
 
