@@ -9,6 +9,7 @@ import Home from '@/pages/Home';
 import Users, { usersLoader } from '@/pages/Users';
 import Design from '@/pages/Design';
 import ErrorPage from '@/pages/ErrorPage';
+import { ThemeProvider } from '@/providers/theme-provider';
 
 const router = createBrowserRouter([
   {
@@ -46,6 +47,8 @@ if (!rootElement) {
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+      <RouterProvider router={router} />
+    </ThemeProvider>
   </React.StrictMode>
 );

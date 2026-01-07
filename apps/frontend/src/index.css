@@ -3,6 +3,7 @@
 @import 'nprogress/nprogress.css';
 
 @plugin "tailwindcss-animate";
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
   /* Fonts */
