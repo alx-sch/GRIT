@@ -27,19 +27,41 @@ const AvatarImage = React.forwardRef<
 ));
 AvatarImage.displayName = AvatarPrimitive.Image.displayName;
 
+interface AvatarFallbackProps extends React.ComponentPropsWithoutRef<
+  typeof AvatarPrimitive.Fallback
+> {
+  seed?: string;
+}
+
 const AvatarFallback = React.forwardRef<
   React.ComponentRef<typeof AvatarPrimitive.Fallback>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Fallback
-    ref={ref}
-    className={cn(
-      'flex h-full w-full items-center justify-center rounded-full bg-muted',
-      className
-    )}
-    {...props}
-  />
-));
+  AvatarFallbackProps
+>(({ className, seed, children, ...props }, ref) => {
+  const avatarUrl = seed
+    ? `https://api.dicebear.com/9.x/lorelei/svg?seed=${encodeURIComponent(seed)}`
+    : null;
+
+  return (
+    <AvatarPrimitive.Fallback
+      ref={ref}
+      className={cn(
+        'flex h-full w-full items-center justify-center rounded-full bg-muted',
+        className
+      )}
+      {...props}
+    >
+      {avatarUrl ? (
+        <img
+          src={avatarUrl}
+          alt={`Avatar for ${seed ?? 'meow'}`}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        children
+      )}
+    </AvatarPrimitive.Fallback>
+  );
+});
 AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName;
 
 export { Avatar, AvatarImage, AvatarFallback };
