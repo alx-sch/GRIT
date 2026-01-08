@@ -1,12 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
 @import 'tailwindcss';
-@plugin "tailwindcss-animate";
+@import 'nprogress/nprogress.css';
 
-/* Register Plugins (v4-native) */
 @plugin "tailwindcss-animate";
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
-  /* Map Shadcn Variables to Tailwind Theme Tokens */
-  /* This automatically creates utilities like bg-background, text-primary, etc. */
+  /* Fonts */
+  --font-sans: 'Inter', 'sans-serif';
+  --font-heading: 'Space Grotesk', 'sans-serif';
+
+  /* Color Mapping */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -27,80 +31,146 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  /* Charts & Border Radius */
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
 }
 
-/* Global CSS Variable Definitions */
-/* Use hsl() here directly, so colors work with opacity modifiers like bg-primary/50 */
 :root {
-  --background: hsl(0 0% 100%);
-  --foreground: hsl(240 10% 3.9%);
+  --background: hsl(0 0% 94.1%);
+  --foreground: hsl(0 0% 0%);
+
   --card: hsl(0 0% 100%);
-  --card-foreground: hsl(240 10% 3.9%);
+  --card-foreground: hsl(0 0% 0%);
+
   --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(240 10% 3.9%);
-  --primary: hsl(240 5.9% 10%);
-  --primary-foreground: hsl(0 0% 98%);
-  --secondary: hsl(240 4.8% 95.9%);
-  --secondary-foreground: hsl(240 5.9% 10%);
-  --muted: hsl(240 4.8% 95.9%);
-  --muted-foreground: hsl(240 3.8% 46.1%);
-  --accent: hsl(240 4.8% 95.9%);
-  --accent-foreground: hsl(240 5.9% 10%);
-  --destructive: hsl(0 84.2% 60.2%);
+  --popover-foreground: hsl(0 0% 0%);
+
+  --primary: hsl(28.5 100% 50%);
+  --primary-foreground: hsl(0 0% 0%);
+
+  --secondary: hsl(0 0% 90%);
+  --secondary-foreground: hsl(0 0% 20%);
+
+  --muted: hsl(0 0% 90%);
+  --muted-foreground: hsl(0 0% 40%);
+
+  --accent: hsl(0 0% 85%);
+  --accent-foreground: hsl(0 0% 0%);
+
+  --destructive: hsl(3.6 100% 61.4%);
   --destructive-foreground: hsl(0 0% 98%);
-  --border: hsl(240 5.9% 90%);
-  --input: hsl(240 5.9% 90%);
-  --ring: hsl(240 10% 3.9%);
-  --chart-1: hsl(12 76% 61%);
-  --chart-2: hsl(173 58% 39%);
-  --chart-3: hsl(197 37% 24%);
-  --chart-4: hsl(43 74% 66%);
-  --chart-5: hsl(27 87% 67%);
+
+  --border: hsl(0 0% 80%);
+  --input: hsl(0 0% 80%);
+
+  --ring: hsl(28.5 100% 50%);
+
   --radius: 0.5rem;
 }
 
 .dark {
   --background: hsl(240 10% 3.9%);
   --foreground: hsl(0 0% 98%);
+
   --card: hsl(240 10% 3.9%);
   --card-foreground: hsl(0 0% 98%);
+
   --popover: hsl(240 10% 3.9%);
   --popover-foreground: hsl(0 0% 98%);
-  --primary: hsl(0 0% 98%);
-  --primary-foreground: hsl(240 5.9% 10%);
+
+  --primary: hsl(28.5 100% 50%);
+  --primary-foreground: hsl(0 0% 0%);
+
   --secondary: hsl(240 3.7% 15.9%);
   --secondary-foreground: hsl(0 0% 98%);
+
   --muted: hsl(240 3.7% 15.9%);
   --muted-foreground: hsl(240 5% 64.9%);
+
   --accent: hsl(240 3.7% 15.9%);
   --accent-foreground: hsl(0 0% 98%);
+
   --destructive: hsl(0 62.8% 30.6%);
   --destructive-foreground: hsl(0 0% 98%);
+
   --border: hsl(240 3.7% 15.9%);
   --input: hsl(240 3.7% 15.9%);
-  --ring: hsl(240 4.9% 83.9%);
-  --chart-1: hsl(220 70% 50%);
-  --chart-2: hsl(160 60% 45%);
-  --chart-3: hsl(30 80% 55%);
-  --chart-4: hsl(280 65% 60%);
-  --chart-5: hsl(340 75% 55%);
+
+  --ring: hsl(28.5 100% 50%);
 }
 
-/* 4. Base Styles */
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
   body {
+    font-family: var(--font-sans);
     @apply bg-background text-foreground;
   }
+
+  /* SHADCN TYPOGRAPHY DEFAULTS */
+  h1 {
+    font-family: var(--font-heading);
+    @apply scroll-m-20 text-4xl font-bold tracking-tight lg:text-5xl;
+  }
+  h2 {
+    font-family: var(--font-heading);
+    @apply scroll-m-20 text-3xl font-semibold tracking-tight first:mt-0;
+  }
+  h3 {
+    font-family: var(--font-heading);
+    @apply scroll-m-20 text-2xl font-semibold tracking-tight;
+  }
+  h4 {
+    font-family: var(--font-heading);
+    @apply scroll-m-20 text-xl font-semibold tracking-tight;
+  }
+  p {
+    font-family: var(--font-sans);
+    @apply leading-7 not-first:mt-6;
+  }
+  blockquote {
+    font-family: var(--font-sans);
+    @apply mt-6 border-l-2 pl-6 italic;
+  }
+  ul {
+    @apply my-6 ml-6 list-disc [&>li]:mt-2;
+  }
+}
+
+@layer components {
+  .heading-1 {
+    @apply text-4xl font-bold tracking-tight font-heading;
+  }
+  .heading-2 {
+    @apply text-3xl font-semibold tracking-tight font-heading;
+  }
+  .heading-3 {
+    @apply text-2xl font-semibold tracking-tight font-heading;
+  }
+  .body-lg {
+    @apply text-lg leading-7 font-sans;
+  }
+  .body-base {
+    @apply text-base leading-6 font-sans;
+  }
+  .body-sm {
+    @apply text-sm leading-5 font-sans;
+  }
+  .caption {
+    @apply text-xs font-medium text-muted-foreground font-sans uppercase;
+  }
+  .button-txt {
+    @apply text-sm font-semibold tracking-wide uppercase font-sans;
+  }
+}
+
+#nprogress .bar {
+  @apply bg-primary;
+  height: 4px;
+}
+
+#nprogress .spinner {
+  display: none !important;
 }

@@ -2,7 +2,7 @@ import { cleanupOpenApiDoc } from 'nestjs-zod';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { env } from '@config/env';
+import { env } from '@grit_config/env';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -20,7 +20,9 @@ async function bootstrap() {
 
   // Start Server
   await app.listen(env.BE_PORT);
-  console.log(`🚀 Server running on: http://localhost:${String(env.BE_PORT)}`);
+  const baseUrl = `http://localhost:${String(env.BE_PORT)}`;
+  console.log(`[READY] Server:  ${baseUrl}`);
+  console.log(`[DOCS ] Swagger: ${baseUrl}/api`);
 }
 
 bootstrap().catch((err: unknown) => {

@@ -14,9 +14,9 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@generated/*": ["./src/generated/*"],
-      "@prisma/*": ["./src/prisma/*"],
-      "@config/*": ["./src/config/*"]
+      "@grit_generated/*": ["./src/generated/*"],
+      "@grit_prisma/*": ["./src/prisma/*"],
+      "@grit_config/*": ["./src/config/*"]
     }
   },
   "include": ["src/**/*", "tests/**/*", "prisma/**/*"],

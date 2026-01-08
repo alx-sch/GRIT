@@ -4,6 +4,8 @@ BACKUP_FOLDER :=	backups
 BACKEND_FOLDER :=	apps/backend
 FRONTEND_FOLDER :=	apps/frontend
 
+PROJECT_ROOT := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+
 # ---------------------------------------------------
 # FORMATTING CONSTANTS
 # ---------------------------------------------------
@@ -58,8 +60,8 @@ ifeq ($(shell [ -n "$$CODESPACES" ] && echo 1),1)
 	PURGE_WARN := @echo "$(BOLD)$(RED)SYSTEM-WIDE PURGE: Removing All Docker Resources...$(RESET)"
 else
 	PURGE_WARN := \
-		echo "$(BOLD)$(RED)⚠️ WARNING: This will remove ALL Docker resources on this machine!$(RESET)"; \
-		read -p "Are you sure you want to continue? [y/n] " confirm; \
+		echo "$(BOLD)$(RED)⚠️  WARNING: This will remove ALL Docker resources on this machine!$(RESET)"; \
+		read -p "Are you sure you want to continue? [y/N] " confirm; \
 		if [ "$$confirm" != "y" ]; then \
 			echo "Purge cancelled."; \
 			exit 1; \
@@ -114,24 +116,15 @@ install-fe:
 
 # -- CLEANUP TARGETS --
 
-# Clear (ghost) processes on ports
-kill-ports:
-	@echo "$(BOLD)$(YELLOW)--- Clearing Ports: ${BE_PORT}, ${DB_PORT}, ${FE_PORT}...$(RESET)"
-	@lsof -t -i:$${BE_PORT} | xargs -r kill -9 || true
-	@lsof -t -i:$${DB_PORT} | xargs -r kill -9 || true
-	@lsof -t -i:$${FE_PORT} | xargs -r kill -9 || true
-
-# Forcibly stops all project-related processes (if not running in containers)
-stop-proc:
-	@echo "$(BOLD)$(YELLOW)--- Stopping Workspace Processes...$(RESET)"
-	-@pkill -f "pnpm" 2>/dev/null || true
-	-@pkill -f "vite" 2>/dev/null || true
-	-@pkill -f "nest" 2>/dev/null || true
-	@$(MAKE) kill-ports --no-print-directory
-	@echo "$(BOLD)$(GREEN)Workspace processes stopped.$(RESET)"
+# Forcibly stops all project-related processes
+stop-dev-processes:
+	@echo "$(BOLD)$(YELLOW)--- Cleaning Up Dev Processes for $(PROJECT_ROOT)...$(RESET)"
+	@pgrep -f '$(PROJECT_ROOT).*[n]ode.*([v]ite|[n]est|[e]sbuild|[p]npm)' | xargs kill -9 2>/dev/null || true
+	@$(DC) down --remove-orphans
+	@echo "$(BOLD)$(GREEN)Dev processes stopped.$(RESET)"
 
 # Cleans all generated files (installed 'node_modules', 'dist' folders etc.)
-clean: stop-proc
+clean: stop-dev-processes
 	@echo "$(BOLD)$(YELLOW)--- Cleaning Up Project...$(RESET)"
 	rm -rf $(BACKEND_FOLDER)/src/generated
 	pnpm -r exec rm -rf dist .vite .turbo node_modules
@@ -154,11 +147,46 @@ clean-backup:
 # Cleans everything related to this project: builds, node_modules, DB container, volumes, backups:
 fclean: clean clean-backup
 	$(DC) down --volumes --rmi local
+	rm -f $(ENV_FILE)
 	@echo "$(GREEN)$(BOLD)Project fully cleaned.$(RESET)"
+
+kill-be-port:
+	@PORT_PID=$$(lsof -t -i:$(BE_PORT)); \
+	if [ ! -z "$$PORT_PID" ]; then \
+		echo "$(BOLD)$(YELLOW)--- Port $(BE_PORT) is occupied (Backend Port)---$(RESET)"; \
+		echo "$(BLUE)Process Details:$(RESET)"; \
+		ps -p $$PORT_PID -o pid,user,start,etime,command | sed 's/^/  /'; \
+		echo ""; \
+		read -p "⚠️  Kill this process? [y/N] " confirm; \
+		if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
+			kill -9 $$PORT_PID; \
+			echo "$(GREEN)Done. Process $$PORT_PID has been terminated.$(RESET)"; \
+		else \
+			echo "$(RED)Port $(BE_PORT) remains occupied.$(RESET)"; \
+		fi; \
+	else \
+		echo "$(GREEN)Port $(BE_PORT) is clear.$(RESET)"; \
+	fi
+
+kill-fe-port:
+	@PORT_PID=$$(lsof -t -i:$(FE_PORT)); \
+	if [ ! -z "$$PORT_PID" ]; then \
+		echo "$(YELLOW)Found PID $$PORT_PID on port $(FE_PORT) (Frontend Port).$(RESET)"; \
+		read -p "⚠️  Kill it? [y/N] " confirm; \
+		if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
+			kill -9 $$PORT_PID; \
+			echo "$(GREEN)Process $$PORT_PID terminated.$(RESET)"; \
+			sleep 1; \
+		else \
+			echo "$(RED)Port $(FE_PORT) remains occupied.$(RESET)"; \
+		fi; \
+	else \
+		echo "$(GREEN)Port $(FE_PORT) is already clear!$(RESET)"; \
+	fi
 
 ## WARNING ##
 # Purge: One command to rule them all! Stops all running containers and remove all Docker resources system-wide
-purge: clean clean-backup
+purge: fclean
 	@$(PURGE_WARN)
 	@docker stop $$(docker ps -aq) 2>/dev/null || true
 	$(DC) down --volumes --rmi all
@@ -206,17 +234,17 @@ logs:
 ## 🚀 DEVELOPMENT COMMANDS ##
 #############################
 
-dev: stop-proc install db
+dev: check-env stop-dev-processes kill-be-port kill-fe-port install db
 	@echo "$(BOLD)$(YELLOW)--- Starting Backend & Frontend [DEV]...$(RESET)"
 	pnpm run dev;
 
 # Run only Backend with DB check; NEST clears terminal before printing
-dev-be: check-env stop-proc db
+dev-be: check-env kill-be-port db
 	@echo "$(BOLD)$(GREEN)--- Starting BACKEND (API) ---$(RESET)"
 	pnpm --filter @grit/backend dev
 
 # Run only Frontend
-dev-fe: check-env stop-proc install-fe
+dev-fe: check-env kill-fe-port install-fe
 	@echo "$(BOLD)$(GREEN)--- Starting FRONTEND (UI) ---$(RESET)"
 	pnpm --filter @grit/frontend dev
 
@@ -225,11 +253,27 @@ dev-fe: check-env stop-proc install-fe
 #############################
 
 # Starts only the database Docker container for local development
+# In Production, db availabilty (and starting of backend container) is checked in 'docker compose' via healthchecks.
 db: install-be
 	@echo "$(BOLD)$(YELLOW)--- Starting Postgres [DOCKER]...$(RESET)"
 	$(DC) up -d db
 	@echo "$(BOLD)$(YELLOW)--- Waiting for DB to wake up...$(RESET)"
-	@sleep 3
+	@RETRIES=10; \
+	while [ $$RETRIES -gt 0 ]; do \
+	    if docker exec grit-db-1 pg_isready -U $(POSTGRES_USER) > /dev/null 2>&1; then \
+	        echo "$(GREEN)Postgres is accepting connections!$(RESET)"; \
+	        sleep 2; \
+	        RETRIES=-1; \
+	        break; \
+	    fi; \
+	    echo "Waiting for Postgres to initialize... ($$RETRIES attempts left)"; \
+	    RETRIES=$$((RETRIES - 1)); \
+	    sleep 1; \
+	done; \
+	if [ $$RETRIES -eq 0 ]; then \
+	    echo "$(RED)DB failed to start.$(RESET)"; \
+	    exit 1; \
+	fi
 	@pnpm --filter @grit/backend exec prisma db push
 	@$(MAKE) seed-db --no-print-directory
 	@echo "$(BOLD)$(GREEN)Database is ready, schema is synced and initial users are seeded.$(RESET)"
@@ -330,17 +374,17 @@ build-fe: check-env install-fe
 
 # -- RUN TARGETS (PROD MODE) --
 
-run: stop-proc build
+run: stop-dev-processes kill-be-port kill-fe-port build
 	@echo "$(BOLD)$(YELLOW)--- Running Build...$(RESET)"
 	pnpm -r --parallel run start
 
 # Runs only the compiled Backend (dist/main.js)
-run-be: build-be
+run-be: build-be kill-be-port
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Build...$(RESET)"
 	pnpm --filter @grit/backend start
 
 # Runs only the Frontend preview (dist/index.html)
-run-fe: build-fe
+run-fe: build-fe kill-fe-port
 	@echo "$(BOLD)$(YELLOW)--- Running Frontend Preview...$(RESET)"
 	pnpm --filter @grit/frontend start
 
@@ -366,7 +410,7 @@ stop:
 
 .PHONY:	all \
 		init-env install install-fe install-be check-env \
-		clean clean-db clean-backup kill-ports stop-proc purge\
+		clean clean-db clean-backup stop-dev-processes purge\
 		typecheck lint lint-fix format logs \
 		dev dev-be dev-fe \
 		db seed-db view-db stop-db \

@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
-import { Prisma } from '@generated/client/client';
+import { PrismaService } from '@grit_prisma/prisma.service';
+import { Prisma } from '@grit_generated/client/client';
 import { ReqEventGetPublishedDto, ReqEventPostDraftDto, ReqEventPatchDto } from './event.schema';
 
 @Injectable()
