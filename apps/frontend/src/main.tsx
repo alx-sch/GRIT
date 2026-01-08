@@ -9,6 +9,7 @@ import Home from '@/pages/Home';
 import Users, { usersLoader } from '@/pages/Users';
 import Design from '@/pages/Design';
 import ErrorPage from '@/pages/ErrorPage';
+import EventFeed from '@/pages/EventFeed';
 import { ThemeProvider } from '@/providers/theme-provider';
 
 const router = createBrowserRouter([
@@ -34,6 +35,10 @@ const router = createBrowserRouter([
       {
         path: 'profile',
         element: <div>Profile Page (Todo)</div>,
+      },
+      {
+        path: 'events',
+        element: <EventFeed />,
       },
     ],
   },

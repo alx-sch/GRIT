@@ -26,6 +26,7 @@ export function Navbar() {
   const navLinks = [
     { href: '/', label: 'Home' },
     { href: '/users', label: 'Users' },
+    { href: '/events', label: 'Events' },
     { href: '/design', label: 'Design' },
   ];
 
