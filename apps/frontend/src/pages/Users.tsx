@@ -1,67 +1,80 @@
-import { useEffect, useState, useMemo } from 'react';
-import { useUserStore } from '@/store/useUserStore';
-import { useDebounce } from '@/hooks/useDebounce';
+import { useState, useMemo } from 'react';
+import { LoaderFunctionArgs } from 'react-router-dom';
+import { userService } from '@/services/userService';
+
+import { Container } from '@/components/layout/Container';
+import { Heading, Text } from '@/components/ui/typography';
+import { Input } from '@/components/ui/input';
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { User } from '@/types/user';
+import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
+
+export const usersLoader = async ({ request }: LoaderFunctionArgs) => {
+  console.log(request); //we can use this to fitler or smth
+  return userService.getUsers();
+};
 
 export default function Users() {
-  const { users, loading, error } = useUserStore();
-  const fetchUsers = useUserStore((state) => state.fetchUsers);
+  const users = useTypedLoaderData<User[]>();
 
   const [searchTerm, setSearchTerm] = useState('');
-  const debouncedSearch = useDebounce(searchTerm, 500);
-
-  useEffect(() => {
-    void fetchUsers();
-  }, [fetchUsers]);
 
   const filteredUsers = useMemo(() => {
-    return users.filter((user) => user.name.toLowerCase().includes(debouncedSearch.toLowerCase()));
-  }, [users, debouncedSearch]);
-
-  if (loading) {
-    return (
-      <main className="p-8">
-        <h1 className="text-2xl font-bold mb-4">Users</h1>
-        <p className="text-gray-500">Loading...</p>
-      </main>
-    );
-  }
-
-  if (error) {
-    return (
-      <main className="p-8">
-        <h1 className="text-2xl font-bold mb-4">Users</h1>
-        <div className="p-4 bg-red-50 text-red-600 rounded border border-red-200">
-          Error: {error}
-        </div>
-      </main>
-    );
-  }
+    if (!searchTerm) return users;
+    return users.filter((user) => user.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  }, [users, searchTerm]);
 
   return (
-    <main className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Users</h1>
+    <Container className="py-10 space-y-8">
+      <div className="space-y-2">
+        <Heading level={1}>Users</Heading>
+        <Text className="text-muted-foreground">Manage your team members and permissions.</Text>
+      </div>
 
-      <input
-        type="text"
-        placeholder="Search users..."
-        className="mb-6 p-2 border rounded w-full max-w-sm"
-        value={searchTerm}
-        onChange={(e) => {
-          setSearchTerm(e.target.value);
-        }}
-      />
+      <div className="flex flex-col gap-6">
+        <Input
+          placeholder="Search users..."
+          className="max-w-sm"
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+          }}
+        />
 
-      <ul className="list-disc pl-5">
-        {filteredUsers.map((user) => (
-          <li key={user.id} className="mb-2">
-            <span className="font-medium">{user.name}</span>
-            {' – '}
-            <span className="text-gray-500">{user.email}</span>
-          </li>
-        ))}
-      </ul>
+        {filteredUsers.length > 0 ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {filteredUsers.map((user) => (
+              <Card
+                key={user.id}
+                className="hover:-translate-y-1 transition-transform duration-200"
+              >
+                <CardHeader className="flex flex-row items-center gap-4 space-y-0 p-4">
+                  <Avatar className="h-12 w-12 border-2 border-black">
+                    <AvatarImage
+                      src={`https://api.dicebear.com/7.x/notionists/svg?seed=${user.name}`}
+                    />
+                    <AvatarFallback seed={user.name}>
+                      {user.name.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
 
-      {filteredUsers.length === 0 && <p className="text-gray-500">No users found.</p>}
-    </main>
+                  <div className="overflow-hidden">
+                    <CardTitle className="text-base truncate">{user.name}</CardTitle>
+                    <CardDescription className="truncate" title={user.email}>
+                      {user.email}
+                    </CardDescription>
+                  </div>
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="py-12 text-center border-2 border-dashed border-muted-foreground/20">
+            <Text className="text-muted-foreground">No users found matching "{searchTerm}"</Text>
+          </div>
+        )}
+      </div>
+    </Container>
   );
 }
