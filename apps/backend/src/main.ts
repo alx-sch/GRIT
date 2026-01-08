@@ -22,10 +22,29 @@ async function bootstrap() {
   await app.listen(env.BE_PORT);
 
   const baseBEUrl = `http://localhost:${String(env.BE_PORT)}`;
-  console.log(`[Backend ]:  ${baseBEUrl}`);
-  console.log(`[Swagger ]:  ${baseBEUrl}/api`);
-  console.log(`[Status  ]:  ${baseBEUrl}/health`);
-  console.log(`[Frontend]:  http://localhost:${String(env.FE_PORT)}`);
+  const minioUrl = `http://localhost:${String(env.MINIO_DASHBOARD_PORT || 9001)}`;
+
+  const c = {
+    reset: '\x1b[0m',
+    cyan: '\x1b[36m',
+    yellow: '\x1b[33m',
+    magenta: '\x1b[35m',
+  };
+
+  const url = (label: string, link: string) => `${c.cyan}${label}:${c.reset} ${link}`;
+  const separator = `${c.magenta}----------------------------------------------${c.reset}`;
+
+  console.log('');
+  console.log(separator);
+  console.log(url('[Backend ]', baseBEUrl));
+  console.log(url('[Swagger ]', `${baseBEUrl}/api`));
+  console.log(url('[Status  ]', `${baseBEUrl}/health`));
+  console.log(url('[Frontend]', `http://localhost:${String(env.FE_PORT)}`));
+  console.log(url('[MinIO   ]', minioUrl));
+  console.log(separator);
+  console.log(`View Postgres DB:   ${c.yellow}make view-db${c.reset}`);
+  console.log('');
+  console.log(separator);
 }
 
 bootstrap().catch((err: unknown) => {

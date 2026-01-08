@@ -240,34 +240,48 @@ dev-fe: check-env kill-port-fe install-fe
 	@echo "$(BOLD)$(GREEN)--- Starting FRONTEND (UI) ---$(RESET)"
 	pnpm --filter @grit/frontend dev
 
-#############################
-## 📁 DATABASE (LOCAL DEV) ##
-#############################
+###########################
+## 📁 DATABASE & STORAGE ##
+###########################
 
-# Starts only the database Docker container for local development
-# In Production, db availabilty (and starting of backend container) is checked in 'docker compose' via healthchecks.
+# Starts database AND MinIO for local development
 db: install-be
-	@echo "$(BOLD)$(YELLOW)--- Starting Postgres [DOCKER]...$(RESET)"
-	$(DC) up -d postgres-db
-	@echo "$(BOLD)$(YELLOW)--- Waiting for DB to wake up...$(RESET)"
+	@echo "$(BOLD)$(YELLOW)--- Starting Infrastructure (Postgres & MinIO)...$(RESET)"
+	$(DC) up -d postgres-db minio
+
+	@echo "$(BOLD)$(YELLOW)--- Waiting for for services to wake up...$(RESET)"
 	@RETRIES=10; \
+	PG_CONTAINER=$$($(DC) ps -q postgres-db); \
+	MINIO_CONTAINER=$$($(DC) ps -q minio); \
 	while [ $$RETRIES -gt 0 ]; do \
-	    if docker exec grit-postgres-db-1 pg_isready -U $(POSTGRES_USER) > /dev/null 2>&1; then \
-	        echo "$(GREEN)Postgres is accepting connections!$(RESET)"; \
-	        sleep 2; \
-	        RETRIES=-1; \
-	        break; \
-	    fi; \
-	    echo "Waiting for Postgres to initialize... ($$RETRIES attempts left)"; \
-	    RETRIES=$$((RETRIES - 1)); \
-	    sleep 1; \
+		PG_READY=0; \
+		MINIO_READY=0; \
+		if docker exec $$PG_CONTAINER pg_isready -U $(POSTGRES_USER) -d $(POSTGRES_DB) > /dev/null 2>&1; then \
+			echo "$(GREEN)Postgres is ready!$(RESET)"; \
+			PG_READY=1; \
+		fi; \
+		\
+		if docker logs $$MINIO_CONTAINER 2>&1 | grep -q "API:"; then \
+			echo "$(GREEN)MinIO is ready!$(RESET)"; \
+			MINIO_READY=1; \
+		fi; \
+		\
+		if [ "$$PG_READY" = "1" ] && [ "$$MINIO_READY" = "1" ]; then \
+			break; \
+		fi; \
+		\
+		echo "Waiting for services... ($$RETRIES attempts left)"; \
+		RETRIES=$$((RETRIES - 1)); \
+		sleep 1; \
 	done; \
 	if [ $$RETRIES -eq 0 ]; then \
-	    echo "$(RED)DB failed to start.$(RESET)"; \
-	    exit 1; \
+		echo "$(RED)Timeout waiting for services to start.$(RESET)"; \
+		exit 1; \
 	fi
+
 	@pnpm --filter @grit/backend exec prisma db push
 	@$(MAKE) seed-db --no-print-directory
+
 	@echo "$(BOLD)$(GREEN)Database is ready, schema is synced and initial users are seeded.$(RESET)"
 	@echo "•   View logs (db): '$(YELLOW)make logs$(RESET)'"
 	@echo "•   View database:  '$(YELLOW)make view-db$(RESET)'"
