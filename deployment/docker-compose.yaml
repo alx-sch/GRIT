@@ -53,6 +53,7 @@ services:
       - MINIO_PASSWORD=${MINIO_PASSWORD}
       - HTTP_PORT=${HTTP_PORT}
       - HTTPS_PORT=${HTTPS_PORT}
+      - MINIO_HOST=minio
     depends_on:
       postgres-db:
         condition: service_healthy

@@ -7,11 +7,14 @@ const baseSchema = z.object({
   POSTGRES_USER: z.string(),
   POSTGRES_PASSWORD: z.string().min(10),
   POSTGRES_DB: z.string(),
-  POSTGRES_HOST: z.string().default('localhost'), // in dev (run in host), this needs to be 'localhost;' in production (Docker network), this needs to be the container name 'postgres-db'
+  // in dev (run in host), this needs to be 'localhost;'
+  // in production (Docker network; backend (Node) running in container), this needs to be the container's service name: 'postgres-db'
+  POSTGRES_HOST: z.string().default('localhost'),
 
   // MinIO
   MINIO_USER: z.string(),
   MINIO_PASSWORD: z.string().min(10),
+  MINIO_HOST: z.string().default('localhost'),
 
   // Ports
   BE_PORT: z.coerce.number().default(3000),

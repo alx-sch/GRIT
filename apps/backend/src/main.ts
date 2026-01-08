@@ -18,10 +18,13 @@ async function bootstrap() {
   );
   SwaggerModule.setup('api', app, cleanupOpenApiDoc(openApiDoc));
 
-  // Start Server
+  // Start Server and log relevant links
   await app.listen(env.BE_PORT);
-  console.log(`[Backend ]:  http://localhost:${String(env.BE_PORT)}`);
-  console.log(`[Swagger ]:  http://localhost:${String(env.BE_PORT)}/api`);
+
+  const baseBEUrl = `http://localhost:${String(env.BE_PORT)}`;
+  console.log(`[Backend ]:  ${baseBEUrl}`);
+  console.log(`[Swagger ]:  ${baseBEUrl}/api`);
+  console.log(`[Status  ]:  ${baseBEUrl}/health`);
   console.log(`[Frontend]:  http://localhost:${String(env.FE_PORT)}`);
 }
 
