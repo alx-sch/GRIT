@@ -69,11 +69,7 @@
       "json",
       "ts"
     ],
-	"rootDir": "../../",
-	"moduleNameMapper": {
-	"^@/(.*)$": "<rootDir>/apps/backend/src/$1"
-	},
-    "setupFiles": ["dotenv/config"],
+    "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"

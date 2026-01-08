@@ -168,6 +168,16 @@ purge: clean clean-backup
 
 # -- MISC TARGETS --
 
+# Runs Jest for backend
+test: install
+	@echo "$(BOLD)$(YELLOW)--- Starting Tester [DEV]...$(RESET)"
+	pnpm --filter @grit/backend test
+
+# Runs Jest in watch mode for backend
+test-watch: install
+	@echo "$(BOLD)$(YELLOW)--- Starting Tester in Watch Mode [DEV]...$(RESET)"
+	pnpm --filter @grit/backend test:watch
+
 typecheck: install
 	@echo "$(BOLD)$(YELLOW)--- Typechecking...$(RESET)"
 	pnpm run -r typecheck;
