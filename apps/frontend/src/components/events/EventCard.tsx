@@ -30,7 +30,7 @@ export function EventCard({ event }: EventCardProps) {
       </CardHeader>
       <CardContent className="px-4 pb-4 pt-0 space-y-3">
         <CardTitle className="font-heading font-bold text-3xl">{event.title}</CardTitle>
-        <CardDescription className="font-heading font-medium text-black text-xl pb-4">
+        <CardDescription className="font-heading font-medium text-xl pb-4">
           {event.startAt} @ {event.location}
         </CardDescription>
 
@@ -47,7 +47,7 @@ export function EventCard({ event }: EventCardProps) {
             </div>
           )}
 
-          <span className="text-base font-normal text-black">
+          <span className="text-base font-normal text-muted-foreground">
             {event.interestedCount > 0
               ? `${event.interestedCount} people are interested`
               : 'No one is interested yet'}
