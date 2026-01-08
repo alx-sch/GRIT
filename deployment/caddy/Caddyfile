@@ -21,16 +21,12 @@ localhost:443, :443 {
 	# ---------------------
 	# API Proxy to Backend Services
 	# ---------------------
-	# Match any request starting with '/api/user'
-	# Strip "/api-user", forward the rest to backend container (e.g., '/list')
-	# handle_path /api-user/* {
-	#     reverse_proxy user-service:3000
-	# }
-
-	# Add more API routes as needed:
-	# handle_path /api/registration* {
-	#     reverse_proxy registration-service:3333
-	# }
+	# Match requests starting with '/api' and strips the '/api' prefix.
+	# Example: Frontend requests '/api/users' -> Backend receives '/users'.
+	# This is required because the NestJS controller is mapped to 'users', not 'api/users'.
+	handle_path /api/* {
+		reverse_proxy backend:3000
+	}
 
 	# ---------------------
 	# Frontend SPA

@@ -32,7 +32,7 @@ async function bootstrap() {
   };
 
   const url = (label: string, link: string) => `${c.cyan}${label}:${c.reset} ${link}`;
-  const separator = `${c.magenta}----------------------------------------------${c.reset}`;
+  const separator = `${c.magenta}-------------------------------------------${c.reset}`;
 
   console.log('');
   console.log(separator);
@@ -43,8 +43,8 @@ async function bootstrap() {
   console.log(url('[MinIO   ]', minioUrl));
   console.log(separator);
   console.log(`View Postgres DB:   ${c.yellow}make view-db${c.reset}`);
-  console.log('');
   console.log(separator);
+  console.log('');
 }
 
 bootstrap().catch((err: unknown) => {

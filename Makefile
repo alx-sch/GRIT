@@ -247,7 +247,7 @@ dev-fe: check-env kill-port-fe install-fe
 # Starts database AND MinIO for local development
 db: install-be
 	@echo "$(BOLD)$(YELLOW)--- Starting Infrastructure (Postgres & MinIO)...$(RESET)"
-	$(DC) up -d postgres-db minio
+	$(DC) up -d --no-build postgres-db minio
 
 	@echo "$(BOLD)$(YELLOW)--- Waiting for for services to wake up...$(RESET)"
 	@RETRIES=10; \
@@ -380,17 +380,17 @@ build-fe: check-env install-fe
 
 # -- RUN TARGETS (PROD MODE) --
 
-run: stop-dev-processes kill-port-be kill-port-fe build
+run: stop-dev-processes kill-port-be kill-port-fe build db
 	@echo "$(BOLD)$(YELLOW)--- Running Build...$(RESET)"
 	pnpm -r --parallel run start
 
 # Runs only the compiled Backend (dist/main.js)
-run-be: build-be kill-port-be
+run-be: kill-port-be build-be db
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Build...$(RESET)"
 	pnpm --filter @grit/backend start
 
 # Runs only the Frontend preview (dist/index.html)
-run-fe: build-fe kill-port-fe
+run-fe: kill-port-fe build-fe
 	@echo "$(BOLD)$(YELLOW)--- Running Frontend Preview...$(RESET)"
 	pnpm --filter @grit/frontend start
 
