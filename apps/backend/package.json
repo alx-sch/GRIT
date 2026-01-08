@@ -29,6 +29,7 @@
     "@nestjs/swagger": "^11.2.3",
     "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^7.2.0",
+    "dotenv": "^17.2.3",
     "nestjs-zod": "^5.0.1",
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.2",

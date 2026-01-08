@@ -3,9 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --port $FE_PORT",
     "build": "vite build",
-    "start": "vite preview",
+    "start": "vite preview --port $FE_PORT --host",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit"

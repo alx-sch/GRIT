@@ -20,9 +20,9 @@ async function bootstrap() {
 
   // Start Server
   await app.listen(env.BE_PORT);
-  const baseUrl = `http://localhost:${String(env.BE_PORT)}`;
-  console.log(`[READY] Server:  ${baseUrl}`);
-  console.log(`[DOCS ] Swagger: ${baseUrl}/api`);
+  console.log(`[Backend ]:  http://localhost:${String(env.BE_PORT)}`);
+  console.log(`[Swagger ]:  http://localhost:${String(env.BE_PORT)}/api`);
+  console.log(`[Frontend]:  http://localhost:${String(env.FE_PORT)}`);
 }
 
 bootstrap().catch((err: unknown) => {

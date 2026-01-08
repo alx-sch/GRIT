@@ -135,7 +135,7 @@ clean: stop-dev-processes
 # Removes the database container and its persistent data volume; resets DB
 clean-db:
 	@echo "$(BOLD)$(RED)--- Deleting Database and Wiping Volumes...$(RESET)"
-	$(DC) down db --volumes
+	$(DC) down postgres-db --volumes
 	@echo "$(GREEN)$(BOLD)Database volume deleted.$(RESET)"
 
 # Removes the local backup folder
@@ -248,11 +248,11 @@ dev-fe: check-env kill-port-fe install-fe
 # In Production, db availabilty (and starting of backend container) is checked in 'docker compose' via healthchecks.
 db: install-be
 	@echo "$(BOLD)$(YELLOW)--- Starting Postgres [DOCKER]...$(RESET)"
-	$(DC) up -d db
+	$(DC) up -d postgres-db
 	@echo "$(BOLD)$(YELLOW)--- Waiting for DB to wake up...$(RESET)"
 	@RETRIES=10; \
 	while [ $$RETRIES -gt 0 ]; do \
-	    if docker exec grit-db-1 pg_isready -U $(POSTGRES_USER) > /dev/null 2>&1; then \
+	    if docker exec grit-postgres-db-1 pg_isready -U $(POSTGRES_USER) > /dev/null 2>&1; then \
 	        echo "$(GREEN)Postgres is accepting connections!$(RESET)"; \
 	        sleep 2; \
 	        RETRIES=-1; \

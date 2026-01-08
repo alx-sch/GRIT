@@ -1,43 +1,44 @@
+# To format, run 'caddy fmt --overwrite deployment/caddy/Caddyfile'
+
 # ==================================
 # LOCAL PRODUCTION (visit localhost)
 # ==================================
-
 {
-    # This prevents Caddy from trying to manage its own redirects
-    auto_https disable_redirects
+	# This prevents Caddy from trying to manage its own redirects
+	auto_https disable_redirects
 }
 
 # Redirect HTTP to HTTPS explicitly
 :80 {
-    redir https://{host}:{$HTTPS_PORT}{uri} 308
+	redir https://{host}:{$HTTPS_PORT}{uri} 308
 }
 
 # HTTPS Site Configuration
 localhost:443, :443 {
-    # Use self-signed certs for local production
-    tls internal
+	# Use self-signed certs for local production
+	tls internal
 
-    # ---------------------
-    # API Proxy to Backend Services
-    # ---------------------
-    # Match any request starting with '/api/user'
-    # Strip "/api-user", forward the rest to backend container (e.g., '/list')
-    # handle_path /api-user/* {
-    #     reverse_proxy user-service:3000
-    # }
+	# ---------------------
+	# API Proxy to Backend Services
+	# ---------------------
+	# Match any request starting with '/api/user'
+	# Strip "/api-user", forward the rest to backend container (e.g., '/list')
+	# handle_path /api-user/* {
+	#     reverse_proxy user-service:3000
+	# }
 
-    # Add more API routes as needed:
-    # handle_path /api/registration* {
-    #     reverse_proxy registration-service:3333
-    # }
+	# Add more API routes as needed:
+	# handle_path /api/registration* {
+	#     reverse_proxy registration-service:3333
+	# }
 
-    # ---------------------
-    # Frontend SPA
-    # ---------------------
-    # Serve static files if no API route matched
-    handle {
-        root * /srv/dist
-        try_files {path} /index.html
-        file_server
-    }
+	# ---------------------
+	# Frontend SPA
+	# ---------------------
+	# Serve static files if no API route matched
+	handle {
+		root * /srv/dist
+		try_files {path} /index.html
+		file_server
+	}
 }

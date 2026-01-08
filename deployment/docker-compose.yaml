@@ -18,34 +18,59 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
-    # Healthcheck: Verify Caddy is serving traffic on port 80
+    networks:
+      - grit-net
+        # Healthcheck: Verify Caddy is serving traffic on port 80
     healthcheck:
       # like 'curl' (but lighter weight, 'wget' also comes with Alpine)
       # returns an exit code of 0 on success -> healthy
-      # local self-signed certificates only for 'localhost' (not '127.0.0.1')
-      # As Caddy listens to all available interfaces, 'localhost' works here.docker
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:80']
+      # --spider: Checks if the URL exists without downloading the file.
+      # 2019: Caddy's internal Admin API port.
+      # /metrics: A specific endpoint that Caddy always keeps open to report its "heartbeat" and health data.
+      test:
+        ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://127.0.0.1:2019/metrics']
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 5s
-    # depends_on:
-    #   user-service:
-    #     condition: service_healthy
-    networks:
-      - network
 
   ##############
   ## BACKEND  ##
   ##############
 
-  # backend:
+  backend:
+    build:
+      context: ..
+      dockerfile: deployment/backend/Dockerfile.backend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=postgres-db # it's 'localhost' for local testing outside of docker container
+      - MINIO_USER=${MINIO_USER}
+      - MINIO_PASSWORD=${MINIO_PASSWORD}
+      - HTTP_PORT=${HTTP_PORT}
+      - HTTPS_PORT=${HTTPS_PORT}
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      # localhost:3000/api: Checks if Swagger UI is reachable.
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://127.0.0.1:3000/api']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s # Give NestJS some time to boot/connect to DB before checking
 
-  ##################
-  ## POSTGRES DB  ##
-  ##################
+  ############################
+  ## POSTGRES DB: Text data ##
+  ############################
 
-  db:
+  postgres-db:
     image: postgres:16-alpine
     restart: always
     environment:
@@ -57,7 +82,36 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     networks:
-      - network
+      - grit-net
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  ##################################
+  ## MINIO: S3 Storage for images ##
+  ##################################
+
+  minio:
+    image: minio/minio
+    restart: unless-stopped
+    ports:
+      - '${MINIO_PORT}:9000' # API port (your code uses this)
+      - '${MINIO_DASHBOARD_PORT}:9001' # Dashboard port (you use this in browser)
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
+    volumes:
+      - s3_data:/data
+    networks:
+      - grit-net
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 #############
 ## Volumes ##
@@ -66,12 +120,13 @@ services:
 volumes:
   caddy_data: # Storage for Caddy's SSL/TLS certificates
   caddy_config: # Storage for Caddy's configuration
-  db_data:
+  db_data: # Postgres data: text
+  s3_data: # Minio data: images
 
 ##############
 ## Networks ##
 ##############
 
 networks:
-  network:
+  grit-net:
     driver: bridge
