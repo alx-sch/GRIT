@@ -1,5 +1,5 @@
 import { Container } from '@/components/layout/Container';
-import { Heading, Text } from '@/components/ui/typography';
+import { Heading } from '@/components/ui/typography';
 import { EventCard } from '@/components/events/EventCard';
 import { Event } from '@/types/event';
 

@@ -49,7 +49,7 @@ export function EventCard({ event }: EventCardProps) {
 
           <span className="text-base font-normal text-muted-foreground">
             {event.interestedCount > 0
-              ? `${event.interestedCount} people are interested`
+              ? `${event.interestedCount.toLocaleString()} people are interested`
               : 'No one is interested yet'}
           </span>
         </div>
