@@ -10,6 +10,10 @@ describe('EventController', () => {
    * our unit tests on it.
    */
 
+  /***
+   *
+   */
+
   let eventController: EventController;
   beforeEach(async () => {
     /**
