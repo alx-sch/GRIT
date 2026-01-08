@@ -4,7 +4,6 @@ FROM    node:20-alpine AS builder
 
 WORKDIR /app
 
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat is needed.
 RUN     npm install -g pnpm
 
 # Copy root config files
@@ -31,9 +30,6 @@ FROM    node:20-alpine AS runner
 
 WORKDIR /app
 
-# Install openssl for Prisma runtime
-RUN     apk add --no-cache openssl
-
 # Create a non-root user for security
 RUN     addgroup --system --gid 1001 nodejs
 RUN     adduser --system --uid 1001 nodejs
@@ -49,7 +45,7 @@ COPY    --from=builder /app/apps/backend/package.json ./apps/backend/package.jso
 
 USER    nodejs
 
-EXPOSE  8080
+EXPOSE  3000
 
 # Start the server
 CMD     ["node", "apps/backend/dist/src/main.js"]

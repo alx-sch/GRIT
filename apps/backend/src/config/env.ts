@@ -48,7 +48,8 @@ const envSchema = baseSchema.transform((data: BaseEnv) => {
 const envValidation = envSchema.safeParse(process.env);
 
 // Prepare the variable that will be exported
-let validatedEnv: any;
+type Env = z.infer<typeof envSchema>;
+let validatedEnv: Env;
 
 if (!envValidation.success) {
   // During 'docker build', Docker runs commands like 'pnpm prisma generate'.
@@ -66,7 +67,7 @@ if (!envValidation.success) {
       ...process.env,
       DATABASE_URL: 'postgresql://build:build@localhost:5432/build',
       NODE_ENV: 'production',
-    };
+    } as unknown as Env;
   } else {
     // FOR LOCAL DEV: Show the Zod Error and STOP
     const pretty = z.prettifyError(envValidation.error);
