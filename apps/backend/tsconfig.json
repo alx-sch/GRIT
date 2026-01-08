@@ -14,7 +14,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@generated/*": ["./src/generated/*"],
+      "@grit_generated/*": ["./src/generated/*"],
       "@grit_prisma/*": ["./src/prisma/*"],
       "@grit_config/*": ["./src/config/*"]
     }

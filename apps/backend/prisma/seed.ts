@@ -1,4 +1,4 @@
-import { PrismaClient } from '@generated/client/client';
+import { PrismaClient } from '@grit_generated/client/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import { env } from '@grit_config/env';
