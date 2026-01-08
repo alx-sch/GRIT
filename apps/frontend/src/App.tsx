@@ -1,20 +1,33 @@
-import { Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Outlet, useNavigation } from 'react-router-dom';
+import NProgress from 'nprogress';
 import { Navbar } from '@/components/layout/Navbar';
-import Home from './pages/Home';
-import Users from './pages/Users';
+import { Toaster } from '@/components/ui/sonner';
+
+NProgress.configure({ showSpinner: false, speed: 400 });
 
 function App() {
+  const navigation = useNavigation();
+
+  const isLoading = navigation.state === 'loading' || navigation.state === 'submitting';
+
+  useEffect(() => {
+    if (isLoading) {
+      NProgress.start();
+    } else {
+      NProgress.done();
+    }
+  }, [isLoading]);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
 
       <main className="container mx-auto py-6">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/users" element={<Users />} />
-          <Route path="/profile" element={<div>Profile Page (Todo)</div>} />
-        </Routes>
+        <Outlet />
       </main>
+
+      <Toaster position="bottom-right" richColors />
     </div>
   );
 }

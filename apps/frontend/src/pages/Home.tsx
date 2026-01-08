@@ -1,20 +1,10 @@
-import { Button } from '@/components/ui/button';
+import { Container } from '@/components/layout/Container';
+import { Heading } from '@/components/ui/typography';
 
 export default function Home() {
   return (
-    <section className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Home</h1>
-      <p className="text-gray-700 mb-6">
-        Welcome to your new single-page application. This is the home page.
-      </p>
-
-      <Button
-        onClick={() => {
-          alert('You clicked the shadcn button!');
-        }}
-      >
-        Shadcn Button
-      </Button>
-    </section>
+    <Container className="py-10 space-y-12">
+      <Heading level={1}>Hi there</Heading>
+    </Container>
   );
 }
