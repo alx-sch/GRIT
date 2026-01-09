@@ -9,7 +9,7 @@ import Home from '@/pages/Home';
 import Users, { usersLoader } from '@/pages/Users';
 import Design from '@/pages/Design';
 import ErrorPage from '@/pages/ErrorPage';
-import EventFeed from '@/pages/EventFeed';
+import EventFeed from '@/pages/eventsFeed/Page';
 import { ThemeProvider } from '@/providers/theme-provider';
 
 const router = createBrowserRouter([

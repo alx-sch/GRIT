@@ -1,6 +1,6 @@
 import { Container } from '@/components/layout/Container';
 import { Heading } from '@/components/ui/typography';
-import { EventCard } from '@/components/events/EventCard';
+import { EventCard } from '@/pages/eventsFeed/components/EventCard';
 import { Event } from '@/types/event';
 
 //Mock Data for testing purposes - to be replaced with real data fetching logic
