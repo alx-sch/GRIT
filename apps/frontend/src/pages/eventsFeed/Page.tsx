@@ -16,7 +16,8 @@ const mockEvents: Event[] = [
     isPublished: true,
     isPublic: true,
     startAt: 'Sat, Mar 28, 2026',
-    title: 'MEGA SUPER DUPER COOL PARTY',
+    title:
+      'MEGA SUPER DUPER COOL PARTY super hyper long title super hyper long title super hyper long titlesuper hyper long title super hyper long title super hyper long titlesuper hyper long title super hyper long title super hyper long titlesuper hyper long title super hyper long title super hyper long title super hyper long title super hyper long title super hyper long title',
     interestedFriends: ['Anna', 'Alice', 'Bob'],
     imageURL: 'https://placehold.co/400x300/ff6b35/000000?text=Berghain+Party',
     interestedCount: 350,
