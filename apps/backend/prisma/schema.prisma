@@ -13,24 +13,12 @@ datasource db {
   provider = "postgresql"
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  author    User?    @relation(fields: [authorId], references: [id])
-  authorId  Int?
-  content   String?
-  createdAt DateTime @default(now())
-  published Boolean? @default(false)
-  title     String
-}
-
 model User {
-  id        Int      @id @default(autoincrement())
-  avatarUrl String?
-  createdAt DateTime @default(now())
-  email     String   @unique
-  events    Event[]
-  name      String?
-  posts     Post[]
+  id          Int         @id @default(autoincrement())
+  createdAt   DateTime    @default(now())
+  email       String      @unique
+  events      Event[]
+  name        String?
 }
 
 model Event {
