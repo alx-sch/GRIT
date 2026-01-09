@@ -24,7 +24,7 @@ export class UserService {
     const bucket = 'user-avatars';
 
     // 1. Upload to MinIO
-    const dbPath = await this.storage.uploadFile(file, bucket);
+    const dbPath: string = await this.storage.uploadFile(file, bucket);
 
     // 2. Update DB
     return this.prisma.user.update({
