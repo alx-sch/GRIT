@@ -2,6 +2,7 @@ import { Container } from '@/components/layout/Container';
 import { Heading } from '@/components/ui/typography';
 import { EventCard } from '@/pages/events/components/EventCard';
 import { Event } from '@/types/event';
+import { useMemo } from 'react';
 
 //Mock Data for testing purposes - to be replaced with real data fetching logic
 const mockEvents: Event[] = [
@@ -12,10 +13,10 @@ const mockEvents: Event[] = [
     content:
       'A night of unforgettable techno beats, in Not Berghain. Join us for an immersive experience with top DJs and a vibrant crowd.',
     createdAt: '2026-01-02T10:00:00Z',
-    endAt: '2026-01-02T10:00:00Z',
+    endAt: '2026-03-02T10:00:00Z',
     isPublished: true,
     isPublic: true,
-    startAt: '2026-01-02T10:00:00Z',
+    startAt: '2026-03-02T10:00:00Z',
     title:
       'MEGA SUPER DUPER COOL PARTY super hyper long title super hyper long title super hyper long titlesuper hyper long title super hyper long title super hyper long titlesuper hyper long title super hyper long title super hyper long titlesuper hyper long title super hyper long title super hyper long title super hyper long title super hyper long title super hyper long title',
     interestedFriends: [
@@ -77,6 +78,16 @@ const mockEvents: Event[] = [
 ];
 
 export default function EventFeed() {
+  const filteredEvents = useMemo(() => {
+    // Example filter: only show future events
+    const now = new Date();
+    const result = mockEvents.filter((mockEvents) => {
+      if (!mockEvents.startAt) return false;
+      return new Date(mockEvents.startAt) > now;
+    });
+    result.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
+    return result;
+  }, [mockEvents]);
   return (
     <Container className="py-10 space-y-8">
       <div className="space-y-2">
@@ -84,7 +95,7 @@ export default function EventFeed() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {mockEvents.map((event) => (
+        {filteredEvents.map((event) => (
           <EventCard key={event.id} event={event} />
         ))}
       </div>
