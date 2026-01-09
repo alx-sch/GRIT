@@ -6,11 +6,11 @@ import axios from 'axios';
  * Use this instance instead of `axios` directly to ensure consistent behavior.
  */
 const api = axios.create({
-  baseURL: '/api', //NOTE: make sure it matches whatever caddyfile sets
+  baseURL: '/api',
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000, //timeout after 10 seconds
+  timeout: 5000,
 });
 
 // Response Interceptor

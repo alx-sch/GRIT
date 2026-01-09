@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "composite": true,
-    "types": ["vitest", "node"],
+    "types": ["vitest/globals", "node", "vite/client"],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "noEmit": true,
@@ -12,6 +12,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*", "tests/**/*"],
+  "include": ["src/**/*", "tests/**/*", "vite.config.ts", "vitest.config.ts"],
   "exclude": ["node_modules", "dist"]
 }
