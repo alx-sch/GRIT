@@ -1,52 +1,59 @@
-import { Injectable } from '@nestjs/common';
-import { Pool } from 'pg';
+import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { PrismaService } from '@/prisma/prisma.service';
 import * as Minio from 'minio';
 import { env } from '@config/env';
 
-@Injectable()
-export class AppService {
-  // Initialize PG client
-  private pgPool = new Pool({
-    connectionString: env.DATABASE_URL,
-  });
+export interface HealthStatus {
+  postgres: string;
+  minio: string;
+}
 
-  // Initialize MiniIO client
-  private minioClient = new Minio.Client({
-    endPoint: env.MINIO_HOST, // status is checked via health checked in production / container mode
-    port: env.MINIO_PORT,
+@Injectable()
+export class AppService implements OnModuleDestroy {
+  private readonly minioClient = new Minio.Client({
+    endPoint: env.MINIO_HOST,
+    port: Number(env.MINIO_PORT),
     useSSL: false,
     accessKey: env.MINIO_USER,
     secretKey: env.MINIO_PASSWORD,
   });
 
+  constructor(private readonly prisma: PrismaService) {}
+
+  onModuleDestroy() {}
+
   getHello(): string {
     return 'Hello World!';
   }
 
-  async getHealth() {
-    const status = {
-      postgres: 'unknown',
-      minio: 'unknown',
+  async getHealth(): Promise<HealthStatus> {
+    const [pgStatus, minioStatus] = await Promise.all([this.checkPostgres(), this.checkMinio()]);
+
+    return {
+      postgres: pgStatus,
+      minio: minioStatus,
     };
+  }
 
-    // Check Postgres
+  private async checkPostgres(): Promise<string> {
     try {
-      await this.pgPool.query('SELECT 1');
-      status.postgres = 'UP';
+      await this.prisma.$queryRaw`SELECT 1`;
+      return 'UP';
     } catch (e) {
-      status.postgres = 'DOWN';
-      console.error('Postgres Health Check Failed:', e);
+      const error = e as Error;
+      console.error('Postgres Health Check Failed:', error.message);
+      return 'DOWN';
     }
+  }
 
-    // Check MinIO
+  private async checkMinio(): Promise<string> {
     try {
       await this.minioClient.listBuckets();
-      status.minio = 'UP';
+      return 'UP';
     } catch (e) {
-      status.minio = 'DOWN';
-      console.error('MinIO Health Check Failed:', e);
+      const error = e as Error;
+      console.error('MinIO Health Check Failed:', error.message);
+      return 'DOWN';
     }
-
-    return status;
   }
 }

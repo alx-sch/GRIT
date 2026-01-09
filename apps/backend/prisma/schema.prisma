@@ -19,6 +19,7 @@ model User {
   email       String      @unique
   events      Event[]
   name        String?
+  avatarKey   String?
 }
 
 model Event {

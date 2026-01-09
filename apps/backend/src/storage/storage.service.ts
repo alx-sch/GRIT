@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { env } from '@config/env';
 import crypto from 'crypto';
 import path from 'path';
@@ -19,9 +19,7 @@ export class StorageService {
   async uploadFile(file: Express.Multer.File, bucket: string): Promise<string> {
     const fileHash = crypto.randomBytes(4).toString('hex');
     const timestamp = Date.now();
-    const extension = path.extname(file.originalname);
-    // Unique name: user-avatars/17054321-f829cc-myphoto.jpg
-    const s3Key = `${String(timestamp)}-${fileHash}${extension}`;
+    const s3Key = `${Date.now()}-${fileHash}${path.extname(file.originalname)}`;
 
     await this.s3.send(
       new PutObjectCommand({
@@ -31,7 +29,21 @@ export class StorageService {
         ContentType: file.mimetype,
       })
     );
+    return s3Key;
+  }
 
-    return `${bucket}/${s3Key}`; // Path saved to DB
+  async deleteFile(key: string, bucket: string): Promise<void> {
+    try {
+      await this.s3.send(
+        new DeleteObjectCommand({
+          Bucket: bucket,
+          Key: key,
+        })
+      );
+      console.log(`Successfully deleted ${key} from ${bucket}`);
+    } catch (error) {
+      console.error(`Failed to delete file ${key}:`, error);
+      throw error;
+    }
   }
 }

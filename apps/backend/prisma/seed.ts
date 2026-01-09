@@ -106,7 +106,7 @@ async function uploadToBucket(bucketName: string, localFilePath: string, origina
       })
     );
     console.log(`⬆️  Uploaded: ${s3Key} (Bucket: ${bucketName})`);
-    return `${bucketName}/${s3Key}`;
+    return s3Key;
   } catch (error) {
     console.error(`❌ Upload failed for ${s3Key}:`, error);
     return null;
@@ -144,21 +144,21 @@ async function main() {
     console.log(`👤 Processed User: ${user.name ?? 'Unknown'} (${String(user.id)})`);
 
     // Upload Image (Only if one is provided)
-    if (u.image && !user.avatarUrl) {
+    if (u.image && !user.avatarKey) {
       // Where is the file on the machine?
       const localPath = path.join(__dirname, 'seed-assets', u.image);
 
       // Where should it go in MinIO?
-      const dbPath = await uploadToBucket(AVATAR_BUCKET, localPath, u.image);
+      const bucketKey = await uploadToBucket(AVATAR_BUCKET, localPath, u.image);
 
-      if (dbPath) {
+      if (bucketKey) {
         await prisma.user.update({
           where: { id: user.id },
-          data: { avatarUrl: dbPath },
+          data: { avatarKey: bucketKey },
         });
-        console.log(`   📝 Saved to DB: ${dbPath}`);
+        console.log(`   📝 Saved to DB: ${bucketKey}`);
       }
-    } else if (u.image && user.avatarUrl) {
+    } else if (u.image && user.avatarKey) {
       console.log(`   ⏩ User ${user.name ?? 'Unknown'} already has an avatar. Skipping upload.`);
     }
   }
