@@ -5,11 +5,11 @@ import './index.css';
 
 import App from './App';
 
-import Home from '@/pages/Home';
-import Users, { usersLoader } from '@/pages/Users';
-import Design from '@/pages/Design';
-import ErrorPage from '@/pages/ErrorPage';
-import EventFeed from '@/pages/eventsFeed/Page';
+import Home from '@/pages/home/Page';
+import Users, { usersLoader } from '@/pages/users/Page';
+import Design from '@/pages/design/Page';
+import ErrorPage from '@/pages/error/Page';
+import EventFeed from '@/pages/events/Page';
 import { ThemeProvider } from '@/providers/theme-provider';
 
 const router = createBrowserRouter([
