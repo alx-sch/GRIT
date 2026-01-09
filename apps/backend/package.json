@@ -70,9 +70,7 @@
       "ts"
     ],
     "moduleNameMapper": {
-      "^@grit_prisma/(.*)$": "<rootDir>/prisma/$1",
-      "^@grit_generated/(.*)$": "<rootDir>/generated/$1",
-      "^@grit_config/(.*)$": "<rootDir>/config/$1"
+      "^@/(.*)$": "<rootDir>/$1"
     },
     "rootDir": "src",
     "testRegex": ".*\\.(spec|e2e-spec)\\.ts$",
