@@ -1,6 +1,6 @@
 import { Container } from '@/components/layout/Container';
 import { Heading } from '@/components/ui/typography';
-import { EventCard } from './components/EventCard';
+import { EventCard } from '@/pages/events/components/EventCard';
 import { Event } from '@/types/event';
 
 //Mock Data for testing purposes - to be replaced with real data fetching logic
@@ -12,10 +12,10 @@ const mockEvents: Event[] = [
     content:
       'A night of unforgettable techno beats, in Not Berghain. Join us for an immersive experience with top DJs and a vibrant crowd.',
     createdAt: '2026-01-02T10:00:00Z',
-    endAt: 'Mon, Mar 30, 2026',
+    endAt: '2026-01-02T10:00:00Z',
     isPublished: true,
     isPublic: true,
-    startAt: 'Sat, Mar 28, 2026',
+    startAt: '2026-01-02T10:00:00Z',
     title:
       'MEGA SUPER DUPER COOL PARTY super hyper long title super hyper long title super hyper long titlesuper hyper long title super hyper long title super hyper long titlesuper hyper long title super hyper long title super hyper long titlesuper hyper long title super hyper long title super hyper long title super hyper long title super hyper long title super hyper long title',
     interestedFriends: [
@@ -51,10 +51,10 @@ const mockEvents: Event[] = [
     content:
       'A session of beer-yoga at Lotus. Unwind with a refreshing beer in hand while stretching and strengthening your body in a fun and social environment.',
     createdAt: '2026-01-03T10:00:00Z',
-    endAt: 'Fri, Jan 3, 2026',
+    endAt: '2026-01-03T10:00:00Z',
     isPublished: true,
     isPublic: true,
-    startAt: 'Fri, Jan 3, 2026',
+    startAt: '2026-01-03T10:00:00Z',
     title: 'Beer-Yoga Session',
     imageURL: 'https://placehold.co/400x300/ff6b35/000000?text=Beer+Yoga',
     interestedCount: 30,
@@ -66,10 +66,10 @@ const mockEvents: Event[] = [
     author: 'Audrey',
     content: 'Come to my awesome event!',
     createdAt: '2026-01-03T10:00:00Z',
-    endAt: 'Thur, Jan 15, 2026',
+    endAt: '2026-01-15T10:00:00Z',
     isPublished: true,
     isPublic: false,
-    startAt: 'Thur, Jan 15, 2026',
+    startAt: '2026-01-15T10:00:00Z',
     title: 'House Party',
     interestedCount: 0,
     location: "Audrey's Place",

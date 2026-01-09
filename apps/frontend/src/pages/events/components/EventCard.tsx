@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Event } from '@/types/event';
+import { formatDate } from '@/lib/utils';
 
 interface EventCardProps {
   event: Event;
@@ -33,7 +34,7 @@ export function EventCard({ event }: EventCardProps) {
           {event.title}
         </CardTitle>
         <CardDescription className="font-heading font-medium text-xl">
-          {event.startAt} @ {event.location}
+          {formatDate(event.startAt)} @ {event.location}
         </CardDescription>
         <p className="text-base font-normal text-muted-foreground">
           {event.interestedCount > 0
