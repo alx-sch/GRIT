@@ -230,6 +230,16 @@ format: install
 logs:
 	$(DC) logs -f
 
+# Runs Jest for backend
+test: install
+	@echo "$(BOLD)$(YELLOW)--- Starting Tester [DEV]...$(RESET)"
+	pnpm --filter @grit/backend test --verbose
+
+# Runs Jest in watch mode for backend
+test-watch: install
+	@echo "$(BOLD)$(YELLOW)--- Starting Tester in Watch Mode [DEV]...$(RESET)"
+	pnpm --filter @grit/backend test:watch
+
 #############################
 ## 🚀 DEVELOPMENT COMMANDS ##
 #############################
