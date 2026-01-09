@@ -1,6 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
 import { useDebounce } from '@/hooks/useDebounce';
-import { describe, it, expect, vi } from 'vitest';
 
 describe('useDebounce Hook', () => {
   it('should return the initial value immediately', () => {

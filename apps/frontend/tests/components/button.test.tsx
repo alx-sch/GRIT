@@ -1,7 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { Button } from '@/components/ui/button'; //
-import { describe, it, expect, vi } from 'vitest';
-import '@testing-library/jest-dom/vitest';
+import { Button } from '@/components/ui/button';
 
 describe('Button Component', () => {
   it('renders with default variant classes', () => {
