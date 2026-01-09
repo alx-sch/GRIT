@@ -34,14 +34,14 @@ model User {
 }
 
 model Event {
-  id          Int       @id @default(autoincrement())
-  author      User?     @relation(fields: [authorId], references: [id])
-  authorId    Int?
-  createdAt   DateTime  @default(now())
+  id          Int      @id @default(autoincrement())
+  author      User     @relation(fields: [authorId], references: [id])
+  authorId    Int
+  createdAt   DateTime @default(now())
   content     String?
-  endAt       DateTime?
-  isPublic    Boolean   @default(true)
-  isPublished Boolean?  @default(false)
-  startAt     DateTime?
+  endAt       DateTime
+  isPublic    Boolean  @default(true)
+  isPublished Boolean  @default(false)
+  startAt     DateTime
   title       String
 }

@@ -35,6 +35,20 @@ interface S3Error {
   };
 }
 
+// This ensures that anyone can view the images via a URL without needing a private signature.
+const getPublicPolicy = (bucketName: string) =>
+  JSON.stringify({
+    Version: '2012-10-17',
+    Statement: [
+      {
+        Effect: 'Allow',
+        Principal: { AWS: ['*'] },
+        Action: ['s3:GetObject'],
+        Resource: [`arn:aws:s3:::${bucketName}/*`],
+      },
+    ],
+  });
+
 // Helper: Check if bucket exists, create if not
 async function ensureBucket(bucketName: string) {
   console.log(`Checking for bucket: ${bucketName}...`);
@@ -52,41 +66,21 @@ async function ensureBucket(bucketName: string) {
     if (isNotFound) {
       console.log(`Bucket not found. Creating '${bucketName}'...`);
       await s3.send(new CreateBucketCommand({ Bucket: bucketName }));
+      await s3.send(
+        new PutBucketPolicyCommand({
+          Bucket: bucketName,
+          Policy: getPublicPolicy(bucketName),
+        })
+      );
       console.log(`✅ Bucket '${bucketName}' created.`);
     } else {
       throw error;
     }
   }
-
-  // This ensures that anyone can view the images via a URL without needing a private signature.
-  const policy = {
-    Version: '2012-10-17',
-    Statement: [
-      {
-        Effect: 'Allow',
-        Principal: { AWS: ['*'] }, // Standard MinIO/S3 public syntax
-        Action: ['s3:GetObject'],
-        Resource: [`arn:aws:s3:::${bucketName}/*`],
-      },
-    ],
-  };
-
-  await s3.send(
-    new PutBucketPolicyCommand({
-      Bucket: bucketName,
-      Policy: JSON.stringify(policy),
-    })
-  );
-  console.log(`🔓 Public read policy applied to '${bucketName}'`);
 }
 
 // Helper: Upload file to bukcet
-async function uploadToBucket(
-  bucketName: string,
-  localFilePath: string,
-  destinationKey: string,
-  contentType = 'image/jpeg'
-) {
+async function uploadToBucket(bucketName: string, localFilePath: string, originalName: string) {
   // 1. Check if local file exists
   if (!fs.existsSync(localFilePath)) {
     console.warn(`⚠️  File not found locally: ${localFilePath}. Skipping.`);
@@ -96,20 +90,25 @@ async function uploadToBucket(
   // 2. Read file from disk
   const fileBuffer = fs.readFileSync(localFilePath);
 
+  const fileHash = crypto.randomBytes(4).toString('hex');
+  const timestamp = Date.now();
+  const extension = path.extname(originalName);
+  const s3Key = `${String(timestamp)}-${fileHash}${extension}`;
+
   // 3. Upload to S3/MinIO
   try {
     await s3.send(
       new PutObjectCommand({
         Bucket: bucketName,
-        Key: destinationKey,
+        Key: s3Key,
         Body: fileBuffer,
-        ContentType: contentType,
+        ContentType: 'image/jpeg',
       })
     );
-    console.log(`⬆️  Uploaded: ${destinationKey} (Bucket: ${bucketName})`);
-    return destinationKey;
+    console.log(`⬆️  Uploaded: ${s3Key} (Bucket: ${bucketName})`);
+    return `${bucketName}/${s3Key}`;
   } catch (error) {
-    console.error(`❌ Upload failed for ${destinationKey}:`, error);
+    console.error(`❌ Upload failed for ${s3Key}:`, error);
     return null;
   }
 }
@@ -118,33 +117,19 @@ async function main() {
   console.log('--- Seeding database...');
 
   const AVATAR_BUCKET = 'user-avatars';
+  const EVENT_BUCKET = 'event-images';
+
   await ensureBucket(AVATAR_BUCKET);
+  await ensureBucket(EVENT_BUCKET);
+
+  //////////////////
+  // USER SEEDING //
+  //////////////////
 
   const usersToCreate = [
     { email: 'alice@example.com', name: 'Alice', image: 'avatar-1.jpg' },
     { email: 'bob@example.com', name: 'Bob', image: 'avatar-2.jpg' },
     { email: 'cindy@example.com', name: 'Cindy', image: null },
-  ];
-
-  const eventsToCreate = [
-    {
-      title: 'Grit Launch Party',
-      authorId: 1,
-      content: 'Celebrating the first release of our app!',
-      isPublic: true,
-      isPublished: true,
-      startAt: new Date('2026-02-01T18:00:00Z'),
-      endAt: new Date('2026-02-01T22:00:00Z'),
-    },
-    {
-      title: 'Private Strategy Meeting',
-      authorId: 2,
-      content: 'Discussing SECRETS!',
-      isPublic: false,
-      isPublished: false,
-      startAt: new Date('2026-02-15T10:00:00Z'),
-      endAt: new Date('2026-02-15T12:00:00Z'),
-    },
   ];
 
   console.log('--- Seeding Users ---');
@@ -160,28 +145,48 @@ async function main() {
 
     // Upload Image (Only if one is provided)
     if (u.image && !user.avatarUrl) {
-      // Where is the file on your computer?
+      // Where is the file on the machine?
       const localPath = path.join(__dirname, 'seed-assets', u.image);
 
       // Where should it go in MinIO?
-      const fileHash = crypto.randomBytes(4).toString('hex'); // random string, e.g. 'f829cc12'
-      const s3Key = `${String(user.id)}/${fileHash}-avatar.jpg`;
-      // Call then uploader
-      const uploadedKey = await uploadToBucket(AVATAR_BUCKET, localPath, s3Key);
+      const dbPath = await uploadToBucket(AVATAR_BUCKET, localPath, u.image);
 
-      if (uploadedKey) {
-        const fullDatabasePath = `${AVATAR_BUCKET}/${uploadedKey}`;
-
+      if (dbPath) {
         await prisma.user.update({
           where: { id: user.id },
-          data: { avatarUrl: fullDatabasePath },
+          data: { avatarUrl: dbPath },
         });
-        console.log(`   📝 Saved to DB: ${fullDatabasePath}`);
+        console.log(`   📝 Saved to DB: ${dbPath}`);
       }
     } else if (u.image && user.avatarUrl) {
       console.log(`   ⏩ User ${user.name ?? 'Unknown'} already has an avatar. Skipping upload.`);
     }
   }
+
+  ///////////////////
+  // EVENT SEEDING //
+  ///////////////////
+
+  const eventsToCreate = [
+    {
+      title: 'Grit Launch Party',
+      authorId: 2,
+      content: 'Celebrating the first release of our app!',
+      isPublic: true,
+      isPublished: true,
+      startAt: new Date('2026-02-01T18:00:00Z'),
+      endAt: new Date('2026-02-01T22:00:00Z'),
+    },
+    {
+      title: 'Private Strategy Meeting',
+      authorId: 1,
+      content: 'Discussing SECRETS!',
+      isPublic: false,
+      isPublished: false,
+      startAt: new Date('2026-02-15T10:00:00Z'),
+      endAt: new Date('2026-02-15T12:00:00Z'),
+    },
+  ];
 
   console.log('--- Seeding Events ---');
 
