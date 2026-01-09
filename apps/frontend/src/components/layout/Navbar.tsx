@@ -38,7 +38,9 @@ export function Navbar() {
 
   return (
     <div className="border-b-2 border-border p-4 flex justify-between items-center bg-background sticky top-0 z-50">
-      <div className="font-bold text-xl px-4 uppercase tracking-wider">Grit</div>
+      <Link to="/">
+        <div className="font-bold text-xl px-4 uppercase tracking-wider">Grit</div>
+      </Link>
 
       <div className="hidden md:flex items-center gap-4">
         <NavigationMenu>
