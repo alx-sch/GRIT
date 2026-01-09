@@ -13,7 +13,6 @@
     "sourceMap": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
       "@grit_generated/*": ["./src/generated/*"],
       "@grit_prisma/*": ["./src/prisma/*"],
       "@grit_config/*": ["./src/config/*"]
