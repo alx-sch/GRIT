@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { fromZodError } from 'zod-validation-error';
 
 const baseSchema = z
   .object({
@@ -39,7 +38,7 @@ const baseSchema = z
   .transform((env) => {
     // If MINIO_ENDPOINT is defined in .env, use it.
     // Otherwise, construct it from HOST and PORT.
-    const endpoint = env.MINIO_ENDPOINT || `http://${env.MINIO_HOST}:${env.MINIO_PORT}`;
+    const endpoint = env.MINIO_ENDPOINT ?? `http://${env.MINIO_HOST}:${String(env.MINIO_PORT)}`;
 
     return {
       ...env,
@@ -51,7 +50,7 @@ const baseSchema = z
   .transform((env) => {
     return {
       ...env,
-      DATABASE_URL: `postgresql://${env.POSTGRES_USER}:${env.POSTGRES_PASSWORD}@${env.POSTGRES_HOST}:${env.DB_PORT}/${env.POSTGRES_DB}?schema=public`,
+      DATABASE_URL: `postgresql://${env.POSTGRES_USER}:${env.POSTGRES_PASSWORD}@${env.POSTGRES_HOST}:${String(env.DB_PORT)}/${env.POSTGRES_DB}?schema=public`,
     };
   });
 
@@ -79,8 +78,10 @@ if (envValidation.success) {
       DATABASE_URL: 'postgresql://build:build@localhost:5432/build',
     } as unknown as Env;
   } else {
+    const pretty = z.prettifyError(envValidation.error);
     console.error('\n❌ Invalid Environment Variables:');
-    console.error(fromZodError(envValidation.error).toString());
+    console.error(pretty);
+    console.error(''); // Extra spacing for the CLI
     process.exit(1);
   }
 }

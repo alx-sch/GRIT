@@ -29,15 +29,28 @@ const s3 = new S3Client({
   forcePathStyle: true,
 });
 
+interface S3Error {
+  $metadata?: {
+    httpStatusCode?: number;
+  };
+}
+
 // Helper: Check if bucket exists, create if not
 async function ensureBucket(bucketName: string) {
   console.log(`Checking for bucket: ${bucketName}...`);
   try {
     await s3.send(new HeadBucketCommand({ Bucket: bucketName }));
     console.log(`✅ Bucket ' ${bucketName}' exists.`);
-  } catch (error: any) {
-    if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
-      console.log(`Bucket not found. Creating ' ${bucketName}'...`);
+  } catch (error: unknown) {
+    const isS3Error = (err: unknown): err is S3Error =>
+      typeof err === 'object' && err !== null && '$metadata' in err;
+
+    const isNotFound =
+      error instanceof Error &&
+      (error.name === 'NotFound' || (isS3Error(error) && error.$metadata?.httpStatusCode === 404));
+
+    if (isNotFound) {
+      console.log(`Bucket not found. Creating '${bucketName}'...`);
       await s3.send(new CreateBucketCommand({ Bucket: bucketName }));
       console.log(`✅ Bucket '${bucketName}' created.`);
     } else {
@@ -72,7 +85,7 @@ async function uploadToBucket(
   bucketName: string,
   localFilePath: string,
   destinationKey: string,
-  contentType: string = 'image/jpeg'
+  contentType = 'image/jpeg'
 ) {
   // 1. Check if local file exists
   if (!fs.existsSync(localFilePath)) {
@@ -143,7 +156,7 @@ async function main() {
       update: {},
       create: { email: u.email, name: u.name },
     });
-    console.log(`👤 Processed User: ${user.name} (${user.id})`);
+    console.log(`👤 Processed User: ${user.name ?? 'Unknown'} (${String(user.id)})`);
 
     // Upload Image (Only if one is provided)
     if (u.image && !user.avatarUrl) {
@@ -152,7 +165,7 @@ async function main() {
 
       // Where should it go in MinIO?
       const fileHash = crypto.randomBytes(4).toString('hex'); // random string, e.g. 'f829cc12'
-      const s3Key = `${user.id}/${fileHash}-avatar.jpg`;
+      const s3Key = `${String(user.id)}/${fileHash}-avatar.jpg`;
       // Call then uploader
       const uploadedKey = await uploadToBucket(AVATAR_BUCKET, localPath, s3Key);
 
@@ -166,7 +179,7 @@ async function main() {
         console.log(`   📝 Saved to DB: ${fullDatabasePath}`);
       }
     } else if (u.image && user.avatarUrl) {
-      console.log(`   ⏩ User ${user.name} already has an avatar. Skipping upload.`);
+      console.log(`   ⏩ User ${user.name ?? 'Unknown'} already has an avatar. Skipping upload.`);
     }
   }
 
@@ -180,7 +193,7 @@ async function main() {
 
     if (!existing) {
       await prisma.event.create({ data: e });
-      console.log(`📅 Created Event: ${e.title} for User ${e.authorId}`);
+      console.log(`📅 Created Event: ${e.title} for User ${String(e.authorId)}`);
     }
   }
 }
