@@ -18,6 +18,9 @@ RUN     pnpm install --frozen-lockfile --filter @grit/backend...
 # Copy the rest of the source code
 COPY    apps/backend ./apps/backend
 
+# Tells Zod not to validate envars (not presend during image build) -> avoids zod warning / stop
+ARG     SKIP_ENV_VALIDATION=true
+
 # Generate Prisma Client
 # This creates the TypeScript types for the database
 RUN     pnpm --filter @grit/backend exec prisma generate

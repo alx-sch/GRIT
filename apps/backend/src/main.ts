@@ -31,20 +31,23 @@ async function bootstrap() {
     magenta: '\x1b[35m',
   };
 
-  const url = (label: string, link: string) => `${c.cyan}${label}:${c.reset} ${link}`;
-  const separator = `${c.magenta}-------------------------------------------${c.reset}`;
+  // Don't log links dashboard when project runs in containers (not accessible via browser)
+  if (env.NODE_ENV !== 'production') {
+    const url = (label: string, link: string) => `${c.cyan}${label}:${c.reset} ${link}`;
+    const separator = `${c.magenta}-------------------------------------------${c.reset}`;
 
-  console.log('');
-  console.log(separator);
-  console.log(url('[Backend ]', baseBEUrl));
-  console.log(url('[Swagger ]', `${baseBEUrl}/api`));
-  console.log(url('[Status  ]', `${baseBEUrl}/health`));
-  console.log(url('[Frontend]', `http://localhost:${String(env.FE_PORT)}`));
-  console.log(url('[MinIO   ]', minioUrl));
-  console.log(separator);
-  console.log(`View Postgres DB:   ${c.yellow}make view-db${c.reset}`);
-  console.log(separator);
-  console.log('');
+    console.log('');
+    console.log(separator);
+    console.log(url('[Backend ]', baseBEUrl));
+    console.log(url('[Swagger ]', `${baseBEUrl}/api`));
+    console.log(url('[Status  ]', `${baseBEUrl}/health`));
+    console.log(url('[Frontend]', `http://localhost:${String(env.FE_PORT)}`));
+    console.log(url('[MinIO   ]', minioUrl));
+    console.log(separator);
+    console.log(`View Postgres DB:   ${c.yellow}make view-db${c.reset}`);
+    console.log(separator);
+    console.log('');
+  }
 }
 
 bootstrap().catch((err: unknown) => {

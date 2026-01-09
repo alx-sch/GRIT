@@ -1,85 +1,88 @@
 import { z } from 'zod';
+import { fromZodError } from 'zod-validation-error';
 
-const baseSchema = z.object({
-  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+const baseSchema = z
+  .object({
+    NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 
-  // Postgres
-  POSTGRES_USER: z.string(),
-  POSTGRES_PASSWORD: z.string().min(10),
-  POSTGRES_DB: z.string(),
-  // in dev (run in host), this needs to be 'localhost;'
-  // in production (Docker network; backend (Node) running in container), this needs to be the container's service name: 'postgres-db'
-  POSTGRES_HOST: z.string().default('localhost'),
+    // Explicit flag to skip validation during Docker builds (no env var provided)
+    SKIP_ENV_VALIDATION: z
+      .enum(['true', 'false', '1', '0'])
+      .default('false')
+      .transform((v) => v === 'true' || v === '1'),
 
-  // MinIO
-  MINIO_USER: z.string(),
-  MINIO_PASSWORD: z.string().min(10),
-  MINIO_HOST: z.string().default('localhost'),
+    // Postgres
+    POSTGRES_USER: z.string(),
+    POSTGRES_PASSWORD: z.string().min(10),
+    POSTGRES_DB: z.string(),
+    POSTGRES_HOST: z.string().default('localhost'),
 
-  // Ports
-  BE_PORT: z.coerce.number().default(3000),
-  FE_PORT: z.coerce.number().default(5173),
-  DB_PORT: z.coerce.number().default(5432),
-  MINIO_PORT: z.coerce.number().default(9000),
-  MINIO_DASHBOARD_PORT: z.coerce.number().default(9001),
+    // MinIO
+    MINIO_USER: z.string(),
+    MINIO_PASSWORD: z.string().min(10),
+    MINIO_HOST: z.string().default('localhost'),
+    MINIO_ENDPOINT: z.string().optional(),
 
-  // Docker specific
-  HTTP_PORT: z.coerce.number().default(80),
-  HTTPS_PORT: z.coerce.number().default(443),
-});
+    // Ports
+    BE_PORT: z.coerce.number().default(3000),
+    FE_PORT: z.coerce.number().default(5173),
+    DB_PORT: z.coerce.number().default(5432),
+    MINIO_PORT: z.coerce.number().default(9000),
+    MINIO_DASHBOARD_PORT: z.coerce.number().default(9001),
 
-type BaseEnv = z.infer<typeof baseSchema>;
+    // Docker specific
+    HTTP_PORT: z.coerce.number().default(80),
+    HTTPS_PORT: z.coerce.number().default(443),
+  })
 
-const envSchema = baseSchema.transform((data: BaseEnv) => {
-  // Default to localhost, BUT if we are in production AND no host was
-  // explicitly provided in .env, force it to 'postgres-db' (name Docker service)
-  let host = data.POSTGRES_HOST;
-  if (data.NODE_ENV === 'production' && !process.env.POSTGRES_HOST) {
-    host = 'postgres-db';
-  }
+  // Transform MinIO URL
+  .transform((env) => {
+    // If MINIO_ENDPOINT is defined in .env, use it.
+    // Otherwise, construct it from HOST and PORT.
+    const endpoint = env.MINIO_ENDPOINT || `http://${env.MINIO_HOST}:${env.MINIO_PORT}`;
 
-  // building database url
-  const url = `postgresql://${data.POSTGRES_USER}:${data.POSTGRES_PASSWORD}@${host}:${data.DB_PORT.toString()}/${data.POSTGRES_DB}?schema=public`;
-  return {
-    ...data,
-    DATABASE_URL: url,
-    POSTGRES_HOST: host,
-  };
-});
+    return {
+      ...env,
+      MINIO_ENDPOINT: endpoint,
+    };
+  })
+
+  // Transform Postgres URL
+  .transform((env) => {
+    return {
+      ...env,
+      DATABASE_URL: `postgresql://${env.POSTGRES_USER}:${env.POSTGRES_PASSWORD}@${env.POSTGRES_HOST}:${env.DB_PORT}/${env.POSTGRES_DB}?schema=public`,
+    };
+  });
 
 // Run Validation
-const envValidation = envSchema.safeParse(process.env);
+const envValidation = baseSchema.safeParse(process.env);
 
 // Prepare the variable that will be exported
-type Env = z.infer<typeof envSchema>;
+type Env = z.infer<typeof baseSchema>;
 let validatedEnv: Env;
 
-if (!envValidation.success) {
-  // During 'docker build', Docker runs commands like 'pnpm prisma generate'.
-  // At this stage, the image is a "sealed box" and does not have access to your
-  // .env file or the environment variables defined in docker-compose.yaml.s
-  // Detect this by checking if POSTGRES_USER is missing AND we aren't in a normal home directory (in Container, $HOME is 'root')
-  const isDockerBuild = !process.env.POSTGRES_USER && !process.env.HOME?.includes('home');
-  if (isDockerBuild) {
-    console.warn('🏗️  Docker Build detected: Using fallback environment.');
-    // Without this fallback, Zod would fail the image build here because variables are missing
-    // (these are nowhere added, as the image should never include sensitive envars, but only contains this placeholder).
-    // We provide Prisma with a "Dummy URL" so it can successfully generate the
-    // TypeScript types (Prisma Client) during the image creation phase.
+if (envValidation.success) {
+  validatedEnv = Object.freeze(envValidation.data);
+} else {
+  const isSkipValidation =
+    process.env.SKIP_ENV_VALIDATION === 'true' || process.env.SKIP_ENV_VALIDATION === '1';
+
+  if (isSkipValidation) {
+    console.warn('⚠️  SKIP_ENV_VALIDATION detected: Using dummy values for build.');
+
+    // Provide a mock object that satisfies the Env type
+    // We cast this because these values are only for build-time (Prisma generation)
     validatedEnv = {
       ...process.env,
-      DATABASE_URL: 'postgresql://build:build@localhost:5432/build',
       NODE_ENV: 'production',
+      DATABASE_URL: 'postgresql://build:build@localhost:5432/build',
     } as unknown as Env;
   } else {
-    // FOR LOCAL DEV: Show the Zod Error and STOP
-    const pretty = z.prettifyError(envValidation.error);
     console.error('\n❌ Invalid Environment Variables:');
-    console.error(pretty);
+    console.error(fromZodError(envValidation.error).toString());
     process.exit(1);
   }
-} else {
-  validatedEnv = Object.freeze(envValidation.data);
 }
 
-export const env = validatedEnv as BaseEnv & { DATABASE_URL: string };
+export const env = validatedEnv;

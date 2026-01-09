@@ -81,7 +81,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - '${DB_PORT}:5432'
+      - '127.0.0.1:${DB_PORT}:5432'
     volumes:
       - db_data:/var/lib/postgresql/data
     networks:
@@ -100,8 +100,8 @@ services:
     image: minio/minio
     restart: unless-stopped
     ports:
-      - '${MINIO_PORT}:9000' # API port (your code uses this)
-      - '${MINIO_DASHBOARD_PORT}:9001' # Dashboard port (you use this in browser)
+      - '127.0.0.1:${MINIO_PORT}:9000' # API port (your code uses this)
+      - '127.0.0.1:${MINIO_DASHBOARD_PORT}:9001' # Dashboard port (you use this in browser)
     environment:
       MINIO_ROOT_USER: ${MINIO_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}

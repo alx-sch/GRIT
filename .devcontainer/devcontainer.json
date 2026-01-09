@@ -23,8 +23,15 @@
         "jeff-hykin.better-dockerfile-syntax", // Dockerfile syntax
         "dsznajder.es7-react-js-snippets", // React snippets
         "johnpapa.vscode-zustand-snippets", // Zustand snippets
-        "humao.rest-client" // REST cliet: Execute HTTP requests directly in vscode (backend/test/routes.http)
-      ]
+        "humao.rest-client", // REST cliet: Execute HTTP requests directly in vscode (backend/test/routes.http)
+        "Prisma.prisma" // Adds syntax highlighting to Prisma files
+      ],
+      "settings": {
+        "[prisma]": { // Formater for Prisma files (prettier doesn't format these)
+          "editor.defaultFormatter": "Prisma.prisma",
+          "editor.formatOnSave": true
+        }
+      }
     }
   }
 }
