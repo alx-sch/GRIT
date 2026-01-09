@@ -33,9 +33,11 @@ export function EventCard({ event }: EventCardProps) {
         <CardDescription className="font-heading font-medium text-xl pb-4">
           {event.startAt} @ {event.location}
         </CardDescription>
+      </CardContent>
 
-        {/* Friends interested section */}
-        <div className="flex items-center gap-2">
+      <CardFooter className="p-4 pt-0 pb-2 gap-2 mt-auto flex flex-col">
+		{/* Friends interested section */}
+        <div className="flex items-center gap-2 w-full pb-2">
           {event.interestedFriends && event.interestedFriends.length > 0 && (
             <div className="flex space-x-1">
               {event.interestedFriends.slice(0, 3).map((friend, index) => (
@@ -53,16 +55,16 @@ export function EventCard({ event }: EventCardProps) {
               : 'No one is interested yet'}
           </span>
         </div>
-      </CardContent>
 
-      {/* Action buttons */}
-      <CardFooter className="p-4 pt-0 gap-2 mt-auto">
-        <Button variant="default" className="flex-1">
-          INVITE
-        </Button>
-        <Button variant="outline" className="flex-1">
-          GOING
-        </Button>
+		{/* Action buttons */}
+		<div className="flex items-center gap-2 w-full">
+			<Button variant="default" className="flex-1">
+			INVITE
+			</Button>
+			<Button variant="outline" className="flex-1">
+			GOING
+			</Button>
+		</div>
       </CardFooter>
     </Card>
   );
