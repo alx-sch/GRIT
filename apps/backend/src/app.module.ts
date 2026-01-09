@@ -12,7 +12,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { Prisma } from './generated/client/client';
+import { Prisma } from '@/generated/client/client';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
