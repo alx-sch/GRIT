@@ -6,9 +6,8 @@ import { Toaster } from '@/components/ui/sonner';
 
 NProgress.configure({ showSpinner: false, speed: 400 });
 
-function App() {
+export function DefaultLayout() {
   const navigation = useNavigation();
-
   const isLoading = navigation.state === 'loading' || navigation.state === 'submitting';
 
   useEffect(() => {
@@ -31,5 +30,3 @@ function App() {
     </div>
   );
 }
-
-export default App;
