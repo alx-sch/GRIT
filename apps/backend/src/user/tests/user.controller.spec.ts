@@ -10,34 +10,22 @@ import { UserService } from '../user.service';
  *  - Returns the value provided by the service.
  */
 
+// Creates a mock date for the createdAt-field.
+const mockDate = new Date();
+
 // Create a mock return value of userGet
 const allUsers = [
-  {
-    id: 1,
-    createdAt: new Date(),
-    email: 'alice@example.com',
-    name: 'Alice',
-  },
-  {
-    id: 2,
-    createdAt: new Date(),
-    email: 'bob@example.com',
-    name: 'Bob',
-  },
-  {
-    id: 3,
-    createdAt: new Date(),
-    email: 'cindy@example.com',
-    name: 'Cindy',
-  },
+  { id: 1, createdAt: mockDate, email: 'alice@example.com', name: 'Alice' },
+  { id: 2, createdAt: mockDate, email: 'bob@example.com', name: 'Bob' },
+  { id: 3, createdAt: mockDate, email: 'cindy@example.com', name: 'Cindy' },
 ];
 
 // Create a mock user service
 const mockUserService = {
   userGet: jest.fn().mockResolvedValue(allUsers),
-  userPost: jest.fn().mockImplementation(async (data) => ({
+  userPost: jest.fn().mockImplementation((data: { name?: string; email: string }) => ({
     id: 1,
-    createdAt: new Date(),
+    createdAt: mockDate,
     ...data,
   })),
 };
@@ -65,8 +53,9 @@ describe('UserController', () => {
   describe('Get all users', () => {
     // Test 1
     it('should call userService.userGet()', async () => {
+      const spy = jest.spyOn(userService, 'userGet');
       await userController.userGetAll();
-      expect(userService.userGet).toHaveBeenCalled();
+      expect(spy).toHaveBeenCalled();
     });
 
     // Test 2
@@ -80,24 +69,25 @@ describe('UserController', () => {
   // Test 1: Verifies that the controller delegates the call to userService.userPost. Also that it is called with correct argument.
   // Test 2: Verifies that the controller returns the value received from userService.userPost
   describe('Create a user', () => {
-    let testUser = {
+    const testUser = {
       name: 'natalie',
       email: 'nat@gmail.com',
     };
 
     // Test 1
     it('should call userService.userPost()', async () => {
+      const spy = jest.spyOn(userService, 'userPost');
       await userController.userPost(testUser);
-      expect(userService.userPost).toHaveBeenCalledWith(testUser);
+      expect(spy).toHaveBeenCalledWith(testUser);
     });
 
     // Test 2
-    it('should return the user created', async () => {
+    it('should return the created user', async () => {
       const result = await userController.userPost(testUser);
       expect(result).toEqual({
         id: 1,
         ...testUser,
-        createdAt: expect.any(Date),
+        createdAt: mockDate,
       });
     });
   });
