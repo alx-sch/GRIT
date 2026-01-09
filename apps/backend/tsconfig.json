@@ -19,6 +19,6 @@
       "@grit_config/*": ["./src/config/*"]
     }
   },
-  "include": ["src/**/*", "tests/**/*", "prisma/**/*"],
+  "include": ["src/**/*", "src/tests/**/*", "prisma/**/*"],
   "exclude": ["node_modules", "dist"]
 }
