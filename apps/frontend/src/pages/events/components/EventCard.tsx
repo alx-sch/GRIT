@@ -32,16 +32,21 @@ export function EventCard({ event }: EventCardProps) {
         <CardTitle className="font-heading font-bold text-3xl line-clamp-2" title={event.title}>
           {event.title}
         </CardTitle>
-        <CardDescription className="font-heading font-medium text-xl pb-4">
+        <CardDescription className="font-heading font-medium text-xl">
           {event.startAt} @ {event.location}
         </CardDescription>
+        <p className="text-base font-normal text-muted-foreground">
+          {event.interestedCount > 0
+            ? `${event.interestedCount.toLocaleString()} people are interested`
+            : 'No one is interested yet'}
+        </p>
       </CardContent>
 
       <CardFooter className="p-4 pt-0 pb-2 gap-2 mt-auto flex flex-col">
         {/* Friends interested section */}
-        <div className="flex items-center gap-2 w-full pb-2">
+        <div className="flex items-center gap-1 w-full pb-2">
           {event.interestedFriends && event.interestedFriends.length > 0 && (
-            <div className="flex space-x-1">
+            <div className="flex space-x-0.5">
               {event.interestedFriends.slice(0, 3).map((friend, index) => (
                 <Avatar key={index} className="h-8 w-8 border-2 border-black">
                   <AvatarImage src={`https://api.dicebear.com/7.x/notionists/svg?seed=${friend}`} />
@@ -50,11 +55,10 @@ export function EventCard({ event }: EventCardProps) {
               ))}
             </div>
           )}
-
           <span className="text-base font-normal text-muted-foreground">
-            {event.interestedCount > 0
-              ? `${event.interestedCount.toLocaleString()} people are interested`
-              : 'No one is interested yet'}
+            {event.interestedFriends &&
+              event.interestedFriends.length > 3 &&
+              ` + ${(event.interestedFriends.length - 3).toLocaleString()} friends are interested`}
           </span>
         </div>
 
