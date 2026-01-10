@@ -1,6 +1,7 @@
 import { Controller, Get, Param, ParseIntPipe, ForbiddenException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ApiOperation, ApiTags, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { env } from '@config/env';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -34,7 +35,7 @@ export class AuthController {
     description: 'Forbidden - Returned if the server is running in production mode.',
   })
   generateTestToken(@Param('id', ParseIntPipe) id: number) {
-    if (process.env.NODE_ENV === 'production') {
+    if (env.NODE_ENV === 'production') {
       throw new ForbiddenException('This debug route is disabled in production.');
     }
 
