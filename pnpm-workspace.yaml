@@ -1,6 +1,9 @@
 packages:
   - apps/*
 
+ignoredBuiltDependencies:
+  - '@scarf/scarf'
+
 onlyBuiltDependencies:
   - '@nestjs/core'
   - '@prisma/engines'

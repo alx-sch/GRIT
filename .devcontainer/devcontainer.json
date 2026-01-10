@@ -9,6 +9,9 @@
     "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
 
+  // Install the Caddy binary, 'caddy' cmd formats Caddyfile (gets rid of warning)
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y debian-keyring debian-archive-keyring apt-transport-https curl && curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --batch --yes --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg && curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.debian.sources' | sudo tee /etc/apt/sources.list.d/caddy-stable.sources && sudo apt-get update && sudo apt-get install -y caddy",
+
   "customizations": {
     "vscode": {
       "extensions": [
@@ -20,8 +23,16 @@
         "jeff-hykin.better-dockerfile-syntax", // Dockerfile syntax
         "dsznajder.es7-react-js-snippets", // React snippets
         "johnpapa.vscode-zustand-snippets", // Zustand snippets
-        "humao.rest-client" // REST cliet: Execute HTTP requests directly in vscode (backend/test/routes.http)
-      ]
+        "humao.rest-client", // REST cliet: Execute HTTP requests directly in vscode (backend/test/routes.http)
+        "Prisma.prisma" // Adds syntax highlighting to Prisma files
+      ],
+      "settings": {
+        "[prisma]": {
+          // Formater for Prisma files (prettier doesn't format these)
+          "editor.defaultFormatter": "Prisma.prisma",
+          "editor.formatOnSave": true
+        }
+      }
     }
   }
 }
