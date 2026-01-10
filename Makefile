@@ -194,17 +194,25 @@ purge: fclean
 	@docker system df
 	@echo "$(BOLD)$(GREEN)All Docker resources have been purged.$(RESET)"
 
+# -- TESTING --
+
+# Runs Test for backend and (eventually) frontend
+test: test-be
+
+# Runs Test for backend
+test-be: start-db-container
+	@echo "$(BOLD)$(YELLOW)--- Creating Test Database ...$(RESET)"
+	@$(DC) exec db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
+	@$(DC) exec db psql -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
+	@NODE_ENV=test pnpm --filter @grit/backend exec prisma db push
+
+	@echo "$(BOLD)$(YELLOW)--- Starting Tests ...$(RESET)"
+	@NODE_ENV=test pnpm --filter @grit/backend test
+
+	@echo "$(BOLD)$(YELLOW)--- Removing Test Database ...$(RESET)"
+	@$(DC) exec db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
+
 # -- MISC TARGETS --
-
-# Runs Jest for backend
-test: install
-	@echo "$(BOLD)$(YELLOW)--- Starting Tester [DEV]...$(RESET)"
-	pnpm --filter @grit/backend test
-
-# Runs Jest in watch mode for backend
-test-watch: install
-	@echo "$(BOLD)$(YELLOW)--- Starting Tester in Watch Mode [DEV]...$(RESET)"
-	pnpm --filter @grit/backend test:watch
 
 typecheck: install
 	@echo "$(BOLD)$(YELLOW)--- Typechecking...$(RESET)"
@@ -254,7 +262,15 @@ dev-fe: check-env kill-fe-port install-fe
 
 # Starts only the database Docker container for local development
 # In Production, db availabilty (and starting of backend container) is checked in 'docker compose' via healthchecks.
-db: install-be
+db: install-be start-db-container
+	@pnpm --filter @grit/backend exec prisma db push
+	@$(MAKE) seed-db --no-print-directory
+	@echo "$(BOLD)$(GREEN)Database is ready, schema is synced and initial users are seeded.$(RESET)"
+	@echo "•   View logs (db): '$(YELLOW)make logs$(RESET)'"
+	@echo "•   View database:  '$(YELLOW)make view-db$(RESET)'"
+
+# Starts the db container services
+start-db-container: install-be
 	@echo "$(BOLD)$(YELLOW)--- Starting Postgres [DOCKER]...$(RESET)"
 	$(DC) up -d db
 	@echo "$(BOLD)$(YELLOW)--- Waiting for DB to wake up...$(RESET)"
@@ -274,11 +290,6 @@ db: install-be
 	    echo "$(RED)DB failed to start.$(RESET)"; \
 	    exit 1; \
 	fi
-	@pnpm --filter @grit/backend exec prisma db push
-	@$(MAKE) seed-db --no-print-directory
-	@echo "$(BOLD)$(GREEN)Database is ready, schema is synced and initial users are seeded.$(RESET)"
-	@echo "•   View logs (db): '$(YELLOW)make logs$(RESET)'"
-	@echo "•   View database:  '$(YELLOW)make view-db$(RESET)'"
 
 # Populates the database with initial test data
 seed-db:
@@ -291,7 +302,7 @@ view-db:
 	@cd $(BACKEND_FOLDER) && npx prisma studio
 
 # Stops the database container
-stop-db:
+stop-db-container:
 	@echo "$(BOLD)$(YELLOW)--- Stopping Database services...$(RESET)"
 	$(DC) stop db
 
@@ -408,12 +419,41 @@ stop:
 ## 📌 PHONY TARGETS ##
 ######################
 
-.PHONY:	all \
-		init-env install install-fe install-be check-env \
-		clean clean-db clean-backup stop-dev-processes purge\
-		typecheck lint lint-fix format logs \
-		dev dev-be dev-fe \
-		db seed-db view-db stop-db \
-		vol-ls vol-inspect vol-backup vol-restore \
-		build build-be build-fe run run-be run-fe \
-		start stop
+.PHONY:	\
+		all \
+		build \
+		build-be \
+		build-fe \
+		check-env \
+		clean \
+		clean-backup \
+		clean-db \
+		db \
+		dev \
+		dev-be \
+		dev-fe \
+		format \
+		init-env \
+		install \
+		install-be \
+		install-fe \
+		lint \
+		lint-fix \
+		logs \
+		purge \
+		seed-db \
+		start-db-container \
+		stop-db-container \
+		stop-dev-processes \
+		test-be \
+		typecheck \
+		view-db \
+		vol-backup \
+		vol-inspect \
+		vol-ls \
+		vol-restore \
+		run \
+		run-be \
+		run-fe \
+		start \
+		stop
