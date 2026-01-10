@@ -32,7 +32,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       // Look for the token in the "Authorization: Bearer <token>" header
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: env.JWT_SECRET ?? 'fallback_for_lint',
+      secretOrKey: env.JWT_SECRET,
     });
   }
 
