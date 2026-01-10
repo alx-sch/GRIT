@@ -19,6 +19,11 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
  * -------------------------------------------------------------------------
  */
 
+interface JwtPayload {
+  sub: number;
+  email: string;
+}
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor() {
@@ -26,14 +31,12 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       // Look for the token in the "Authorization: Bearer <token>" header
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET!,
+      secretOrKey: process.env.JWT_SECRET ?? 'fallback_for_lint',
     });
   }
 
   // If the token is valid, this function runs
-  async validate(payload: any) {
-    // payload.sub is usually where the userId is stored in a JWT
-    // Whatever we return here is what @GetUser() will pick up
+  validate(payload: JwtPayload) {
     return { id: payload.sub, email: payload.email };
   }
 }

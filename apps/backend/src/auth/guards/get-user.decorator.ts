@@ -18,10 +18,20 @@ import { createParamDecorator, ExecutionContext } from '@nestjs/common';
  * -------------------------------------------------------------------------
  */
 
+// The shape of the user that Passport/JWT puts on the request
+interface RequestWithUser {
+  user: {
+    id: number;
+    email: string;
+    // Add other fields if needed
+  };
+}
+
 export const GetUser = createParamDecorator((data: string | undefined, ctx: ExecutionContext) => {
-  const request = ctx.switchToHttp().getRequest();
-  if (data) {
-    return request.user?.[data];
-  }
-  return request.user;
+  // Cast the request to interface
+  const request = ctx.switchToHttp().getRequest<RequestWithUser>();
+  const user = request.user;
+
+  // If @GetUser('email') is used, return just that property
+  return data ? user[data as keyof typeof user] : user;
 });

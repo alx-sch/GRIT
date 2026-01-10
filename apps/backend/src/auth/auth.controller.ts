@@ -39,7 +39,7 @@ export class AuthController {
     }
 
     // You can now test AS any user by changing the ID in the URL!
-    const payload = { sub: id, email: `user${id}@example.com` };
+    const payload = { sub: id, email: `user${String(id)}@example.com` };
     return {
       accessToken: this.jwtService.sign(payload),
     };

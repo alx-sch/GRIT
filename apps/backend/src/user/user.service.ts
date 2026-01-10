@@ -53,7 +53,7 @@ export class UserService {
           console.error(`Failed to cleanup old avatar: ${currentUser.avatarKey}`, error);
         }
       }
-    return updatedUser;
+      return updatedUser;
     } catch (error) {
       // ROLLBACKL: If file uploaded, but DP update failed, delete orphaned file
       if (newBucketKey) {

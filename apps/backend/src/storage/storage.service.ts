@@ -19,7 +19,7 @@ export class StorageService {
   async uploadFile(file: Express.Multer.File, bucket: string): Promise<string> {
     const fileHash = crypto.randomBytes(4).toString('hex');
     const timestamp = Date.now();
-    const s3Key = `${Date.now()}-${fileHash}${path.extname(file.originalname)}`;
+    const s3Key = `${String(timestamp)}-${fileHash}${path.extname(file.originalname)}`;
 
     await this.s3.send(
       new PutObjectCommand({

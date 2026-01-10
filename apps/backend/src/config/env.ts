@@ -3,6 +3,7 @@ import { z } from 'zod';
 const baseSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+    JWT_SECRET: z.string().min(16, 'JWT_SECRET must be at least 16 characters long'),
 
     // Explicit flag to skip validation during Docker builds (no env var provided)
     SKIP_ENV_VALIDATION: z
@@ -12,13 +13,13 @@ const baseSchema = z
 
     // Postgres
     POSTGRES_USER: z.string(),
-    POSTGRES_PASSWORD: z.string().min(10),
+    POSTGRES_PASSWORD: z.string().min(10, 'POSTGRES_PASSWORD must be at least 10 characters long'),
     POSTGRES_DB: z.string(),
     POSTGRES_HOST: z.string().default('localhost'),
 
     // MinIO
     MINIO_USER: z.string(),
-    MINIO_PASSWORD: z.string().min(10),
+    MINIO_PASSWORD: z.string().min(10, 'MINIO_PASSWORD must be at least 10 characters long'),
     MINIO_HOST: z.string().default('localhost'),
     MINIO_ENDPOINT: z.string().optional(),
 

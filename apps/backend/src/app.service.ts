@@ -1,4 +1,4 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import * as Minio from 'minio';
 import { env } from '@config/env';
@@ -9,18 +9,16 @@ export interface HealthStatus {
 }
 
 @Injectable()
-export class AppService implements OnModuleDestroy {
+export class AppService {
   private readonly minioClient = new Minio.Client({
     endPoint: env.MINIO_HOST,
-    port: Number(env.MINIO_PORT),
+    port: env.MINIO_PORT,
     useSSL: false,
     accessKey: env.MINIO_USER,
     secretKey: env.MINIO_PASSWORD,
   });
 
   constructor(private readonly prisma: PrismaService) {}
-
-  onModuleDestroy() {}
 
   getHello(): string {
     return 'Hello World!';
