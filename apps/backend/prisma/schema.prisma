@@ -14,12 +14,12 @@ datasource db {
 }
 
 model User {
-  id          Int         @id @default(autoincrement())
-  createdAt   DateTime    @default(now())
-  email       String      @unique
-  events      Event[]
-  name        String?
-  avatarKey   String?
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  email     String   @unique
+  events    Event[]
+  name      String?
+  avatarKey String?
 }
 
 model Event {

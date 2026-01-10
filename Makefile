@@ -397,10 +397,10 @@ run-fe: kill-port-fe build-fe
 ###############################
 
 # Starts production services via Docker Compose
-start: check-env
-	@echo "$(BOLD)$(YELLOW)--- Starting Production Services via Docker Compose...$(RESET)"
-	$(DC) up -d --build
-	@echo "$(BOLD)$(GREEN)Production services started in detached mode.$(RESET)"
+start: check-env db
+	@echo "$(BOLD)$(YELLOW)--- Launching Application Services...$(RESET)"
+	$(DC) up -d --build backend caddy
+	@echo "$(BOLD)$(GREEN)Full stack is live!$(RESET)"
 	@echo "•   View live logs: '$(YELLOW)make logs$(RESET)'"
 	@echo "•   View app:       '$(YELLOW)https://localhost:$(HTTPS_PORT)$(RESET)' / '$(YELLOW)http://localhost:$(HTTP_PORT)$(RESET)'"
 

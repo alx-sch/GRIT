@@ -49,7 +49,7 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_HOST=postgres-db # it's 'localhost' for local testing outside of docker container
+      - POSTGRES_HOST=postgres-db
       - MINIO_USER=${MINIO_USER}
       - MINIO_PASSWORD=${MINIO_PASSWORD}
       - HTTP_PORT=${HTTP_PORT}
@@ -101,8 +101,8 @@ services:
     image: minio/minio
     restart: unless-stopped
     ports:
-      - '127.0.0.1:${MINIO_PORT}:9000' # API port (your code uses this)
-      - '127.0.0.1:${MINIO_DASHBOARD_PORT}:9001' # Dashboard port (you use this in browser)
+      - '127.0.0.1:${MINIO_PORT}:9000' # API port  code uses this)
+      - '127.0.0.1:${MINIO_DASHBOARD_PORT}:9001' # Dashboard port (in browser for user)
     environment:
       MINIO_ROOT_USER: ${MINIO_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
