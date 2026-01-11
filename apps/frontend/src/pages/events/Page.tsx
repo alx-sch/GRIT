@@ -2,10 +2,11 @@ import { Container } from '@/components/layout/Container';
 import { Heading } from '@/components/ui/typography';
 import { EventCard } from '@/pages/events/components/EventCard';
 import { Event } from '@/types/event';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { Input } from '@/components/ui/input';
 
 //Mock Data for testing purposes - to be replaced with real data fetching logic
-const mockEvents: Event[] = [
+const events: Event[] = [
   {
     id: 1,
     authorId: 1,
@@ -78,21 +79,33 @@ const mockEvents: Event[] = [
 ];
 
 export default function EventFeed() {
+  const [searchTerm, setSearchTerm] = useState('');
   const filteredEvents = useMemo(() => {
-    // Example filter: only show future events
     const now = new Date();
-    const result = mockEvents.filter((mockEvents) => {
-      if (!mockEvents.startAt) return false;
-      return new Date(mockEvents.startAt) > now;
+    const result = events.filter((event) => {
+      if (!event.startAt) return false;
+      return (
+        new Date(event.startAt) > now &&
+        (event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          event.author.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
     });
-    result.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
-    return result;
-  }, [mockEvents]);
+    return result.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
+  }, [events, searchTerm]);
   return (
     <Container className="py-10 space-y-8">
       <div className="space-y-2">
         <Heading level={1}>Upcoming events</Heading>
       </div>
+
+	  <Input
+          placeholder="Search events..."
+          className="max-w-sm"
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+          }}
+        />
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {filteredEvents.map((event) => (
