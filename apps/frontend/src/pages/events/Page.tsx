@@ -1,9 +1,10 @@
 import { Container } from '@/components/layout/Container';
-import { Heading } from '@/components/ui/typography';
+import { Heading, Text } from '@/components/ui/typography';
 import { EventCard } from '@/pages/events/components/EventCard';
 import { Event } from '@/types/event';
 import { useMemo, useState } from 'react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 //Mock Data for testing purposes - to be replaced with real data fetching logic
 const events: Event[] = [
@@ -106,6 +107,7 @@ export default function EventFeed() {
     });
     return result.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
   }, [events, searchTerm]);
+
   return (
     <Container className="py-10 space-y-8">
       <div className="space-y-2">
@@ -121,11 +123,35 @@ export default function EventFeed() {
         }}
       />
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filteredEvents.map((event) => (
-          <EventCard key={event.id} event={event} />
-        ))}
-      </div>
+      {filteredEvents.length > 0 ? (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {filteredEvents.map((event) => (
+            <EventCard key={event.id} event={event} />
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-border text-center bg-muted/5">
+          <Heading level={3} className="uppercase tracking-tight">
+            No events found
+          </Heading>
+
+          <Text size="base" className="text-muted-foreground mt-2">
+            {searchTerm ? `No results for "${searchTerm}"` : 'Check back later for new events.'}
+          </Text>
+
+          {searchTerm && (
+            <Button
+              variant="destructive"
+              onClick={() => {
+                setSearchTerm('');
+              }}
+              className="mt-4"
+            >
+              Clear Search
+            </Button>
+          )}
+        </div>
+      )}
     </Container>
   );
 }
