@@ -7,7 +7,7 @@ export interface Event {
   endAt: string | null;
   isPublished: boolean;
   isPublic: boolean;
-  startAt: string | null;
+  startAt: string;
   title: string;
   interestedFriends?: string[]; // only available if logged in
   imageURL?: string; // to add in event schema

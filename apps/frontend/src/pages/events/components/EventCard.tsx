@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Event } from '@/types/event';
 import { formatDate } from '@/lib/utils';
+import { generateImagePlaceholderEvent } from '@/lib/imageGenerator';
 
 interface EventCardProps {
   event: Event;
@@ -19,15 +20,11 @@ export function EventCard({ event }: EventCardProps) {
   return (
     <Card className="w-full flex flex-col rounded border-3 mx-auto hover:-translate-y-1 transition-transform duration-200">
       <CardHeader className="p-4">
-        {event.imageURL ? (
-          <img src={event.imageURL} alt={event.title} className="w-full h-48 object-cover" />
-        ) : (
-          <img
-            src="https://placehold.co/400x300/ffffff/000000?text=No+Image"
-            alt="No Image"
-            className="w-full h-48 object-cover border-2 border-black"
-          />
-        )}
+        <img
+          src={event.imageURL ?? generateImagePlaceholderEvent(event)}
+          alt={event.title}
+          className="w-full h-48 object-cover"
+        />
       </CardHeader>
       <CardContent className="px-4 pb-4 pt-0 space-y-3">
         <CardTitle className="font-heading font-bold text-3xl line-clamp-2" title={event.title}>

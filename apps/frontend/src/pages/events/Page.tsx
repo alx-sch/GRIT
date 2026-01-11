@@ -72,8 +72,22 @@ const events: Event[] = [
     isPublished: true,
     isPublic: false,
     startAt: '2026-01-15T10:00:00Z',
-    title: 'House Party',
+    title: 'Fireplace Gathering',
     interestedCount: 0,
+    location: "Audrey's Place",
+  },
+  {
+    id: 4,
+    authorId: 4,
+    author: 'Audrey',
+    content: 'Come to my awesome event!',
+    createdAt: '2026-01-03T10:00:00Z',
+    endAt: '2026-02-23T10:00:00Z',
+    isPublished: true,
+    isPublic: false,
+    startAt: '2026-02-23T10:00:00Z',
+    title: 'House Party',
+    interestedCount: 43,
     location: "Audrey's Place",
   },
 ];
@@ -98,14 +112,14 @@ export default function EventFeed() {
         <Heading level={1}>Upcoming events</Heading>
       </div>
 
-	  <Input
-          placeholder="Search events..."
-          className="max-w-sm"
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-          }}
-        />
+      <Input
+        placeholder="Search events..."
+        className="max-w-sm"
+        value={searchTerm}
+        onChange={(e) => {
+          setSearchTerm(e.target.value);
+        }}
+      />
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {filteredEvents.map((event) => (
