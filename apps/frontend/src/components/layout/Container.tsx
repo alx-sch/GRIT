@@ -1,16 +1,17 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-interface ContainerProps extends React.HTMLAttributes<HTMLDivElement> {
+interface ContainerProps extends React.HTMLAttributes<HTMLElement> {
+  as?: React.ElementType;
   fluid?: boolean;
 }
 
-const Container = React.forwardRef<HTMLDivElement, ContainerProps>(
-  ({ className, fluid, ...props }, ref) => {
+const Container = React.forwardRef<HTMLElement, ContainerProps>(
+  ({ className, fluid, as: Component = 'div', ...props }, ref) => {
     return (
-      <div
+      <Component
         ref={ref}
-        className={cn('mx-auto w-full px-4 md:px-8', fluid ? '' : 'max-w-7xl', className)}
+        className={cn('mx-auto w-full px-8 md:px-12', fluid ? '' : 'max-w-8xl', className)}
         {...props}
       />
     );

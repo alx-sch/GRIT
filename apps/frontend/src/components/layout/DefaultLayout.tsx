@@ -3,6 +3,7 @@ import { Outlet, useNavigation } from 'react-router-dom';
 import NProgress from 'nprogress';
 import { Navbar } from '@/components/layout/Navbar';
 import { Toaster } from '@/components/ui/sonner';
+import { Container } from '@/components/layout/Container';
 
 NProgress.configure({ showSpinner: false, speed: 400 });
 
@@ -22,9 +23,9 @@ export function DefaultLayout() {
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
 
-      <main className="container mx-auto py-6">
+      <Container as="main" className="py-6">
         <Outlet />
-      </main>
+      </Container>
 
       <Toaster position="bottom-right" richColors />
     </div>
