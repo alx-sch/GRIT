@@ -17,7 +17,6 @@ export function Heading({ level = 1, className, ...props }: HeadingProps) {
 
   return <Tag className={cn(sizeClasses[level], 'scroll-m-20', className)} {...props} />;
 }
-
 interface TextProps extends React.HTMLAttributes<HTMLParagraphElement> {
   size?: 'lg' | 'base' | 'sm';
 }
