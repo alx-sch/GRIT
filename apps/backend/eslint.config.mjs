@@ -8,6 +8,7 @@ export default tseslint.config(
   {
     ignores: [
       'eslint.config.*',
+      'jest.config.js',
       'prisma.config.*',
       'dist/**',
       'node_modules/**',
@@ -44,7 +45,7 @@ export default tseslint.config(
       'prettier/prettier': ['error', { endOfLine: 'auto' }],
     },
   },
-  // 👇 E2E escape hatch for untyped I/O (supertest, HTTP)
+  // No typechecking for E2E (supertest, HTTP)
   {
     files: ['**/*.e2e-spec.ts'],
     rules: {
