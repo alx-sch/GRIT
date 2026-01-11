@@ -44,7 +44,9 @@ describe('Events E2E', () => {
         title: 'Hello E2E',
       },
     });
-    const res = await request(app.getHttpServer()).get(`/events/${event.id}`).expect(200);
+    const res = await request(app.getHttpServer())
+      .get(`/events/${String(event.id)}`)
+      .expect(200);
 
     expect(res.body).toEqual({
       author: {

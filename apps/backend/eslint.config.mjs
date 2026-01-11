@@ -43,5 +43,15 @@ export default tseslint.config(
       '@typescript-eslint/no-extraneous-class': ['error', { allowWithDecorator: true }],
       'prettier/prettier': ['error', { endOfLine: 'auto' }],
     },
+  },
+  // 👇 E2E escape hatch for untyped I/O (supertest, HTTP)
+  {
+    files: ['**/*.e2e-spec.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+    },
   }
 );
