@@ -6,8 +6,9 @@ on:
     branches: [main, master] # Runs PRs targeting these branches
 
 jobs:
-  test:
+  quality:
     runs-on: ubuntu-latest # The Host Machine (hardware)
+    timeout-minutes: 5
 
     steps:
       # Download code into the container
@@ -37,9 +38,28 @@ jobs:
       - name: Run Typecheck
         run: make typecheck
 
-      # As generated/client is .gitignored, needed for tests (likely)
-      # - name: Generate Database Client
-      #   run: pnpm --filter @grit/backend exec prisma generate
+  # Checks that the project can be built for distribution
+  build:
+    runs-on: ubuntu-latest
+    needs: quality
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
 
-      # - name: Run Tests
-      #   run: make test
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: make build
