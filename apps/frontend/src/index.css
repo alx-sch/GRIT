@@ -6,11 +6,9 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
-  /* Fonts */
   --font-sans: 'Inter', 'sans-serif';
   --font-heading: 'Space Grotesk', 'sans-serif';
 
-  /* Color Mapping */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -35,8 +33,12 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
 
-  --shadow-grit: 4px 4px 0px 0px var(--foreground);
-  --shadow-grit-sm: 2px 2px 0px 0px var(--foreground);
+  --max-w-8xl: 90rem; /* 1440px */
+  --max-w-9xl: 100rem; /* 1600px */
+  --max-w-10xl: 120rem; /* 1920px */
+
+  --shadow-grit: 4px 4px 0px 0px oklch(0 0 0);
+  --shadow-grit-sm: 2px 2px 0px 0px oklch(0 0 0);
 }
 
 :root {
@@ -60,41 +62,41 @@
 
   --accent: oklch(0.9 0 0);
   --accent-foreground: oklch(0 0 0);
+
+  --destructive: oklch(0.63 0.24 25);
   --destructive-foreground: oklch(1 0 0);
 
-  --border: oklch(0 0 0);
+  --border: oklch(0 0 0); /* Ink Black borders */
   --input: oklch(0.8 0 0);
-
-  --ring: oklch(70.2% 0.2006 45);
+  --ring: oklch(0.68 0.22 45);
   --radius: 0.5rem;
 }
-
 .dark {
-  --background: oklch(0.15 0 0);
+  --background: oklch(18% 0.0001 0);
   --foreground: oklch(0.98 0 0);
 
-  --card: oklch(0.15 0 0);
+  --card: oklch(0.25 0 0);
   --card-foreground: oklch(0.98 0 0);
 
-  --popover: oklch(0.15 0 0);
+  --popover: oklch(0.25 0 0);
   --popover-foreground: oklch(0.98 0 0);
 
   --primary: oklch(0.68 0.22 45);
   --primary-foreground: oklch(0 0 0);
 
-  --secondary: oklch(0.25 0 0);
+  --secondary: oklch(0.3 0 0);
   --secondary-foreground: oklch(0.98 0 0);
 
-  --muted: oklch(0.25 0 0);
+  --muted: oklch(0.2 0 0);
   --muted-foreground: oklch(0.7 0 0);
 
-  --accent: oklch(0.25 0 0);
+  --accent: oklch(0.3 0 0);
   --accent-foreground: oklch(0.98 0 0);
 
   --destructive: oklch(0.4 0.2 25);
   --destructive-foreground: oklch(0.98 0 0);
 
-  --border: oklch(0.3 0 0);
+  --border: oklch(0 0 0);
   --input: oklch(0.3 0 0);
 
   --ring: oklch(0.68 0.22 45);
@@ -109,7 +111,6 @@
     @apply bg-background text-foreground;
   }
 
-  /* SHADCN TYPOGRAPHY DEFAULTS */
   h1 {
     font-family: var(--font-heading);
     @apply scroll-m-20 text-4xl font-bold tracking-tight lg:text-5xl;
