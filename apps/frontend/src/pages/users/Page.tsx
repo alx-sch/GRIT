@@ -51,12 +51,8 @@ export default function Users() {
               >
                 <CardHeader className="flex flex-row items-center gap-4 space-y-0 p-4">
                   <Avatar className="h-12 w-12 border-2 border-black">
-                    <AvatarImage
-                      src={`https://api.dicebear.com/7.x/notionists/svg?seed=${user.name}`}
-                    />
-                    <AvatarFallback seed={user.name}>
-                      {user.name.substring(0, 2).toUpperCase()}
-                    </AvatarFallback>
+                    <AvatarImage seed={user.name} />
+                    <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                   </Avatar>
 
                   <div className="overflow-hidden">
