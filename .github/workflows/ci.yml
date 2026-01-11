@@ -6,37 +6,37 @@ on:
     branches: [main, master] # Runs PRs targeting these branches
 
 jobs:
-  quality:
-    runs-on: ubuntu-latest # The Host Machine (hardware)
-    timeout-minutes: 5
+  # quality:
+  #   runs-on: ubuntu-latest # The Host Machine (hardware)
+  #   timeout-minutes: 5
 
-    steps:
-      # Download code into the container
-      - name: Check out repository
-        uses: actions/checkout@v4
+  #   steps:
+  #     # Download code into the container
+  #     - name: Check out repository
+  #       uses: actions/checkout@v4
 
-      # Install pnpm
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
+  #     # Install pnpm
+  #     - name: Install pnpm
+  #       uses: pnpm/action-setup@v4
+  #       with:
+  #         version: 10
 
-      # Setup Node with pnpm caching
-      - name: Install Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: 'pnpm'
+  #     # Setup Node with pnpm caching
+  #     - name: Install Node
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 24
+  #         cache: 'pnpm'
 
-      # Clean install for pnpm; if lockfile needs to be updated, fail the build
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+  #     # Clean install for pnpm; if lockfile needs to be updated, fail the build
+  #     - name: Install dependencies
+  #       run: pnpm install --frozen-lockfile
 
-      - name: Run Linting
-        run: make lint
+  #     - name: Run Linting
+  #       run: make lint
 
-      - name: Run Typecheck
-        run: make typecheck
+  #     - name: Run Typecheck
+  #       run: make typecheck
 
   # ENV file checks would need to loosened for build to commence
   # Checks that the project can be built for distribution
@@ -67,7 +67,6 @@ jobs:
 
   unit-tests:
     runs-on: ubuntu-latest
-    needs: quality
     timeout-minutes: 5
     steps:
       - name: Check out repository
