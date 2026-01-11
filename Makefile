@@ -194,24 +194,6 @@ purge: fclean
 	@docker system df
 	@echo "$(BOLD)$(GREEN)All Docker resources have been purged.$(RESET)"
 
-# -- TESTING --
-
-# Runs Test for backend and (eventually) frontend
-test: test-be
-
-# Runs Test for backend
-test-be: start-db-container
-	@echo "$(BOLD)$(YELLOW)--- Creating Test Database ...$(RESET)"
-	@$(DC) exec db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
-	@$(DC) exec db psql -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
-	@NODE_ENV=test pnpm --filter @grit/backend exec prisma db push
-
-	@echo "$(BOLD)$(YELLOW)--- Starting Tests ...$(RESET)"
-	@NODE_ENV=test pnpm --filter @grit/backend test
-
-	@echo "$(BOLD)$(YELLOW)--- Removing Test Database ...$(RESET)"
-	@$(DC) exec db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
-
 # -- MISC TARGETS --
 
 typecheck: install
@@ -237,6 +219,48 @@ format: install
 # Shows live logs of Docker services running (in the background)
 logs:
 	$(DC) logs -f
+
+
+#############################
+## 🔬 TEST COMMANDS        ##
+#############################
+
+# Run all Tests for backend and (eventually) frontend
+test: test-be-all
+
+# Run all Tests for backend only
+test-be-all:
+	@echo "$(BOLD)$(YELLOW)--- Starting Tests ...$(RESET)"
+	@$(MAKE) test-be-unit
+# 	@$(MAKE) test-be-integration
+	@$(MAKE) test-be-e2e
+
+# Separate commands for unit, integration and e2e test for faster and cheaper failing in CI
+test-be-unit:
+	@echo "$(BOLD)$(YELLOW)--- Running Backend Unit Tests ...$(RESET)"
+	@NODE_ENV=test pnpm --filter @grit/backend test:unit
+
+test-be-integration: start-db-container test-be-testdb-init
+	@echo "$(BOLD)$(YELLOW)--- Running Backend Integration Tests ...$(RESET)"
+	@NODE_ENV=test pnpm --filter @grit/backend test:integration
+	@$(MAKE) test-be-testdb-remove
+
+test-be-e2e: start-db-container test-be-testdb-init
+	@echo "$(BOLD)$(YELLOW)--- Running Backend Integration Tests ...$(RESET)"
+	@NODE_ENV=test pnpm --filter @grit/backend test:e2e
+	@$(MAKE) test-be-testdb-remove
+
+# Helper commands
+test-be-testdb-init: start-db-container
+	@echo "$(BOLD)$(YELLOW)--- Creating Test Database ...$(RESET)"
+	@$(DC) exec db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
+	@$(DC) exec db psql -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
+	@NODE_ENV=test pnpm --filter @grit/backend exec prisma db push
+
+test-be-testdb-remove:
+	@echo "$(BOLD)$(YELLOW)--- Removing Test Database ...$(RESET)"
+	@$(DC) exec db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
+
 
 #############################
 ## 🚀 DEVELOPMENT COMMANDS ##
