@@ -238,15 +238,18 @@ test-be-all:
 # Separate commands for unit, integration and e2e test for faster and cheaper failing in CI
 test-be-unit:
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Unit Tests ...$(RESET)"
+	@pnpm --filter @grit/backend exec prisma generate
 	@NODE_ENV=test pnpm --filter @grit/backend test:unit
 
 test-be-integration: start-db-container test-be-testdb-init
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Integration Tests ...$(RESET)"
+	@pnpm --filter @grit/backend exec prisma generate
 	@NODE_ENV=test pnpm --filter @grit/backend test:integration
 	@$(MAKE) test-be-testdb-remove
 
 test-be-e2e: start-db-container test-be-testdb-init
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Integration Tests ...$(RESET)"
+	@pnpm --filter @grit/backend exec prisma generate
 	@NODE_ENV=test pnpm --filter @grit/backend test:e2e
 	@$(MAKE) test-be-testdb-remove
 
