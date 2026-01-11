@@ -241,20 +241,20 @@ test-be-unit:
 	@pnpm --filter @grit/backend exec prisma generate
 	@NODE_ENV=test pnpm --filter @grit/backend test:unit
 
-test-be-integration: start-db-container test-be-testdb-init
+test-be-integration: start-db test-be-testdb-init
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Integration Tests ...$(RESET)"
 	@pnpm --filter @grit/backend exec prisma generate
 	@NODE_ENV=test pnpm --filter @grit/backend test:integration
 	@$(MAKE) test-be-testdb-remove
 
-test-be-e2e: start-db-container test-be-testdb-init
+test-be-e2e: start-db test-be-testdb-init
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Integration Tests ...$(RESET)"
 	@pnpm --filter @grit/backend exec prisma generate
 	@NODE_ENV=test pnpm --filter @grit/backend test:e2e
 	@$(MAKE) test-be-testdb-remove
 
 # Helper commands
-test-be-testdb-init: start-db-container
+test-be-testdb-init: start-db
 	@echo "$(BOLD)$(YELLOW)--- Creating Test Database ...$(RESET)"
 	@$(DC) exec db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
 	@$(DC) exec db psql -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
@@ -287,9 +287,9 @@ dev-fe: check-env kill-fe-port install-fe
 ## 📁 DATABASE (LOCAL DEV) ##
 #############################
 
-# Starts only the database Docker container for local development
+# Starts the database Docker container for local development and seeds it
 # In Production, db availabilty (and starting of backend container) is checked in 'docker compose' via healthchecks.
-db: install-be start-db-container
+db: install-be start-db
 	@pnpm --filter @grit/backend exec prisma db push
 	@$(MAKE) seed-db --no-print-directory
 	@echo "$(BOLD)$(GREEN)Database is ready, schema is synced and initial users are seeded.$(RESET)"
@@ -297,7 +297,7 @@ db: install-be start-db-container
 	@echo "•   View database:  '$(YELLOW)make view-db$(RESET)'"
 
 # Starts the db container services
-start-db-container: install-be
+start-db: install-be
 	@echo "$(BOLD)$(YELLOW)--- Starting Postgres [DOCKER]...$(RESET)"
 	$(DC) up -d db
 	@echo "$(BOLD)$(YELLOW)--- Waiting for DB to wake up...$(RESET)"
@@ -329,7 +329,7 @@ view-db:
 	@cd $(BACKEND_FOLDER) && npx prisma studio
 
 # Stops the database container
-stop-db-container:
+stop-db:
 	@echo "$(BOLD)$(YELLOW)--- Stopping Database services...$(RESET)"
 	$(DC) stop db
 
@@ -469,8 +469,8 @@ stop:
 		logs \
 		purge \
 		seed-db \
-		start-db-container \
-		stop-db-container \
+		start-db \
+		stop-db \
 		stop-dev-processes \
 		test-be \
 		typecheck \

@@ -48,8 +48,8 @@ describe('UserController', () => {
   });
 
   // Tests for the userGetAll controller path
-  // Test 1: Verifies that the controller delegates the call to userService.userGetAll
-  // Test 2: Verifies that the controller returns the value received from userService.userGetAll
+  // Test 1: Verifies that the controller delegates the call to userService.userGet
+  // Test 2: Verifies that the controller returns the value received from userService.userGet() and does not alter it.
   describe('Get all users', () => {
     // Test 1
     it('should call userService.userGet()', async () => {
@@ -67,7 +67,7 @@ describe('UserController', () => {
 
   // Tests for the userPost controller path.
   // Test 1: Verifies that the controller delegates the call to userService.userPost. Also that it is called with correct argument.
-  // Test 2: Verifies that the controller returns the value received from userService.userPost
+  // Test 2: Verifies that the controller returns the value received from userService.userPost without altering it.
   describe('Create a user', () => {
     const testUser = {
       name: 'natalie',
