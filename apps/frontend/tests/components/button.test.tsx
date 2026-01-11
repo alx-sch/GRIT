@@ -29,6 +29,7 @@ describe('Button Component', () => {
     expect(link).toHaveAttribute('href', '/login');
     expect(link).toHaveClass('border-2 border-black');
   });
+
   it('prevents click when disabled', () => {
     const handleClick = vi.fn();
 

@@ -130,7 +130,7 @@ export default function EventFeed() {
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-border text-center bg-muted/5">
+        <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-border text-center bg-card">
           <Heading level={3} className="uppercase tracking-tight">
             No events found
           </Heading>

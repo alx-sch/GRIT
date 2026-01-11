@@ -31,7 +31,7 @@ export function Navbar() {
   };
 
   return (
-    <div className="border-b-2 border-border py-4 px-8 md:px-12 flex justify-between items-center bg-background sticky top-0 z-50">
+    <div className="border-b-2 border-border py-4 px-8 md:px-12 flex justify-between items-center bg-card sticky top-0 z-50">
       <Link to="/">
         <div className="font-bold text-xl  uppercase tracking-wider">Grit</div>
       </Link>
@@ -41,13 +41,13 @@ export function Navbar() {
           <NavigationMenuList className="gap-2 my-0 ml-0">
             {navConfig.map((link) => (
               <NavigationMenuItem key={link.label}>
-                <NavigationMenuLink asChild>
+                <NavigationMenuLink asChild className="p-0">
                   <Link
                     to={link.path}
                     className={cn(
                       navigationMenuTriggerStyle(),
                       'bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent',
-                      'rounded-none text-base font-bold h-auto py-2 px-4 border-b-2 ',
+                      'rounded-none text-base font-bold h-auto  px-4 border-b-2 ',
                       isActive(link.path)
                         ? 'border-foreground text-foreground'
                         : 'border-transparent hover:border-foreground/50'
