@@ -156,12 +156,12 @@ export default function Design() {
             </CardHeader>
             <CardContent className="flex items-center gap-4">
               <Avatar>
-                <AvatarImage src="https://github.com/shadcn.png" />
-                <AvatarFallback seed="test">CN</AvatarFallback>
+                <AvatarImage src="https://github.com/shadcn.png" seed="test" />
+                <AvatarFallback>CN</AvatarFallback>
               </Avatar>
               <Avatar>
-                <AvatarImage src="https://broken-link.com/img.png" />
-                <AvatarFallback seed="meowmeow">JD</AvatarFallback>
+                <AvatarImage src="https://broken-link.com/img.png" seed="meowmeow" />
+                <AvatarFallback>JD</AvatarFallback>
               </Avatar>
               <div className="space-y-1">
                 <Heading level={4} className="text-sm">
