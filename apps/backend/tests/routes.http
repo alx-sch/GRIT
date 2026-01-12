@@ -8,14 +8,15 @@
 http://localhost:3000
 ###
 
-// ========== USERS ========== //
+// ========== Auth ========== //
 POST http://localhost:3000/auth/login
 content-type: application/json
 
 {
-	"email": "test@test.com",
-	"password": "password123"
+    "email": "nat@test.com",
+    "password": "password123"
 }
+###
 // ========== USERS ========== //
 
 // Get all users
@@ -31,8 +32,8 @@ POST http://localhost:3000/users HTTP/1.1
 content-type: application/json
 
 {
-    "name": "22",
-    "email": "tester_v332@grit.com"
+    "email": "nat@test.com",
+	"password": "password123"
 }
 ###
 

@@ -25,4 +25,15 @@ export class UserService {
     }
     return user;
   }
+
+  // This one to be called from AuthService.
+  async userGetByEmail(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+    if (!user) {
+      throw new NotFoundException(`User with email ${email} not found`);
+    }
+    return user;
+  }
 }

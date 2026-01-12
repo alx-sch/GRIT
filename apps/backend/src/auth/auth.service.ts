@@ -1,15 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { UserService } from '@/user/user.service';
-
-type AuthInput = { email: string; password: string };
-type SignInData = { userId: number; password: string };
+import { ReqAuthPostDto } from '@/auth/auth.schema';
 
 @Injectable()
 export class AuthService {
   constructor(private userService: UserService) {}
 
-  async validateUser(input: AuthInput): Promise<SignInData | null> {
-    const user = await this.userService.userGetById;
+  async validateUser(data: ReqAuthPostDto) {
+    const user = await this.userService.userGetByEmail(data.email);
+
+    if (user && user.password == data.password) {
+      return user;
+    }
     return null;
   }
 }
