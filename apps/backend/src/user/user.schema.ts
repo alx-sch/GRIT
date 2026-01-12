@@ -8,7 +8,7 @@ import { z } from 'zod';
 // Response schema for the basic user info
 export const ResUserBaseSchema = z.object({
   id: z.number().int().positive(),
-  name: z.string().optional(),
+  name: z.string().nullable(),
 });
 
 /**

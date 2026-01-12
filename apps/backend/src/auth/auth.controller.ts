@@ -11,6 +11,6 @@ export class AuthController {
   @Post('login')
   @ZodSerializerDto(ResAuthPostSchema)
   login(@Body() data: ReqAuthPostDto) {
-    return this.authService.validateUser(data);
+    return this.authService.authenticate(data);
   }
 }

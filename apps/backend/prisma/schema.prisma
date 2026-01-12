@@ -20,6 +20,7 @@ model User {
   events      Event[]
   name        String?
   password    String
+  accessToken   String?
 }
 
 model Event {

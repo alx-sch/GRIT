@@ -8,7 +8,8 @@ import { z } from 'zod';
 // Response schema for the basic Auth info
 export const ResAuthBaseSchema = z.object({
   id: z.number().int().positive(),
-  name: z.string().optional(),
+  name: z.string().nullable(),
+  accessToken: z.string().nullable(),
 });
 
 /**
@@ -16,12 +17,9 @@ export const ResAuthBaseSchema = z.object({
  */
 
 // Login credentials
-export const ReqAuthPostSchema = z.object({
+export const ReqAuthPostSchema = z.strictObject({
   email: z.email(),
   password: z.string().min(8),
 });
 export class ReqAuthPostDto extends createZodDto(ReqAuthPostSchema) {}
-export const ResAuthPostSchema = z.object({
-  id: z.number().int().positive(),
-  name: z.string().nullable(),
-});
+export const ResAuthPostSchema = ResAuthBaseSchema;
