@@ -81,7 +81,7 @@ const events: Event[] = [
     id: 4,
     authorId: 4,
     author: 'Audrey',
-    content: 'Come to my awesome event',
+    content: 'Come to my awesome event!',
     createdAt: '2026-01-03T10:00:00Z',
     endAt: '2026-02-23T10:00:00Z',
     isPublished: true,
