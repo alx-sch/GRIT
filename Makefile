@@ -220,10 +220,9 @@ format: install
 logs:
 	$(DC) logs -f
 
-
-#############################
-## 🔬 TEST COMMANDS        ##
-#############################
+#######################
+## 🔬 TEST COMMANDS  ##
+#######################
 
 # Run all Tests for backend and (eventually) frontend
 test: test-be-all
@@ -231,23 +230,23 @@ test: test-be-all
 # Run all Tests for backend only
 test-be-all:
 	@echo "$(BOLD)$(YELLOW)--- Starting Tests ...$(RESET)"
-	@$(MAKE) test-be-unit
+	@$(MAKE) --no-print-directory test-be-unit
 # 	@$(MAKE) test-be-integration
-	@$(MAKE) test-be-e2e
+	@$(MAKE) --no-print-directory test-be-e2e
 
 # Separate commands for unit, integration and e2e test for faster and cheaper failing in CI
-test-be-unit:
+test-be-unit: install
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Unit Tests ...$(RESET)"
 	@pnpm --filter @grit/backend exec prisma generate
 	@NODE_ENV=test pnpm --filter @grit/backend test:unit
 
-test-be-integration: start-db test-be-testdb-init
+test-be-integration: install start-db test-be-testdb-init
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Integration Tests ...$(RESET)"
 	@pnpm --filter @grit/backend exec prisma generate
 	@NODE_ENV=test pnpm --filter @grit/backend test:integration
 	@$(MAKE) test-be-testdb-remove
 
-test-be-e2e: start-db test-be-testdb-init
+test-be-e2e: install start-db test-be-testdb-init
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Integration Tests ...$(RESET)"
 	@pnpm --filter @grit/backend exec prisma generate
 	@NODE_ENV=test pnpm --filter @grit/backend test:e2e
@@ -263,7 +262,6 @@ test-be-testdb-init: start-db
 test-be-testdb-remove:
 	@echo "$(BOLD)$(YELLOW)--- Removing Test Database ...$(RESET)"
 	@$(DC) exec db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
-
 
 #############################
 ## 🚀 DEVELOPMENT COMMANDS ##
