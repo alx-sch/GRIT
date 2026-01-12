@@ -1,7 +1,7 @@
+import { env } from '@config/env';
 import { PrismaClient } from '@generated/client/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
-import { env } from '@config/env';
 
 // Setup the connection pool
 const pool = new Pool({ connectionString: env.DATABASE_URL });
@@ -41,8 +41,58 @@ async function main() {
     },
   });
 
+  const event1 = await prisma.event.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      id: 1,
+      authorId: user1.id,
+      content:
+        'A night of unforgettable techno beats, in Not Berghain. Join us for an immersive experience with top DJs and a vibrant crowd.',
+      title:
+        'MEGA SUPER DUPER COOL PARTY super hyper long title super hyper long title super hyper long titlesuper hyper long title super hyper long title super hyper long titlesuper hyper long title super hyper long title super hyper long titlesuper hyper long title super hyper long title super hyper long title super hyper long title super hyper long title super hyper long title',
+      startAt: '2026-03-02T10:00:00Z',
+      endAt: '2026-03-02T10:00:00Z',
+      isPublished: true,
+      isPublic: true,
+    },
+  });
+
+  const event2 = await prisma.event.upsert({
+    where: { id: 2 },
+    update: {},
+    create: {
+      id: 2,
+      authorId: user2.id,
+      content:
+        'A session of beer-yoga at Lotus. Unwind with a refreshing beer in hand while stretching and strengthening your body in a fun and social environment.',
+      createdAt: '2026-01-03T10:00:00Z',
+      endAt: '2026-01-03T10:00:00Z',
+      isPublished: true,
+      isPublic: true,
+      startAt: '2026-01-03T10:00:00Z',
+      title: 'Beer-Yoga Session',
+    },
+  });
+
+  const event3 = await prisma.event.upsert({
+    where: { id: 3 },
+    update: {},
+    create: {
+      id: 3,
+      authorId: user3.id,
+      content: 'Come to my awesome event!',
+      createdAt: '2026-01-03T10:00:00Z',
+      endAt: '2026-01-15T10:00:00Z',
+      isPublished: true,
+      isPublic: false,
+      startAt: '2026-01-15T10:00:00Z',
+      title: 'Fireplace Gathering',
+    },
+  });
+
   // Log the results so you can see the IDs generated in the terminal
-  console.log({ user1, user2, user3 });
+  console.log({ user1, user2, user3, event1, event2, event3 });
 }
 
 main()
