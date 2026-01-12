@@ -45,7 +45,7 @@ jobs:
 
   frontend-tests:
     runs-on: ubuntu-latest
-    needs: quality
+    needs: test
     timeout-minutes: 5
     steps:
       - name: Check out repository
