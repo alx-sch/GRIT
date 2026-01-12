@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserService } from '@/user/user.service';
 import { ReqAuthPostDto } from '@/auth/auth.schema';
 
@@ -9,9 +9,11 @@ export class AuthService {
   async validateUser(data: ReqAuthPostDto) {
     const user = await this.userService.userGetByEmail(data.email);
 
-    if (user && user.password == data.password) {
+    if (user) {
+      if (user.password != data.password) throw new UnauthorizedException('Password is wrong.');
       return user;
     }
+
     return null;
   }
 }
