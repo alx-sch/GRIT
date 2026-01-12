@@ -240,14 +240,14 @@ test-be-unit: install
 	@pnpm --filter @grit/backend exec prisma generate
 	@NODE_ENV=test pnpm --filter @grit/backend test:unit
 
-test-be-integration: install start-db test-be-testdb-init
+test-be-integration: install test-be-testdb-init
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Integration Tests ...$(RESET)"
 	@pnpm --filter @grit/backend exec prisma generate
 	@NODE_ENV=test pnpm --filter @grit/backend test:integration
 	@$(MAKE) test-be-testdb-remove
 
-test-be-e2e: install start-db test-be-testdb-init
-	@echo "$(BOLD)$(YELLOW)--- Running Backend Integration Tests ...$(RESET)"
+test-be-e2e: install test-be-testdb-init
+	@echo "$(BOLD)$(YELLOW)--- Running Backend E2E Tests ...$(RESET)"
 	@pnpm --filter @grit/backend exec prisma generate
 	@NODE_ENV=test pnpm --filter @grit/backend test:e2e
 	@$(MAKE) test-be-testdb-remove
