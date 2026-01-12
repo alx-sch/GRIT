@@ -6,6 +6,19 @@ import EventFeed from '@/pages/events/Page';
 import { createBrowserRouter } from 'react-router-dom';
 import { DefaultLayout } from '@/components/layout/DefaultLayout';
 
+export interface NavRoute {
+  path: `/${string}`;
+  label: string;
+}
+
+// NOTE: let's define single source of truth for our routes here
+export const navConfig: NavRoute[] = [
+  { path: '/', label: 'Home' },
+  { path: '/design', label: 'Design' },
+  { path: '/users', label: 'Users' },
+  { path: '/events', label: 'Events' },
+] as const;
+
 export const router = createBrowserRouter([
   {
     Component: DefaultLayout,
@@ -14,19 +27,23 @@ export const router = createBrowserRouter([
       {
         index: true,
         Component: Home,
+        handle: { title: 'Home' },
       },
       {
         path: 'design',
         Component: Design,
+        handle: { title: 'Design' },
       },
       {
         path: 'users',
         Component: Users,
         loader: usersLoader,
+        handle: { title: 'Users' },
       },
       {
         path: 'events',
         Component: EventFeed,
+        handle: { title: 'Events' },
       },
     ],
   },
