@@ -81,7 +81,7 @@ const events: Event[] = [
     id: 4,
     authorId: 4,
     author: 'Audrey',
-    content: 'Come to my awesome event!',
+    content: 'Come to my awesome event',
     createdAt: '2026-01-03T10:00:00Z',
     endAt: '2026-02-23T10:00:00Z',
     isPublished: true,
@@ -122,7 +122,6 @@ export default function EventFeed() {
           setSearchTerm(e.target.value);
         }}
       />
-
       {filteredEvents.length > 0 ? (
         <div className="grid gap-6 justify-start md:grid-cols-2 lg:grid-cols-3">
           {filteredEvents.map((event) => (
