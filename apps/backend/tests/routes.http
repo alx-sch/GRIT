@@ -70,7 +70,7 @@ content-type: application/json
     "startAt": "2026-05-01T18:00:00Z",
     "endAt": "2026-05-02T02:00:00Z",
     "isPublic": false,
-	"locationId": 1
+	"locationId": 2
 }
 ###
 

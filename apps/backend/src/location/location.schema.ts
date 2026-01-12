@@ -6,6 +6,11 @@ import { ResEventBaseSchema } from '@/event/event.schema';
  * SHARED RESPONSE SCHEMAS
  */
 
+const ResLocationEventIdSchema = z.object({
+  id: z.number().int().positive(),
+  title: z.string().nullable(),
+});
+
 // Response schema for the basic location info
 export const ResLocationBaseSchema = z.object({
   id: z.number().int().positive(),
@@ -15,7 +20,7 @@ export const ResLocationBaseSchema = z.object({
   country: z.string().nullable(),
   longitude: z.string(),
   latitude: z.string(),
-  events: z.array(ResEventBaseSchema).nullable().default([]),
+  events: z.array(ResLocationEventIdSchema).nullable().default([]),
   isPublic: z.boolean(),
 });
 

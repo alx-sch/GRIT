@@ -7,7 +7,17 @@ export class LocationService {
   constructor(private prisma: PrismaService) {}
 
   locationGet() {
-    return this.prisma.location.findMany();
+    return this.prisma.location.findMany({
+      include: {
+        author: true,
+        events: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+    });
   }
 
   locationPost(data: ReqLocationPostDto) {
@@ -25,7 +35,12 @@ export class LocationService {
       },
       include: {
         author: true,
-        events: true,
+        events: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
       },
     });
   }
