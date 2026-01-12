@@ -9,11 +9,22 @@ http://localhost:3000
 ###
 
 // ========== USERS ========== //
+POST http://localhost:3000/auth/login
+content-type: application/json
+
+{
+	"email": "test@test.com",
+	"password": "password123"
+}
+// ========== USERS ========== //
 
 // Get all users
 http://localhost:3000/users
 ###
 
+// Get user by user id
+http://localhost:3000/users/1
+###
 
 // Create new user
 POST http://localhost:3000/users HTTP/1.1

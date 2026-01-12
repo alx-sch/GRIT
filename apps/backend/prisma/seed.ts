@@ -20,6 +20,7 @@ async function main() {
     create: {
       email: 'alice@example.com',
       name: 'Alice',
+      password: 'password123',
     },
   });
 
@@ -29,6 +30,7 @@ async function main() {
     create: {
       email: 'bob@example.com',
       name: 'Bob',
+      password: 'password123',
     },
   });
 
@@ -38,6 +40,7 @@ async function main() {
     create: {
       email: 'Cindy@example.com',
       name: 'Cindy',
+      password: 'password123',
     },
   });
 

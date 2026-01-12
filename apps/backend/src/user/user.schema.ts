@@ -24,6 +24,14 @@ export const ResUserGetAllSchema = z.array(ResUserBaseSchema);
 export const ReqUserPostSchema = z.object({
   name: z.string().optional(),
   email: z.email(),
+  password: z.string().min(8),
 });
 export class ReqUserPostDto extends createZodDto(ReqUserPostSchema) {}
 export const ResUserPostSchema = z.object({}).loose(); // return everything
+
+// Get an individual user by id
+export const ReqUserGetByIdSchema = z.strictObject({
+  id: z.coerce.number().int().positive(),
+});
+export class ReqUserGetByIdDto extends createZodDto(ReqUserGetByIdSchema) {}
+export const ResUserGetByIdSchema = ResUserBaseSchema;
