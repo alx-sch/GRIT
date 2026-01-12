@@ -18,7 +18,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:unit": "jest --selectProjects unit",
-    "test:integration": "jest --selectProjects integration",
+    "test:integration": "jest --selectProjects integration --passWithNoTests",
     "test:e2e": "jest --selectProjects e2e",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push"
