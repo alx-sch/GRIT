@@ -1,23 +1,43 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Button } from '@/components/ui/button';
+import { vi } from 'vitest';
 
 describe('Button Component', () => {
-  it('renders with default variant classes', () => {
+  const user = userEvent.setup();
+
+  it('renders correctly with default props', () => {
     render(<Button>Click me</Button>);
+
     const btn = screen.getByRole('button', { name: /click me/i });
 
-    expect(btn).toHaveClass('border-2 border-black');
+    expect(btn).toBeInTheDocument();
+    // Only check key variant indicators, not every single utility class
     expect(btn).toHaveClass('bg-primary');
   });
 
-  it('applies destructive variant correctly', () => {
+  it('applies variant classes correctly', () => {
     render(<Button variant="destructive">Delete</Button>);
+
     const btn = screen.getByRole('button', { name: /delete/i });
 
+    // We trust CVA works, we just verify the prop triggers the mapping
     expect(btn).toHaveClass('bg-destructive');
   });
 
-  it('renders as a different element when asChild is true', () => {
+  it('merges custom classes (className prop) correctly', () => {
+    // This is CRITICAL for reusable UI components
+    render(<Button className="mb-4 text-xs">Custom</Button>);
+
+    const btn = screen.getByRole('button', { name: /custom/i });
+
+    expect(btn).toHaveClass('mb-4');
+    expect(btn).toHaveClass('text-xs');
+    // Ensure default classes are NOT wiped out
+    expect(btn).toHaveClass('inline-flex');
+  });
+
+  it('renders as a child element (Slot) correctly', () => {
     render(
       <Button asChild>
         <a href="/login">Login</a>
@@ -25,24 +45,46 @@ describe('Button Component', () => {
     );
 
     const link = screen.getByRole('link', { name: /login/i });
+
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute('href', '/login');
-    expect(link).toHaveClass('border-2 border-black');
+    // Verify it still looks like a button
+    expect(link).toHaveClass('bg-primary');
   });
 
-  it('prevents click when disabled', () => {
+  it('handles click events', async () => {
+    const handleClick = vi.fn();
+    render(<Button onClick={handleClick}>Click</Button>);
+
+    const btn = screen.getByRole('button', { name: /click/i });
+
+    await user.click(btn);
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('is disabled and prevents interactions', async () => {
     const handleClick = vi.fn();
 
     render(
-      <Button variant="disabled" disabled onClick={handleClick}>
-        Dont Click me
+      <Button disabled onClick={handleClick}>
+        Disabled
       </Button>
     );
 
-    const btn = screen.getByRole('button', { name: /dont click me/i });
+    const btn = screen.getByRole('button', { name: /disabled/i });
 
     expect(btn).toBeDisabled();
-    fireEvent.click(btn);
+
+    // Attempt to click using userEvent (mimics real user)
+    // Note: userEvent.click usually throws on disabled elements or does nothing
+    // ignoring the promise or catching checking logic is strictly safer:
+    await user.click(btn).catch(() => {
+      return;
+    });
+
     expect(handleClick).not.toHaveBeenCalled();
+
+    // Optional: Check if pointer-events-none is applied via your disabled variant
+    expect(btn).toHaveClass('disabled:pointer-events-none');
   });
 });

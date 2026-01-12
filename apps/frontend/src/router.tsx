@@ -38,10 +38,12 @@ export const router = createBrowserRouter([
         path: 'users',
         Component: Users,
         loader: usersLoader,
+        handle: { title: 'Users' },
       },
       {
         path: 'events',
         Component: EventFeed,
+        handle: { title: 'Events' },
       },
     ],
   },
