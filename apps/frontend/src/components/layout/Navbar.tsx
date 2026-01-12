@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Sun, Moon } from 'lucide-react'; // 1. Add Sun/Moon icons
+import { Menu, X, Sun, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   NavigationMenu,
@@ -18,17 +18,11 @@ import {
   SheetClose,
 } from '@/components/ui/sheet';
 import { useTheme } from '@/providers/theme-provider';
+import { navConfig } from '@/router';
 
 export function Navbar() {
   const location = useLocation();
   const { setTheme, resolvedTheme } = useTheme();
-
-  const navLinks = [
-    { href: '/', label: 'Home' },
-    { href: '/users', label: 'Users' },
-    { href: '/events', label: 'Events' },
-    { href: '/design', label: 'Design' },
-  ];
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -37,26 +31,26 @@ export function Navbar() {
   };
 
   return (
-    <div className="border-b-2 border-border p-4 flex justify-between items-center bg-background sticky top-0 z-50">
+    <div className="border-b-2 border-border py-4 px-8 md:px-12 flex justify-between items-center bg-card sticky top-0 z-50">
       <Link to="/">
-        <div className="font-bold text-xl px-4 uppercase tracking-wider">Grit</div>
+        <div className="font-bold text-xl  uppercase tracking-wider">Grit</div>
       </Link>
 
       <div className="hidden md:flex items-center gap-4">
         <NavigationMenu>
-          <NavigationMenuList className="gap-2">
-            {navLinks.map((link) => (
+          <NavigationMenuList className="gap-2 my-0 ml-0">
+            {navConfig.map((link) => (
               <NavigationMenuItem key={link.label}>
-                <NavigationMenuLink asChild>
+                <NavigationMenuLink asChild className="p-0">
                   <Link
-                    to={link.href}
+                    to={link.path}
                     className={cn(
                       navigationMenuTriggerStyle(),
                       'bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent',
-                      'rounded-none text-base font-bold h-auto py-2 px-4',
-                      isActive(link.href)
-                        ? 'border-b-2 border-foreground text-foreground' // Changed to use standard vars
-                        : 'border-b-2 border-transparent hover:border-foreground/50'
+                      'rounded-none text-base font-bold h-auto  px-4 border-b-2 ',
+                      isActive(link.path)
+                        ? 'border-foreground text-foreground'
+                        : 'border-transparent hover:border-foreground/50'
                     )}
                   >
                     {link.label}
@@ -108,13 +102,13 @@ export function Navbar() {
             </SheetHeader>
 
             <div className="flex flex-col gap-4">
-              {navLinks.map((link) => (
+              {navConfig.map((link) => (
                 <SheetClose asChild key={link.label}>
                   <Link
-                    to={link.href}
+                    to={link.path}
                     className={cn(
                       'text-xl font-bold px-2 py-2 transition-all',
-                      isActive(link.href)
+                      isActive(link.path)
                         ? 'bg-foreground text-background'
                         : 'hover:underline underline-offset-4'
                     )}

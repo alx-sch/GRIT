@@ -9,7 +9,7 @@ const neobrutalismAnimation = [
   'border-2 border-black',
 
   // --- MOBILE DEFAULT ---
-  'shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] -translate-x-[2px] -translate-y-[2px]',
+  'shadow-grit -translate-x-[2px] -translate-y-[2px]',
   'active:shadow-none active:translate-x-0 active:translate-y-0',
 
   // --- DESKTOP OVERRIDES (md:) ---
@@ -17,7 +17,7 @@ const neobrutalismAnimation = [
   'md:shadow-none md:translate-x-0 md:translate-y-0',
 
   // Hover: POP OUT (Shadow appears)
-  'md:hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:hover:-translate-x-[2px] md:hover:-translate-y-[2px]',
+  'md:hover:shadow-grit md:hover:-translate-x-[2px] md:hover:-translate-y-[2px]',
 
   'md:active:shadow-none md:active:translate-x-0 md:active:translate-y-0',
 ].join(' ');

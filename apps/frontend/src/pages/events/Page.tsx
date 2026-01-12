@@ -43,7 +43,7 @@ const events: Event[] = [
       'Jemma',
       'Alex',
     ],
-    imageURL: 'https://placehold.co/400x300/ff6b35/000000?text=Berghain+Party',
+    imageURL: 'https://placehold.co/300x400/ff6b35/000000?text=Berghain+Party',
     interestedCount: 350,
     location: 'Not Berghain',
   },
@@ -109,7 +109,7 @@ export default function EventFeed() {
   }, [events, searchTerm]);
 
   return (
-    <Container className="py-10 space-y-8">
+    <Container className="py-10 space-y-8 p-0 md:px-0">
       <div className="space-y-2">
         <Heading level={1}>Upcoming events</Heading>
       </div>
@@ -124,13 +124,13 @@ export default function EventFeed() {
       />
 
       {filteredEvents.length > 0 ? (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 justify-start md:grid-cols-2 lg:grid-cols-3">
           {filteredEvents.map((event) => (
             <EventCard key={event.id} event={event} />
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-border text-center bg-muted/5">
+        <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-border text-center bg-card">
           <Heading level={3} className="uppercase tracking-tight">
             No events found
           </Heading>
