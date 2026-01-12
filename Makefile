@@ -220,6 +220,49 @@ format: install
 logs:
 	$(DC) logs -f
 
+#######################
+## 🔬 TEST COMMANDS  ##
+#######################
+
+# Run all Tests for backend and (eventually) frontend
+test: test-be-all
+
+# Run all Tests for backend only
+test-be-all:
+	@echo "$(BOLD)$(YELLOW)--- Starting Tests ...$(RESET)"
+	@$(MAKE) --no-print-directory test-be-unit
+# 	@$(MAKE) test-be-integration
+	@$(MAKE) --no-print-directory test-be-e2e
+
+# Separate commands for unit, integration and e2e test for faster and cheaper failing in CI
+test-be-unit: install
+	@echo "$(BOLD)$(YELLOW)--- Running Backend Unit Tests ...$(RESET)"
+	@pnpm --filter @grit/backend exec prisma generate
+	@NODE_ENV=test pnpm --filter @grit/backend test:unit
+
+test-be-integration: install test-be-testdb-init
+	@echo "$(BOLD)$(YELLOW)--- Running Backend Integration Tests ...$(RESET)"
+	@pnpm --filter @grit/backend exec prisma generate
+	@NODE_ENV=test pnpm --filter @grit/backend test:integration
+	@$(MAKE) test-be-testdb-remove
+
+test-be-e2e: install test-be-testdb-init
+	@echo "$(BOLD)$(YELLOW)--- Running Backend E2E Tests ...$(RESET)"
+	@pnpm --filter @grit/backend exec prisma generate
+	@NODE_ENV=test pnpm --filter @grit/backend test:e2e
+	@$(MAKE) test-be-testdb-remove
+
+# Helper commands
+test-be-testdb-init: start-db
+	@echo "$(BOLD)$(YELLOW)--- Creating Test Database ...$(RESET)"
+	@$(DC) exec db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
+	@$(DC) exec db psql -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
+	@NODE_ENV=test pnpm --filter @grit/backend exec prisma db push
+
+test-be-testdb-remove:
+	@echo "$(BOLD)$(YELLOW)--- Removing Test Database ...$(RESET)"
+	@$(DC) exec db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
+
 #############################
 ## 🚀 DEVELOPMENT COMMANDS ##
 #############################
@@ -242,9 +285,17 @@ dev-fe: check-env kill-fe-port install-fe
 ## 📁 DATABASE (LOCAL DEV) ##
 #############################
 
-# Starts only the database Docker container for local development
+# Starts the database Docker container for local development and seeds it
 # In Production, db availabilty (and starting of backend container) is checked in 'docker compose' via healthchecks.
-db: install-be
+db: install-be start-db
+	@pnpm --filter @grit/backend exec prisma db push
+	@$(MAKE) seed-db --no-print-directory
+	@echo "$(BOLD)$(GREEN)Database is ready, schema is synced and initial users are seeded.$(RESET)"
+	@echo "•   View logs (db): '$(YELLOW)make logs$(RESET)'"
+	@echo "•   View database:  '$(YELLOW)make view-db$(RESET)'"
+
+# Starts the db container services
+start-db: install-be
 	@echo "$(BOLD)$(YELLOW)--- Starting Postgres [DOCKER]...$(RESET)"
 	$(DC) up -d db
 	@echo "$(BOLD)$(YELLOW)--- Waiting for DB to wake up...$(RESET)"
@@ -264,11 +315,6 @@ db: install-be
 	    echo "$(RED)DB failed to start.$(RESET)"; \
 	    exit 1; \
 	fi
-	@pnpm --filter @grit/backend exec prisma db push
-	@$(MAKE) seed-db --no-print-directory
-	@echo "$(BOLD)$(GREEN)Database is ready, schema is synced and initial users are seeded.$(RESET)"
-	@echo "•   View logs (db): '$(YELLOW)make logs$(RESET)'"
-	@echo "•   View database:  '$(YELLOW)make view-db$(RESET)'"
 
 # Populates the database with initial test data
 seed-db:
@@ -398,12 +444,41 @@ stop:
 ## 📌 PHONY TARGETS ##
 ######################
 
-.PHONY:	all \
-		init-env install install-fe install-be check-env \
-		clean clean-db clean-backup stop-dev-processes purge\
-		typecheck lint lint-fix format logs \
-		dev dev-be dev-fe \
-		db seed-db view-db stop-db \
-		vol-ls vol-inspect vol-backup vol-restore \
-		build build-be build-fe run run-be run-fe \
-		start stop
+.PHONY:	\
+		all \
+		build \
+		build-be \
+		build-fe \
+		check-env \
+		clean \
+		clean-backup \
+		clean-db \
+		db \
+		dev \
+		dev-be \
+		dev-fe \
+		format \
+		init-env \
+		install \
+		install-be \
+		install-fe \
+		lint \
+		lint-fix \
+		logs \
+		purge \
+		seed-db \
+		start-db \
+		stop-db \
+		stop-dev-processes \
+		test-be \
+		typecheck \
+		view-db \
+		vol-backup \
+		vol-inspect \
+		vol-ls \
+		vol-restore \
+		run \
+		run-be \
+		run-fe \
+		start \
+		stop
