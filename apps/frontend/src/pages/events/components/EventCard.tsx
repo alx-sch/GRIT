@@ -20,12 +20,12 @@ interface EventCardProps {
 
 export function EventCard({ event }: EventCardProps) {
   return (
-    <Card className="w-full flex flex-col rounded border-3 mx-auto hover:-translate-y-1 transition-transform duration-200">
-      <CardHeader className="p-4">
+    <Card className="w-full flex flex-col rounded border-3 mx-auto hover:-translate-y-1 transition-transform duration-200 max-w-100">
+      <CardHeader>
         <img
           src={event.imageURL ?? generateImagePlaceholderEvent(event)}
           alt={event.title}
-          className="w-full h-48 object-cover"
+          className="w-full aspect-square object-cover"
         />
       </CardHeader>
       <CardContent className="px-4 pb-4 pt-0 space-y-3">

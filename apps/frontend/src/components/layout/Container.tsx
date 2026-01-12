@@ -11,7 +11,7 @@ const Container = React.forwardRef<HTMLElement, ContainerProps>(
     return (
       <Component
         ref={ref}
-        className={cn('mx-auto w-full px-8 md:px-12', fluid ? '' : 'max-w-8xl', className)}
+        className={cn('mx-auto w-full px-8 md:px-12', fluid ? '' : 'max-w-7xl', className)}
         {...props}
       />
     );
