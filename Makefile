@@ -238,6 +238,11 @@ dev-fe: check-env kill-fe-port install-fe
 	@echo "$(BOLD)$(GREEN)--- Starting FRONTEND (UI) ---$(RESET)"
 	pnpm --filter @grit/frontend dev
 
+
+
+test-fe: install-fe
+	@echo "$(BOLD)$(YELLOW)--- Running Frontend Tests ...$(RESET)"
+	@pnpm --filter @grit/frontend run test:run
 #############################
 ## 📁 DATABASE (LOCAL DEV) ##
 #############################
