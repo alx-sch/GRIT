@@ -1,5 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+import { ResUserBaseSchema } from '@/user/user.schema';
 
 /**
  * SHARED RESPONSE SCHEMAS
@@ -9,6 +10,18 @@ import { z } from 'zod';
 const ResEventAuthorSchema = z.object({
   id: z.number(),
   name: z.string(),
+});
+
+// Response schema for the location object that can get sent as a subitem in the event response
+const ResEventLocationSchema = z.object({
+  id: z.number().int().positive(),
+  authorId: z.number().int().positive(),
+  name: z.string().nullable(),
+  city: z.string().nullable(),
+  country: z.string().nullable(),
+  longitude: z.string(),
+  latitude: z.string(),
+  isPublic: z.boolean(),
 });
 
 // Response schema for the basic information we send regarding events
@@ -23,6 +36,10 @@ export const ResEventBaseSchema = z.object({
   isPublic: z.boolean(),
   startAt: z.date().nullable(),
   title: z.string(),
+  imageKey: z.string().nullable(),
+  locationId: z.number().int().positive(),
+  location: ResEventLocationSchema.nullable(),
+  attending: z.array(ResUserBaseSchema).nullable().default([]),
 });
 
 /**
@@ -73,6 +90,7 @@ export const ReqEventPatchSchema = z.strictObject({
   isPublished: z.boolean().optional(),
   startAt: z.iso.datetime().optional(),
   title: z.string().optional(),
+  imageKey: z.string().optional(),
 });
 export class ReqEventPatchDto extends createZodDto(ReqEventPatchSchema) {}
 export const ResEventPatchSchema = ResEventBaseSchema;
@@ -85,6 +103,8 @@ export const ReqEventPostDraftSchema = z.strictObject({
   isPublic: z.boolean(),
   startAt: z.iso.datetime(),
   title: z.string(),
+  imageKey: z.string().optional(),
+  locationId: z.number().int().positive(),
 });
 export class ReqEventPostDraftDto extends createZodDto(ReqEventPostDraftSchema) {}
 export const ResEventPostDraftSchema = ResEventBaseSchema;

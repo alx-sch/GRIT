@@ -8,6 +8,27 @@
 http://localhost:3000
 ###
 
+// ========== LOCATION ========== //
+
+// Get all locations
+http://localhost:3000/location
+###
+
+// Create new location
+POST http://localhost:3000/location HTTP/1.1
+content-type: application/json
+
+{
+    "authorId": 1,
+	"name": "Richardplatz 24",
+	"city": "Berlin",
+	"country": "Germany",
+	"longitude": "52.474823",
+	"latitude": "13.447864",
+	"isPublic": true
+}
+###
+
 // ========== USERS ========== //
 
 // Get all users
@@ -48,7 +69,8 @@ content-type: application/json
     "title": "Sackhüpfen",
     "startAt": "2026-05-01T18:00:00Z",
     "endAt": "2026-05-02T02:00:00Z",
-    "isPublic": false
+    "isPublic": false,
+	"locationId": 1
 }
 ###
 
@@ -63,37 +85,4 @@ content-type: application/json
 
 // Delete event
 DELETE http://localhost:3000/events/1 HTTP/1.1
-###
-
-
-// ========== POSTS ========== //
-
-// Get all posts
-http://localhost:3000/posts
-###
-
-// Get post by post id
-http://localhost:3000/posts/1
-###
-
-// Search for post by string
-http://localhost:3000/posts?search=Hello
-###
-
-// Create post
-POST http://localhost:3000/posts HTTP/1.1
-content-type: application/json
-
-{
-    "title": "Another Title",
-    "authorEmail": "alice@grit.com"
-}
-###
-
-// Publish post, check ID returned above
-PUT http://localhost:3000/posts/1/publish
-###
-
-// Delete post
-DELETE http://localhost:3000/posts/4 HTTP/1.1
 ###

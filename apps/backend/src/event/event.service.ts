@@ -10,7 +10,10 @@ export class EventService {
   eventDelete(where: { id: number }) {
     return this.prisma.event.delete({
       where,
-      include: { author: true },
+      include: {
+        author: true,
+        location: true,
+      },
     });
   }
 
@@ -33,6 +36,7 @@ export class EventService {
       where,
       include: {
         author: true,
+        location: true,
       },
     });
   }
@@ -40,7 +44,10 @@ export class EventService {
   async eventGetById(id: number) {
     const event = await this.prisma.event.findUnique({
       where: { id },
-      include: { author: true },
+      include: {
+        author: true,
+        location: true,
+      },
     });
     if (!event) {
       throw new NotFoundException(`Event with id ${id.toString()} not found`);
@@ -64,7 +71,10 @@ export class EventService {
     return this.prisma.event.update({
       where: { id },
       data: newData,
-      include: { author: true },
+      include: {
+        author: true,
+        location: true,
+      },
     });
   }
 
@@ -77,11 +87,18 @@ export class EventService {
         endAt: data.endAt,
         isPublic: data.isPublic,
         isPublished: false,
+        imageKey: data.imageKey,
         author: {
           connect: { id: data.authorId },
         },
+        location: {
+          connect: { id: data.locationId },
+        },
       },
-      include: { author: true },
+      include: {
+        author: true,
+        location: true,
+      },
     });
   }
 }

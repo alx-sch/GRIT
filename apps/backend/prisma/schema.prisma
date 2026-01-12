@@ -13,18 +13,40 @@ datasource db {
   provider = "postgresql"
 }
 
+// User can host events
+// User can attend events
+// User can add locations
 model User {
   id          Int         @id @default(autoincrement())
   createdAt   DateTime    @default(now())
   email       String      @unique
-  events      Event[]
   name        String?
+
+  events      Event[]     @relation("EventAuthor")
+  attending   Event[]     @relation("EventAttendees")
+  location    Location[]
 }
 
+// Location has a creator
+// Location can have events
+model Location {
+  id          Int         @id @default(autoincrement())
+  author      User        @relation(fields: [authorId], references: [id])
+  authorId    Int
+  name        String?
+  city        String?
+  country     String?
+  longitude   String
+  latitude    String
+  isPublic    Boolean     @default(false)
+  events      Event[]
+}
+
+// Event can have a creator
+// Event can have attending users
+// Event must have a location
 model Event {
   id          Int         @id @default(autoincrement())
-  author      User?       @relation(fields: [authorId], references: [id])
-  authorId    Int?
   createdAt   DateTime    @default(now())
   content     String?
   endAt       DateTime?
@@ -32,4 +54,13 @@ model Event {
   isPublished Boolean?    @default(false)
   startAt     DateTime?
   title       String
+  imageKey    String?
+
+  author      User?       @relation("EventAuthor", fields: [authorId], references: [id])
+  authorId    Int?
+
+  attending   User[]      @relation("EventAttendees")
+
+  locationId  Int
+  location    Location?   @relation(fields: [locationId], references: [id])
 }
