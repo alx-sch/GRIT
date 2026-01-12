@@ -33,12 +33,12 @@ export function EventCard({ event }: EventCardProps) {
           {event.title}
         </CardTitle>
         <CardDescription className="font-heading font-medium text-xl">
-          {formatDate(event.startAt)} @ {event.location}
+          {formatDate(event.startAt)} @ {event.location || 'TBA'}
         </CardDescription>
         <div className="flex items-center gap-2 text-base font-normal text-muted-foreground">
           <User className="h-5 w-5 text-primary" strokeWidth={2} />
           <Text>
-            {event.interestedCount > 0 ? event.interestedCount.toLocaleString() : 'Be the first'}
+            {event.interestedCount && event.interestedCount > 0 ? event.interestedCount.toLocaleString() : 'Be the first'}
           </Text>
         </div>
       </CardContent>
@@ -54,9 +54,9 @@ export function EventCard({ event }: EventCardProps) {
                   className="h-8 w-8 border-2 border-background bg-muted"
                   style={{ zIndex: 3 - index }}
                 >
-                  <AvatarImage seed={friend} />
+                  <AvatarImage seed={friend.name} />
 
-                  <AvatarFallback>{friend[0]}</AvatarFallback>
+                  <AvatarFallback>{friend.name[0]}</AvatarFallback>
                 </Avatar>
               ))}
             </div>
