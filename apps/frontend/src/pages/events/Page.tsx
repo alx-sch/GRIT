@@ -87,25 +87,31 @@ export default function EventFeed() {
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-border text-center bg-card">
+        <div className="flex flex-col items-center justify-center py-20 px-4 border-2 border-dashed border-border text-center bg-card">
           <Heading level={3} className="uppercase tracking-tight">
             No events found
           </Heading>
 
           <Text size="base" className="text-muted-foreground mt-2">
-            {searchTerm ? `No results for "${searchTerm}"` : 'Check back later for new events.'}
+            {searchTerm
+              ? `No results for "${searchTerm}"`
+              : selectedDateRange
+                ? 'Nothing scheduled for these dates'
+                : 'Check back later for new events.'}
           </Text>
 
-          {searchTerm && (
+          {(searchTerm || selectedDateRange) && (
             <Button
               variant="destructive"
               onClick={() => {
                 searchParams.delete('search');
+                searchParams.delete('start_from');
+                searchParams.delete('start_until');
                 setSearchParams(searchParams);
               }}
               className="mt-4"
             >
-              Clear Search
+              Clear Filters
             </Button>
           )}
         </div>

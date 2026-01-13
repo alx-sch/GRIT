@@ -10,9 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/typography';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Event } from '@/types/event';
-import { formatDate } from '@/lib/utils';
 import { generateImagePlaceholderEvent } from '@/lib/imageGenerator';
 import { User } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface EventCardProps {
   event: Event;
@@ -33,7 +33,7 @@ export function EventCard({ event }: EventCardProps) {
           {event.title}
         </CardTitle>
         <CardDescription className="font-heading font-medium text-xl">
-          {formatDate(event.startAt)} @ {event.location ?? 'TBA'}
+          {format(event.startAt, 'EEE, MMM d')} @ {event.location ?? 'TBA'}
         </CardDescription>
         <div className="flex items-center gap-2 text-base font-normal text-muted-foreground">
           <User className="h-5 w-5 text-primary" strokeWidth={2} />
