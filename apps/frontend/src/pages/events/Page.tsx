@@ -14,10 +14,10 @@ import { format, parse } from 'date-fns';
 export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const search = url.searchParams.get('search') || undefined;
-  const dateFrom = url.searchParams.get('date_from') || undefined;
-  const dateTo = url.searchParams.get('date_to') || undefined;
+  const startFrom = url.searchParams.get('start_from') || undefined;
+  const startUntil = url.searchParams.get('start_until') || undefined;
 
-  return eventService.getEvents({ search, dateFrom, dateTo });
+  return eventService.getEvents({ search, startFrom, startUntil });
 };
 
 export default function EventFeed() {
@@ -26,13 +26,13 @@ export default function EventFeed() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const searchTerm = searchParams.get('search') || '';
-  const dateFromParam = searchParams.get('date_from');
-  const dateToParam = searchParams.get('date_to');
+  const startFromParam = searchParams.get('start_from');
+  const startUntilParam = searchParams.get('start_until');
 
-  const selectedDateRange: DateRange | undefined = dateFromParam
+  const selectedDateRange: DateRange | undefined = startFromParam
     ? {
-        from: parse(dateFromParam, 'yyyy-MM-dd', new Date()),
-        to: dateToParam ? parse(dateToParam, 'yyyy-MM-dd', new Date()) : undefined,
+        from: parse(startFromParam, 'yyyy-MM-dd', new Date()),
+        to: startUntilParam ? parse(startUntilParam, 'yyyy-MM-dd', new Date()) : undefined,
       }
     : undefined;
 
@@ -47,15 +47,15 @@ export default function EventFeed() {
 
   const handleDateSelect = (range: DateRange | undefined) => {
     if (range?.from) {
-      searchParams.set('date_from', format(range.from, 'yyyy-MM-dd'));
+      searchParams.set('start_from', format(range.from, 'yyyy-MM-dd'));
       if (range.to) {
-        searchParams.set('date_to', format(range.to, 'yyyy-MM-dd'));
+        searchParams.set('start_until', format(range.to, 'yyyy-MM-dd'));
       } else {
-        searchParams.delete('date_to');
+        searchParams.delete('start_until');
       }
     } else {
-      searchParams.delete('date_from');
-      searchParams.delete('date_to');
+      searchParams.delete('start_from');
+      searchParams.delete('start_until');
     }
     setSearchParams(searchParams);
   };

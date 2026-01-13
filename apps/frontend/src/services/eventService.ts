@@ -3,16 +3,16 @@ import type { Event } from '@/types/event';
 
 interface GetEventsParams {
   search?: string;
-  dateFrom?: string;
-  dateTo?: string;
+  startFrom?: string;
+  startUntil?: string;
 }
 
 export const eventService = {
   getEvents: async (params?: GetEventsParams): Promise<Event[]> => {
     const queryParams = new URLSearchParams();
     if (params?.search) queryParams.set('search', params.search);
-    if (params?.dateFrom) queryParams.set('date_from', params.dateFrom);
-    if (params?.dateTo) queryParams.set('date_to', params.dateTo);
+    if (params?.startFrom) queryParams.set('start_from', params.startFrom);
+    if (params?.startUntil) queryParams.set('start_until', params.startUntil);
 
     const queryString = queryParams.toString();
     const url = queryString ? `events?${queryString}` : '/events';
