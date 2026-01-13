@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:run": "vitest run"
+    "test:integration": "vitest run"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.11",

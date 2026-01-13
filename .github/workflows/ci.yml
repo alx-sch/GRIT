@@ -1,4 +1,4 @@
-name: Quality Assurance
+name: Quality & Testing CI
 
 on:
   workflow_dispatch:
@@ -59,7 +59,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run Backend integration tests
+      - name: Run Backend unit tests
         run: make test-be-unit
 
   # Job 2b: Frontend Unit/Integration Tests
