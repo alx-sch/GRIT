@@ -38,6 +38,9 @@ export class EventService {
         author: true,
         location: true,
       },
+      orderBy: {
+        startAt: 'asc',
+      },
     });
   }
 
@@ -63,7 +66,13 @@ export class EventService {
     if (data.isPublished !== undefined) newData.isPublished = data.isPublished;
     if (data.startAt !== undefined) newData.startAt = data.startAt;
     if (data.title !== undefined) newData.title = data.title;
-
+    if (data.locationId !== undefined) {
+      if (data.locationId === null) {
+        newData.location = { disconnect: true };
+      } else {
+        newData.location = { connect: { id: data.locationId } };
+      }
+    }
     if (Object.keys(newData).length === 0) {
       throw new BadRequestException('No fields to update');
     }
@@ -79,6 +88,9 @@ export class EventService {
   }
 
   eventPostDraft(data: ReqEventPostDraftDto) {
+    if (!data.authorId) {
+      throw new NotFoundException(`User with id ${data.authorId.toString()} not found`);
+    }
     return this.prisma.event.create({
       data: {
         title: data.title,
@@ -91,9 +103,13 @@ export class EventService {
         author: {
           connect: { id: data.authorId },
         },
-        location: {
-          connect: { id: data.locationId },
-        },
+        ...(data.locationId
+          ? {
+              location: {
+                connect: { id: data.locationId },
+              },
+            }
+          : {}),
       },
       include: {
         author: true,

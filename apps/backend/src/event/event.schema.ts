@@ -19,8 +19,8 @@ const ResEventLocationSchema = z.object({
   name: z.string().nullable(),
   city: z.string().nullable(),
   country: z.string().nullable(),
-  longitude: z.string(),
-  latitude: z.string(),
+  longitude: z.number().min(-180).max(180),
+  latitude: z.number().min(-90).max(90),
   isPublic: z.boolean(),
 });
 
@@ -37,7 +37,7 @@ export const ResEventBaseSchema = z.object({
   startAt: z.date().nullable(),
   title: z.string(),
   imageKey: z.string().nullable(),
-  locationId: z.number().int().positive(),
+  locationId: z.number().int().positive().nullable(),
   location: ResEventLocationSchema.nullable(),
   attending: z.array(ResUserBaseSchema).nullable().default([]),
 });
@@ -91,6 +91,7 @@ export const ReqEventPatchSchema = z.strictObject({
   startAt: z.iso.datetime().optional(),
   title: z.string().optional(),
   imageKey: z.string().optional(),
+  locationId: z.number().optional(),
 });
 export class ReqEventPatchDto extends createZodDto(ReqEventPatchSchema) {}
 export const ResEventPatchSchema = ResEventBaseSchema;
@@ -104,7 +105,7 @@ export const ReqEventPostDraftSchema = z.strictObject({
   startAt: z.iso.datetime(),
   title: z.string(),
   imageKey: z.string().optional(),
-  locationId: z.number().int().positive(),
+  locationId: z.number().int().positive().optional(),
 });
 export class ReqEventPostDraftDto extends createZodDto(ReqEventPostDraftSchema) {}
 export const ResEventPostDraftSchema = ResEventBaseSchema;

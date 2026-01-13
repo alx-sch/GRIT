@@ -20,7 +20,7 @@ export const ReqUserGetAllSchema = z.strictObject({});
 export class ReqUserGetAllDto extends createZodDto(ReqUserGetAllSchema) {}
 export const ResUserGetAllSchema = z.array(ResUserBaseSchema);
 
-// Post a new event draft
+// Post a new user draft
 export const ReqUserPostSchema = z.object({
   name: z.string().optional(),
   email: z.email(),

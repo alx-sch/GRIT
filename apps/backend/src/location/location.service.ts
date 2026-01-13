@@ -44,4 +44,14 @@ export class LocationService {
       },
     });
   }
+
+  locationDelete(where: { id: number }) {
+    return this.prisma.location.delete({
+      where,
+      include: {
+        author: true,
+        events: true,
+      },
+    });
+  }
 }

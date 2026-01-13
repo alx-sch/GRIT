@@ -1,6 +1,5 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { ResEventBaseSchema } from '@/event/event.schema';
 
 /**
  * SHARED RESPONSE SCHEMAS
@@ -18,8 +17,8 @@ export const ResLocationBaseSchema = z.object({
   name: z.string().nullable(),
   city: z.string().nullable(),
   country: z.string().nullable(),
-  longitude: z.string(),
-  latitude: z.string(),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
   events: z.array(ResLocationEventIdSchema).nullable().default([]),
   isPublic: z.boolean(),
 });
@@ -39,9 +38,16 @@ export const ReqLocationPostSchema = z.strictObject({
   name: z.string().optional(),
   city: z.string().optional(),
   country: z.string().optional(),
-  longitude: z.string(),
-  latitude: z.string(),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
   isPublic: z.boolean().optional().default(false),
 });
 export class ReqLocationPostDto extends createZodDto(ReqLocationPostSchema) {}
 export const ResLocationPostSchema = z.object({}).loose(); // return everything
+
+// Delete an event
+export const ReqLocationDeleteSchema = z.strictObject({
+  id: z.coerce.number().int().positive(),
+});
+export class ReqLocationDeleteDto extends createZodDto(ReqLocationDeleteSchema) {}
+export const ResLocationDeleteSchema = ResLocationBaseSchema;

@@ -36,15 +36,15 @@ model Location {
   name        String?
   city        String?
   country     String?
-  longitude   String
-  latitude    String
+  longitude   Float
+  latitude    Float
   isPublic    Boolean     @default(false)
   events      Event[]
 }
 
-// Event can have a creator
+// Event must have a creator
 // Event can have attending users
-// Event must have a location
+// Event can have a location
 model Event {
   id          Int         @id @default(autoincrement())
   createdAt   DateTime    @default(now())
@@ -56,11 +56,11 @@ model Event {
   title       String
   imageKey    String?
 
-  author      User?       @relation("EventAuthor", fields: [authorId], references: [id])
-  authorId    Int?
+  author      User       @relation("EventAuthor", fields: [authorId], references: [id])
+  authorId    Int
 
   attending   User[]      @relation("EventAttendees")
 
-  locationId  Int
+  locationId  Int?
   location    Location?   @relation(fields: [locationId], references: [id])
 }

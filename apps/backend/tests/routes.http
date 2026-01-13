@@ -23,11 +23,16 @@ content-type: application/json
 	"name": "Richardplatz 24",
 	"city": "Berlin",
 	"country": "Germany",
-	"longitude": "52.474823",
-	"latitude": "13.447864",
+	"longitude": 52.474823,
+	"latitude": 13.447864,
 	"isPublic": true
 }
 ###
+
+// Delete location
+DELETE http://localhost:3000/location/4 HTTP/1.1
+###
+
 
 // ========== USERS ========== //
 
@@ -69,8 +74,7 @@ content-type: application/json
     "title": "Sackhüpfen",
     "startAt": "2026-05-01T18:00:00Z",
     "endAt": "2026-05-02T02:00:00Z",
-    "isPublic": false,
-	"locationId": 2
+    "isPublic": false
 }
 ###
 
@@ -79,7 +83,8 @@ content-type: application/json
 
 {
     "endAt": "2025-01-02T02:00:33Z",
-    "isPublished": true
+    "isPublished": true,
+	"locationId": 1
 }
 ###
 
