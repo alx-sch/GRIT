@@ -22,7 +22,6 @@ export function DatePicker({ selected, onSelect, placeholder }: DatePickerProps)
 
   const trigger = (
     <Button variant="outline" className="">
-      <CalendarIcon />
       {selected?.from ? (
         <span>
           {isMobile
@@ -30,7 +29,10 @@ export function DatePicker({ selected, onSelect, placeholder }: DatePickerProps)
             : `${format(selected.from, 'LLL dd, y')}${selected.to ? ' - ' + format(selected.to, 'LLL dd, y') : ''}`}
         </span>
       ) : (
-        <span>{placeholder || ''}</span>
+		<>
+			<CalendarIcon />
+			<span>{isMobile ? '' : placeholder}</span>
+        </>
       )}
     </Button>
   );

@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { LoaderFunctionArgs } from 'react-router';
 import { eventService } from '@/services/eventService';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
+import { DatePicker } from '@/components/ui/datepicker';
+import { DateRange } from 'react-day-picker';
 
 export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
   return eventService.getEvents();
@@ -17,6 +19,10 @@ export default function EventFeed() {
   const events = useTypedLoaderData<Event[]>();
 
   const [searchTerm, setSearchTerm] = useState('');
+
+ const [selectedDateRange, setSelectedDateRange] = useState<DateRange | undefined>(undefined);
+const handleDateSelect = (date: DateRange | undefined) => setSelectedDateRange(date);
+
   const filteredEvents = useMemo(() => {
     const now = new Date();
     const result = events.filter((event) => {
@@ -36,15 +42,23 @@ export default function EventFeed() {
         <Heading level={1}>Upcoming events</Heading>
       </div>
 
+		<div className="flex justify-between items-center gap-4">
       <Input
         placeholder="Search events..."
         className="max-w-sm"
         value={searchTerm}
         onChange={(e) => {
-          setSearchTerm(e.target.value);
+			setSearchTerm(e.target.value);
         }}
-      />
+		/>
 
+		<DatePicker
+		selected={selectedDateRange}
+		onSelect={handleDateSelect}
+		placeholder="Date">
+		</DatePicker>
+
+		</div>
       {filteredEvents.length > 0 ? (
         <div className="grid gap-6 justify-start md:grid-cols-2 lg:grid-cols-3">
           {filteredEvents.map((event) => (
