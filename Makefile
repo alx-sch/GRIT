@@ -5,6 +5,7 @@ BACKEND_FOLDER :=	apps/backend
 FRONTEND_FOLDER :=	apps/frontend
 
 PROJECT_ROOT := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+export PATH := $(PROJECT_ROOT)/node_modules/.bin:$(PATH)
 
 # ---------------------------------------------------
 # FORMATTING CONSTANTS
