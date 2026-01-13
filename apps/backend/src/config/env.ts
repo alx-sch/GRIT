@@ -15,8 +15,17 @@ const baseSchema = z.object({
 type BaseEnv = z.infer<typeof baseSchema>;
 
 const envSchema = baseSchema.transform((data: BaseEnv) => {
+  let dbName = data.POSTGRES_DB;
+
+  // Change database nanme if in test node env
+  if (data.NODE_ENV === 'test') dbName = data.POSTGRES_DB + '_test';
+
+  // Do not connect to test db unless on localhost
+  if (data.NODE_ENV === 'test' && !['localhost', '127.0.0.1'].includes(data.POSTGRES_HOST))
+    throw new Error('Refusing to run tests against non-local Postgres');
+
   // building database url
-  const url = `postgresql://${data.POSTGRES_USER}:${data.POSTGRES_PASSWORD}@${data.POSTGRES_HOST}:${data.DB_PORT.toString()}/${data.POSTGRES_DB}?schema=public`;
+  const url = `postgresql://${data.POSTGRES_USER}:${data.POSTGRES_PASSWORD}@${data.POSTGRES_HOST}:${data.DB_PORT.toString()}/${dbName}?schema=public`;
   return {
     ...data,
     DATABASE_URL: url,
