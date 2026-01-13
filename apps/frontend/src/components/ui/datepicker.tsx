@@ -25,8 +25,12 @@ export function DatePicker({ selected, onSelect, placeholder }: DatePickerProps)
       {selected?.from ? (
         <span>
           {isMobile
-            ? `${format(selected.from, 'd/M')}${selected.to ? ' - ' + format(selected.to, 'd/M') : ''}`
-            : `${format(selected.from, 'LLL dd, y')}${selected.to ? ' - ' + format(selected.to, 'LLL dd, y') : ''}`}
+            ? selected.to
+              ? `${format(selected.from, 'MMM dd')} - ${format(selected.to, 'MMM dd')}`
+              : `From ${format(selected.from, 'MMM dd')}`
+            : selected.to
+              ? `${format(selected.from, 'LLL dd, y')} - ${format(selected.to, 'LLL dd, y')}`
+              : `From ${format(selected.from, 'LLL dd, y')}`}
         </span>
       ) : (
         <>
