@@ -16,13 +16,13 @@
       "outputs": []
     },
     "test": {
-      "outputs": ["coverage/**"]
+      "outputs": []
     },
     "test:unit": {
-      "outputs": ["coverage/**"]
+      "outputs": []
     },
     "test:integration": {
-      "outputs": ["coverage/**"]
+      "outputs": []
     },
     "dev": {
       "cache": false,
