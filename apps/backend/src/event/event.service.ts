@@ -110,7 +110,7 @@ export class EventService {
         startAt: data.startAt,
         endAt: data.endAt,
         isPublic: data.isPublic,
-        isPublished: false,
+        isPublished: data.isPublished,
         imageKey: data.imageKey,
         author: {
           connect: { id: data.authorId },

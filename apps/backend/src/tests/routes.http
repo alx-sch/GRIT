@@ -95,7 +95,7 @@ content-type: application/json
 
 {
     "endAt": "2025-01-02T02:00:33Z",
-	"locationId": 10
+	"locationId": 1
 }
 ###
 
