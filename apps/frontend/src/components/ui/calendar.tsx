@@ -18,10 +18,10 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         className
       )}
       classNames={{
-        months: 'flex flex-col sm:flex-row gap-2',
+        months: 'flex flex-col sm:flex-row gap-6',
         month: 'flex flex-col gap-4',
         caption: 'flex justify-center pt-1 relative items-center w-full text-foreground',
-        caption_label: 'text-sm font-heading',
+        caption_label: 'text-sm font-bold font-heading',
         nav: 'gap-1 flex items-center',
         nav_button: cn(buttonVariants({ variant: 'ghost' }), 'size-7 bg-transparent p-0'),
         nav_button_previous: 'absolute left-1',
@@ -41,14 +41,15 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
           'size-9 p-0 font-base aria-selected:opacity-100'
         ),
         day_range_start:
-          'day-range-start aria-selected:bg-black! aria-selected:text-white rounded-base',
+          'day-range-start aria-selected:bg-black! aria-selected:text-white aria-selected:dark:!bg-white aria-selected:dark:!text-black rounded-base',
         day_range_end:
-          'day-range-end aria-selected:bg-black! aria-selected:text-white rounded-base',
-        day_selected: 'bg-black! text-white! rounded-base',
+          'day-range-end aria-selected:bg-black! aria-selected:text-white aria-selected:dark:!bg-white aria-selected:dark:!text-black rounded-base',
+        day_selected: '!bg-black !text-white !dark:bg-white !dark:text-black rounded-base',
         day_today: 'bg-accent text-main-foreground!',
         day_outside: 'day-outside text-foreground opacity-50 aria-selected:bg-none',
         day_disabled: 'text-foreground opacity-50 rounded-base',
-        day_range_middle: 'aria-selected:bg-black/50! aria-selected:text-white',
+        day_range_middle:
+          'aria-selected:!bg-black/50 aria-selected:!text-white aria-selected:dark:!bg-white/50 aria-selected:dark:!text-black"',
         day_hidden: 'invisible',
         ...classNames,
       }}
