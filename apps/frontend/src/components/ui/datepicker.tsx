@@ -29,9 +29,9 @@ export function DatePicker({ selected, onSelect, placeholder }: DatePickerProps)
             : `${format(selected.from, 'LLL dd, y')}${selected.to ? ' - ' + format(selected.to, 'LLL dd, y') : ''}`}
         </span>
       ) : (
-		<>
-			<CalendarIcon />
-			<span>{isMobile ? '' : placeholder}</span>
+        <>
+          <CalendarIcon />
+          <span>{isMobile ? '' : placeholder}</span>
         </>
       )}
     </Button>

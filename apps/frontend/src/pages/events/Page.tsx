@@ -2,39 +2,63 @@ import { Container } from '@/components/layout/Container';
 import { Heading, Text } from '@/components/ui/typography';
 import { EventCard } from '@/pages/events/components/EventCard';
 import { Event } from '@/types/event';
-import { useMemo, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { LoaderFunctionArgs } from 'react-router';
+import { LoaderFunctionArgs, useSearchParams } from 'react-router';
 import { eventService } from '@/services/eventService';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { DatePicker } from '@/components/ui/datepicker';
 import { DateRange } from 'react-day-picker';
+import { format, parse } from 'date-fns';
 
 export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
-  return eventService.getEvents();
+  const url = new URL(request.url);
+  const search = url.searchParams.get('search') || undefined;
+  const dateFrom = url.searchParams.get('date_from') || undefined;
+  const dateTo = url.searchParams.get('date_to') || undefined;
+
+  return eventService.getEvents({ search, dateFrom, dateTo });
 };
 
 export default function EventFeed() {
   const events = useTypedLoaderData<Event[]>();
 
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
 
- const [selectedDateRange, setSelectedDateRange] = useState<DateRange | undefined>(undefined);
-const handleDateSelect = (date: DateRange | undefined) => setSelectedDateRange(date);
+  const searchTerm = searchParams.get('search') || '';
+  const dateFromParam = searchParams.get('date_from');
+  const dateToParam = searchParams.get('date_to');
 
-  const filteredEvents = useMemo(() => {
-    const now = new Date();
-    const result = events.filter((event) => {
-      if (!event.startAt) return false;
-      return (
-        new Date(event.startAt) > now &&
-        (event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          event.author.name.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-    });
-    return result.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
-  }, [events, searchTerm]);
+  const selectedDateRange: DateRange | undefined = dateFromParam
+    ? {
+        from: parse(dateFromParam, 'yyyy-MM-dd', new Date()),
+        to: dateToParam ? parse(dateToParam, 'yyyy-MM-dd', new Date()) : undefined,
+      }
+    : undefined;
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.value) {
+      searchParams.set('search', e.target.value);
+    } else {
+      searchParams.delete('search');
+    }
+    setSearchParams(searchParams);
+  };
+
+  const handleDateSelect = (range: DateRange | undefined) => {
+    if (range?.from) {
+      searchParams.set('date_from', format(range.from, 'yyyy-MM-dd'));
+      if (range.to) {
+        searchParams.set('date_to', format(range.to, 'yyyy-MM-dd'));
+      } else {
+        searchParams.delete('date_to');
+      }
+    } else {
+      searchParams.delete('date_from');
+      searchParams.delete('date_to');
+    }
+    setSearchParams(searchParams);
+  };
 
   return (
     <Container className="py-10 space-y-8 p-0 md:px-0">
@@ -42,26 +66,23 @@ const handleDateSelect = (date: DateRange | undefined) => setSelectedDateRange(d
         <Heading level={1}>Upcoming events</Heading>
       </div>
 
-		<div className="flex justify-between items-center gap-4">
-      <Input
-        placeholder="Search events..."
-        className="max-w-sm"
-        value={searchTerm}
-        onChange={(e) => {
-			setSearchTerm(e.target.value);
-        }}
-		/>
+      <div className="flex justify-between items-center gap-4">
+        <Input
+          placeholder="Search events..."
+          className="max-w-sm"
+          value={searchTerm}
+          onChange={handleSearchChange}
+        />
 
-		<DatePicker
-		selected={selectedDateRange}
-		onSelect={handleDateSelect}
-		placeholder="Date">
-		</DatePicker>
-
-		</div>
-      {filteredEvents.length > 0 ? (
+        <DatePicker
+          selected={selectedDateRange}
+          onSelect={handleDateSelect}
+          placeholder="Date"
+        ></DatePicker>
+      </div>
+      {events.length > 0 ? (
         <div className="grid gap-6 justify-start md:grid-cols-2 lg:grid-cols-3">
-          {filteredEvents.map((event) => (
+          {events.map((event) => (
             <EventCard key={event.id} event={event} />
           ))}
         </div>
@@ -79,7 +100,8 @@ const handleDateSelect = (date: DateRange | undefined) => setSelectedDateRange(d
             <Button
               variant="destructive"
               onClick={() => {
-                setSearchTerm('');
+                searchParams.delete('search');
+                setSearchParams(searchParams);
               }}
               className="mt-4"
             >
