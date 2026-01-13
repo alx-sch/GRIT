@@ -1,6 +1,6 @@
 import Home from '@/pages/home/Page';
 import Users, { usersLoader } from '@/pages/users/Page';
-import Events, { eventsLoader } from '@/pages/events/Page'
+import { eventsLoader } from '@/pages/events/Page';
 import Design from '@/pages/design/Page';
 import ErrorPage from '@/pages/error/Page';
 import EventFeed from '@/pages/events/Page';
@@ -44,7 +44,7 @@ export const router = createBrowserRouter([
       {
         path: 'events',
         Component: EventFeed,
-		loader: eventsLoader,
+        loader: eventsLoader,
         handle: { title: 'Events' },
       },
     ],

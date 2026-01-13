@@ -10,8 +10,8 @@ import { eventService } from '@/services/eventService';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 
 export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
-	return eventService.getEvents();
-}
+  return eventService.getEvents();
+};
 
 export default function EventFeed() {
   const events = useTypedLoaderData<Event[]>();

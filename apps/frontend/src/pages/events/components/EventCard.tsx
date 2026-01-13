@@ -33,12 +33,14 @@ export function EventCard({ event }: EventCardProps) {
           {event.title}
         </CardTitle>
         <CardDescription className="font-heading font-medium text-xl">
-          {formatDate(event.startAt)} @ {event.location || 'TBA'}
+          {formatDate(event.startAt)} @ {event.location ?? 'TBA'}
         </CardDescription>
         <div className="flex items-center gap-2 text-base font-normal text-muted-foreground">
           <User className="h-5 w-5 text-primary" strokeWidth={2} />
           <Text>
-            {event.interestedCount && event.interestedCount > 0 ? event.interestedCount.toLocaleString() : 'Be the first'}
+            {event.interestedCount && event.interestedCount > 0
+              ? event.interestedCount.toLocaleString()
+              : 'Be the first'}
           </Text>
         </div>
       </CardContent>

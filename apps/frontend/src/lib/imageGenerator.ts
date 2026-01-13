@@ -1,17 +1,23 @@
-import {Event} from '@/types/event';
+import { Event } from '@/types/event';
 
 export function generateImagePlaceholderEvent(event: Event) {
   const colors = ['oklch(0.68 0.22 45)', 'oklch(0 0 0)', 'oklch(0.4 0 0)'];
 
   const bgColor = colors[event.id % colors.length];
-  const words = event.title.trim().split(/\s+/).filter((w) => w.length > 0);
+  const words = event.title
+    .trim()
+    .split(/\s+/)
+    .filter((w) => w.length > 0);
 
   const firstTwoWords = words.slice(0, 2).join(' ');
   const MAX_CHARS = 16;
 
   let displayText;
   if (firstTwoWords.length > MAX_CHARS) {
-    displayText = words.slice(0, 2).map((w) => w[0].toUpperCase()).join('');
+    displayText = words
+      .slice(0, 2)
+      .map((w) => w[0].toUpperCase())
+      .join('');
   } else {
     displayText = firstTwoWords;
   }
