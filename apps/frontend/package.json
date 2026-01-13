@@ -10,7 +10,8 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "test:integration": "vitest run"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.11",
