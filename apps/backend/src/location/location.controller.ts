@@ -9,7 +9,7 @@ import {
 import { LocationService } from '@/location/location.service';
 import { ZodSerializerDto } from 'nestjs-zod';
 
-@Controller('location')
+@Controller('locations')
 export class LocationController {
   constructor(private readonly locationService: LocationService) {}
 

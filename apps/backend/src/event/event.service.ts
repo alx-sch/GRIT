@@ -37,6 +37,7 @@ export class EventService {
       include: {
         author: true,
         location: true,
+        attending: true,
       },
       orderBy: {
         startAt: 'asc',
@@ -50,6 +51,7 @@ export class EventService {
       include: {
         author: true,
         location: true,
+        attending: true,
       },
     });
     if (!event) {

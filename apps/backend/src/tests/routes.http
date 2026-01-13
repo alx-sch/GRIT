@@ -11,11 +11,11 @@ http://localhost:3000
 // ========== LOCATION ========== //
 
 // Get all locations
-http://localhost:3000/location
+http://localhost:3000/locations
 ###
 
 // Create new location
-POST http://localhost:3000/location HTTP/1.1
+POST http://localhost:3000/locations HTTP/1.1
 content-type: application/json
 
 {
@@ -30,7 +30,7 @@ content-type: application/json
 ###
 
 // Delete location
-DELETE http://localhost:3000/location/4 HTTP/1.1
+DELETE http://localhost:3000/locations/4 HTTP/1.1
 ###
 
 
@@ -47,7 +47,16 @@ content-type: application/json
 
 {
     "name": "22",
-    "email": "tester_v332@grit.com"
+    "email": "tester_v332@grit.cosm"
+}
+###
+
+// User attends an event
+PATCH http://localhost:3000/users/2 HTTP/1.1
+content-type: application/json
+
+{
+	"attending": 1
 }
 ###
 

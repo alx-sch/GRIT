@@ -1,6 +1,5 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { ResUserBaseSchema } from '@/user/user.schema';
 
 /**
  * SHARED RESPONSE SCHEMAS
@@ -8,6 +7,12 @@ import { ResUserBaseSchema } from '@/user/user.schema';
 
 // Response schema for the author object that can get sent as a subitem in the event response
 const ResEventAuthorSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+});
+
+// Response schema for the author object that can get sent as a subitem in the event response
+const ResEventAttendeeSchema = z.object({
   id: z.number(),
   name: z.string(),
 });
@@ -39,7 +44,7 @@ export const ResEventBaseSchema = z.object({
   imageKey: z.string().nullable(),
   locationId: z.number().int().positive().nullable(),
   location: ResEventLocationSchema.nullable(),
-  attending: z.array(ResUserBaseSchema).nullable().default([]),
+  attending: z.array(ResEventAttendeeSchema).nullable().default([]),
 });
 
 /**
