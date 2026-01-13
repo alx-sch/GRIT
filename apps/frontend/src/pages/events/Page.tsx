@@ -122,7 +122,6 @@ export default function EventFeed() {
           setSearchTerm(e.target.value);
         }}
       />
-
       {filteredEvents.length > 0 ? (
         <div className="grid gap-6 justify-start md:grid-cols-2 lg:grid-cols-3">
           {filteredEvents.map((event) => (

@@ -224,29 +224,29 @@ logs:
 ## 🔬 TEST COMMANDS  ##
 #######################
 
-# Run all Tests for backend and (eventually) frontend
-test: test-be-all
+# Run all Tests for backend and frontend
+test: test-be test-fe
 
 # Run all Tests for backend only
-test-be-all:
-	@echo "$(BOLD)$(YELLOW)--- Starting Tests ...$(RESET)"
+test-be:
+	@echo "$(BOLD)$(YELLOW)--- Starting Backend Tests ...$(RESET)"
 	@$(MAKE) --no-print-directory test-be-unit
 # 	@$(MAKE) test-be-integration
 	@$(MAKE) --no-print-directory test-be-e2e
 
 # Separate commands for unit, integration and e2e test for faster and cheaper failing in CI
-test-be-unit: install
+test-be-unit: install-be
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Unit Tests ...$(RESET)"
 	@pnpm --filter @grit/backend exec prisma generate
 	@NODE_ENV=test pnpm --filter @grit/backend test:unit
 
-test-be-integration: install test-be-testdb-init
+test-be-integration: install-be test-be-testdb-init
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Integration Tests ...$(RESET)"
 	@pnpm --filter @grit/backend exec prisma generate
 	@NODE_ENV=test pnpm --filter @grit/backend test:integration
 	@$(MAKE) test-be-testdb-remove
 
-test-be-e2e: install test-be-testdb-init
+test-be-e2e: install-be test-be-testdb-init
 	@echo "$(BOLD)$(YELLOW)--- Running Backend E2E Tests ...$(RESET)"
 	@pnpm --filter @grit/backend exec prisma generate
 	@NODE_ENV=test pnpm --filter @grit/backend test:e2e
@@ -262,6 +262,17 @@ test-be-testdb-init: start-db
 test-be-testdb-remove:
 	@echo "$(BOLD)$(YELLOW)--- Removing Test Database ...$(RESET)"
 	@$(DC) exec db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
+
+# Frontend
+
+test-fe:
+	@echo "$(BOLD)$(YELLOW)--- Starting Tests ...$(RESET)"
+	@$(MAKE) --no-print-directory test-fe-integration
+	#@$(MAKE) --no-print-directory test-be-e2e
+
+test-fe-integration: install-fe
+	@echo "$(BOLD)$(YELLOW)--- Running Frontend Integration Tests ...$(RESET)"
+	@NODE_ENV=test pnpm --filter @grit/frontend run test:integration
 
 #############################
 ## 🚀 DEVELOPMENT COMMANDS ##
@@ -471,6 +482,7 @@ stop:
 		stop-db \
 		stop-dev-processes \
 		test-be \
+		test-fe \
 		typecheck \
 		view-db \
 		vol-backup \
