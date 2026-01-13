@@ -11,7 +11,7 @@ const ResEventAuthorSchema = z.object({
   name: z.string(),
 });
 
-// Response schema for the author object that can get sent as a subitem in the event response
+// Response schema for the attendee object that can get sent as a subitem in the event response
 const ResEventAttendeeSchema = z.object({
   id: z.number(),
   name: z.string(),

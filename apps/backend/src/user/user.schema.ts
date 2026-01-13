@@ -44,7 +44,7 @@ export const ResUserPostSchema = z.object({}).loose(); // return everything
 
 // Patch a user (to attend event)
 export const ReqUserAttendSchema = z.strictObject({
-  attending: z.number().int().positive().optional(),
+  attending: z.number().int().positive(),
 });
 export class ReqUserAttendDto extends createZodDto(ReqUserAttendSchema) {}
 export const ResUserAttendSchema = ResUserBaseSchema;

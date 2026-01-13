@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ReqLocationPostDto } from '@/location/location.schema';
 
@@ -45,7 +45,12 @@ export class LocationService {
     });
   }
 
-  locationDelete(where: { id: number }) {
+  async locationDelete(where: { id: number }) {
+    const exist = await this.locationExists(where.id);
+    if (!exist) {
+      throw new NotFoundException(`Location with id ${where.id} not found`);
+    }
+
     return this.prisma.location.delete({
       where,
       include: {
@@ -53,5 +58,13 @@ export class LocationService {
         events: true,
       },
     });
+  }
+
+  async locationExists(id: number) {
+    const location = await this.prisma.location.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    return !!location;
   }
 }
