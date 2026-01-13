@@ -19,7 +19,10 @@ export class EventService {
       isPublished: true,
     };
     if (input.search) {
-      where.OR = [{ title: { contains: input.search } }, { content: { contains: input.search } }];
+      where.OR = [
+        { title: { contains: input.search, mode: 'insensitive' } },
+        { content: { contains: input.search, mode: 'insensitive' } },
+      ];
     }
     if (input.author_id) {
       where.authorId = input.author_id;
@@ -33,6 +36,9 @@ export class EventService {
       where,
       include: {
         author: true,
+      },
+      orderBy: {
+        startAt: 'asc',
       },
     });
   }
