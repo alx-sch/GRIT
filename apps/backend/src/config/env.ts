@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+// ---------- Base schema (raw env variables + MinIO transform) ----------
 const baseSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -34,8 +35,7 @@ const baseSchema = z
     HTTP_PORT: z.coerce.number().default(80),
     HTTPS_PORT: z.coerce.number().default(443),
   })
-
-  // Transform MinIO URL
+  // Transform MinIO endpoint
   .transform((env) => {
     // If MINIO_ENDPOINT is defined in .env, use it.
     // Otherwise, construct it from HOST and PORT.
@@ -45,21 +45,33 @@ const baseSchema = z
       ...env,
       MINIO_ENDPOINT: endpoint,
     };
-  })
-
-  // Transform Postgres URL
-  .transform((env) => {
-    return {
-      ...env,
-      DATABASE_URL: `postgresql://${env.POSTGRES_USER}:${env.POSTGRES_PASSWORD}@${env.POSTGRES_HOST}:${String(env.DB_PORT)}/${env.POSTGRES_DB}?schema=public`,
-    };
   });
 
-// Run Validation
-const envValidation = baseSchema.safeParse(process.env);
+// ---------- Final schema (Postgres DATABASE_URL + test DB logic) ----------
+
+const envSchema = baseSchema.transform((data) => {
+  let dbName = data.POSTGRES_DB;
+
+  // Change database name if in test node env
+  if (data.NODE_ENV === 'test') dbName = data.POSTGRES_DB + '_test';
+
+  // Do not connect to test db unless on localhost
+  if (data.NODE_ENV === 'test' && !['localhost', '127.0.0.1'].includes(data.POSTGRES_HOST))
+    throw new Error('Refusing to run tests against non-local Postgres');
+
+  // building database url
+  const url = `postgresql://${data.POSTGRES_USER}:${data.POSTGRES_PASSWORD}@${data.POSTGRES_HOST}:${data.DB_PORT.toString()}/${dbName}?schema=public`;
+  return {
+    ...data,
+    DATABASE_URL: url,
+  };
+});
+
+// ---------- Validate environment ----------
+const envValidation = envSchema.safeParse(process.env);
 
 // Prepare the variable that will be exported
-type Env = z.infer<typeof baseSchema>;
+type Env = z.infer<typeof envSchema>;
 let validatedEnv: Env;
 
 if (envValidation.success) {
