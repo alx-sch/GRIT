@@ -106,6 +106,7 @@ export const ReqEventPostDraftSchema = z.strictObject({
   title: z.string(),
   imageKey: z.string().optional(),
   locationId: z.number().int().positive().optional(),
+  isPublished: z.boolean(),
 });
 export class ReqEventPostDraftDto extends createZodDto(ReqEventPostDraftSchema) {}
 export const ResEventPostDraftSchema = ResEventBaseSchema;
