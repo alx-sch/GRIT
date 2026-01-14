@@ -9,15 +9,12 @@ import {
   ParseFilePipe,
   MaxFileSizeValidator,
   FileTypeValidator,
-  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ResUserBaseDto, ResUserPostDto, ReqUserPostDto } from '@/user/user.schema';
 import { UserService } from '@/user/user.service';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { ApiConsumes, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
-import { GetUser } from '@/auth/guards/get-user.decorator';
+import { ApiConsumes, ApiBody } from '@nestjs/swagger';
 
 @Controller('users')
 export class UserController {
@@ -37,7 +34,6 @@ export class UserController {
 
   // ADD IMAGE UPLOAD ROUTINE
   @Patch('me/avatar')
-  @ApiBearerAuth()
   @ZodSerializerDto(ResUserBaseDto)
   @ApiConsumes('multipart/form-data') // to send raw image file; not json
   @ApiBody({
@@ -50,7 +46,6 @@ export class UserController {
     },
   })
   @UseInterceptors(FileInterceptor('file'))
-  @UseGuards(JwtAuthGuard)
   async uploadAvatar(
     @UploadedFile(
       new ParseFilePipe({
@@ -60,9 +55,9 @@ export class UserController {
         ],
       })
     )
-    file: Express.Multer.File,
-    @GetUser('id') userId: number
+    file: Express.Multer.File
   ): Promise<ResUserBaseDto> {
+    const userId = 1; // temp placeholder. GetUser decorator used here before
     console.log('File received:', file.originalname);
     return await this.userService.userUpdateAvatar(userId, file);
   }

@@ -8,9 +8,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const document = new DocumentBuilder()
     .setTitle('GRIT API')
-    .setDescription('API description built with Zod and Swagger')
+    .setDescription('API built with Zod and Swagger')
     .setVersion('1.0')
-    .addBearerAuth()
     .build();
 
   // Create API Documentation Document with Swagger
