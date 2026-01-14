@@ -5,6 +5,7 @@ BACKEND_FOLDER :=	apps/backend
 FRONTEND_FOLDER :=	apps/frontend
 
 PROJECT_ROOT := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+export PATH := $(PROJECT_ROOT)/node_modules/.bin:$(PATH)
 
 # ---------------------------------------------------
 # FORMATTING CONSTANTS
@@ -200,17 +201,17 @@ purge: fclean
 
 typecheck: install
 	@echo "$(BOLD)$(YELLOW)--- Typechecking...$(RESET)"
-	pnpm run -r typecheck;
+	@turbo typecheck;
 	@echo "$(BOLD)$(GREEN)Typecheck complete.$(RESET)"
 
 lint: install
 	@echo "$(BOLD)$(YELLOW)--- Linting...$(RESET)"
-	@pnpm run lint;
+	@turbo lint;
 	@echo "$(BOLD)$(GREEN)Linting complete.$(RESET)"
 
 lint-fix: install
 	@echo "$(BOLD)$(YELLOW)--- Linting...$(RESET)"
-	@pnpm run lint:fix;
+	@turbo lint:fix;
 	@echo "$(BOLD)$(GREEN)Linting complete.$(RESET)"
 
 format: install
@@ -240,12 +241,12 @@ test-be:
 test-be-unit: install-be
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Unit Tests ...$(RESET)"
 	@pnpm --filter @grit/backend exec prisma generate
-	@NODE_ENV=test pnpm --filter @grit/backend test:unit
+	@NODE_ENV=test turbo test:unit --filter=@grit/backend
 
 test-be-integration: install-be test-be-testdb-init
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Integration Tests ...$(RESET)"
 	@pnpm --filter @grit/backend exec prisma generate
-	@NODE_ENV=test pnpm --filter @grit/backend test:integration
+	@NODE_ENV=test turbo test:integration --filter=@grit/backend
 	@$(MAKE) test-be-testdb-remove
 
 test-be-e2e: install-be test-be-testdb-init
@@ -275,7 +276,7 @@ test-fe:
 # Helpter
 test-fe-integration: install-fe
 	@echo "$(BOLD)$(YELLOW)--- Running Frontend Integration Tests ...$(RESET)"
-	@NODE_ENV=test pnpm --filter @grit/frontend run test:integration
+	@NODE_ENV=test turbo test:integration --filter=@grit/frontend
 
 #############################
 ## 🚀 DEVELOPMENT COMMANDS ##
@@ -283,17 +284,17 @@ test-fe-integration: install-fe
 
 dev: check-env stop-dev-processes kill-port-be kill-port-fe install db
 	@echo "$(BOLD)$(YELLOW)--- Starting Backend & Frontend [DEV]...$(RESET)"
-	pnpm run dev;
+	turbo dev;
 
 # Run only Backend with DB check; NEST clears terminal before printing
 dev-be: check-env kill-port-be db
 	@echo "$(BOLD)$(GREEN)--- Starting BACKEND (API) ---$(RESET)"
-	pnpm --filter @grit/backend dev
+	turbo --filter @grit/backend dev
 
 # Run only Frontend
 dev-fe: check-env kill-port-fe install-fe
 	@echo "$(BOLD)$(GREEN)--- Starting FRONTEND (UI) ---$(RESET)"
-	pnpm --filter @grit/frontend dev
+	turbo --filter @grit/frontend dev
 
 ###########################
 ## 📁 DATABASE & STORAGE ##
@@ -426,19 +427,21 @@ vol-restore:
 # -- BUILD TARGETS --
 
 # Build everything
-build: build-be build-fe
+build: check-env install
+	@echo "$(BOLD)$(YELLOW)--- Building Project (Turbo)...$(RESET)"
+	turbo build
 	@echo "$(BOLD)$(GREEN)Full project build complete.$(RESET)"
 
 # Build only Backend
 build-be: check-env install-be
 	@echo "$(BOLD)$(YELLOW)--- Building Backend...$(RESET)"
-	pnpm --filter @grit/backend run build
+	turbo build --filter=@grit/backend
 	@echo "$(BOLD)$(GREEN)Backend build complete.$(RESET)"
 
 # Build only Frontend
 build-fe: check-env install-fe
 	@echo "$(BOLD)$(YELLOW)--- Building Frontend...$(RESET)"
-	pnpm --filter @grit/frontend run build
+	turbo build --filter=@grit/frontend
 	@echo "$(BOLD)$(GREEN)Frontend build complete.$(RESET)"
 
 # -- RUN TARGETS (PROD MODE) --
