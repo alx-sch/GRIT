@@ -9,6 +9,7 @@
     "declaration": true,
     "incremental": true,
     "experimentalDecorators": true,
+    "preserveWatchOutput": true,
     "emitDecoratorMetadata": true,
     "sourceMap": true,
     "baseUrl": ".",
@@ -16,6 +17,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*", "src/tests/**/*", "prisma/**/*"],
+  "include": ["src/**/*", "src/tests/**/*", "prisma/**/*", "jest.config.ts"],
   "exclude": ["node_modules", "dist"]
 }
