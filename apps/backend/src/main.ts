@@ -10,10 +10,6 @@ async function bootstrap() {
     .setTitle('GRIT API')
     .setDescription('API description built with Zod and Swagger')
     .setVersion('1.0')
-    .addTag('System', 'Infrastructure health and server status')
-    .addTag('Auth', 'Token generation and security debugging')
-    .addTag('Users', 'Authentication and profile customization')
-    .addTag('Event', 'Social feed, event creation and participation tracking')
     .addBearerAuth()
     .build();
 
