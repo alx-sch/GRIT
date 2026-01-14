@@ -151,9 +151,6 @@ importers:
       '@types/supertest':
         specifier: ^6.0.2
         version: 6.0.3
-      dotenv:
-        specifier: ^17.2.3
-        version: 17.2.3
       eslint:
         specifier: ^9.18.0
         version: 9.39.2(jiti@2.6.1)

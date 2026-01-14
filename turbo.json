@@ -38,6 +38,9 @@
     "BE_PORT",
     "FE_PORT",
     "VITE_API_BASE_URL",
-    "VITE_APP_NAME"
+    "VITE_APP_NAME",
+    "MINIO_USER",
+    "MINIO_PASSWORD",
+    "JWT_SECRET"
   ]
 }
