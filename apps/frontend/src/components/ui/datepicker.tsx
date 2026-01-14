@@ -21,7 +21,12 @@ export function DatePicker({ selected, onSelect, placeholder }: DatePickerProps)
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   const trigger = (
-    <Button variant="outline" className="">
+    <Button
+      variant="outline"
+      className={cn(
+        'border-2 border-border rounded-none h-12 px',
+      )}
+    >
       {selected?.from ? (
         <span>
           {isMobile
@@ -34,8 +39,8 @@ export function DatePicker({ selected, onSelect, placeholder }: DatePickerProps)
         </span>
       ) : (
         <>
-          <CalendarIcon />
-          <span>{isMobile ? '' : placeholder}</span>
+          <CalendarIcon className="shrink-0" />
+          {!isMobile && <span className="uppercase">{placeholder}</span>}
         </>
       )}
     </Button>
@@ -74,7 +79,7 @@ export function DatePicker({ selected, onSelect, placeholder }: DatePickerProps)
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>{trigger}</PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
+      <PopoverContent className="w-auto p-0 border-0 shadow-none" align="start">
         {calendar}
       </PopoverContent>
     </Popover>
