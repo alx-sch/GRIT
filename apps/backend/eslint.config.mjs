@@ -8,6 +8,7 @@ export default tseslint.config(
   {
     ignores: [
       'eslint.config.*',
+      'jest.config.js',
       'prisma.config.*',
       'dist/**',
       'node_modules/**',
@@ -42,6 +43,16 @@ export default tseslint.config(
       '@typescript-eslint/no-non-null-assertion': 'error',
       '@typescript-eslint/no-extraneous-class': ['error', { allowWithDecorator: true }],
       'prettier/prettier': ['error', { endOfLine: 'auto' }],
+    },
+  },
+  // No typechecking for E2E (supertest, HTTP)
+  {
+    files: ['**/*.e2e-spec.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
     },
   }
 );

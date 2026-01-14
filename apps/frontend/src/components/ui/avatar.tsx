@@ -3,6 +3,16 @@ import * as AvatarPrimitive from '@radix-ui/react-avatar';
 
 import { cn } from '@/lib/utils';
 
+const AVATAR_CONFIG = {
+  style: 'notionists',
+  version: '9.x',
+  params: '',
+};
+
+function getAvatarUrl(seed: string, params: string = AVATAR_CONFIG.params) {
+  return `https://api.dicebear.com/${AVATAR_CONFIG.version}/${AVATAR_CONFIG.style}/svg?seed=${encodeURIComponent(seed)}${params}`;
+}
+
 const Avatar = React.forwardRef<
   React.ComponentRef<typeof AvatarPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>
@@ -15,53 +25,41 @@ const Avatar = React.forwardRef<
 ));
 Avatar.displayName = AvatarPrimitive.Root.displayName;
 
+interface AvatarImageProps extends React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image> {
+  seed?: string;
+  params?: string;
+}
+
 const AvatarImage = React.forwardRef<
   React.ComponentRef<typeof AvatarPrimitive.Image>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Image
-    ref={ref}
-    className={cn('aspect-square h-full w-full', className)}
-    {...props}
-  />
-));
-AvatarImage.displayName = AvatarPrimitive.Image.displayName;
+  AvatarImageProps
+>(({ className, src, seed, params, ...props }, ref) => {
+  const imageSource = src ?? (seed ? getAvatarUrl(seed, params) : undefined);
 
-interface AvatarFallbackProps extends React.ComponentPropsWithoutRef<
-  typeof AvatarPrimitive.Fallback
-> {
-  seed?: string;
-}
+  return (
+    <AvatarPrimitive.Image
+      ref={ref}
+      src={imageSource}
+      className={cn('aspect-square h-full w-full', className)}
+      {...props}
+    />
+  );
+});
+AvatarImage.displayName = AvatarPrimitive.Image.displayName;
 
 const AvatarFallback = React.forwardRef<
   React.ComponentRef<typeof AvatarPrimitive.Fallback>,
-  AvatarFallbackProps
->(({ className, seed, children, ...props }, ref) => {
-  const avatarUrl = seed
-    ? `https://api.dicebear.com/9.x/lorelei/svg?seed=${encodeURIComponent(seed)}`
-    : null;
-
-  return (
-    <AvatarPrimitive.Fallback
-      ref={ref}
-      className={cn(
-        'flex h-full w-full items-center justify-center rounded-full bg-muted',
-        className
-      )}
-      {...props}
-    >
-      {avatarUrl ? (
-        <img
-          src={avatarUrl}
-          alt={`Avatar for ${seed ?? 'meow'}`}
-          className="h-full w-full object-cover"
-        />
-      ) : (
-        children
-      )}
-    </AvatarPrimitive.Fallback>
-  );
-});
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Fallback
+    ref={ref}
+    className={cn(
+      'flex h-full w-full items-center justify-center rounded-full bg-muted font-bold text-muted-foreground',
+      className
+    )}
+    {...props}
+  />
+));
 AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName;
 
 export { Avatar, AvatarImage, AvatarFallback };

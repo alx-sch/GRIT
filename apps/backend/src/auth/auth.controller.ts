@@ -1,7 +1,7 @@
 import { Controller, Get, Param, ParseIntPipe, ForbiddenException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ApiOperation, ApiTags, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { env } from '@config/env';
+import { env } from '@/config/env';
 
 @ApiTags('Auth')
 @Controller('auth')

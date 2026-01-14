@@ -1,7 +1,10 @@
-import { PrismaClient } from '@generated/client/client';
+import { PrismaClient } from '@/generated/client/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
-import { env } from '@config/env';
+import { env } from '@/config/env';
+import fs from 'fs';
+import path from 'path';
+import crypto from 'crypto';
 import {
   S3Client,
   PutObjectCommand,
@@ -9,9 +12,6 @@ import {
   CreateBucketCommand,
   PutBucketPolicyCommand,
 } from '@aws-sdk/client-s3';
-import fs from 'fs';
-import path from 'path';
-import crypto from 'crypto';
 
 // Setup the Postgres connection
 const pool = new Pool({ connectionString: env.DATABASE_URL });

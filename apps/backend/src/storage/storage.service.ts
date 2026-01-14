@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
-import { env } from '@config/env';
+import { env } from '@/config/env';
 import crypto from 'crypto';
 import path from 'path';
 

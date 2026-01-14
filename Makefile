@@ -222,6 +222,61 @@ format: install
 logs:
 	$(DC) logs -f
 
+#######################
+## 🔬 TEST COMMANDS  ##
+#######################
+
+# Run all Tests for backend and frontend
+test: test-be test-fe
+
+# Run all Tests for backend only
+test-be:
+	@echo "$(BOLD)$(YELLOW)--- Starting Backend Tests ...$(RESET)"
+	@$(MAKE) --no-print-directory test-be-unit
+# 	@$(MAKE) test-be-integration
+	@$(MAKE) --no-print-directory test-be-e2e
+
+# Separate commands for unit, integration and e2e test for faster and cheaper failing in CI
+test-be-unit: install-be
+	@echo "$(BOLD)$(YELLOW)--- Running Backend Unit Tests ...$(RESET)"
+	@pnpm --filter @grit/backend exec prisma generate
+	@NODE_ENV=test pnpm --filter @grit/backend test:unit
+
+test-be-integration: install-be test-be-testdb-init
+	@echo "$(BOLD)$(YELLOW)--- Running Backend Integration Tests ...$(RESET)"
+	@pnpm --filter @grit/backend exec prisma generate
+	@NODE_ENV=test pnpm --filter @grit/backend test:integration
+	@$(MAKE) test-be-testdb-remove
+
+test-be-e2e: install-be test-be-testdb-init
+	@echo "$(BOLD)$(YELLOW)--- Running Backend E2E Tests ...$(RESET)"
+	@pnpm --filter @grit/backend exec prisma generate
+	@NODE_ENV=test pnpm --filter @grit/backend test:e2e
+	@$(MAKE) test-be-testdb-remove
+
+# Helper commands
+test-be-testdb-init: start-postgres
+	@echo "$(BOLD)$(YELLOW)--- Creating Test Database ...$(RESET)"
+	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
+	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
+	@NODE_ENV=test pnpm --filter @grit/backend exec prisma db push
+
+test-be-testdb-remove:
+	@echo "$(BOLD)$(YELLOW)--- Removing Test Database ...$(RESET)"
+	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
+
+## Frontend ##
+
+test-fe:
+	@echo "$(BOLD)$(YELLOW)--- Starting Tests ...$(RESET)"
+	@$(MAKE) --no-print-directory test-fe-integration
+	#@$(MAKE) --no-print-directory test-fe-e2e
+
+# Helpter
+test-fe-integration: install-fe
+	@echo "$(BOLD)$(YELLOW)--- Running Frontend Integration Tests ...$(RESET)"
+	@NODE_ENV=test pnpm --filter @grit/frontend run test:integration
+
 #############################
 ## 🚀 DEVELOPMENT COMMANDS ##
 #############################
@@ -422,12 +477,43 @@ stop:
 ## 📌 PHONY TARGETS ##
 ######################
 
-.PHONY:	all \
-		init-env install install-fe install-be check-env \
-		clean clean-db clean-backup stop-dev-processes purge\
-		typecheck lint lint-fix format logs \
-		dev dev-be dev-fe \
-		db seed-db view-db stop-db \
-		vol-ls vol-inspect vol-backup vol-restore \
-		build build-be build-fe run run-be run-fe \
-		start stop
+.PHONY:	\
+		all \
+		build \
+		build-be \
+		build-fe \
+		check-env \
+		clean \
+		clean-backup \
+		clean-db \
+		db \
+		dev \
+		dev-be \
+		dev-fe \
+		format \
+		init-env \
+		install \
+		install-be \
+		install-fe \
+		lint \
+		lint-fix \
+		logs \
+		purge \
+		seed-db \
+		start-postgres \
+		start-minio \
+		stop-db \
+		stop-dev-processes \
+		test-be \
+		test-fe \
+		typecheck \
+		view-db \
+		vol-backup \
+		vol-inspect \
+		vol-ls \
+		vol-restore \
+		run \
+		run-be \
+		run-fe \
+		start \
+		stop

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import * as Minio from 'minio';
-import { env } from '@config/env';
+import { env } from '@/config/env';
 
 export interface HealthStatus {
   postgres: string;

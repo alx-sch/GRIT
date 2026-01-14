@@ -13,12 +13,9 @@
     "sourceMap": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@generated/*": ["src/generated/*"],
-      "@prisma/*": ["src/prisma/*"],
-      "@config/*": ["src/config/*"]
+      "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*", "tests/**/*", "prisma/**/*"],
+  "include": ["src/**/*", "src/tests/**/*", "prisma/**/*"],
   "exclude": ["node_modules", "dist"]
 }

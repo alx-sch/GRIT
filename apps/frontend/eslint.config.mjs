@@ -9,7 +9,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 export default tseslint.config(
   {
     // Ignore build artifacts and config files
-    ignores: ['dist/**', 'eslint.config.*', 'vite.config.*'],
+    ignores: ['dist/**', 'eslint.config.*', 'vite.config.*', 'coverage/**'],
   },
   eslint.configs.recommended,
   ...tseslint.configs.strictTypeChecked,

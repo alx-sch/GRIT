@@ -11,13 +11,31 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <input
         type={type}
         className={cn(
-          'flex h-10 w-full bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50',
+          // 1. SIZE & TEXT
+          'flex h-12 w-full px-3 py-2 text-base',
+          // 2. COLORS & VISIBILITY
+          'bg-background text-foreground',
+          'dark:bg-white/5',
+          // 3. BORDER
+          'rounded-none border-2',
+          'border-input',
 
-          'border-2 border-black rounded-none',
+          // 4. PLACEHOLDER
+          'placeholder:text-muted-foreground',
 
-          'focus-visible:outline-none focus-visible:ring-0 focus-visible:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-shadow duration-200',
+          // 5. INTERACTION
+          'focus-visible:outline-none focus-visible:ring-0',
+          'focus-visible:border-primary',
+          'focus-visible:shadow-grit',
+          'dark:focus-visible:shadow-none',
+          'transition-all duration-200',
 
-          error && 'border-destructive focus-visible:shadow-[4px_4px_0px_0px_var(--destructive)]',
+          // 6. ERROR STATE
+          error &&
+            'border-destructive focus-visible:border-destructive focus-visible:shadow-[4px_4px_0px_0px_var(--destructive)]',
+
+          'file:border-0 file:bg-transparent file:text-sm file:font-medium',
+          'disabled:cursor-not-allowed disabled:opacity-50',
 
           className
         )}
