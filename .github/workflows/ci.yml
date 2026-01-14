@@ -5,18 +5,6 @@ on:
   pull_request:
     branches: [main, master]
 
-env:
-  NODE_ENV: test
-  POSTGRES_USER: user
-  POSTGRES_PASSWORD: password
-  POSTGRES_DB: grit_db
-  POSTGRES_HOST: localhost
-  BE_PORT: 3000
-  FE_PORT: 5173
-  DB_PORT: 5432
-  VITE_API_BASE_URL: http://localhost:3000/api
-  VITE_APP_NAME: Grit-CI
-
 jobs:
   quality:
     runs-on: ubuntu-latest
