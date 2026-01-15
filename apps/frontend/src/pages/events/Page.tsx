@@ -10,6 +10,8 @@ import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { DatePicker } from '@/components/ui/datepicker';
 import { DateRange } from 'react-day-picker';
 import { format, parse } from 'date-fns';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useState, useEffect } from 'react';
 
 export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
@@ -24,8 +26,31 @@ export default function EventFeed() {
   const events = useTypedLoaderData<Event[]>();
 
   const [searchParams, setSearchParams] = useSearchParams();
+  const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
 
-  const searchTerm = searchParams.get('search') || '';
+  const debouncedSearch = useDebounce(searchInput, 500);
+
+  useEffect(() => {
+    if (!searchInput && debouncedSearch) {
+      return;
+    }
+    setSearchParams(
+      (prev) => {
+        const newParams = new URLSearchParams(prev);
+        const currentSearch = newParams.get('search');
+        if (debouncedSearch && debouncedSearch !== currentSearch) {
+          newParams.set('search', debouncedSearch);
+          return newParams;
+        } else if (!debouncedSearch && currentSearch) {
+          newParams.delete('search');
+          return newParams;
+        }
+        return prev;
+      },
+      { replace: true }
+    );
+  }, [debouncedSearch, searchInput, setSearchParams]);
+
   const startFromParam = searchParams.get('start_from');
   const startUntilParam = searchParams.get('start_until');
 
@@ -37,12 +62,7 @@ export default function EventFeed() {
     : undefined;
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.value) {
-      searchParams.set('search', e.target.value);
-    } else {
-      searchParams.delete('search');
-    }
-    setSearchParams(searchParams);
+    setSearchInput(e.target.value);
   };
 
   const handleDateSelect = (range: DateRange | undefined) => {
@@ -70,7 +90,7 @@ export default function EventFeed() {
         <Input
           placeholder="Search events..."
           className="max-w-sm"
-          value={searchTerm}
+          value={searchInput}
           onChange={handleSearchChange}
         />
 
@@ -93,21 +113,20 @@ export default function EventFeed() {
           </Heading>
 
           <Text size="base" className="text-muted-foreground mt-2">
-            {searchTerm
-              ? `No results for "${searchTerm}"`
+            {searchInput
+              ? `No results for "${searchInput}"`
               : selectedDateRange
                 ? 'Nothing scheduled for these dates'
                 : 'Check back later for new events.'}
           </Text>
 
-          {(searchTerm || selectedDateRange) && (
+          {(searchInput || selectedDateRange) && (
             <Button
               variant="destructive"
               onClick={() => {
-                searchParams.delete('search');
-                searchParams.delete('start_from');
-                searchParams.delete('start_until');
-                setSearchParams(searchParams);
+                setSearchInput('');
+                const newParams = new URLSearchParams();
+                setSearchParams(newParams);
               }}
               className="mt-4"
             >
