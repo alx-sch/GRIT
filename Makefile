@@ -5,6 +5,7 @@ BACKEND_FOLDER :=	apps/backend
 FRONTEND_FOLDER :=	apps/frontend
 
 PROJECT_ROOT := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+export PATH := $(PROJECT_ROOT)/node_modules/.bin:$(PATH)
 
 # ---------------------------------------------------
 # FORMATTING CONSTANTS
@@ -135,7 +136,7 @@ clean: stop-dev-processes
 # Removes the database container and its persistent data volume; resets DB
 clean-db:
 	@echo "$(BOLD)$(RED)--- Deleting Database and Wiping Volumes...$(RESET)"
-	$(DC) down db --volumes
+	$(DC) down postgres-db --volumes
 	@echo "$(GREEN)$(BOLD)Database volume deleted.$(RESET)"
 
 # Removes the local backup folder
@@ -150,14 +151,14 @@ fclean: clean clean-backup
 	rm -f $(ENV_FILE)
 	@echo "$(GREEN)$(BOLD)Project fully cleaned.$(RESET)"
 
-kill-be-port:
+kill-port-be:
 	@PORT_PID=$$(lsof -t -i:$(BE_PORT)); \
 	if [ ! -z "$$PORT_PID" ]; then \
 		echo "$(BOLD)$(YELLOW)--- Port $(BE_PORT) is occupied (Backend Port)---$(RESET)"; \
 		echo "$(BLUE)Process Details:$(RESET)"; \
 		ps -p $$PORT_PID -o pid,user,start,etime,command | sed 's/^/  /'; \
 		echo ""; \
-		read -p "⚠️  Kill this process? [y/N] " confirm; \
+		printf "⚠️  Kill this process? [y/N] " && read confirm < /dev/tty; \
 		if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
 			kill -9 $$PORT_PID; \
 			echo "$(GREEN)Done. Process $$PORT_PID has been terminated.$(RESET)"; \
@@ -168,20 +169,22 @@ kill-be-port:
 		echo "$(GREEN)Port $(BE_PORT) is clear.$(RESET)"; \
 	fi
 
-kill-fe-port:
+kill-port-fe:
 	@PORT_PID=$$(lsof -t -i:$(FE_PORT)); \
 	if [ ! -z "$$PORT_PID" ]; then \
-		echo "$(YELLOW)Found PID $$PORT_PID on port $(FE_PORT) (Frontend Port).$(RESET)"; \
-		read -p "⚠️  Kill it? [y/N] " confirm; \
+		echo "$(BOLD)$(YELLOW)--- Port $(FE_PORT) is occupied (Frontend Port)---$(RESET)"; \
+		echo "$(BLUE)Process Details:$(RESET)"; \
+		ps -p $$PORT_PID -o pid,user,start,etime,command | sed 's/^/  /'; \
+		echo ""; \
+		printf "⚠️  Kill this process? [y/N] " && read confirm < /dev/tty; \
 		if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
 			kill -9 $$PORT_PID; \
-			echo "$(GREEN)Process $$PORT_PID terminated.$(RESET)"; \
-			sleep 1; \
+			echo "$(GREEN)Done. Process $$PORT_PID has been terminated.$(RESET)"; \
 		else \
 			echo "$(RED)Port $(FE_PORT) remains occupied.$(RESET)"; \
 		fi; \
 	else \
-		echo "$(GREEN)Port $(FE_PORT) is already clear!$(RESET)"; \
+		echo "$(GREEN)Port $(FE_PORT) is clear.$(RESET)"; \
 	fi
 
 ## WARNING ##
@@ -198,17 +201,17 @@ purge: fclean
 
 typecheck: install
 	@echo "$(BOLD)$(YELLOW)--- Typechecking...$(RESET)"
-	pnpm run -r typecheck;
+	@turbo typecheck;
 	@echo "$(BOLD)$(GREEN)Typecheck complete.$(RESET)"
 
 lint: install
 	@echo "$(BOLD)$(YELLOW)--- Linting...$(RESET)"
-	@pnpm run lint;
+	@turbo lint;
 	@echo "$(BOLD)$(GREEN)Linting complete.$(RESET)"
 
 lint-fix: install
 	@echo "$(BOLD)$(YELLOW)--- Linting...$(RESET)"
-	@pnpm run lint:fix;
+	@turbo lint:fix;
 	@echo "$(BOLD)$(GREEN)Linting complete.$(RESET)"
 
 format: install
@@ -238,12 +241,12 @@ test-be:
 test-be-unit: install-be
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Unit Tests ...$(RESET)"
 	@pnpm --filter @grit/backend exec prisma generate
-	@NODE_ENV=test pnpm --filter @grit/backend test:unit
+	@NODE_ENV=test turbo test:unit --filter=@grit/backend
 
 test-be-integration: install-be test-be-testdb-init
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Integration Tests ...$(RESET)"
 	@pnpm --filter @grit/backend exec prisma generate
-	@NODE_ENV=test pnpm --filter @grit/backend test:integration
+	@NODE_ENV=test turbo test:integration --filter=@grit/backend
 	@$(MAKE) test-be-testdb-remove
 
 test-be-e2e: install-be test-be-testdb-init
@@ -253,78 +256,98 @@ test-be-e2e: install-be test-be-testdb-init
 	@$(MAKE) test-be-testdb-remove
 
 # Helper commands
-test-be-testdb-init: start-db
+test-be-testdb-init: start-postgres
 	@echo "$(BOLD)$(YELLOW)--- Creating Test Database ...$(RESET)"
-	@$(DC) exec db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
-	@$(DC) exec db psql -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
+	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
+	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
 	@NODE_ENV=test pnpm --filter @grit/backend exec prisma db push
 
 test-be-testdb-remove:
 	@echo "$(BOLD)$(YELLOW)--- Removing Test Database ...$(RESET)"
-	@$(DC) exec db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
+	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
 
-# Frontend
+## Frontend ##
 
 test-fe:
 	@echo "$(BOLD)$(YELLOW)--- Starting Tests ...$(RESET)"
 	@$(MAKE) --no-print-directory test-fe-integration
-	#@$(MAKE) --no-print-directory test-be-e2e
+	#@$(MAKE) --no-print-directory test-fe-e2e
 
+# Helpter
 test-fe-integration: install-fe
 	@echo "$(BOLD)$(YELLOW)--- Running Frontend Integration Tests ...$(RESET)"
-	@NODE_ENV=test pnpm --filter @grit/frontend run test:integration
+	@NODE_ENV=test turbo test:integration --filter=@grit/frontend
 
 #############################
 ## 🚀 DEVELOPMENT COMMANDS ##
 #############################
 
-dev: check-env stop-dev-processes kill-be-port kill-fe-port install db
+dev: check-env stop-dev-processes kill-port-be kill-port-fe install db
 	@echo "$(BOLD)$(YELLOW)--- Starting Backend & Frontend [DEV]...$(RESET)"
-	pnpm run dev;
+	turbo dev;
 
 # Run only Backend with DB check; NEST clears terminal before printing
-dev-be: check-env kill-be-port db
+dev-be: check-env kill-port-be db
 	@echo "$(BOLD)$(GREEN)--- Starting BACKEND (API) ---$(RESET)"
-	pnpm --filter @grit/backend dev
+	turbo --filter @grit/backend dev
 
 # Run only Frontend
-dev-fe: check-env kill-fe-port install-fe
+dev-fe: check-env kill-port-fe install-fe
 	@echo "$(BOLD)$(GREEN)--- Starting FRONTEND (UI) ---$(RESET)"
-	pnpm --filter @grit/frontend dev
+	turbo --filter @grit/frontend dev
 
-#############################
-## 📁 DATABASE (LOCAL DEV) ##
-#############################
+###########################
+## 📁 DATABASE & STORAGE ##
+###########################
 
-# Starts the database Docker container for local development and seeds it
-# In Production, db availabilty (and starting of backend container) is checked in 'docker compose' via healthchecks.
-db: install-be start-db
+# Starts database AND MinIO for local development
+db: start-postgres start-minio
 	@pnpm --filter @grit/backend exec prisma db push
 	@$(MAKE) seed-db --no-print-directory
 	@echo "$(BOLD)$(GREEN)Database is ready, schema is synced and initial users are seeded.$(RESET)"
 	@echo "•   View logs (db): '$(YELLOW)make logs$(RESET)'"
 	@echo "•   View database:  '$(YELLOW)make view-db$(RESET)'"
 
-# Starts the db container services
-start-db: install-be
+# Helper: Starts the postgres container service
+start-postgres: install-be
 	@echo "$(BOLD)$(YELLOW)--- Starting Postgres [DOCKER]...$(RESET)"
-	$(DC) up -d db
-	@echo "$(BOLD)$(YELLOW)--- Waiting for DB to wake up...$(RESET)"
+	@$(DC) up -d postgres-db
+	@echo "$(BOLD)$(YELLOW)--- Waiting for Postgres to wake up...$(RESET)"
 	@RETRIES=10; \
+	PG_CONTAINER=$$($(DC) ps -q postgres-db); \
 	while [ $$RETRIES -gt 0 ]; do \
-	    if docker exec grit-db-1 pg_isready -U $(POSTGRES_USER) > /dev/null 2>&1; then \
-	        echo "$(GREEN)Postgres is accepting connections!$(RESET)"; \
-	        sleep 2; \
-	        RETRIES=-1; \
-	        break; \
-	    fi; \
-	    echo "Waiting for Postgres to initialize... ($$RETRIES attempts left)"; \
-	    RETRIES=$$((RETRIES - 1)); \
-	    sleep 1; \
+		if docker exec $$PG_CONTAINER pg_isready -U $(POSTGRES_USER) -d $(POSTGRES_DB) > /dev/null 2>&1; then \
+			echo "$(GREEN)Postgres is ready!$(RESET)"; \
+			break; \
+		fi; \
+		echo "Waiting for Postgres... ($$RETRIES attempts left)"; \
+		RETRIES=$$((RETRIES - 1)); \
+		sleep 1; \
 	done; \
 	if [ $$RETRIES -eq 0 ]; then \
-	    echo "$(RED)DB failed to start.$(RESET)"; \
-	    exit 1; \
+		echo "$(RED)Timeout waiting for Postgres.$(RESET)"; \
+		exit 1; \
+	fi
+
+# Helper: Starts the postgres container service
+start-minio: install-be
+	@echo "$(BOLD)$(YELLOW)--- Starting MinIO [DOCKER]...$(RESET)"
+	@$(DC) up -d minio
+	@echo "$(BOLD)$(YELLOW)--- Waiting for MinIO to wake up...$(RESET)"
+	@RETRIES=10; \
+	MINIO_CONTAINER=$$($(DC) ps -q minio); \
+	while [ $$RETRIES -gt 0 ]; do \
+		if docker logs $$MINIO_CONTAINER 2>&1 | grep -q "API:"; then \
+			echo "$(GREEN)MinIO is ready!$(RESET)"; \
+			break; \
+		fi; \
+		echo "Waiting for MinIO... ($$RETRIES attempts left)"; \
+		RETRIES=$$((RETRIES - 1)); \
+		sleep 1; \
+	done; \
+	if [ $$RETRIES -eq 0 ]; then \
+		echo "$(RED)Timeout waiting for MinIO.$(RESET)"; \
+		exit 1; \
 	fi
 
 # Populates the database with initial test data
@@ -404,44 +427,46 @@ vol-restore:
 # -- BUILD TARGETS --
 
 # Build everything
-build: build-be build-fe
+build: check-env install
+	@echo "$(BOLD)$(YELLOW)--- Building Project (Turbo)...$(RESET)"
+	turbo build
 	@echo "$(BOLD)$(GREEN)Full project build complete.$(RESET)"
 
 # Build only Backend
 build-be: check-env install-be
 	@echo "$(BOLD)$(YELLOW)--- Building Backend...$(RESET)"
-	pnpm --filter @grit/backend run build
+	turbo build --filter=@grit/backend
 	@echo "$(BOLD)$(GREEN)Backend build complete.$(RESET)"
 
 # Build only Frontend
 build-fe: check-env install-fe
 	@echo "$(BOLD)$(YELLOW)--- Building Frontend...$(RESET)"
-	pnpm --filter @grit/frontend run build
+	turbo build --filter=@grit/frontend
 	@echo "$(BOLD)$(GREEN)Frontend build complete.$(RESET)"
 
 # -- RUN TARGETS (PROD MODE) --
 
-run: stop-dev-processes kill-be-port kill-fe-port build
+run: stop-dev-processes kill-port-be kill-port-fe build db
 	@echo "$(BOLD)$(YELLOW)--- Running Build...$(RESET)"
 	pnpm -r --parallel run start
 
 # Runs only the compiled Backend (dist/main.js)
-run-be: build-be kill-be-port
+run-be: kill-port-be build-be db
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Build...$(RESET)"
 	pnpm --filter @grit/backend start
 
 # Runs only the Frontend preview (dist/index.html)
-run-fe: build-fe kill-fe-port
+run-fe: kill-port-fe build-fe
 	@echo "$(BOLD)$(YELLOW)--- Running Frontend Preview...$(RESET)"
 	pnpm --filter @grit/frontend start
 
 ###############################
 
 # Starts production services via Docker Compose
-start: check-env
-	@echo "$(BOLD)$(YELLOW)--- Starting Production Services via Docker Compose...$(RESET)"
-	$(DC) up -d --build
-	@echo "$(BOLD)$(GREEN)Production services started in detached mode.$(RESET)"
+start: check-env db
+	@echo "$(BOLD)$(YELLOW)--- Launching Application Services...$(RESET)"
+	$(DC) up -d --build backend caddy
+	@echo "$(BOLD)$(GREEN)Full stack is live!$(RESET)"
 	@echo "•   View live logs: '$(YELLOW)make logs$(RESET)'"
 	@echo "•   View app:       '$(YELLOW)https://localhost:$(HTTPS_PORT)$(RESET)' / '$(YELLOW)http://localhost:$(HTTP_PORT)$(RESET)'"
 
@@ -478,7 +503,8 @@ stop:
 		logs \
 		purge \
 		seed-db \
-		start-db \
+		start-postgres \
+		start-minio \
 		stop-db \
 		stop-dev-processes \
 		test-be \

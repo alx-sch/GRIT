@@ -21,6 +21,7 @@ model User {
   createdAt   DateTime    @default(now())
   email       String      @unique
   name        String?
+  avatarKey   String?
 
   events      Event[]     @relation("EventAuthor")
   attending   Event[]     @relation("EventAttendees")
@@ -49,10 +50,10 @@ model Event {
   id          Int         @id @default(autoincrement())
   createdAt   DateTime    @default(now())
   content     String?
-  endAt       DateTime?
-  isPublic    Boolean     @default(true)
-  isPublished Boolean?    @default(false)
-  startAt     DateTime?
+  endAt       DateTime
+  isPublic    Boolean  @default(true)
+  isPublished Boolean  @default(false)
+  startAt     DateTime
   title       String
   imageKey    String?
 

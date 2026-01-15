@@ -23,11 +23,13 @@ export const ResUserBaseSchema = z.object({
   id: z.number().int().positive(),
   name: z.string().nullable(),
   attending: z.array(ResEventUserSchema).default([]),
+  avatarKey: z.string().nullable(),
 });
 
-/**
- * REQ / RES SCHEMAS FOR ROUTES
- */
+// Response schema for creating new user
+export const ResUserPostSchema = ResUserBaseSchema.extend({
+  email: z.email(),
+});
 
 // Get all users
 export const ReqUserGetAllSchema = z.strictObject({});
@@ -38,9 +40,13 @@ export const ResUserGetAllSchema = z.array(ResUserBaseSchema);
 export const ReqUserPostSchema = z.object({
   name: z.string().optional(),
   email: z.email(),
+  avatarKey: z.string().optional(),
 });
+
+// --- DTO classes ---
+export class ResUserBaseDto extends createZodDto(ResUserBaseSchema) {}
+export class ResUserPostDto extends createZodDto(ResUserPostSchema) {}
 export class ReqUserPostDto extends createZodDto(ReqUserPostSchema) {}
-export const ResUserPostSchema = z.object({}).loose(); // return everything
 
 // Patch a user (to attend event)
 export const ReqUserAttendSchema = z.strictObject({
