@@ -48,7 +48,7 @@ export class LocationService {
   async locationDelete(where: { id: number }) {
     const exist = await this.locationExists(where.id);
     if (!exist) {
-      throw new NotFoundException(`Location with id ${where.id} not found`);
+      throw new NotFoundException(`Location with id ${String(where.id)} not found`);
     }
 
     return this.prisma.location.delete({

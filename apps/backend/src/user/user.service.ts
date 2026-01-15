@@ -26,14 +26,16 @@ export class UserService {
 
   async userAttend(id: number, data: ReqUserAttendDto) {
     const user = await this.prisma.user.findUnique({ where: { id: id } });
-    if (!user) throw new NotFoundException(`User with id ${id} not found`);
+    if (!user) throw new NotFoundException(`User with id ${String(id)} not found`);
 
     const event = await this.eventService.eventExists(data.attending);
     if (!event) {
-      throw new NotFoundException(`Event with id ${data.attending} not found`);
+      throw new NotFoundException(`Event with id ${String(data.attending)} not found`);
     }
 
-    const attendingIds = Array.isArray(data.attending) ? data.attending : [data.attending];
+    const attendingIds: number[] = Array.isArray(data.attending)
+      ? data.attending
+      : [data.attending];
 
     return this.prisma.user.update({
       where: { id },

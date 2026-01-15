@@ -96,7 +96,7 @@ export const ReqEventPatchSchema = z.strictObject({
   startAt: z.iso.datetime().optional(),
   title: z.string().optional(),
   imageKey: z.string().optional(),
-  locationId: z.number().optional(),
+  locationId: z.number().nullable().optional(),
 });
 export class ReqEventPatchDto extends createZodDto(ReqEventPatchSchema) {}
 export const ResEventPatchSchema = ResEventBaseSchema;

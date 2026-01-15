@@ -79,7 +79,7 @@ export class EventService {
       } else {
         const exists = await this.locationService.locationExists(data.locationId);
         if (!exists) {
-          throw new NotFoundException(`Location with id ${data.locationId} not found`);
+          throw new NotFoundException(`Location with id ${String(data.locationId)} not found`);
         }
         newData.location = { connect: { id: data.locationId } };
       }

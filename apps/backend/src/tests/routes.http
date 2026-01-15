@@ -22,11 +22,11 @@ content-type: application/json
 
 {
     "authorId": 1,
-	"name": "Richardplatz 24",
+	"name": "Richardunkown 42",
 	"city": "Berlin",
 	"country": "Germany",
-	"longitude": 52.474823,
-	"latitude": 13.447864,
+	"longitude": 59.474823,
+	"latitude": 11.447864,
 	"isPublic": true
 }
 ###
@@ -54,11 +54,11 @@ content-type: application/json
 ###
 
 // User attends an event
-PATCH http://localhost:3000/users/2 HTTP/1.1
+PATCH http://localhost:3000/users/1 HTTP/1.1
 content-type: application/json
 
 {
-	"attending": 5
+	"attending": 1
 }
 ###
 
@@ -82,7 +82,7 @@ content-type: application/json
 
 {
     "authorId": 1,
-    "title": "Party at Alex's and Dovi's place!",
+    "title": "Party at unkown's place!",
     "startAt": "2026-05-01T18:00:00Z",
     "endAt": "2026-05-02T02:00:00Z",
     "isPublic": true,
