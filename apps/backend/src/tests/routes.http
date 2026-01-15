@@ -58,7 +58,7 @@ PATCH http://localhost:3000/users/1 HTTP/1.1
 content-type: application/json
 
 {
-	"attending": 4
+	"attending": 3
 }
 ###
 
@@ -95,7 +95,7 @@ content-type: application/json
 
 {
     "endAt": "2025-01-02T02:00:33Z",
-	"locationId": 1
+	"locationId": 2
 }
 ###
 

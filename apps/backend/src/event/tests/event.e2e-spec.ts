@@ -49,6 +49,7 @@ describe('Events E2E', () => {
       .expect(200);
 
     expect(res.body).toEqual({
+      attending: [],
       author: {
         id: user.id,
         name: 'Tester',
@@ -60,6 +61,7 @@ describe('Events E2E', () => {
       id: event.id,
       isPublic: true,
       isPublished: true,
+      location: null,
       startAt: '2025-01-01T20:00:00.000Z',
       title: 'Hello E2E',
     });

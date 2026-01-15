@@ -41,8 +41,6 @@ export const ResEventBaseSchema = z.object({
   isPublic: z.boolean(),
   startAt: z.date().nullable(),
   title: z.string(),
-  imageKey: z.string().nullable(),
-  locationId: z.number().int().positive().nullable(),
   location: ResEventLocationSchema.nullable(),
   attending: z.array(ResEventAttendeeSchema).nullable().default([]),
 });
