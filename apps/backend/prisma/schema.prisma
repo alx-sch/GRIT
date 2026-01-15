@@ -14,22 +14,23 @@ datasource db {
 }
 
 model User {
-  id          Int         @id @default(autoincrement())
-  createdAt   DateTime    @default(now())
-  email       String      @unique
-  events      Event[]
-  name        String?
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  email     String   @unique
+  events    Event[]
+  name      String?
+  avatarKey String?
 }
 
 model Event {
-  id          Int         @id @default(autoincrement())
-  author      User?       @relation(fields: [authorId], references: [id])
-  authorId    Int?
-  createdAt   DateTime    @default(now())
+  id          Int      @id @default(autoincrement())
+  author      User     @relation(fields: [authorId], references: [id])
+  authorId    Int
+  createdAt   DateTime @default(now())
   content     String?
-  endAt       DateTime?
-  isPublic    Boolean     @default(true)
-  isPublished Boolean?    @default(false)
-  startAt     DateTime?
+  endAt       DateTime
+  isPublic    Boolean  @default(true)
+  isPublished Boolean  @default(false)
+  startAt     DateTime
   title       String
 }

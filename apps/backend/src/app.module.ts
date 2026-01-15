@@ -16,6 +16,7 @@ import { Prisma } from '@/generated/client/client';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
+import { StorageModule } from './storage/storage.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { EventModule } from './event/event.module';
 
@@ -52,7 +53,7 @@ class HttpExceptionFilter extends BaseExceptionFilter {
 }
 
 @Module({
-  imports: [ConfigModule.forRoot(), UserModule, EventModule, PrismaModule],
+  imports: [ConfigModule.forRoot(), UserModule, StorageModule, EventModule, PrismaModule],
   controllers: [AppController],
   providers: [
     // Zod integration for custom validation pipe. No need to add it individually to each route anymore.

@@ -1,29 +1,24 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-/**
- * SHARED RESPONSE SCHEMAS
- */
-
-// Response schema for the basic user info
+// --- Schemas ---
 export const ResUserBaseSchema = z.object({
   id: z.number().int().positive(),
-  name: z.string().optional(),
+  name: z.string().nullable(),
+  avatarKey: z.string().nullable(),
 });
 
-/**
- * REQ / RES SCHEMAS FOR ROUTES
- */
+export const ResUserPostSchema = ResUserBaseSchema.extend({
+  email: z.email(),
+});
 
-// Get all users
-export const ReqUserGetAllSchema = z.strictObject({});
-export class ReqUserGetAllDto extends createZodDto(ReqUserGetAllSchema) {}
-export const ResUserGetAllSchema = z.array(ResUserBaseSchema);
-
-// Post a new event draft
 export const ReqUserPostSchema = z.object({
   name: z.string().optional(),
   email: z.email(),
+  avatarKey: z.string().optional(),
 });
+
+// --- DTO classes ---
+export class ResUserBaseDto extends createZodDto(ResUserBaseSchema) {}
+export class ResUserPostDto extends createZodDto(ResUserPostSchema) {}
 export class ReqUserPostDto extends createZodDto(ReqUserPostSchema) {}
-export const ResUserPostSchema = z.object({}).loose(); // return everything

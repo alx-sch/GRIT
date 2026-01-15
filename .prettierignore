@@ -6,3 +6,6 @@ pnpm-lock.yaml
 # Build & Dist
 build
 dist*
+
+# Complains if formated via prettier
+Caddyfile
