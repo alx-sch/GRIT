@@ -23,7 +23,7 @@ export function EventCard({ event }: EventCardProps) {
     <Card className="w-full flex flex-col rounded border-3 mx-auto hover:-translate-y-1 transition-transform duration-200 max-w-100">
       <CardHeader>
         <img
-          src={event.imageURL ?? generateImagePlaceholderEvent(event)}
+          src={event.imageKey ?? generateImagePlaceholderEvent(event)}
           alt={event.title}
           className="w-full aspect-square object-cover"
         />
@@ -33,13 +33,13 @@ export function EventCard({ event }: EventCardProps) {
           {event.title}
         </CardTitle>
         <CardDescription className="font-heading font-medium text-xl">
-          {format(event.startAt, 'EEE, MMM d')} @ {event.location ?? 'TBA'}
+          {format(event.startAt, 'EEE, MMM d')} @ {event.location?.name ?? 'TBA'}
         </CardDescription>
         <div className="flex items-center gap-2 text-base font-normal text-muted-foreground">
           <User className="h-5 w-5 text-primary" strokeWidth={2} />
           <Text>
-            {event.interestedCount && event.interestedCount > 0
-              ? event.interestedCount.toLocaleString()
+            {event.attending && event.attending.length > 0
+              ? event.attending.length.toLocaleString()
               : 'Be the first'}
           </Text>
         </div>
