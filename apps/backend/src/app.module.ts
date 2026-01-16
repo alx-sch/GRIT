@@ -19,6 +19,7 @@ import { UserModule } from './user/user.module';
 import { StorageModule } from './storage/storage.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { EventModule } from './event/event.module';
+import { LocationModule } from './location/location.module';
 
 /**
  * Filter for NestJS's default error handling for enrichment with Zod and Prisma errors
@@ -53,7 +54,14 @@ class HttpExceptionFilter extends BaseExceptionFilter {
 }
 
 @Module({
-  imports: [ConfigModule.forRoot(), UserModule, StorageModule, EventModule, PrismaModule],
+  imports: [
+    ConfigModule.forRoot(),
+    UserModule,
+    EventModule,
+    PrismaModule,
+    LocationModule,
+    StorageModule,
+  ],
   controllers: [AppController],
   providers: [
     // Zod integration for custom validation pipe. No need to add it individually to each route anymore.
