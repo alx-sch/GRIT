@@ -1,22 +1,75 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
-import { ReqUserPostDto } from './user.schema';
-import { ResUserPostSchema, ResUserGetAllSchema } from './user.schema';
-import { UserService } from './user.service';
+import { ResUserAttendSchema, ReqUserAttendDto, ReqUserGetByIdDto } from './user.schema';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ResUserBaseDto, ResUserPostDto, ReqUserPostDto } from '@/user/user.schema';
+import { UserService } from '@/user/user.service';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { ApiConsumes, ApiBody } from '@nestjs/swagger';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  // Get all users
   @Get()
-  @ZodSerializerDto(ResUserGetAllSchema)
+  @ZodSerializerDto([ResUserBaseDto])
   userGetAll() {
     return this.userService.userGet();
   }
 
+  // Create new user
   @Post()
-  @ZodSerializerDto(ResUserPostSchema)
-  userPost(@Body() data: ReqUserPostDto) {
+  @ZodSerializerDto(ResUserPostDto)
+  userPost(@Body() data: ReqUserPostDto): Promise<ResUserPostDto> {
     return this.userService.userPost(data);
+  }
+
+  // User attend event
+  @Patch(':id')
+  @ZodSerializerDto(ResUserAttendSchema)
+  userAttend(@Body() data: ReqUserAttendDto, @Param() param: ReqUserGetByIdDto) {
+    return this.userService.userAttend(param.id, data);
+  }
+
+  // ADD IMAGE UPLOAD ROUTINE
+  @Patch('me/avatar')
+  @ZodSerializerDto(ResUserBaseDto)
+  @ApiConsumes('multipart/form-data') // to send raw image file; not json
+  @ApiBody({
+    // Needed for file upload in Swagger
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary' },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadAvatar(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 5 }),
+          new FileTypeValidator({ fileType: 'image/*' }),
+        ],
+      })
+    )
+    file: Express.Multer.File
+  ): Promise<ResUserBaseDto> {
+    const userId = 1;
+    console.log('File received:', file.originalname);
+    return await this.userService.userUpdateAvatar(userId, file);
   }
 }

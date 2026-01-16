@@ -2,106 +2,274 @@ import { PrismaClient } from '@/generated/client/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import { env } from '@/config/env';
+import fs from 'fs';
+import path from 'path';
+import crypto from 'crypto';
+import {
+  S3Client,
+  PutObjectCommand,
+  HeadBucketCommand,
+  CreateBucketCommand,
+  PutBucketPolicyCommand,
+} from '@aws-sdk/client-s3';
 
-// Setup the connection pool
+// Setup the Postgres connection
 const pool = new Pool({ connectionString: env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter }); // Initialize the client WITH the adapter
 
-// Initialize the client WITH the adapter
-const prisma = new PrismaClient({ adapter });
+// Setup S3/minIO Client
+const s3 = new S3Client({
+  region: 'us-east-1', // MinIO requires a region, even if ignored
+  endpoint: env.MINIO_ENDPOINT,
+  credentials: {
+    accessKeyId: env.MINIO_USER,
+    secretAccessKey: env.MINIO_PASSWORD,
+  },
+  forcePathStyle: true,
+});
+
+interface S3Error {
+  $metadata?: {
+    httpStatusCode?: number;
+  };
+}
+
+// This ensures that anyone can view the images via a URL without needing a private signature.
+const getPublicPolicy = (bucketName: string) =>
+  JSON.stringify({
+    Version: '2012-10-17',
+    Statement: [
+      {
+        Effect: 'Allow',
+        Principal: { AWS: ['*'] },
+        Action: ['s3:GetObject'],
+        Resource: [`arn:aws:s3:::${bucketName}/*`],
+      },
+    ],
+  });
+
+// Helper: Check if bucket exists, create if not
+async function ensureBucket(bucketName: string) {
+  console.log(`Checking for bucket: ${bucketName}...`);
+  try {
+    await s3.send(new HeadBucketCommand({ Bucket: bucketName }));
+    console.log(`✅ Bucket ' ${bucketName}' exists.`);
+  } catch (error: unknown) {
+    const isS3Error = (err: unknown): err is S3Error =>
+      typeof err === 'object' && err !== null && '$metadata' in err;
+
+    const isNotFound =
+      error instanceof Error &&
+      (error.name === 'NotFound' || (isS3Error(error) && error.$metadata?.httpStatusCode === 404));
+
+    if (isNotFound) {
+      console.log(`Bucket not found. Creating '${bucketName}'...`);
+      await s3.send(new CreateBucketCommand({ Bucket: bucketName }));
+      await s3.send(
+        new PutBucketPolicyCommand({
+          Bucket: bucketName,
+          Policy: getPublicPolicy(bucketName),
+        })
+      );
+      console.log(`✅ Bucket '${bucketName}' created.`);
+    } else {
+      throw error;
+    }
+  }
+}
+
+// Helper: Upload file to bukcet
+async function uploadToBucket(bucketName: string, localFilePath: string, originalName: string) {
+  // 1. Check if local file exists
+  if (!fs.existsSync(localFilePath)) {
+    console.warn(`⚠️  File not found locally: ${localFilePath}. Skipping.`);
+    return null;
+  }
+
+  // 2. Read file from disk
+  const fileBuffer = fs.readFileSync(localFilePath);
+
+  const fileHash = crypto.randomBytes(4).toString('hex');
+  const timestamp = Date.now();
+  const extension = path.extname(originalName);
+  const s3Key = `${String(timestamp)}-${fileHash}${extension}`;
+
+  // 3. Upload to S3/MinIO
+  try {
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: bucketName,
+        Key: s3Key,
+        Body: fileBuffer,
+        ContentType: 'image/jpeg',
+      })
+    );
+    const fileName = path.basename(localFilePath);
+    console.log(`⬆️  Uploaded: ${fileName} (Bucket: ${bucketName})`);
+    return s3Key;
+  } catch (error) {
+    console.error(`❌ Upload failed for ${s3Key}:`, error);
+    return null;
+  }
+}
 
 async function main() {
   console.log('--- Seeding database...');
 
+  const AVATAR_BUCKET = 'user-avatars';
+  const EVENT_BUCKET = 'event-images';
+
+  await ensureBucket(AVATAR_BUCKET);
+  await ensureBucket(EVENT_BUCKET);
+
+  //////////////////
+  // USER SEEDING //
+  //////////////////
+
+  console.log('--- Seeding Users ---');
+
+  const usersToCreate = [
+    { email: 'alice@example.com', name: 'Alice', image: 'avatar-1.jpg' },
+    { email: 'bob@example.com', name: 'Bob', image: 'avatar-2.jpg' },
+    { email: 'cindy@example.com', name: 'Cindy', image: null },
+  ];
+
   // upsert: "Update or Insert" - prevents errors if the user already exists
-  const user1 = await prisma.user.upsert({
-    where: { email: 'alice@example.com' },
-    update: {},
-    create: {
-      email: 'alice@example.com',
-      name: 'Alice',
-    },
-  });
+  for (const u of usersToCreate) {
+    // Create User in DB
+    const user = await prisma.user.upsert({
+      where: { email: u.email },
+      update: {},
+      create: { email: u.email, name: u.name },
+    });
+    console.log(`👤 Processed User: ${user.name ?? 'Unknown'} (${String(user.id)})`);
 
-  const user2 = await prisma.user.upsert({
-    where: { email: 'bob@example.com' },
-    update: {},
-    create: {
-      email: 'bob@example.com',
-      name: 'Bob',
-    },
-  });
+    // Upload Image (Only if one is provided)
+    if (u.image && !user.avatarKey) {
+      // Where is the file on the machine?
+      const localPath = path.join(__dirname, 'seed-assets', u.image);
 
-  const user3 = await prisma.user.upsert({
-    where: { email: 'Cindy@example.com' },
-    update: {},
-    create: {
-      email: 'Cindy@example.com',
-      name: 'Cindy',
-    },
-  });
+      // Where should it go in MinIO?
+      const bucketKey = await uploadToBucket(AVATAR_BUCKET, localPath, u.image);
 
-  const event1 = await prisma.event.upsert({
-    where: { id: 1 },
-    update: {},
-    create: {
-      id: 1,
-      authorId: user1.id,
-      content:
-        'A night of unforgettable techno beats, in Not Berghain. Join us for an immersive experience with top DJs and a vibrant crowd.',
-      title:
-        'MEGA SUPER DUPER COOL PARTY super hyper long title super hyper long title super hyper long titlesuper hyper long title super hyper long title super hyper long titlesuper hyper long title super hyper long title super hyper long titlesuper hyper long title super hyper long title super hyper long title super hyper long title super hyper long title super hyper long title',
-      startAt: '2026-03-02T10:00:00Z',
-      endAt: '2026-03-02T10:00:00Z',
-      isPublished: true,
+      if (bucketKey) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { avatarKey: bucketKey },
+        });
+        console.log(`   📝 Saved to DB: ${bucketKey}`);
+      }
+    } else if (u.image && user.avatarKey) {
+      console.log(`   ⏩ User ${user.name ?? 'Unknown'} already has an avatar. Skipping upload.`);
+    }
+  }
+
+  //////////////////////
+  // LOCATION SEEDING //
+  //////////////////////
+
+  console.log('--- Seeding Locations ---');
+
+  const seedUser = await prisma.user.findFirst();
+  if (!seedUser) {
+    throw new Error('Cannot seed locations without at least one user in the DB.');
+  }
+
+  const locationsToCreate = [
+    {
+      name: 'GRIT HQ',
+      city: 'Berlin',
+      country: 'Germany',
+      longitude: 13.4482509,
+      latitude: 52.485021,
+      authorId: seedUser.id,
       isPublic: true,
     },
-  });
+  ];
 
-  const event2 = await prisma.event.upsert({
-    where: { id: 2 },
-    update: {},
-    create: {
-      id: 2,
-      authorId: user2.id,
-      content:
-        'A session of beer-yoga at Lotus. Unwind with a refreshing beer in hand while stretching and strengthening your body in a fun and social environment.',
-      createdAt: '2026-01-03T10:00:00Z',
-      endAt: '2026-01-03T10:00:00Z',
-      isPublished: true,
+  let gritHqId = 0;
+
+  for (const loc of locationsToCreate) {
+    const existing = await prisma.location.findFirst({
+      where: { name: loc.name },
+    });
+
+    if (!existing) {
+      const createdLoc = await prisma.location.create({
+        data: loc,
+      });
+      console.log(`📍 Created Location: ${createdLoc.name ?? 'Unknown Location'} `);
+      if (loc.name === 'GRIT HQ') gritHqId = createdLoc.id;
+    } else {
+      console.log(`⏩ Location '${loc.name}' already exists. Skipping.`);
+      if (loc.name === 'GRIT HQ') gritHqId = existing.id;
+    }
+  }
+
+  ///////////////////
+  // EVENT SEEDING //
+  ///////////////////
+
+  console.log('--- Seeding Events ---');
+
+  const eventsToCreate = [
+    {
+      title: 'Grit Launch Party',
+      authorId: 2,
+      locationId: gritHqId,
+      content: 'Celebrating the first release of our app!',
       isPublic: true,
-      startAt: '2026-01-03T10:00:00Z',
-      title: 'Beer-Yoga Session',
-    },
-  });
-
-  const event3 = await prisma.event.upsert({
-    where: { id: 3 },
-    update: {},
-    create: {
-      id: 3,
-      authorId: user3.id,
-      content: 'Come to my awesome event!',
-      createdAt: '2026-01-03T10:00:00Z',
-      endAt: '2026-01-15T10:00:00Z',
       isPublished: true,
+      startAt: new Date('2026-02-01T18:00:00Z'),
+      endAt: new Date('2026-02-01T22:00:00Z'),
+    },
+    {
+      title: 'Private Strategy Meeting',
+      authorId: 1,
+      content: 'Discussing SECRETS!',
       isPublic: false,
-      startAt: '2026-01-15T10:00:00Z',
-      title: 'Fireplace Gathering',
+      isPublished: false,
+      startAt: new Date('2026-02-15T10:00:00Z'),
+      endAt: new Date('2026-02-15T12:00:00Z'),
     },
-  });
+  ];
 
-  // Log the results so you can see the IDs generated in the terminal
-  console.log({ user1, user2, user3, event1, event2, event3 });
+  for (const e of eventsToCreate) {
+    // Simple check to avoid duplicates if seed run twice
+    const existing = await prisma.event.findFirst({
+      where: { title: e.title, authorId: e.authorId },
+    });
+
+    if (!existing) {
+      await prisma.event.create({ data: e });
+      console.log(`📅 Created Event: ${e.title} for User ${String(e.authorId)}`);
+    }
+  }
+
+  ////////////////////////
+  // ATTENDANCE SEEDING //
+  ////////////////////////
+
+  const aliceFromDb = await prisma.user.findUnique({ where: { email: 'alice@example.com' } });
+  const party = await prisma.event.findFirst({ where: { title: 'Grit Launch Party' } });
+
+  if (aliceFromDb && party) {
+    await prisma.user.update({
+      where: { id: aliceFromDb.id },
+      data: {
+        attending: { connect: { id: party.id } },
+      },
+    });
+    console.log(`✅ Alice is now attending the Party`);
+  }
 }
 
 main()
-  // Successfully finished, close the connection
   .then(async () => {
     await prisma.$disconnect();
     await pool.end();
   })
-  // Handle errors and ensure connection closes even on failure
   .catch(async (e: unknown) => {
     console.error(e);
     await prisma.$disconnect();

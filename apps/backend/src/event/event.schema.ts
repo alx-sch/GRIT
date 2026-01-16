@@ -11,6 +11,24 @@ const ResEventAuthorSchema = z.object({
   name: z.string(),
 });
 
+// Response schema for the attendee object that can get sent as a subitem in the event response
+const ResEventAttendeeSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+});
+
+// Response schema for the location object that can get sent as a subitem in the event response
+const ResEventLocationSchema = z.object({
+  id: z.number().int().positive(),
+  authorId: z.number().int().positive(),
+  name: z.string().nullable(),
+  city: z.string().nullable(),
+  country: z.string().nullable(),
+  longitude: z.number().min(-180).max(180),
+  latitude: z.number().min(-90).max(90),
+  isPublic: z.boolean(),
+});
+
 // Response schema for the basic information we send regarding events
 export const ResEventBaseSchema = z.object({
   id: z.number().int().positive(),
@@ -23,6 +41,8 @@ export const ResEventBaseSchema = z.object({
   isPublic: z.boolean(),
   startAt: z.date().nullable(),
   title: z.string(),
+  location: ResEventLocationSchema.nullable(),
+  attending: z.array(ResEventAttendeeSchema).nullable().default([]),
 });
 
 /**
@@ -73,6 +93,8 @@ export const ReqEventPatchSchema = z.strictObject({
   isPublished: z.boolean().optional(),
   startAt: z.iso.datetime().optional(),
   title: z.string().optional(),
+  imageKey: z.string().optional(),
+  locationId: z.number().nullable().optional(),
 });
 export class ReqEventPatchDto extends createZodDto(ReqEventPatchSchema) {}
 export const ResEventPatchSchema = ResEventBaseSchema;
@@ -85,6 +107,9 @@ export const ReqEventPostDraftSchema = z.strictObject({
   isPublic: z.boolean(),
   startAt: z.iso.datetime(),
   title: z.string(),
+  imageKey: z.string().optional(),
+  locationId: z.number().int().positive().optional(),
+  isPublished: z.boolean(),
 });
 export class ReqEventPostDraftDto extends createZodDto(ReqEventPostDraftSchema) {}
 export const ResEventPostDraftSchema = ResEventBaseSchema;

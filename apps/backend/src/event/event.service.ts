@@ -2,15 +2,22 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@/generated/client/client';
 import { ReqEventGetPublishedDto, ReqEventPostDraftDto, ReqEventPatchDto } from './event.schema';
+import { LocationService } from '@/location/location.service';
 
 @Injectable()
 export class EventService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private locationService: LocationService
+  ) {}
 
   eventDelete(where: { id: number }) {
     return this.prisma.event.delete({
       where,
-      include: { author: true },
+      include: {
+        author: true,
+        location: true,
+      },
     });
   }
 
@@ -36,6 +43,11 @@ export class EventService {
       where,
       include: {
         author: true,
+        location: true,
+        attending: true,
+      },
+      orderBy: {
+        startAt: 'asc',
       },
       orderBy: {
         startAt: 'asc',
@@ -46,7 +58,11 @@ export class EventService {
   async eventGetById(id: number) {
     const event = await this.prisma.event.findUnique({
       where: { id },
-      include: { author: true },
+      include: {
+        author: true,
+        location: true,
+        attending: true,
+      },
     });
     if (!event) {
       throw new NotFoundException(`Event with id ${id.toString()} not found`);
@@ -54,7 +70,7 @@ export class EventService {
     return event;
   }
 
-  eventPatch(id: number, data: ReqEventPatchDto) {
+  async eventPatch(id: number, data: ReqEventPatchDto) {
     const newData: Prisma.EventUpdateInput = {};
     if (data.content !== undefined) newData.content = data.content;
     if (data.endAt !== undefined) newData.endAt = data.endAt;
@@ -63,6 +79,18 @@ export class EventService {
     if (data.startAt !== undefined) newData.startAt = data.startAt;
     if (data.title !== undefined) newData.title = data.title;
 
+    if (data.locationId !== undefined) {
+      if (data.locationId === null) {
+        newData.location = { disconnect: true };
+      } else {
+        const exists = await this.locationService.locationExists(data.locationId);
+        if (!exists) {
+          throw new NotFoundException(`Location with id ${String(data.locationId)} not found`);
+        }
+        newData.location = { connect: { id: data.locationId } };
+      }
+    }
+
     if (Object.keys(newData).length === 0) {
       throw new BadRequestException('No fields to update');
     }
@@ -70,11 +98,17 @@ export class EventService {
     return this.prisma.event.update({
       where: { id },
       data: newData,
-      include: { author: true },
+      include: {
+        author: true,
+        location: true,
+      },
     });
   }
 
   eventPostDraft(data: ReqEventPostDraftDto) {
+    if (!data.authorId) {
+      throw new NotFoundException(`User with id ${data.authorId.toString()} not found`);
+    }
     return this.prisma.event.create({
       data: {
         title: data.title,
@@ -82,12 +116,31 @@ export class EventService {
         startAt: data.startAt,
         endAt: data.endAt,
         isPublic: data.isPublic,
-        isPublished: false,
+        isPublished: data.isPublished,
+        imageKey: data.imageKey,
         author: {
           connect: { id: data.authorId },
         },
+        ...(data.locationId
+          ? {
+              location: {
+                connect: { id: data.locationId },
+              },
+            }
+          : {}),
       },
-      include: { author: true },
+      include: {
+        author: true,
+        location: true,
+      },
     });
+  }
+
+  async eventExists(id: number) {
+    const event = await this.prisma.event.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    return !!event;
   }
 }

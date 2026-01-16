@@ -1,18 +1,107 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { ReqUserPostDto } from './user.schema';
+import { EventService } from '@/event/event.service';
+import {
+  ReqUserPostDto,
+  ResUserPostDto,
+  ResUserBaseDto,
+  ReqUserAttendDto,
+} from '@/user/user.schema';
+import { StorageService } from '@/storage/storage.service';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private eventService: EventService,
+    private storage: StorageService
+  ) {}
 
-  userGet() {
-    return this.prisma.user.findMany();
+  async userGet(): Promise<ResUserBaseDto[]> {
+    return await this.prisma.user.findMany({
+      include: {
+        attending: true,
+      },
+    });
   }
 
-  userPost(data: ReqUserPostDto) {
-    return this.prisma.user.create({
-      data,
+  async userPost(data: ReqUserPostDto): Promise<ResUserPostDto> {
+    const user = await this.prisma.user.create({
+      data: {
+        name: data.name,
+        email: data.email,
+        avatarKey: data.avatarKey,
+      },
+      include: {
+        attending: true,
+      },
+    });
+    return user;
+  }
+
+  async userUpdateAvatar(userId: number, file: Express.Multer.File): Promise<ResUserBaseDto> {
+    const bucket = 'user-avatars';
+    let newBucketKey: string | null = null;
+
+    // Find the current user to check for an existing avatar
+    const currentUser = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { avatarKey: true },
+    });
+
+    try {
+      // Upload the new file to MinIO
+      newBucketKey = await this.storage.uploadFile(file, bucket);
+
+      // Update the database with the new key
+      const updatedUser = await this.prisma.user.update({
+        where: { id: userId },
+        data: { avatarKey: newBucketKey },
+        include: { attending: true },
+      });
+
+      // Cleanup: If there was an old avatar, delete it from MinIO
+      if (currentUser?.avatarKey && currentUser.avatarKey !== newBucketKey) {
+        try {
+          await this.storage.deleteFile(currentUser.avatarKey, bucket);
+        } catch (error) {
+          console.error(`Failed to cleanup old avatar: ${currentUser.avatarKey}`, error);
+        }
+      }
+      return updatedUser;
+    } catch (error) {
+      // ROLLBACKL: If file uploaded, but DP update failed, delete orphaned file
+      if (newBucketKey) {
+        console.warn(`DB Update failed. Rolling back storage: deleting ${newBucketKey}`);
+        await this.storage.deleteFile(newBucketKey, bucket);
+      }
+      throw error;
+    }
+  }
+
+  async userAttend(id: number, data: ReqUserAttendDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: id } });
+    if (!user) throw new NotFoundException(`User with id ${String(id)} not found`);
+
+    const event = await this.eventService.eventExists(data.attending);
+    if (!event) {
+      throw new NotFoundException(`Event with id ${String(data.attending)} not found`);
+    }
+
+    const attendingIds: number[] = Array.isArray(data.attending)
+      ? data.attending
+      : [data.attending];
+
+    return this.prisma.user.update({
+      where: { id },
+      data: {
+        attending: {
+          connect: attendingIds.map((id) => ({ id })),
+        },
+      },
+      include: {
+        attending: true,
+      },
     });
   }
 }
