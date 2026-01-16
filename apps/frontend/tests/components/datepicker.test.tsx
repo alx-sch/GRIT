@@ -2,7 +2,6 @@ import { DatePicker } from '@/components/ui/datepicker';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { click } from '@testing-library/user-event/dist/cjs/convenience/click.js';
-import { C } from 'node_modules/react-router/dist/development/index-react-server-client-P7VgYu6T.mjs';
 import { vi } from 'vitest';
 import { within } from '@testing-library/react';
 

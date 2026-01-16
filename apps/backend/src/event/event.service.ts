@@ -49,9 +49,6 @@ export class EventService {
       orderBy: {
         startAt: 'asc',
       },
-      orderBy: {
-        startAt: 'asc',
-      },
     });
   }
 

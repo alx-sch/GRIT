@@ -4,7 +4,7 @@ import { EventCard } from '@/pages/events/components/EventCard';
 import { Event } from '@/types/event';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { LoaderFunctionArgs, useSearchParams } from 'react-router';
+import { LoaderFunctionArgs, useSearchParams } from 'react-router-dom';
 import { eventService } from '@/services/eventService';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { DatePicker } from '@/components/ui/datepicker';

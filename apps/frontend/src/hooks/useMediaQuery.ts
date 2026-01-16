@@ -1,4 +1,3 @@
-import { C } from 'node_modules/react-router/dist/development/index-react-server-client-P7VgYu6T.mjs';
 import { useEffect, useState } from 'react';
 
 export function useMediaQuery(query: string): boolean {
