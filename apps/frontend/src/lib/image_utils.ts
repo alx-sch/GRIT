@@ -1,4 +1,12 @@
 import { Event } from '@/types/event';
+import { env } from '@/config/env';
+
+export function getEventImageUrl(event: Event): string {
+  if (!event.imageKey) {
+    return generateImagePlaceholderEvent(event);
+  }
+  return `${env.VITE_MINIO_URL}/event-images/${event.imageKey}`;
+}
 
 export function generateImagePlaceholderEvent(event: Event) {
   const colors = ['oklch(0.68 0.22 45)', 'oklch(0 0 0)', 'oklch(0.4 0 0)'];

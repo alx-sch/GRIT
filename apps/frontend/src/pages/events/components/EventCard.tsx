@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/typography';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Event } from '@/types/event';
-import { generateImagePlaceholderEvent } from '@/lib/imageGenerator';
+import { getEventImageUrl } from '@/lib/image_utils';
 import { User } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -23,7 +23,7 @@ export function EventCard({ event }: EventCardProps) {
     <Card className="w-full flex flex-col rounded border-3 mx-auto hover:-translate-y-1 transition-transform duration-200 max-w-100">
       <CardHeader>
         <img
-          src={event.imageKey ?? generateImagePlaceholderEvent(event)}
+          src={getEventImageUrl(event)}
           alt={event.title}
           className="w-full aspect-square object-cover"
         />
