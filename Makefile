@@ -1,11 +1,12 @@
 NAME :=				grit
 
-BACKUP_FOLDER :=	backups
 BACKEND_FOLDER :=	apps/backend
 FRONTEND_FOLDER :=	apps/frontend
 
-PROJECT_ROOT := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-export PATH := $(PROJECT_ROOT)/node_modules/.bin:$(PATH)
+TIMESTAMP :=	$(shell date +%Y%m%d_%H%M%S)
+
+PROJECT_ROOT :=	$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+export PATH :=	$(PROJECT_ROOT)/node_modules/.bin:$(PATH)
 
 # ---------------------------------------------------
 # FORMATTING CONSTANTS
@@ -34,6 +35,8 @@ ENV_EXMPL :=	.env.example
 # Export all variables to shell commands
 export
 
+BACKUP_NAME :=	$(APP_NAME)_backups
+
 # ---------------------------------------------------
 # DOCKER COMPOSE / DEPLOYMENT
 # ---------------------------------------------------
@@ -49,7 +52,9 @@ DC :=	docker compose -f $(DOCKER_COMP_FILE) -p $(NAME)
 # ---------------------------------------------------
 
 VOLUMES :=		caddy_data \
-				caddy_config
+				caddy_config \
+				db_data \
+				s3_data
 
 PREF_VOLUMES :=	$(foreach v,$(VOLUMES),$(NAME)_$(v))
 
@@ -127,9 +132,8 @@ stop-dev-processes:
 # Cleans all generated files (installed 'node_modules', 'dist' folders etc.)
 clean: stop-dev-processes
 	@echo "$(BOLD)$(YELLOW)--- Cleaning Up Project...$(RESET)"
-	rm -rf $(BACKEND_FOLDER)/src/generated
-	pnpm -r exec rm -rf dist .vite .turbo node_modules
-	rm -rf node_modules
+	pnpm -r exec rm -rf dist .vite node_modules
+	rm -rf node_modules .turbo
 	find . -name "*.tsbuildinfo" -type f -delete
 	@echo "$(BOLD)$(GREEN)Project cleaned up.$(RESET)"
 
@@ -142,7 +146,7 @@ clean-db:
 # Removes the local backup folder
 clean-backup:
 	@echo "$(BOLD)$(RED)--- Deleting Backup Folder...$(RESET)"
-	rm -rf $(BACKUP_FOLDER)
+	rm -rf $(BACKUP_NAME)*
 	@echo "$(GREEN)$(BOLD)Backup folder deleted.$(RESET)"
 
 # Cleans everything related to this project: builds, node_modules, DB container, volumes, backups:
@@ -273,7 +277,7 @@ test-fe:
 	@$(MAKE) --no-print-directory test-fe-integration
 	#@$(MAKE) --no-print-directory test-fe-e2e
 
-# Helpter
+# Helper
 test-fe-integration: install-fe
 	@echo "$(BOLD)$(YELLOW)--- Running Frontend Integration Tests ...$(RESET)"
 	@NODE_ENV=test turbo test:integration --filter=@grit/frontend
@@ -377,7 +381,8 @@ vol-ls:
 	@for vol in $(PREF_VOLUMES); do \
 		if docker volume inspect $$vol >/dev/null 2>&1; then \
 			echo "$(YELLOW)$(BOLD)Contents of $$vol: $(RESET)"; \
-			docker run --rm -v $$vol:/data alpine ls -R /data 2>/dev/null; \
+			docker run --rm -v $$vol:/data alpine sh -c \
+				"ls -R /data | awk 'NR <= 20 { print } END { if (NR > 20) print \"[...] \" }'" 2>/dev/null; \
 			echo ""; \
 		else \
 			echo "Volume $(BOLD)'$$vol'$(RESET) does not exist."; \
@@ -398,25 +403,52 @@ vol-inspect:
 
 vol-backup:
 	@echo "$(BOLD)$(YELLOW)--- Backing Up Docker Volumes...$(RESET)"
+	$(eval BACKUP_PATH := $(BACKUP_NAME)/$(BACKUP_NAME)_$(TIMESTAMP))
+	@mkdir -p $(BACKUP_PATH)
 	@for vol in $(PREF_VOLUMES); do \
 		if docker volume inspect $$vol >/dev/null 2>&1; then \
-			mkdir -p $(BACKUP_FOLDER); \
-			echo "Backing up '$$vol' to '$(BACKUP_FOLDER)/$$vol.tar.gz'"; \
-			docker run --rm -v $$vol:/data -v $$(pwd)/$(BACKUP_FOLDER):/backup alpine sh -c "cd /data && tar czf /backup/$$vol.tar.gz ."; \
+			echo "Backing up '$$vol' to '$(BOLD)$(BACKUP_PATH)/$$vol.tar.gz$(RESET)'"; \
+			docker run --rm \
+				-v $$vol:/data \
+				-v $$(pwd)/$(BACKUP_PATH):/backup \
+				alpine sh -c "cd /data && tar czf /backup/$$vol.tar.gz ."; \
 		else \
 			echo "Volume $(BOLD)'$$vol'$(RESET) does not exist."; \
 		fi; \
 	done
+	@echo "$(BOLD)$(GREEN)All volumes backed up to: $(BACKUP_PATH)$(RESET)"
 
 # Restores volumes from local backups, overwriting existing data
+# Uses the newest backup found
 vol-restore:
-	@echo "$(BOLD)$(YELLOW)--- Restoring Docker Volumes from Backups...$(RESET)"
-	@for vol in $(PREF_VOLUMES); do \
-		if [ -f "$(BACKUP_FOLDER)/$$vol.tar.gz" ]; then \
-			echo "Restoring '$$vol' from '$(BACKUP_FOLDER)/$$vol.tar.gz'"; \
-			docker run --rm -v $$vol:/data -v $$(pwd)/$(BACKUP_FOLDER):/backup alpine sh -c "cd /data && tar xzf /backup/$$vol.tar.gz"; \
+	@echo "$(BOLD)$(YELLOW)--- Restoring Docker Volumes from Newest Backup...$(RESET)"
+	$(eval LATEST_BACKUP := $(shell ls $(BACKUP_NAME) | tail -n 1))
+	@if [ -z "$(LATEST_BACKUP)" ]; then \
+		echo "$(RED)No backup folders found.$(RESET)"; \
+		exit 1; \
+	fi; \
+	$(eval LATEST_BACKUP_FOLDER := $(BACKUP_NAME)/$(LATEST_BACKUP))
+	@echo "$(BLUE)Found latest backup folder: $(BOLD)$(LATEST_BACKUP_FOLDER).$(RESET)"; \
+	for vol in $(PREF_VOLUMES); do \
+		BACKUP_FILE="$(LATEST_BACKUP_FOLDER)/$$vol.tar.gz"; \
+		if [ -f "$$BACKUP_FILE" ]; then \
+			printf "$(BLUE)Checking volume '$$vol'...$(RESET)\n"; \
+			EXISTING_DATA=$$(docker run --rm -v $$vol:/data alpine sh -c "ls -A /data"); \
+			if [ ! -z "$$EXISTING_DATA" ]; then \
+				printf "$(RED)$(BOLD)⚠️  WARNING:$(RESET) Volume '$(YELLOW)$$vol$(RESET)' is NOT empty.\n"; \
+				printf "Restoring will $(RED)DELETE ALL EXISTING DATA$(RESET) in this volume.\n"; \
+				printf "Are you sure you want to proceed? [y/N] "; \
+				read confirm < /dev/tty; \
+				if [ "$$confirm" != "y" ] && [ "$$confirm" != "Y" ]; then \
+					echo "Skipping $$vol..."; \
+					continue; \
+				fi; \
+			fi; \
+			echo "Restoring '$$vol' from '$$BACKUP_FILE'..."; \
+			docker run --rm -v $$vol:/data -v $$(pwd)/$(LATEST_BACKUP_FOLDER):/backup alpine sh -c "rm -rf /data/* && cd /data && tar xzf /backup/$$vol.tar.gz"; \
+			echo "$(GREEN)✅ $$vol restored successfully.$(RESET)"; \
 		else \
-			echo "$(RED)Backup for volume '$$vol' does not exist.$(RESET)"; \
+			echo "$(RED)Backup file '$$BACKUP_FILE' does not exist in the latest backup folder.$(RESET)"; \
 		fi; \
 	done
 
