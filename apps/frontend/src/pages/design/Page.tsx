@@ -9,9 +9,15 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Heading, Text, Caption } from '@/components/ui/typography';
+import { Calendar } from '@/components/ui/calendar';
+import { DatePicker } from '@/components/ui/datepicker';
+import { DateRange } from 'react-day-picker';
 
 export default function Design() {
   const [isLoading, setIsLoading] = useState(false);
+
+  const [selectedDateRange, setSelectedDateRange] = useState<DateRange | undefined>(undefined);
+  const handleDateSelect = (date: DateRange | undefined) => setSelectedDateRange(date);
 
   const handleToast = () => {
     toast.success('Event Created', {
@@ -125,6 +131,21 @@ export default function Design() {
                 <Input placeholder="Search..." className="max-w-50" />
                 <Button>Search</Button>
               </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-8 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Calendar - Date Picker</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-4">
+              <DatePicker
+                selected={selectedDateRange}
+                onSelect={handleDateSelect}
+                placeholder="Pick a date"
+              ></DatePicker>
             </CardContent>
           </Card>
         </div>

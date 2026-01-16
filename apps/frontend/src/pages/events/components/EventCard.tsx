@@ -10,9 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/typography';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Event } from '@/types/event';
-import { formatDate } from '@/lib/utils';
-import { generateImagePlaceholderEvent } from '@/lib/imageGenerator';
+import { getEventImageUrl } from '@/lib/image_utils';
 import { User } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface EventCardProps {
   event: Event;
@@ -23,7 +23,7 @@ export function EventCard({ event }: EventCardProps) {
     <Card className="w-full flex flex-col rounded border-3 mx-auto hover:-translate-y-1 transition-transform duration-200 max-w-100">
       <CardHeader>
         <img
-          src={event.imageURL ?? generateImagePlaceholderEvent(event)}
+          src={getEventImageUrl(event)}
           alt={event.title}
           className="w-full aspect-square object-cover"
         />
@@ -33,12 +33,14 @@ export function EventCard({ event }: EventCardProps) {
           {event.title}
         </CardTitle>
         <CardDescription className="font-heading font-medium text-xl">
-          {formatDate(event.startAt)} @ {event.location}
+          {format(event.startAt, 'EEE, MMM d')} @ {event.location?.name ?? 'TBA'}
         </CardDescription>
         <div className="flex items-center gap-2 text-base font-normal text-muted-foreground">
           <User className="h-5 w-5 text-primary" strokeWidth={2} />
           <Text>
-            {event.interestedCount > 0 ? event.interestedCount.toLocaleString() : 'Be the first'}
+            {event.attending && event.attending.length > 0
+              ? event.attending.length.toLocaleString()
+              : 'Be the first'}
           </Text>
         </div>
       </CardContent>
@@ -54,9 +56,9 @@ export function EventCard({ event }: EventCardProps) {
                   className="h-8 w-8 border-2 border-background bg-muted"
                   style={{ zIndex: 3 - index }}
                 >
-                  <AvatarImage seed={friend} />
+                  <AvatarImage seed={friend.name} />
 
-                  <AvatarFallback>{friend[0]}</AvatarFallback>
+                  <AvatarFallback>{friend.name[0]}</AvatarFallback>
                 </Avatar>
               ))}
             </div>

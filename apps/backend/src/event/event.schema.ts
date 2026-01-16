@@ -37,6 +37,7 @@ export const ResEventBaseSchema = z.object({
   content: z.string().nullable(),
   createdAt: z.date(),
   endAt: z.date().nullable(),
+  imageKey: z.string().nullable(),
   isPublished: z.boolean(),
   isPublic: z.boolean(),
   startAt: z.date().nullable(),
