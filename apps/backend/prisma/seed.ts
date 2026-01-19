@@ -105,7 +105,8 @@ async function uploadToBucket(bucketName: string, localFilePath: string, origina
         ContentType: 'image/jpeg',
       })
     );
-    console.log(`⬆️  Uploaded: ${s3Key} (Bucket: ${bucketName})`);
+    const fileName = path.basename(localFilePath);
+    console.log(`⬆️  Uploaded: ${fileName} (Bucket: ${bucketName})`);
     return s3Key;
   } catch (error) {
     console.error(`❌ Upload failed for ${s3Key}:`, error);
@@ -126,13 +127,14 @@ async function main() {
   // USER SEEDING //
   //////////////////
 
+  console.log('--- Seeding Users ---');
+
   const usersToCreate = [
     { email: 'alice@example.com', name: 'Alice', image: 'avatar-1.jpg' },
     { email: 'bob@example.com', name: 'Bob', image: 'avatar-2.jpg' },
     { email: 'cindy@example.com', name: 'Cindy', image: null },
   ];
 
-  console.log('--- Seeding Users ---');
   // upsert: "Update or Insert" - prevents errors if the user already exists
   for (const u of usersToCreate) {
     // Create User in DB
@@ -163,14 +165,59 @@ async function main() {
     }
   }
 
+  //////////////////////
+  // LOCATION SEEDING //
+  //////////////////////
+
+  console.log('--- Seeding Locations ---');
+
+  const seedUser = await prisma.user.findFirst();
+  if (!seedUser) {
+    throw new Error('Cannot seed locations without at least one user in the DB.');
+  }
+
+  const locationsToCreate = [
+    {
+      name: 'GRIT HQ',
+      city: 'Berlin',
+      country: 'Germany',
+      longitude: 13.4482509,
+      latitude: 52.485021,
+      authorId: seedUser.id,
+      isPublic: true,
+    },
+  ];
+
+  let gritHqId = 0;
+
+  for (const loc of locationsToCreate) {
+    const existing = await prisma.location.findFirst({
+      where: { name: loc.name },
+    });
+
+    if (!existing) {
+      const createdLoc = await prisma.location.create({
+        data: loc,
+      });
+      console.log(`📍 Created Location: ${createdLoc.name ?? 'Unknown Location'} `);
+      if (loc.name === 'GRIT HQ') gritHqId = createdLoc.id;
+    } else {
+      console.log(`⏩ Location '${loc.name}' already exists. Skipping.`);
+      if (loc.name === 'GRIT HQ') gritHqId = existing.id;
+    }
+  }
+
   ///////////////////
   // EVENT SEEDING //
   ///////////////////
+
+  console.log('--- Seeding Events ---');
 
   const eventsToCreate = [
     {
       title: 'Grit Launch Party',
       authorId: 2,
+      locationId: gritHqId,
       content: 'Celebrating the first release of our app!',
       isPublic: true,
       isPublished: true,
@@ -188,8 +235,6 @@ async function main() {
     },
   ];
 
-  console.log('--- Seeding Events ---');
-
   for (const e of eventsToCreate) {
     // Simple check to avoid duplicates if seed run twice
     const existing = await prisma.event.findFirst({
@@ -201,15 +246,30 @@ async function main() {
       console.log(`📅 Created Event: ${e.title} for User ${String(e.authorId)}`);
     }
   }
+
+  ////////////////////////
+  // ATTENDANCE SEEDING //
+  ////////////////////////
+
+  const aliceFromDb = await prisma.user.findUnique({ where: { email: 'alice@example.com' } });
+  const party = await prisma.event.findFirst({ where: { title: 'Grit Launch Party' } });
+
+  if (aliceFromDb && party) {
+    await prisma.user.update({
+      where: { id: aliceFromDb.id },
+      data: {
+        attending: { connect: { id: party.id } },
+      },
+    });
+    console.log(`✅ Alice is now attending the Party`);
+  }
 }
 
 main()
-  // Successfully finished, close the connection
   .then(async () => {
     await prisma.$disconnect();
     await pool.end();
   })
-  // Handle errors and ensure connection closes even on failure
   .catch(async (e: unknown) => {
     console.error(e);
     await prisma.$disconnect();

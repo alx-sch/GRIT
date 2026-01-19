@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { EventService } from '../event.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { NotFoundException } from '@nestjs/common';
+import { LocationService } from '@/location/location.service';
 
 describe('Event / Service / Unit Tests', () => {
   const prismaServiceMock = {
@@ -17,10 +18,8 @@ describe('Event / Service / Unit Tests', () => {
       controllers: [],
       providers: [
         EventService,
-        {
-          provide: PrismaService,
-          useValue: prismaServiceMock,
-        },
+        LocationService,
+        { provide: PrismaService, useValue: prismaServiceMock },
       ],
     }).compile();
     testEventService = moduleRef.get<EventService>(EventService);

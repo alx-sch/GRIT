@@ -1,9 +1,11 @@
+import { ResUserAttendSchema, ReqUserAttendDto, ReqUserGetByIdDto } from './user.schema';
 import {
   Body,
   Controller,
   Get,
   Post,
   Patch,
+  Param,
   UseInterceptors,
   UploadedFile,
   ParseFilePipe,
@@ -20,16 +22,25 @@ import { ApiConsumes, ApiBody } from '@nestjs/swagger';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  // Get all users
   @Get()
   @ZodSerializerDto([ResUserBaseDto])
   userGetAll() {
     return this.userService.userGet();
   }
 
+  // Create new user
   @Post()
   @ZodSerializerDto(ResUserPostDto)
   userPost(@Body() data: ReqUserPostDto): Promise<ResUserPostDto> {
     return this.userService.userPost(data);
+  }
+
+  // User attend event
+  @Patch(':id')
+  @ZodSerializerDto(ResUserAttendSchema)
+  userAttend(@Body() data: ReqUserAttendDto, @Param() param: ReqUserGetByIdDto) {
+    return this.userService.userAttend(param.id, data);
   }
 
   // ADD IMAGE UPLOAD ROUTINE
@@ -50,14 +61,14 @@ export class UserController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 5 }), // 5MB Limit
+          new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 5 }),
           new FileTypeValidator({ fileType: 'image/*' }),
         ],
       })
     )
     file: Express.Multer.File
   ): Promise<ResUserBaseDto> {
-    const userId = 1; // temp placeholder. GetUser decorator used here before
+    const userId = 1;
     console.log('File received:', file.originalname);
     return await this.userService.userUpdateAvatar(userId, file);
   }

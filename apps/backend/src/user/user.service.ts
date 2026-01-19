@@ -1,17 +1,28 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { ReqUserPostDto, ResUserPostDto, ResUserBaseDto } from './user.schema';
+import { EventService } from '@/event/event.service';
+import {
+  ReqUserPostDto,
+  ResUserPostDto,
+  ResUserBaseDto,
+  ReqUserAttendDto,
+} from '@/user/user.schema';
 import { StorageService } from '@/storage/storage.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private prisma: PrismaService,
+    private eventService: EventService,
     private storage: StorageService
   ) {}
 
   async userGet(): Promise<ResUserBaseDto[]> {
-    return await this.prisma.user.findMany();
+    return await this.prisma.user.findMany({
+      include: {
+        attending: true,
+      },
+    });
   }
 
   async userPost(data: ReqUserPostDto): Promise<ResUserPostDto> {
@@ -20,6 +31,9 @@ export class UserService {
         name: data.name,
         email: data.email,
         avatarKey: data.avatarKey,
+      },
+      include: {
+        attending: true,
       },
     });
     return user;
@@ -43,6 +57,7 @@ export class UserService {
       const updatedUser = await this.prisma.user.update({
         where: { id: userId },
         data: { avatarKey: newBucketKey },
+        include: { attending: true },
       });
 
       // Cleanup: If there was an old avatar, delete it from MinIO
@@ -62,5 +77,31 @@ export class UserService {
       }
       throw error;
     }
+  }
+
+  async userAttend(id: number, data: ReqUserAttendDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: id } });
+    if (!user) throw new NotFoundException(`User with id ${String(id)} not found`);
+
+    const event = await this.eventService.eventExists(data.attending);
+    if (!event) {
+      throw new NotFoundException(`Event with id ${String(data.attending)} not found`);
+    }
+
+    const attendingIds: number[] = Array.isArray(data.attending)
+      ? data.attending
+      : [data.attending];
+
+    return this.prisma.user.update({
+      where: { id },
+      data: {
+        attending: {
+          connect: attendingIds.map((id) => ({ id })),
+        },
+      },
+      include: {
+        attending: true,
+      },
+    });
   }
 }
