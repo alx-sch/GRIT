@@ -103,13 +103,13 @@ describe('Event Feed Page', () => {
       // Filter by search
       if (params?.search) {
         filtered = filtered.filter((event) =>
-          event.title.toLowerCase().includes(params.search!.toLowerCase())
+          event.title.toLowerCase().includes(params.search.toLowerCase())
         );
       }
 
       // Filter by date
       if (params?.startFrom) {
-        filtered = filtered.filter((event) => event.startAt >= params.startFrom!);
+        filtered = filtered.filter((event) => event.startAt >= params.startFrom);
       }
 
       return Promise.resolve(filtered);
@@ -209,7 +209,9 @@ describe('Event Feed Page', () => {
       });
 
       const images = screen.getAllByRole('img');
-      const partyImage = images.find((img) => img.getAttribute('alt') === 'MEGA SUPER DUPER COOL PARTY');
+      const partyImage = images.find(
+        (img) => img.getAttribute('alt') === 'MEGA SUPER DUPER COOL PARTY'
+      );
       expect(partyImage).toHaveAttribute('src', 'http://test-minio/party-image.jpg');
     });
 
@@ -266,7 +268,7 @@ describe('Event Feed Page', () => {
 
       render(<RouterProvider router={router} />);
 
-      const searchInput = (await screen.findByPlaceholderText('Search events...')) as HTMLInputElement;
+      const searchInput = await screen.findByPlaceholderText('Search events...');
       expect(searchInput.value).toBe('beer');
     });
   });
@@ -290,7 +292,7 @@ describe('Event Feed Page', () => {
       vi.clearAllMocks();
 
       // Navigate to URL with date params
-      router.navigate('/events?start_from=2026-01-15&start_until=2026-01-20');
+      await router.navigate('/events?start_from=2026-01-15&start_until=2026-01-20');
 
       // Wait for navigation to complete
       await waitFor(() => {
@@ -329,7 +331,7 @@ describe('Event Feed Page', () => {
       });
 
       // Navigate with filters
-      router.navigate('/events?search=nonexistent&start_from=2027-01-28');
+      await router.navigate('/events?search=nonexistent&start_from=2027-01-28');
 
       await waitFor(() => {
         expect(router.state.location.search).toContain('search=nonexistent');

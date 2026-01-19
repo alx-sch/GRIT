@@ -15,9 +15,9 @@ import { useState, useEffect } from 'react';
 
 export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
-  const search = url.searchParams.get('search') || undefined;
-  const startFrom = url.searchParams.get('start_from') || undefined;
-  const startUntil = url.searchParams.get('start_until') || undefined;
+  const search = url.searchParams.get('search') ?? undefined;
+  const startFrom = url.searchParams.get('start_from') ?? undefined;
+  const startUntil = url.searchParams.get('start_until') ?? undefined;
 
   return eventService.getEvents({ search, startFrom, startUntil });
 };
@@ -26,7 +26,7 @@ export default function EventFeed() {
   const events = useTypedLoaderData<Event[]>();
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
+  const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '');
 
   const debouncedSearch = useDebounce(searchInput, 500);
 

@@ -21,12 +21,7 @@ export function DatePicker({ selected, onSelect, placeholder }: DatePickerProps)
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   const trigger = (
-    <Button
-      variant="outline"
-      className={cn(
-        'border-2 border-border rounded-none h-12 px',
-      )}
-    >
+    <Button variant="outline" className={cn('border-2 border-border rounded-none h-12 px')}>
       {selected?.from ? (
         <span>
           {isMobile
@@ -67,7 +62,13 @@ export function DatePicker({ selected, onSelect, placeholder }: DatePickerProps)
         <DrawerContent className="flex flex flex-col items-center p-2 pb-8">
           <div className="flex justify-center w-full">{calendar}</div>
           <div className="w-full flex justify-end mt-4 px-2">
-            <Button onClick={() => setOpen(false)} disabled={!selected?.from} variant="secondary">
+            <Button
+              onClick={() => {
+                setOpen(false);
+              }}
+              disabled={!selected?.from}
+              variant="secondary"
+            >
               Select
             </Button>
           </div>

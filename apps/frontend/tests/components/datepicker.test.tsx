@@ -1,13 +1,12 @@
 import { DatePicker } from '@/components/ui/datepicker';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { click } from '@testing-library/user-event/dist/cjs/convenience/click.js';
 import { vi } from 'vitest';
 import { within } from '@testing-library/react';
 
 describe('Date-Picker - Desktop', () => {
   beforeEach(() => {
-    window.matchMedia = vi.fn().mockImplementation((query) => ({
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
       matches: query !== 'max-width: 768px',
       media: query,
       onchange: null,
@@ -21,14 +20,14 @@ describe('Date-Picker - Desktop', () => {
     const user = userEvent.setup();
     render(<DatePicker selected={undefined} onSelect={vi.fn()} />);
     const button = screen.getByRole('button');
-    userEvent.click(button);
+    await user.click(button);
 
     await waitFor(() => {
       expect(screen.getByRole('grid')).toBeInTheDocument();
     });
   });
 
-  it('displays selected date in button text', async () => {
+  it('displays selected date in button text', () => {
     const selectedDate = {
       from: new Date('2026-01-15'),
       to: new Date('2026-01-20'),
@@ -43,28 +42,28 @@ describe('Date-Picker - Desktop', () => {
 
 describe('Date-Picker - Mobile', () => {
   beforeEach(() => {
-    window.matchMedia = ((query: string) => ({
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
       matches: query === '(max-width: 768px)',
       media: query,
       onchange: null,
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
       dispatchEvent: vi.fn(),
-    })) as any;
+    })) as typeof window.matchMedia;
   });
 
   it('renders drawer on mobile', async () => {
     const user = userEvent.setup();
     render(<DatePicker selected={undefined} onSelect={vi.fn()} />);
     const button = screen.getByRole('button');
-    userEvent.click(button);
+    await user.click(button);
 
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
   });
 
-  it('displays single date when only from is selected', async () => {
+  it('displays single date when only from is selected', () => {
     const selectedDate = {
       from: new Date('2026-01-15'),
     };
