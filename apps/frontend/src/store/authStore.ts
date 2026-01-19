@@ -1,19 +1,21 @@
 import { create } from 'zustand';
 
 type AuthState = {
+  isLoggedIn: boolean;
   token: string | null;
-  login: (token: string) => void;
-  logout: () => void;
+  storeToken: (token: string) => void;
+  removeToken: () => void;
 };
 
 export const useAuthStore = create<AuthState>((set) => ({
+  isLoggedIn: !!localStorage.getItem('token'),
   token: localStorage.getItem('token'),
-  login: (token) => {
+  storeToken: (token) => {
     localStorage.setItem('token', token);
-    set({ token });
+    set({ token: token, isLoggedIn: true });
   },
-  logout: () => {
+  removeToken: () => {
     localStorage.removeItem('token');
-    set({ token: null });
+    set({ token: null, isLoggedIn: false });
   },
 }));

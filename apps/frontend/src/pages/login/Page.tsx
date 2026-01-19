@@ -18,7 +18,7 @@ export async function loginPageAction({ request }: { request: Request }) {
   };
 
   // TODO Implement real request once backend works. Use Axios instead maybe?
-  // const res = await fetch('http://localhost:3001/api/auth/login', {
+  // const res = await fetch('http://localhost:3000/api/auth/login', {
   //   method: 'POST',
   //   headers: {
   //     'Content-Type': 'application/json',
@@ -26,10 +26,10 @@ export async function loginPageAction({ request }: { request: Request }) {
   //   body: JSON.stringify(reqBody),
   // });
 
-  // ---- FAKE RESPONSE ----
   // fake latency
   await new Promise((r) => setTimeout(r, 500));
   let res;
+  // fake response
   if (reqBody.email === 'test@example.com' && reqBody.password === 'password') {
     res = new Response(JSON.stringify({ token: 'fake-jwt-token' }), {
       status: 200,
@@ -57,9 +57,14 @@ export async function loginPageAction({ request }: { request: Request }) {
   }
   const data = await res.json();
   toast.success('Logged In', {});
-  useAuthStore.getState().login(data.token);
+  useAuthStore.getState().storeToken(data.token);
   return redirect('/');
 }
+
+export const loginPageLoader = () => {
+  if (useAuthStore.getState().isLoggedIn) return redirect('/');
+  return null;
+};
 
 export const LoginPage = () => {
   // Allows us to change the style and text of the button

@@ -5,9 +5,11 @@ import ErrorPage from '@/pages/error/Page';
 import EventFeed from '@/pages/events/Page';
 import { createBrowserRouter } from 'react-router-dom';
 import { DefaultLayout } from '@/components/layout/DefaultLayout';
-import { LoginPage, loginPageAction } from '@/pages/login/Page';
+import { LoginPage, loginPageAction, loginPageLoader } from '@/pages/login/Page';
 import type { NavRoute } from './types/navroute';
 import { LogoutPage, logoutPageLoader } from './pages/logout/Page';
+import { ProtectedLayout, protectedLayoutLoader } from './components/layout/ProtectedLayout';
+import { CreateEventPage } from './pages/create/event/Page';
 
 // NOTE: let's define single source of truth for our routes here
 export const baseNavConfig: NavRoute[] = [
@@ -47,11 +49,23 @@ export const router = createBrowserRouter([
         path: 'login',
         Component: LoginPage,
         action: loginPageAction,
+        loader: loginPageLoader,
       },
       {
         path: 'logout',
         Component: LogoutPage,
         loader: logoutPageLoader,
+      },
+      {
+        path: 'create',
+        Component: ProtectedLayout,
+        loader: protectedLayoutLoader,
+        children: [
+          {
+            path: 'event',
+            Component: CreateEventPage,
+          },
+        ],
       },
     ],
   },

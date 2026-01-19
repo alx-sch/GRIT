@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 
 export async function logoutPageLoader() {
   toast.success('You are logged out', {});
-  useAuthStore.getState().logout();
+  useAuthStore.getState().removeToken();
   return redirect('/');
 }
 
