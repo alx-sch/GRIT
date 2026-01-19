@@ -1,22 +1,24 @@
-import { ResUserAttendSchema, ReqUserAttendDto, ReqUserGetByIdDto } from './user.schema';
+import { ResUserAttendSchema, ReqUserAttendDto } from './user.schema';
 import {
   Body,
   Controller,
   Get,
   Post,
   Patch,
-  Param,
   UseInterceptors,
   UploadedFile,
   ParseFilePipe,
   MaxFileSizeValidator,
   FileTypeValidator,
+  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ResUserBaseDto, ResUserPostDto, ReqUserPostDto } from '@/user/user.schema';
 import { UserService } from '@/user/user.service';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { ApiConsumes, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { GetUser } from '@/auth/guards/get-user.decorator';
 
 @Controller('users')
 export class UserController {
@@ -37,14 +39,18 @@ export class UserController {
   }
 
   // User attend event
-  @Patch(':id')
+  @Patch('attend')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResUserAttendSchema)
-  userAttend(@Body() data: ReqUserAttendDto, @Param() param: ReqUserGetByIdDto) {
-    return this.userService.userAttend(param.id, data);
+  userAttend(@Body() data: ReqUserAttendDto, @GetUser('id') userId: number) {
+    return this.userService.userAttend(userId, data);
   }
 
   // ADD IMAGE UPLOAD ROUTINE
   @Patch('me/avatar')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResUserBaseDto)
   @ApiConsumes('multipart/form-data') // to send raw image file; not json
   @ApiBody({
@@ -58,6 +64,7 @@ export class UserController {
   })
   @UseInterceptors(FileInterceptor('file'))
   async uploadAvatar(
+    @GetUser('id') userId: number,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -68,7 +75,6 @@ export class UserController {
     )
     file: Express.Multer.File
   ): Promise<ResUserBaseDto> {
-    const userId = 1;
     console.log('File received:', file.originalname);
     return await this.userService.userUpdateAvatar(userId, file);
   }

@@ -132,8 +132,7 @@ stop-dev-processes:
 # Cleans all generated files (installed 'node_modules', 'dist' folders etc.)
 clean: stop-dev-processes
 	@echo "$(BOLD)$(YELLOW)--- Cleaning Up Project...$(RESET)"
-	pnpm -r exec rm -rf dist .vite node_modules
-	rm -rf node_modules .turbo
+	pnpm -r exec rm -rf dist .vite node_modules .turbo
 	find . -name "*.tsbuildinfo" -type f -delete
 	@echo "$(BOLD)$(GREEN)Project cleaned up.$(RESET)"
 
@@ -218,7 +217,7 @@ lint-fix: install
 	@turbo lint:fix;
 	@echo "$(BOLD)$(GREEN)Linting complete.$(RESET)"
 
-format: install
+format: install clean
 	@echo "$(BOLD)$(YELLOW)--- Formating...$(RESET)"
 	pnpm run format;
 	@echo "$(BOLD)$(GREEN)Formating complete.$(RESET)"
@@ -315,7 +314,7 @@ db: start-postgres start-minio
 # Helper: Starts the postgres container service
 start-postgres: install-be
 	@echo "$(BOLD)$(YELLOW)--- Starting Postgres [DOCKER]...$(RESET)"
-	@$(DC) up -d postgres-db
+	@$(DC) up -d postgres-db --no-build
 	@echo "$(BOLD)$(YELLOW)--- Waiting for Postgres to wake up...$(RESET)"
 	@RETRIES=10; \
 	PG_CONTAINER=$$($(DC) ps -q postgres-db); \
@@ -336,7 +335,7 @@ start-postgres: install-be
 # Helper: Starts the postgres container service
 start-minio: install-be
 	@echo "$(BOLD)$(YELLOW)--- Starting MinIO [DOCKER]...$(RESET)"
-	@$(DC) up -d minio
+	@$(DC) up -d minio --no-build
 	@echo "$(BOLD)$(YELLOW)--- Waiting for MinIO to wake up...$(RESET)"
 	@RETRIES=10; \
 	MINIO_CONTAINER=$$($(DC) ps -q minio); \

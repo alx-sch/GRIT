@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { env } from '@/config/env';
+import { UserService } from '@/user/user.service';
 
 /**
  * JWT STRATEGY
@@ -27,7 +28,7 @@ interface JwtPayload {
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  constructor() {
+  constructor(private readonly userService: UserService) {
     super({
       // Look for the token in the "Authorization: Bearer <token>" header
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -36,8 +37,14 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  // If the token is valid, this function runs
-  validate(payload: JwtPayload) {
-    return { id: payload.sub, email: payload.email };
+  // If the token is valid, this function runs. Verifies if user (still) exists in DB before allowing request to proceed.
+  async validate(payload: JwtPayload) {
+    const user = await this.userService.userGetById(payload.sub);
+
+    if (!user) {
+      throw new UnauthorizedException('User does not exist');
+    }
+
+    return user;
   }
 }
