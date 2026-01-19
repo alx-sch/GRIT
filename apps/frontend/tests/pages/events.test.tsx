@@ -102,14 +102,16 @@ describe('Event Feed Page', () => {
 
       // Filter by search
       if (params?.search) {
+        const search = params.search;
         filtered = filtered.filter((event) =>
-          event.title.toLowerCase().includes(params.search.toLowerCase())
+          event.title.toLowerCase().includes(search.toLowerCase())
         );
       }
 
       // Filter by date
       if (params?.startFrom) {
-        filtered = filtered.filter((event) => event.startAt >= params.startFrom);
+        const startFrom = params.startFrom;
+        filtered = filtered.filter((event) => event.startAt >= startFrom);
       }
 
       return Promise.resolve(filtered);
@@ -269,7 +271,7 @@ describe('Event Feed Page', () => {
       render(<RouterProvider router={router} />);
 
       const searchInput = await screen.findByPlaceholderText('Search events...');
-      expect(searchInput.value).toBe('beer');
+      expect(searchInput).toHaveValue('beer');
     });
   });
 
