@@ -49,6 +49,8 @@ export default tseslint.config(
 
       // For React Router loosen the "only throw Errors" rule from default config
       '@typescript-eslint/only-throw-error': 'off',
+      // Too many stupid false positives
+      '@typescript-eslint/no-unnecessary-condition': 'off',
     },
   }
 );

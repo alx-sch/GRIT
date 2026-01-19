@@ -53,9 +53,8 @@ export async function loginPageAction({ request }: { request: Request }) {
     }
   }
   const data = (await res.json()) as { token: string };
-  toast.success('Logged In', {});
-  useAuthStore.getState().storeToken(data.token);
-  return redirect('/');
+  useAuthStore.getState().setAuthenticated(data.token);
+  return redirect('/?logged_in=true');
 }
 
 export const loginPageLoader = () => {

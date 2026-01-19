@@ -1,11 +1,9 @@
 import { redirect } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
-import { toast } from 'sonner';
 
 export function logoutPageLoader() {
-  toast.success('You are logged out', {});
-  useAuthStore.getState().removeToken();
-  return redirect('/');
+  useAuthStore.getState().clearAuthenticated();
+  return redirect('/?logged_out=true');
 }
 
 export const LogoutPage = () => {

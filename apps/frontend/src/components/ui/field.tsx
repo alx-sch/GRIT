@@ -189,7 +189,6 @@ function FieldError({
       return null;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (errors?.length === 1 && errors[0]?.message) {
       return errors[0].message;
     }
