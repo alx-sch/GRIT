@@ -59,6 +59,7 @@ describe('Events E2E', () => {
       createdAt: expect.any(String),
       endAt: '2025-01-01T20:00:00.000Z',
       id: event.id,
+	  imageKey: null,
       isPublic: true,
       isPublished: true,
       location: null,
