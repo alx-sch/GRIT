@@ -4,81 +4,120 @@ import { vi } from 'vitest';
 import EventFeed, { eventsLoader } from '@/pages/events/Page';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { eventService } from '@/services/eventService';
+import { Event } from '@/types/event';
 
-//Mock event service
+// Mock event service
 vi.mock('@/services/eventService', () => ({
   eventService: {
     getEvents: vi.fn(),
   },
 }));
 
+// Mock image utils to avoid MinIO URL issues in tests
+vi.mock('@/lib/image_utils', () => ({
+  getEventImageUrl: (event: Event) =>
+    event.imageKey ? `http://test-minio/${event.imageKey}` : 'placeholder.svg',
+}));
+
 describe('Event Feed Page', () => {
   const user = userEvent.setup();
 
-  //MOCK DATA
-  const mockEvents = [
+  // Mock users
+  const mockUsers = {
+    alice: { id: 1, name: 'Alice', email: 'alice@example.com' },
+    bob: { id: 2, name: 'Bob', email: 'bob@example.com' },
+    cindy: { id: 3, name: 'Cindy', email: 'cindy@example.com' },
+  };
+
+  // Mock locations
+  const mockLocations = {
+    gritHq: {
+      id: 1,
+      author: mockUsers.alice,
+      authorId: 1,
+      name: 'Berghain',
+      city: 'Berlin',
+      country: 'Germany',
+      longitude: 13.4,
+      latitude: 52.5,
+      isPublic: true,
+      events: [],
+    },
+  };
+
+  // Mock events
+  const mockEvents: Event[] = [
     {
       id: 1,
-      authorId: 32893829,
-      content:
-        'A night of unforgettable techno beats, in Not Berghain. Join us for an immersive experience with top DJs and a vibrant crowd.',
-      title:
-        'MEGA SUPER DUPER COOL PARTY super hyper long title super hyper long title super hyper long titlesuper hyper long title super hyper long title super hyper long titlesuper hyper long title super hyper long title super hyper long titlesuper hyper long title super hyper long title super hyper long title super hyper long title super hyper long title super hyper long title',
-      startAt: '2026-03-02T10:00:00Z',
+      createdAt: Date.parse('2026-03-01T10:00:00Z'),
+      content: 'A night of unforgettable techno beats.',
       endAt: '2026-03-02T10:00:00Z',
-      isPublished: true,
       isPublic: true,
+      isPublished: true,
+      startAt: '2026-03-02T10:00:00Z',
+      title: 'MEGA SUPER DUPER COOL PARTY',
+      imageKey: 'party-image.jpg',
+      author: mockUsers.alice,
+      authorId: 1,
+      attending: [mockUsers.bob, mockUsers.cindy],
+      locationId: 1,
+      location: mockLocations.gritHq,
     },
     {
       id: 2,
-      authorId: 29839283,
-      content:
-        'A session of beer-yoga at Lotus. Unwind with a refreshing beer in hand while stretching and strengthening your body in a fun and social environment.',
-      createdAt: '2026-01-03T10:00:00Z',
-      endAt: '2026-01-03T10:00:00Z',
-      isPublished: true,
+      createdAt: Date.parse('2026-01-01T10:00:00Z'),
+      content: 'A session of beer-yoga at Lotus.',
+      endAt: '2026-01-03T12:00:00Z',
       isPublic: true,
+      isPublished: true,
       startAt: '2026-01-03T10:00:00Z',
       title: 'Beer-Yoga Session',
+      imageKey: '',
+      author: mockUsers.bob,
+      authorId: 2,
+      attending: [],
     },
     {
       id: 3,
-      authorId: 299389283,
+      createdAt: Date.parse('2026-01-10T10:00:00Z'),
       content: 'Come to my awesome event!',
-      createdAt: '2026-01-03T10:00:00Z',
-      endAt: '2026-01-15T10:00:00Z',
-      isPublished: true,
+      endAt: '2026-01-15T12:00:00Z',
       isPublic: false,
+      isPublished: true,
       startAt: '2026-01-15T10:00:00Z',
       title: 'Fireplace Gathering',
+      imageKey: 'fireplace.jpg',
+      author: mockUsers.cindy,
+      authorId: 3,
+      attending: [mockUsers.alice],
     },
   ];
 
-  //Reset and setup mock before each test
+  // Reset and setup mock before each test
   beforeEach(() => {
     vi.clearAllMocks();
 
-    (eventService.getEvents as any).mockImplementation((params: any) => {
+    vi.mocked(eventService.getEvents).mockImplementation((params) => {
       let filtered = [...mockEvents];
 
       // Filter by search
       if (params?.search) {
         filtered = filtered.filter((event) =>
-          event.title.toLowerCase().includes(params.search.toLowerCase())
+          event.title.toLowerCase().includes(params.search!.toLowerCase())
         );
       }
 
-      // Filter by date (simple check)
+      // Filter by date
       if (params?.startFrom) {
-        filtered = filtered.filter((event) => event.startAt >= params.startFrom);
+        filtered = filtered.filter((event) => event.startAt >= params.startFrom!);
       }
 
       return Promise.resolve(filtered);
     });
   });
 
-  //Create a router
-  function renderEventFeed(loaderData = mockEvents) {
+  // Create a router
+  function renderEventFeed() {
     const router = createMemoryRouter(
       [
         {
@@ -94,143 +133,220 @@ describe('Event Feed Page', () => {
     return { router, ...render(<RouterProvider router={router} />) };
   }
 
-  it('renders event cards when loader returns data', async () => {
-    renderEventFeed(mockEvents);
+  describe('Basic Rendering', () => {
+    it('renders event cards when loader returns data', async () => {
+      renderEventFeed();
 
-    //Wait for events to appear
-    await waitFor(() => {
-      expect(screen.getByText(/Beer-Yoga Session/)).toBeInTheDocument();
-    });
-    expect(screen.getByText(/MEGA SUPER/)).toBeInTheDocument();
-    expect(screen.getByText(/Fireplace Gathering/)).toBeInTheDocument();
-  });
-
-  it('show empty state when no events', async () => {
-    (eventService.getEvents as any).mockResolvedValue([]);
-    renderEventFeed([]);
-
-    await waitFor(() => {
-      expect(screen.getByText(/No events found/i)).toBeInTheDocument();
-    });
-  });
-
-  it('update url and calls service with search param when user types', async () => {
-    const { router } = renderEventFeed(mockEvents);
-
-    await waitFor(() => {
-      expect(screen.getByText(/Upcoming events/i)).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText(/Beer-Yoga Session/)).toBeInTheDocument();
+      });
+      expect(screen.getByText(/MEGA SUPER/)).toBeInTheDocument();
+      expect(screen.getByText(/Fireplace Gathering/)).toBeInTheDocument();
     });
 
-    //Verify initial call (no search param)
-    expect(eventService.getEvents).toHaveBeenCalledWith({
-      search: undefined,
-      startFrom: undefined,
-      startUntil: undefined,
-    });
+    it('shows empty state when no events', async () => {
+      vi.mocked(eventService.getEvents).mockResolvedValue([]);
+      renderEventFeed();
 
-    //Type in Search
-    const searchInput = screen.getByPlaceholderText('Search events...');
-    await user.type(searchInput, 'beer');
-
-    //Verify URL update
-    await waitFor(() => {
-      expect(router.state.location.search).toBe('?search=beer');
-    });
-
-    //Verify service was called with search param
-    expect(eventService.getEvents).toHaveBeenCalledWith({
-      search: 'beer',
-      startFrom: undefined,
-      startUntil: undefined,
+      await waitFor(() => {
+        expect(screen.getByText(/No events found/i)).toBeInTheDocument();
+      });
     });
   });
 
-  it('update service call when URL date params change', async () => {
-    const { router } = renderEventFeed(mockEvents);
+  describe('Location Display', () => {
+    it('displays location name when event has location', async () => {
+      renderEventFeed();
 
-    await waitFor(() => {
-      expect(screen.getByText(/Upcoming events/i)).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText(/Berghain/)).toBeInTheDocument();
+      });
     });
 
-    //Verify initial call (no search param)
-    expect(eventService.getEvents).toHaveBeenCalledWith({
-      search: undefined,
-      startFrom: undefined,
-      startUntil: undefined,
-    });
+    it('displays TBA when event has no location', async () => {
+      renderEventFeed();
 
-    // Clear the initial call
-    vi.clearAllMocks();
+      await waitFor(() => {
+        expect(screen.getByText(/Beer-Yoga Session/)).toBeInTheDocument();
+      });
 
-    // Navigate to URL with date params
-    router.navigate('/events?start_from=2026-01-15&start_until=2026-01-20');
-
-    // Wait for navigation to complete
-    await waitFor(() => {
-      expect(router.state.location.search).toBe('?start_from=2026-01-15&start_until=2026-01-20');
-    });
-
-    // Verify service was called with new params
-    expect(eventService.getEvents).toHaveBeenCalledWith({
-      search: undefined,
-      startFrom: '2026-01-15',
-      startUntil: '2026-01-20',
+      // Beer-Yoga Session has no location, should show TBA
+      const tbas = screen.getAllByText(/TBA/);
+      expect(tbas.length).toBeGreaterThan(0);
     });
   });
 
-  it('show and clears filters when Clear Filters button is clicked', async () => {
-    const { router } = renderEventFeed();
+  describe('Attendees Display', () => {
+    it('displays attendee count when event has attendees', async () => {
+      renderEventFeed();
 
-    await waitFor(() => {
-      expect(screen.getByText(/Upcoming events/i)).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText(/MEGA SUPER/)).toBeInTheDocument();
+      });
+
+      // MEGA SUPER party has 2 attendees
+      expect(screen.getByText('2')).toBeInTheDocument();
     });
 
-    //Navigate with filters
-    router.navigate('/events?search=nonexistent&start_from=2027-01-28');
+    it('displays "Be the first" when no attendees', async () => {
+      renderEventFeed();
 
-    await waitFor(() => {
-      expect(router.state.location.search).toContain('search=nonexistent');
-    });
+      await waitFor(() => {
+        expect(screen.getByText(/Beer-Yoga Session/)).toBeInTheDocument();
+      });
 
-    await waitFor(() => {
-      expect(screen.getByText(/No events found/i)).toBeInTheDocument();
-    });
-
-    //Find and click Clear Filters button
-    const clearButton = screen.getByRole('button', { name: /clear filters/i });
-    await userEvent.click(clearButton);
-
-    //Verify URL is cleared
-    await waitFor(() => {
-      expect(router.state.location.search).toBe('');
+      // Beer-Yoga has no attendees
+      expect(screen.getByText(/Be the first/)).toBeInTheDocument();
     });
   });
 
-  it('populates search input from URL on initial load', async () => {
-    const router = createMemoryRouter(
-      [{ path: '/events', Component: EventFeed, loader: eventsLoader }],
-      { initialEntries: ['/events?search=beer'] }
-    );
+  describe('Image Display', () => {
+    it('renders event image when imageKey exists', async () => {
+      renderEventFeed();
 
-    render(<RouterProvider router={router} />);
+      await waitFor(() => {
+        expect(screen.getByText(/MEGA SUPER/)).toBeInTheDocument();
+      });
 
-    const searchInput = (await screen.findByPlaceholderText(
-      'Search events...'
-    )) as HTMLInputElement;
-    expect(searchInput.value).toBe('beer');
+      const images = screen.getAllByRole('img');
+      const partyImage = images.find((img) => img.getAttribute('alt') === 'MEGA SUPER DUPER COOL PARTY');
+      expect(partyImage).toHaveAttribute('src', 'http://test-minio/party-image.jpg');
+    });
+
+    it('renders placeholder when imageKey is empty', async () => {
+      renderEventFeed();
+
+      await waitFor(() => {
+        expect(screen.getByText(/Beer-Yoga Session/)).toBeInTheDocument();
+      });
+
+      const images = screen.getAllByRole('img');
+      const yogaImage = images.find((img) => img.getAttribute('alt') === 'Beer-Yoga Session');
+      expect(yogaImage).toHaveAttribute('src', 'placeholder.svg');
+    });
   });
 
-  it('displays selected date range from URL params', async () => {
-    const router = createMemoryRouter(
-      [{ path: '/events', Component: EventFeed, loader: eventsLoader }],
-      { initialEntries: ['/events?start_from=2026-01-15&start_until=2026-01-20'] }
-    );
+  describe('Search Functionality', () => {
+    it('updates URL and calls service with search param when user types', async () => {
+      const { router } = renderEventFeed();
 
-    render(<RouterProvider router={router} />);
+      await waitFor(() => {
+        expect(screen.getByText(/Upcoming events/i)).toBeInTheDocument();
+      });
 
-    // Look for the formatted date text in the date picker button
-    await waitFor(() => {
-      expect(screen.getByText(/Jan 15.*Jan 20/i)).toBeInTheDocument();
+      // Verify initial call (no search param)
+      expect(eventService.getEvents).toHaveBeenCalledWith({
+        search: undefined,
+        startFrom: undefined,
+        startUntil: undefined,
+      });
+
+      // Type in Search
+      const searchInput = screen.getByPlaceholderText('Search events...');
+      await user.type(searchInput, 'beer');
+
+      // Verify URL update
+      await waitFor(() => {
+        expect(router.state.location.search).toBe('?search=beer');
+      });
+
+      // Verify service was called with search param
+      expect(eventService.getEvents).toHaveBeenCalledWith({
+        search: 'beer',
+        startFrom: undefined,
+        startUntil: undefined,
+      });
+    });
+
+    it('populates search input from URL on initial load', async () => {
+      const router = createMemoryRouter(
+        [{ path: '/events', Component: EventFeed, loader: eventsLoader }],
+        { initialEntries: ['/events?search=beer'] }
+      );
+
+      render(<RouterProvider router={router} />);
+
+      const searchInput = (await screen.findByPlaceholderText('Search events...')) as HTMLInputElement;
+      expect(searchInput.value).toBe('beer');
+    });
+  });
+
+  describe('Date Filtering', () => {
+    it('updates service call when URL date params change', async () => {
+      const { router } = renderEventFeed();
+
+      await waitFor(() => {
+        expect(screen.getByText(/Upcoming events/i)).toBeInTheDocument();
+      });
+
+      // Verify initial call (no search param)
+      expect(eventService.getEvents).toHaveBeenCalledWith({
+        search: undefined,
+        startFrom: undefined,
+        startUntil: undefined,
+      });
+
+      // Clear the initial call
+      vi.clearAllMocks();
+
+      // Navigate to URL with date params
+      router.navigate('/events?start_from=2026-01-15&start_until=2026-01-20');
+
+      // Wait for navigation to complete
+      await waitFor(() => {
+        expect(router.state.location.search).toBe('?start_from=2026-01-15&start_until=2026-01-20');
+      });
+
+      // Verify service was called with new params
+      expect(eventService.getEvents).toHaveBeenCalledWith({
+        search: undefined,
+        startFrom: '2026-01-15',
+        startUntil: '2026-01-20',
+      });
+    });
+
+    it('displays selected date range from URL params', async () => {
+      const router = createMemoryRouter(
+        [{ path: '/events', Component: EventFeed, loader: eventsLoader }],
+        { initialEntries: ['/events?start_from=2026-01-15&start_until=2026-01-20'] }
+      );
+
+      render(<RouterProvider router={router} />);
+
+      // Look for the formatted date text in the date picker button
+      await waitFor(() => {
+        expect(screen.getByText(/Jan 15.*Jan 20/i)).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Clear Filters', () => {
+    it('shows and clears filters when Clear Filters button is clicked', async () => {
+      const { router } = renderEventFeed();
+
+      await waitFor(() => {
+        expect(screen.getByText(/Upcoming events/i)).toBeInTheDocument();
+      });
+
+      // Navigate with filters
+      router.navigate('/events?search=nonexistent&start_from=2027-01-28');
+
+      await waitFor(() => {
+        expect(router.state.location.search).toContain('search=nonexistent');
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText(/No events found/i)).toBeInTheDocument();
+      });
+
+      // Find and click Clear Filters button
+      const clearButton = screen.getByRole('button', { name: /clear filters/i });
+      await user.click(clearButton);
+
+      // Verify URL is cleared
+      await waitFor(() => {
+        expect(router.state.location.search).toBe('');
+      });
     });
   });
 });
