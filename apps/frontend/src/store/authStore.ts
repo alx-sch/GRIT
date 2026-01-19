@@ -1,11 +1,11 @@
 import { create } from 'zustand';
 
-type AuthState = {
+interface AuthState {
   isLoggedIn: boolean;
   token: string | null;
   storeToken: (token: string) => void;
   removeToken: () => void;
-};
+}
 
 export const useAuthStore = create<AuthState>((set) => ({
   isLoggedIn: !!localStorage.getItem('token'),

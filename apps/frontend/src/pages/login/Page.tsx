@@ -1,4 +1,4 @@
-import { Field, FieldDescription, FieldGroup, FieldLabel, FieldSet } from '@/components/ui/field';
+import { Field, FieldGroup, FieldLabel, FieldSet } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Form } from 'react-router-dom';
 import { useNavigation } from 'react-router-dom';
@@ -44,10 +44,7 @@ export async function loginPageAction({ request }: { request: Request }) {
 
   if (!res.ok) {
     if (res.status >= 500) {
-      const errorBody = await res.json().catch(() => null);
-      throw new Response(errorBody?.message ?? 'Login failed', {
-        status: res.status,
-      });
+      throw new Error('Login failed');
     } else {
       toast.error('Login Failed', {
         description: 'Please try again.',
@@ -55,7 +52,7 @@ export async function loginPageAction({ request }: { request: Request }) {
       return null;
     }
   }
-  const data = await res.json();
+  const data = (await res.json()) as { token: string };
   toast.success('Logged In', {});
   useAuthStore.getState().storeToken(data.token);
   return redirect('/');
