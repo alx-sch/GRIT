@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 import { redirect } from 'react-router-dom';
+import { Heading } from '@/components/ui/typography';
 
 export async function loginPageAction({ request }: { request: Request }) {
   // This is the action for the login page which takes the form data and sends a POST to the login endpoint
@@ -66,40 +67,45 @@ export const LoginPage = () => {
   const isSubmitting = navigation.state === 'submitting';
 
   return (
-    <div className="w-full max-w-md">
-      <Form method="POST">
-        <FieldSet>
-          <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="email">Username</FieldLabel>
-              <Input
-                id="email"
-                type="email"
-                name="email"
-                placeholder="Max Leiter"
-                autoComplete="username"
-                defaultValue={'test@example.com'}
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="password">Password</FieldLabel>
-              <Input
-                id="password"
-                type="password"
-                name="password"
-                placeholder="••••••••"
-                autoComplete="current-password"
-                defaultValue={'password'}
-              />
-            </Field>
-            <Field orientation="horizontal">
-              <Button disabled={isSubmitting} type="submit">
-                {isSubmitting ? 'Logging in' : 'Login'}
-              </Button>
-            </Field>
-          </FieldGroup>
-        </FieldSet>
-      </Form>
-    </div>
+    <>
+      <div className="space-y-2">
+        <Heading level={1}>Login</Heading>
+      </div>
+      <div className="w-full max-w-md mt-4">
+        <Form method="POST">
+          <FieldSet>
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="email">Username</FieldLabel>
+                <Input
+                  id="email"
+                  type="email"
+                  name="email"
+                  placeholder="Max Leiter"
+                  autoComplete="username"
+                  defaultValue={'test@example.com'}
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="password">Password</FieldLabel>
+                <Input
+                  id="password"
+                  type="password"
+                  name="password"
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  defaultValue={'password'}
+                />
+              </Field>
+              <Field orientation="horizontal">
+                <Button disabled={isSubmitting} type="submit">
+                  {isSubmitting ? 'Logging in' : 'Login'}
+                </Button>
+              </Field>
+            </FieldGroup>
+          </FieldSet>
+        </Form>
+      </div>
+    </>
   );
 };
