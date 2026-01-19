@@ -1,0 +1,105 @@
+import { Field, FieldDescription, FieldGroup, FieldLabel, FieldSet } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Form } from 'react-router-dom';
+import { useNavigation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { useAuthStore } from '@/store/authStore';
+import { toast } from 'sonner';
+import { redirect } from 'react-router-dom';
+
+export async function loginPageAction({ request }: { request: Request }) {
+  // This is the action for the login page which takes the form data and sends a POST to the login endpoint
+  const formData = await request.formData();
+
+  const reqBody = {
+    email: formData.get('email'),
+    password: formData.get('password'),
+  };
+
+  // TODO Implement real request once backend works. Use Axios instead maybe?
+  // const res = await fetch('http://localhost:3001/api/auth/login', {
+  //   method: 'POST',
+  //   headers: {
+  //     'Content-Type': 'application/json',
+  //   },
+  //   body: JSON.stringify(reqBody),
+  // });
+
+  // ---- FAKE RESPONSE ----
+  // fake latency
+  await new Promise((r) => setTimeout(r, 500));
+  let res;
+  if (reqBody.email === 'test@example.com' && reqBody.password === 'password') {
+    res = new Response(JSON.stringify({ token: 'fake-jwt-token' }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } else {
+    res = new Response(JSON.stringify({ message: 'Invalid credentials' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  if (!res.ok) {
+    if (res.status >= 500) {
+      const errorBody = await res.json().catch(() => null);
+      throw new Response(errorBody?.message ?? 'Login failed', {
+        status: res.status,
+      });
+    } else {
+      toast.error('Login Failed', {
+        description: 'Please try again.',
+      });
+      return null;
+    }
+  }
+  const data = await res.json();
+  toast.success('Logged In', {});
+  useAuthStore.getState().login(data.token);
+  return redirect('/');
+}
+
+export const LoginPage = () => {
+  // Allows us to change the style and text of the button
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === 'submitting';
+
+  return (
+    <div className="w-full max-w-md">
+      <Form method="POST">
+        <FieldSet>
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="email">Username</FieldLabel>
+              <Input
+                id="email"
+                type="email"
+                name="email"
+                placeholder="Max Leiter"
+                autoComplete="username"
+                defaultValue={'test@example.com'}
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="password">Password</FieldLabel>
+              <Input
+                id="password"
+                type="password"
+                name="password"
+                placeholder="••••••••"
+                autoComplete="current-password"
+                defaultValue={'password'}
+              />
+            </Field>
+            <Field orientation="horizontal">
+              <Button disabled={isSubmitting} type="submit">
+                {isSubmitting ? 'Logging in' : 'Login'}
+              </Button>
+            </Field>
+          </FieldGroup>
+        </FieldSet>
+      </Form>
+    </div>
+  );
+};

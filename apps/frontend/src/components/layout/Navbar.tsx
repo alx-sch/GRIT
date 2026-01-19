@@ -18,9 +18,17 @@ import {
   SheetClose,
 } from '@/components/ui/sheet';
 import { useTheme } from '@/providers/theme-provider';
-import { navConfig } from '@/router';
+import { baseNavConfig } from '@/router';
+import { useAuthStore } from '@/store/authStore';
+import type { NavRoute } from '@/types/navroute';
 
 export function Navbar() {
+  const token = useAuthStore((s) => s.token);
+  const navConfig: NavRoute[] = [
+    ...baseNavConfig,
+    token ? { path: '/logout', label: 'Logout' } : { path: '/login', label: 'Login' },
+  ];
+
   const location = useLocation();
   const { setTheme, resolvedTheme } = useTheme();
 

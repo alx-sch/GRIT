@@ -5,14 +5,12 @@ import ErrorPage from '@/pages/error/Page';
 import EventFeed from '@/pages/events/Page';
 import { createBrowserRouter } from 'react-router-dom';
 import { DefaultLayout } from '@/components/layout/DefaultLayout';
-
-export interface NavRoute {
-  path: `/${string}`;
-  label: string;
-}
+import { LoginPage, loginPageAction } from '@/pages/login/Page';
+import type { NavRoute } from './types/navroute';
+import { LogoutPage, logoutPageLoader } from './pages/logout/Page';
 
 // NOTE: let's define single source of truth for our routes here
-export const navConfig: NavRoute[] = [
+export const baseNavConfig: NavRoute[] = [
   { path: '/', label: 'Home' },
   { path: '/design', label: 'Design' },
   { path: '/users', label: 'Users' },
@@ -44,6 +42,16 @@ export const router = createBrowserRouter([
         path: 'events',
         Component: EventFeed,
         handle: { title: 'Events' },
+      },
+      {
+        path: 'login',
+        Component: LoginPage,
+        action: loginPageAction,
+      },
+      {
+        path: 'logout',
+        Component: LogoutPage,
+        loader: logoutPageLoader,
       },
     ],
   },
