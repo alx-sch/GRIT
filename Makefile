@@ -133,6 +133,7 @@ stop-dev-processes:
 clean: stop-dev-processes
 	@echo "$(BOLD)$(YELLOW)--- Cleaning Up Project...$(RESET)"
 	pnpm -r exec rm -rf dist .vite node_modules .turbo
+	rm -rf node_modules .turbo
 	find . -name "*.tsbuildinfo" -type f -delete
 	@echo "$(BOLD)$(GREEN)Project cleaned up.$(RESET)"
 
@@ -287,6 +288,7 @@ test-fe-integration: install-fe
 
 dev: check-env stop-dev-processes kill-port-be kill-port-fe install db
 	@echo "$(BOLD)$(YELLOW)--- Starting Backend & Frontend [DEV]...$(RESET)"
+	@rm -rf /tmp/turbod/*
 	turbo dev;
 
 # Run only Backend with DB check; NEST clears terminal before printing
