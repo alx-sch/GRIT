@@ -3,7 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/prisma/prisma.service';
-import { User, Event } from '@prisma/client';
+import { User, Event } from '@/generated/client/client';
 
 /**
  * ========================================
@@ -50,12 +50,12 @@ describe('Events E2E', () => {
 
     event = await prisma.event.create({
       data: {
-        authorId: user.id,
+        author: { connect: { id: user.id } },
         content: 'Stored in DB',
-        endAt: '2025-01-01T20:00:00.000Z',
+        endAt: new Date('2025-01-01T20:00:00.000Z'),
         isPublished: true,
         isPublic: true,
-        startAt: '2025-01-01T20:00:00.000Z',
+        startAt: new Date('2025-01-01T20:00:00.000Z'),
         title: 'Hello E2E',
       },
     });
@@ -73,7 +73,7 @@ describe('Events E2E', () => {
   describe('DELETE /events/:id', () => {
     it('deletes an existing event', async () => {
       const res = await request(app.getHttpServer())
-        .delete(`/events/${event.id as string}`)
+        .delete(`/events/${event.id.toString()}`)
         .expect(200);
 
       expect(res.body).toMatchObject({
@@ -98,7 +98,7 @@ describe('Events E2E', () => {
   describe('GET /events/:id', () => {
     it('returns an existing event', async () => {
       const res = await request(app.getHttpServer())
-        .get(`/events/${event.id as string}`)
+        .get(`/events/${event.id.toString()}`)
         .expect(200);
 
       expect(res.body).toMatchObject({
@@ -162,7 +162,7 @@ describe('Events E2E', () => {
   describe('PATCH /events/:id', () => {
     it('updates an existing event', async () => {
       const res = await request(app.getHttpServer())
-        .patch(`/events/${event.id as string}`)
+        .patch(`/events/${event.id.toString()}`)
         .send({ title: 'Updated Hello E2E' })
         .expect(200);
 
@@ -182,7 +182,7 @@ describe('Events E2E', () => {
 
     it('returns 404 for non-existing location', async () => {
       const res = await request(app.getHttpServer())
-        .patch(`/events/${event.id as string}`)
+        .patch(`/events/${event.id.toString()}`)
         .send({ locationId: 1 })
         .expect(404);
 
@@ -195,7 +195,7 @@ describe('Events E2E', () => {
 
     it('returns 400 for no provided fields to update (empty body)', async () => {
       const res = await request(app.getHttpServer())
-        .patch(`/events/${event.id as string}`)
+        .patch(`/events/${event.id.toString()}`)
         .send({})
         .expect(400);
 
@@ -203,6 +203,28 @@ describe('Events E2E', () => {
         statusCode: 400,
         message: 'No fields to update',
         error: 'Bad Request',
+      });
+    });
+  });
+
+  // Post a new event draft
+  describe('POST /events', () => {
+    it('posts a new event', async () => {
+      const newEventData = {
+        authorId: user.id,
+        content: 'A new event stored in DB',
+        endAt: '2025-01-01T20:00:00.000Z',
+        isPublished: true,
+        isPublic: true,
+        startAt: '2025-01-01T20:00:00.000Z',
+        title: 'Hello E2E, once again!',
+      };
+
+      const res = await request(app.getHttpServer()).post('/events').send(newEventData).expect(201);
+
+      expect(res.body).toMatchObject({
+        title: 'Hello E2E, once again!',
+        authorId: user.id,
       });
     });
   });
