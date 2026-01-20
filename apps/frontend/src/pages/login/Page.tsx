@@ -17,30 +17,13 @@ export async function loginPageAction({ request }: { request: Request }) {
     password: formData.get('password'),
   };
 
-  // TODO Implement real request once backend works. Use Axios instead maybe?
-  // const res = await fetch('http://localhost:3000/api/auth/login', {
-  //   method: 'POST',
-  //   headers: {
-  //     'Content-Type': 'application/json',
-  //   },
-  //   body: JSON.stringify(reqBody),
-  // });
-
-  // fake latency
-  await new Promise((r) => setTimeout(r, 500));
-  let res;
-  // fake response
-  if (reqBody.email === 'test@example.com' && reqBody.password === 'password') {
-    res = new Response(JSON.stringify({ token: 'fake-jwt-token' }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  } else {
-    res = new Response(JSON.stringify({ message: 'Invalid credentials' }), {
-      status: 403,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+  const res = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(reqBody),
+  });
 
   if (!res.ok) {
     if (res.status >= 500) {
