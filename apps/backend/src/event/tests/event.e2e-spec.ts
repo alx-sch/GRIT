@@ -1,5 +1,5 @@
 import { Test } from '@nestjs/testing';
-import { INestApplication, NotFoundException } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -23,10 +23,6 @@ describe('Events E2E', () => {
   // To store event and user (which are seeded in the database).
   let user: User;
   let event: Event;
-
-  // Storing the dynamic variables after each database seeding.
-  let eventId: number;
-  let eventCreatedAt: String;
 
   // Setting up the environment ONCE at start.
   beforeAll(async () => {
@@ -63,9 +59,6 @@ describe('Events E2E', () => {
         title: 'Hello E2E',
       },
     });
-
-    eventId = event.id;
-    eventCreatedAt = event.createdAt.toISOString();
   });
 
   /**
@@ -79,7 +72,9 @@ describe('Events E2E', () => {
   // Delete an event
   describe('DELETE /events/:id', () => {
     it('deletes an existing event', async () => {
-      const res = await request(app.getHttpServer()).delete(`/events/${event.id}`).expect(200);
+      const res = await request(app.getHttpServer())
+        .delete(`/events/${event.id as string}`)
+        .expect(200);
 
       expect(res.body).toMatchObject({
         id: event.id,
@@ -102,7 +97,9 @@ describe('Events E2E', () => {
   // Get an individual event by id
   describe('GET /events/:id', () => {
     it('returns an existing event', async () => {
-      const res = await request(app.getHttpServer()).get(`/events/${event.id}`).expect(200);
+      const res = await request(app.getHttpServer())
+        .get(`/events/${event.id as string}`)
+        .expect(200);
 
       expect(res.body).toMatchObject({
         id: event.id,
@@ -165,7 +162,7 @@ describe('Events E2E', () => {
   describe('PATCH /events/:id', () => {
     it('updates an existing event', async () => {
       const res = await request(app.getHttpServer())
-        .patch(`/events/${event.id}`)
+        .patch(`/events/${event.id as string}`)
         .send({ title: 'Updated Hello E2E' })
         .expect(200);
 
@@ -185,7 +182,7 @@ describe('Events E2E', () => {
 
     it('returns 404 for non-existing location', async () => {
       const res = await request(app.getHttpServer())
-        .patch(`/events/10`)
+        .patch(`/events/${event.id as string}`)
         .send({ locationId: 1 })
         .expect(404);
 
@@ -197,7 +194,10 @@ describe('Events E2E', () => {
     });
 
     it('returns 400 for no provided fields to update (empty body)', async () => {
-      const res = await request(app.getHttpServer()).patch(`/events/10`).send({}).expect(400);
+      const res = await request(app.getHttpServer())
+        .patch(`/events/${event.id as string}`)
+        .send({})
+        .expect(400);
 
       expect(res.body).toStrictEqual({
         statusCode: 400,
