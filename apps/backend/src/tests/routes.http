@@ -54,11 +54,11 @@ content-type: application/json
 ###
 
 // User attends an event
-PATCH http://localhost:3000/users/1 HTTP/1.1
+PATCH http://localhost:3000/users/3 HTTP/1.1
 content-type: application/json
 
 {
-	"attending": 3
+	"attending": 1
 }
 ###
 
