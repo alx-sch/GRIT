@@ -1,17 +1,17 @@
-import { PrismaClient } from '@/generated/client/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
 import { env } from '@/config/env';
+import { PrismaClient } from '@/generated/client/client';
+import {
+  CreateBucketCommand,
+  HeadBucketCommand,
+  PutBucketPolicyCommand,
+  PutObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3';
+import { PrismaPg } from '@prisma/adapter-pg';
+import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import crypto from 'crypto';
-import {
-  S3Client,
-  PutObjectCommand,
-  HeadBucketCommand,
-  CreateBucketCommand,
-  PutBucketPolicyCommand,
-} from '@aws-sdk/client-s3';
+import { Pool } from 'pg';
 
 // Setup the Postgres connection
 const pool = new Pool({ connectionString: env.DATABASE_URL });
@@ -30,12 +30,11 @@ const s3 = new S3Client({
 });
 
 interface S3Error {
-  $metadata?: {
-    httpStatusCode?: number;
-  };
+  $metadata?: { httpStatusCode?: number };
 }
 
-// This ensures that anyone can view the images via a URL without needing a private signature.
+// This ensures that anyone can view the images via a URL without needing a
+// private signature.
 const getPublicPolicy = (bucketName: string) =>
   JSON.stringify({
     Version: '2012-10-17',
@@ -200,10 +199,10 @@ async function main() {
         data: loc,
       });
       console.log(`📍 Created Location: ${createdLoc.name ?? 'Unknown Location'} `);
-      if (loc.name === 'GRIT HQ') gritHqId = createdLoc.id;
+      gritHqId = createdLoc.id;
     } else {
       console.log(`⏩ Location '${loc.name}' already exists. Skipping.`);
-      if (loc.name === 'GRIT HQ') gritHqId = existing.id;
+      gritHqId = existing.id;
     }
   }
 
@@ -223,6 +222,7 @@ async function main() {
       isPublished: true,
       startAt: new Date('2026-02-01T18:00:00Z'),
       endAt: new Date('2026-02-01T22:00:00Z'),
+      image: 'grit-launch.jpg', // local filename in seed-assets
     },
     {
       title: 'Private Strategy Meeting',
@@ -232,6 +232,17 @@ async function main() {
       isPublished: false,
       startAt: new Date('2026-02-15T10:00:00Z'),
       endAt: new Date('2026-02-15T12:00:00Z'),
+      image: null as string | null,
+    },
+    {
+      title: 'Alice in Wonderland',
+      authorId: 1,
+      content: 'We’re all mad here.!',
+      isPublic: true,
+      isPublished: true,
+      startAt: new Date('2027-02-15T10:00:00Z'),
+      endAt: new Date('2027-02-15T12:00:00Z'),
+      image: null as string | null,
     },
   ];
 
@@ -242,8 +253,24 @@ async function main() {
     });
 
     if (!existing) {
-      await prisma.event.create({ data: e });
+      // Extract image from event data (not a DB field)
+      const { image, ...eventData } = e;
+      const event = await prisma.event.create({ data: eventData });
       console.log(`📅 Created Event: ${e.title} for User ${String(e.authorId)}`);
+
+      // Upload image if specified
+      if (image) {
+        const localPath = path.join(__dirname, 'seed-assets', image);
+        const bucketKey = await uploadToBucket(EVENT_BUCKET, localPath, image);
+
+        if (bucketKey) {
+          await prisma.event.update({
+            where: { id: event.id },
+            data: { imageKey: bucketKey },
+          });
+          console.log(`   📝 Event image saved: ${bucketKey}`);
+        }
+      }
     }
   }
 

@@ -214,11 +214,3 @@ describe('Events E2E', () => {
     await app.close();
   });
 });
-
-// NOTE:
-// No responses are set to "toStrictEqual" because we haven't determined
-// how we structure the responses yet.
-// Once this is settled, we could change from "toMatchObject" to "toStrictEqual"
-// to make sure we are always receiving the exact response we are expecting.
-// The exceptions we have defined (like NotFoundException) are however getting
-// tested with "toStrictEqual" to make sure they are returning exactly what we defined.
