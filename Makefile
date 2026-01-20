@@ -263,13 +263,13 @@ test-be-e2e: install-be test-be-testdb-init
 # Helper commands
 test-be-testdb-init: start-postgres
 	@echo "$(BOLD)$(YELLOW)--- Creating Test Database ...$(RESET)"
-	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
-	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
+	@$(DC) exec postgres-db psql -h localhost -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
+	@$(DC) exec postgres-db psql -h localhost -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
 	@NODE_ENV=test pnpm --filter @grit/backend exec prisma db push
 
 test-be-testdb-remove:
 	@echo "$(BOLD)$(YELLOW)--- Removing Test Database ...$(RESET)"
-	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
+	@$(DC) exec postgres-db psql -h localhost -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
 
 ## Frontend ##
 
@@ -328,7 +328,7 @@ start-postgres: install-be
 		fi; \
 		echo "Waiting for Postgres... ($$RETRIES attempts left)"; \
 		RETRIES=$$((RETRIES - 1)); \
-		sleep 1; \
+		sleep 2; \
 	done; \
 	if [ $$RETRIES -eq 0 ]; then \
 		echo "$(RED)Timeout waiting for Postgres.$(RESET)"; \
@@ -349,7 +349,7 @@ start-minio: install-be
 		fi; \
 		echo "Waiting for MinIO... ($$RETRIES attempts left)"; \
 		RETRIES=$$((RETRIES - 1)); \
-		sleep 1; \
+		sleep 2; \
 	done; \
 	if [ $$RETRIES -eq 0 ]; then \
 		echo "$(RED)Timeout waiting for MinIO.$(RESET)"; \
