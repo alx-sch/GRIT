@@ -32,18 +32,26 @@ export class UserService {
     });
   }
 
+  async userGetByEmail(email: string) {
+    return await this.prisma.user.findUnique({
+      where: { email },
+      include: { attending: true },
+    });
+  }
+
   async userPost(data: ReqUserPostDto): Promise<ResUserPostDto> {
     const user = await this.prisma.user.create({
       data: {
         name: data.name,
         email: data.email,
+        password: data.password,
         avatarKey: data.avatarKey,
       },
       include: {
         attending: true,
       },
     });
-    return user;
+    return { ...user, attending: [] };
   }
 
   async userUpdateAvatar(userId: number, file: Express.Multer.File): Promise<ResUserBaseDto> {

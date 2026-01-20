@@ -130,9 +130,9 @@ async function main() {
   console.log('--- Seeding Users ---');
 
   const usersToCreate = [
-    { email: 'alice@example.com', name: 'Alice', image: 'avatar-1.jpg' },
-    { email: 'bob@example.com', name: 'Bob', image: 'avatar-2.jpg' },
-    { email: 'cindy@example.com', name: 'Cindy', image: null },
+    { email: 'alice@example.com', name: 'Alice', password: '12345678', image: 'avatar-1.jpg' },
+    { email: 'bob@example.com', name: 'Bob', password: '123456pw', image: 'avatar-2.jpg' },
+    { email: 'cindy@example.com', name: 'Cindy', password: '12345678', image: null },
   ];
 
   // upsert: "Update or Insert" - prevents errors if the user already exists
@@ -141,7 +141,7 @@ async function main() {
     const user = await prisma.user.upsert({
       where: { email: u.email },
       update: {},
-      create: { email: u.email, name: u.name },
+      create: { email: u.email, name: u.name, password: u.password },
     });
     console.log(`👤 Processed User: ${user.name ?? 'Unknown'} (${String(user.id)})`);
 
@@ -165,16 +165,18 @@ async function main() {
     }
   }
 
+  const alice = await prisma.user.findUnique({ where: { email: 'alice@example.com' } });
+  const bob = await prisma.user.findUnique({ where: { email: 'bob@example.com' } });
+
+  if (!alice || !bob) {
+    throw new Error('Seed users Alice or Bob not found');
+  }
+
   //////////////////////
   // LOCATION SEEDING //
   //////////////////////
 
   console.log('--- Seeding Locations ---');
-
-  const seedUser = await prisma.user.findFirst();
-  if (!seedUser) {
-    throw new Error('Cannot seed locations without at least one user in the DB.');
-  }
 
   const locationsToCreate = [
     {
@@ -183,7 +185,7 @@ async function main() {
       country: 'Germany',
       longitude: 13.4482509,
       latitude: 52.485021,
-      authorId: seedUser.id,
+      authorId: alice.id,
       isPublic: true,
     },
   ];
@@ -216,7 +218,7 @@ async function main() {
   const eventsToCreate = [
     {
       title: 'Grit Launch Party',
-      authorId: 2,
+      authorId: bob.id,
       locationId: gritHqId,
       content: 'Celebrating the first release of our app!',
       isPublic: true,
@@ -226,7 +228,7 @@ async function main() {
     },
     {
       title: 'Private Strategy Meeting',
-      authorId: 1,
+      authorId: alice.id,
       content: 'Discussing SECRETS!',
       isPublic: false,
       isPublished: false,

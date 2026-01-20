@@ -30,6 +30,7 @@ describe('Events E2E', () => {
       data: {
         email: 'test@example.com',
         name: 'Tester',
+        password: 'password123',
       },
     });
 
