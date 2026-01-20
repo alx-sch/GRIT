@@ -210,6 +210,7 @@ typecheck: install
 
 lint: install
 	@echo "$(BOLD)$(YELLOW)--- Linting...$(RESET)"
+	@rm -rf /tmp/turbod/*
 	@turbo lint;
 	@echo "$(BOLD)$(GREEN)Linting complete.$(RESET)"
 

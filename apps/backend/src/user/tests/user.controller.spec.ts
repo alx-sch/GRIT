@@ -72,7 +72,7 @@ describe('UserController', () => {
     const testUser = {
       name: 'natalie',
       email: 'nat@gmail.com',
-      password: 'superpassword3000'
+      password: 'superpassword3000',
     };
 
     // Test 1
