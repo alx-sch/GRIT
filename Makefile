@@ -328,7 +328,7 @@ start-postgres: install-be
 		fi; \
 		echo "Waiting for Postgres... ($$RETRIES attempts left)"; \
 		RETRIES=$$((RETRIES - 1)); \
-		sleep 2; \
+		sleep 1; \
 	done; \
 	if [ $$RETRIES -eq 0 ]; then \
 		echo "$(RED)Timeout waiting for Postgres.$(RESET)"; \
@@ -349,7 +349,7 @@ start-minio: install-be
 		fi; \
 		echo "Waiting for MinIO... ($$RETRIES attempts left)"; \
 		RETRIES=$$((RETRIES - 1)); \
-		sleep 2; \
+		sleep 1; \
 	done; \
 	if [ $$RETRIES -eq 0 ]; then \
 		echo "$(RED)Timeout waiting for MinIO.$(RESET)"; \

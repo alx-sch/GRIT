@@ -13,7 +13,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ResUserBaseDto, ResUserPostDto, ReqUserPostDto } from '@/user/user.schema';
+import {
+  ResUserBaseDto,
+  ResUserPostDto,
+  ReqUserPostDto,
+  ResUserEventsDto,
+} from '@/user/user.schema';
 import { UserService } from '@/user/user.service';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { ApiConsumes, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
@@ -48,7 +53,7 @@ export class UserController {
   }
 
   // ADD IMAGE UPLOAD ROUTINE
-  @Patch('me/avatar')
+  @Patch('me/upload-avatar')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResUserBaseDto)
@@ -77,5 +82,15 @@ export class UserController {
   ): Promise<ResUserBaseDto> {
     console.log('File received:', file.originalname);
     return await this.userService.userUpdateAvatar(userId, file);
+  }
+
+  @Get('me/events')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(ResUserEventsDto)
+  async getMyEvents(@GetUser('id') userId: number): Promise<ResUserEventsDto> {
+    const events = await this.userService.userGetEvents(userId);
+
+    return ResUserEventsDto.create(events);
   }
 }

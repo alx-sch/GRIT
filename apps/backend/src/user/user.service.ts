@@ -39,6 +39,18 @@ export class UserService {
     });
   }
 
+  async userGetEvents(userId: number) {
+    return this.prisma.event.findMany({
+      where: {
+        attending: {
+          some: {
+            id: userId,
+          },
+        },
+      },
+    });
+  }
+
   async userPost(data: ReqUserPostDto): Promise<ResUserPostDto> {
     const user = await this.prisma.user.create({
       data: {

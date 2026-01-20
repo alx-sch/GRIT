@@ -10,8 +10,9 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { env } from '@/config/env';
-import { ReqAuthLoginDto } from '@/user/user.schema';
+import { ReqAuthLoginDto, ResAuthLoginDto, ResUserBaseDto } from '@/user/user.schema';
 import { UserService } from '@/user/user.service';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('auth')
 export class AuthController {
@@ -33,6 +34,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @ZodSerializerDto(ResAuthLoginDto)
   async login(@Body() body: ReqAuthLoginDto) {
     const { email, password } = body;
 
@@ -46,13 +48,12 @@ export class AuthController {
     const payload = { sub: user.id, email: user.email };
     return {
       accessToken: this.jwtService.sign(payload),
-      user: {
+      user: ResUserBaseDto.create({
         id: user.id,
         name: user.name,
         email: user.email,
         avatarKey: user.avatarKey,
-        attending: user.attending,
-      },
+      }),
     };
   }
 }
