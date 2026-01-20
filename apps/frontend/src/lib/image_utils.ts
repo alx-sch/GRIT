@@ -8,6 +8,11 @@ export function getEventImageUrl(event: Event): string {
   return `${env.VITE_MINIO_URL}/event-images/${event.imageKey}`;
 }
 
+export function getAvatarImageUrl(avatarFilename: string | undefined): string {
+  if (!avatarFilename) return '';
+  return `${env.VITE_MINIO_URL}/user-avatars/${avatarFilename}`;
+}
+
 export function generateImagePlaceholderEvent(event: Event) {
   const colors = ['oklch(0.68 0.22 45)', 'oklch(0 0 0)', 'oklch(0.4 0 0)'];
 

@@ -4,9 +4,11 @@ import { Form } from 'react-router-dom';
 import { useNavigation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/authStore';
+import { useCurrentUserStore } from '@/store/currentUserStore';
 import { toast } from 'sonner';
 import { redirect } from 'react-router-dom';
 import { Heading } from '@/components/ui/typography';
+import type { LoginRes } from '@/types/loginRes';
 
 export async function loginPageAction({ request }: { request: Request }) {
   // This is the action for the login page which takes the form data and sends a POST to the login endpoint
@@ -35,8 +37,15 @@ export async function loginPageAction({ request }: { request: Request }) {
       return null;
     }
   }
-  const data = (await res.json()) as { token: string };
-  useAuthStore.getState().setAuthenticated(data.token);
+  const json: unknown = await res.json(); // TODO This should be validated with ZOD
+  const data = json as LoginRes;
+  useAuthStore.getState().setAuthenticated(data.accessToken);
+  const currentUser = {
+    id: data.user.id,
+    avatar: data.user.avatarKey,
+    name: data.user.name,
+  };
+  useCurrentUserStore.getState().setUser(currentUser);
   return redirect('/?logged_in=true');
 }
 
