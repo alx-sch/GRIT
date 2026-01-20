@@ -234,6 +234,16 @@ async function main() {
       endAt: new Date('2026-02-15T12:00:00Z'),
       image: null as string | null,
     },
+    {
+      title: 'Alice in Wonderland',
+      authorId: 1,
+      content: 'We’re all mad here.!',
+      isPublic: true,
+      isPublished: true,
+      startAt: new Date('2027-02-15T10:00:00Z'),
+      endAt: new Date('2027-02-15T12:00:00Z'),
+      image: null as string | null,
+    },
   ];
 
   for (const e of eventsToCreate) {
