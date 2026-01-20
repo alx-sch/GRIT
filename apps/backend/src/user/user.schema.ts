@@ -18,17 +18,19 @@ export const ResEventUserSchema = z.object({
   locationId: z.number().int().positive().nullable(),
 });
 
+export const ResUserEventsSchema = z.array(ResEventUserSchema);
+
 // Response schema for the basic user info
 export const ResUserBaseSchema = z.object({
   id: z.number().int().positive(),
   name: z.string().nullable(),
-  attending: z.array(ResEventUserSchema).default([]),
   avatarKey: z.string().nullable(),
 });
 
 // Response schema for creating new user
 export const ResUserPostSchema = ResUserBaseSchema.extend({
   email: z.email(),
+  attending: z.array(ResEventUserSchema).default([]),
 });
 
 // Get all users
@@ -40,13 +42,9 @@ export const ResUserGetAllSchema = z.array(ResUserBaseSchema);
 export const ReqUserPostSchema = z.object({
   name: z.string().optional(),
   email: z.email(),
+  password: z.string().min(8),
   avatarKey: z.string().optional(),
 });
-
-// --- DTO classes ---
-export class ResUserBaseDto extends createZodDto(ResUserBaseSchema) {}
-export class ResUserPostDto extends createZodDto(ResUserPostSchema) {}
-export class ReqUserPostDto extends createZodDto(ReqUserPostSchema) {}
 
 // Patch a user (to attend event)
 export const ReqUserAttendSchema = z.strictObject({
@@ -61,3 +59,25 @@ export const ReqUserGetByIdSchema = z.strictObject({
 });
 export class ReqUserGetByIdDto extends createZodDto(ReqUserGetByIdSchema) {}
 export const ResUserGetByIdSchema = ResUserBaseSchema;
+
+// --- Login Schemas ---
+
+// Request schema for logging in
+export const ReqAuthLoginSchema = z.object({
+  email: z.email(),
+  password: z.string('Password must be at least 8 characters'),
+});
+
+// Response schema for a successful login; returns the basic user info along with the token
+export const ResAuthLoginSchema = z.object({
+  accessToken: z.string(),
+  user: ResUserBaseSchema,
+});
+
+// --- DTO classes ---
+export class ResUserBaseDto extends createZodDto(ResUserBaseSchema) {}
+export class ResUserPostDto extends createZodDto(ResUserPostSchema) {}
+export class ReqUserPostDto extends createZodDto(ReqUserPostSchema) {}
+export class ReqAuthLoginDto extends createZodDto(ReqAuthLoginSchema) {}
+export class ResAuthLoginDto extends createZodDto(ResAuthLoginSchema) {}
+export class ResUserEventsDto extends createZodDto(ResUserEventsSchema) {}
