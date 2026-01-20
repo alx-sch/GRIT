@@ -1,21 +1,32 @@
 import { Test } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, NotFoundException } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/prisma/prisma.service';
 import { User, Event } from '@prisma/client';
 
 /**
+ * ========================================
+ *                EVENTS E2E TESTS
+ * ========================================
+ *
  * End-to-end tests for the Event module.
  * Seeds and cleans the database between tests.
- * Each test targets a single controller route and asserts both valid and invalid cases.
+ * Each controller route has several tests to check valid and invalid cases.
  */
 
 describe('Events E2E', () => {
+  // Test environment variables
   let app: INestApplication;
   let prisma: PrismaService;
+
+  // To store event and user (which are seeded in the database).
   let user: User;
   let event: Event;
+
+  // Storing the dynamic variables after each database seeding.
+  let eventId: number;
+  let eventCreatedAt: String;
 
   // Setting up the environment ONCE at start.
   beforeAll(async () => {
@@ -52,31 +63,147 @@ describe('Events E2E', () => {
         title: 'Hello E2E',
       },
     });
+
+    eventId = event.id;
+    eventCreatedAt = event.createdAt.toISOString();
   });
 
-  // Test 1: Delete an event
-  it('DELETE /events/:id deletes event from DB', async () => {
-    const res = await request(app.getHttpServer()).delete(`/events/${event.id}`).expect(200);
+  /**
+   * ========================================
+   *                 ACTUAL TESTS
+   * ========================================
+   * All tests below this point are testing
+   * the Event controller endpoints.
+   */
 
-    expect(res.body).toMatchObject({
-      id: event.id,
-      title: 'Hello E2E',
-      authorId: user.id,
+  // Delete an event
+  describe('DELETE /events/:id', () => {
+    it('deletes an existing event', async () => {
+      const res = await request(app.getHttpServer()).delete(`/events/${event.id}`).expect(200);
+
+      expect(res.body).toMatchObject({
+        id: event.id,
+        title: 'Hello E2E',
+        authorId: user.id,
+      });
     });
 
-    const res2 = await request(app.getHttpServer()).delete(`/events/${10}`).expect(404);
+    it('returns 404 for non-existing event', async () => {
+      const res = await request(app.getHttpServer()).delete(`/events/10`).expect(404);
 
-    expect(res2.body).to;
+      expect(res.body).toStrictEqual({
+        statusCode: 404,
+        message: 'Event with id 10 not found',
+        error: 'Not Found',
+      });
+    });
   });
 
-  // Test 2: Get an individual event by id
-  it('GET /events/:id returns event from DB', async () => {
-    const res = await request(app.getHttpServer()).get(`/events/${event.id}`).expect(200);
+  // Get an individual event by id
+  describe('GET /events/:id', () => {
+    it('returns an existing event', async () => {
+      const res = await request(app.getHttpServer()).get(`/events/${event.id}`).expect(200);
 
-    expect(res.body).toMatchObject({
-      id: event.id,
-      authorId: user.id,
-      title: 'Hello E2E',
+      expect(res.body).toMatchObject({
+        id: event.id,
+        authorId: user.id,
+        title: 'Hello E2E',
+      });
+    });
+
+    it('returns 404 for non-existing event', async () => {
+      const res = await request(app.getHttpServer()).get(`/events/10`).expect(404);
+
+      expect(res.body).toStrictEqual({
+        statusCode: 404,
+        message: 'Event with id 10 not found',
+        error: 'Not Found',
+      });
+    });
+  });
+
+  // Get all published events or search published events
+  describe('GET /events', () => {
+    it('returns all published events', async () => {
+      const res = await request(app.getHttpServer()).get(`/events`).expect(200);
+
+      expect(res.body).toMatchObject([
+        {
+          id: event.id,
+          authorId: user.id,
+          title: 'Hello E2E',
+        },
+      ]);
+    });
+
+    it('applies filters correctly and returns matching event', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/events')
+        .query({
+          author_id: user.id,
+          search: 'Hello',
+          start_from: '2025-01-01',
+          start_until: '2025-12-31',
+        })
+        .expect(200);
+
+      expect(res.body).toMatchObject([
+        {
+          id: event.id,
+          authorId: user.id,
+          title: 'Hello E2E',
+        },
+      ]);
+    });
+
+    it('returns 400 for invalid query params', async () => {
+      await request(app.getHttpServer()).get('/events').query({ randomValue: 2 }).expect(400);
+    });
+  });
+
+  // Patch an event (Update)
+  describe('PATCH /events/:id', () => {
+    it('updates an existing event', async () => {
+      const res = await request(app.getHttpServer())
+        .patch(`/events/${event.id}`)
+        .send({ title: 'Updated Hello E2E' })
+        .expect(200);
+
+      expect(res.body).toMatchObject({
+        id: event.id,
+        authorId: user.id,
+        title: 'Updated Hello E2E',
+      });
+    });
+
+    it('returns 404 for non-existing event', async () => {
+      await request(app.getHttpServer())
+        .patch(`/events/10`)
+        .send({ title: 'Updated Hello E2E' })
+        .expect(404);
+    });
+
+    it('returns 404 for non-existing location', async () => {
+      const res = await request(app.getHttpServer())
+        .patch(`/events/10`)
+        .send({ locationId: 1 })
+        .expect(404);
+
+      expect(res.body).toStrictEqual({
+        statusCode: 404,
+        message: 'Location with id 1 not found',
+        error: 'Not Found',
+      });
+    });
+
+    it('returns 400 for no provided fields to update (empty body)', async () => {
+      const res = await request(app.getHttpServer()).patch(`/events/10`).send({}).expect(400);
+
+      expect(res.body).toStrictEqual({
+        statusCode: 400,
+        message: 'No fields to update',
+        error: 'Bad Request',
+      });
     });
   });
 
@@ -87,3 +214,11 @@ describe('Events E2E', () => {
     await app.close();
   });
 });
+
+// NOTE:
+// No responses are set to "toStrictEqual" because we haven't determined
+// how we structure the responses yet.
+// Once this is settled, we could change from "toMatchObject" to "toStrictEqual"
+// to make sure we are always receiving the exact response we are expecting.
+// The exceptions we have defined (like NotFoundException) are however getting
+// tested with "toStrictEqual" to make sure they are returning exactly what we defined.

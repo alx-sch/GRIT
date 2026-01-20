@@ -11,7 +11,13 @@ export class EventService {
     private locationService: LocationService
   ) {}
 
-  eventDelete(where: { id: number }) {
+  async eventDelete(where: { id: number }) {
+    const exists = await this.eventExists(where.id);
+
+    if (!exists) {
+      throw new NotFoundException(`Event with id ${where.id.toString()} not found`);
+    }
+
     return this.prisma.event.delete({
       where,
       include: {
