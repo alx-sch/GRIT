@@ -82,6 +82,7 @@ export const ReqEventGetPublishedSchema = z.strictObject({
       return d;
     })
     .optional(),
+  location_id: z.coerce.number().int().positive().optional(),
 });
 export class ReqEventGetPublishedDto extends createZodDto(ReqEventGetPublishedSchema) {}
 export const ResEventGetPublishedSchema = z.array(ResEventBaseSchema);

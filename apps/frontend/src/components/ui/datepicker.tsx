@@ -14,14 +14,18 @@ export interface DatePickerProps {
   selected?: DateRange;
   onSelect?: (date: DateRange | undefined) => void;
   placeholder?: string;
+  className?: string;
 }
 
-export function DatePicker({ selected, onSelect, placeholder }: DatePickerProps) {
+export function DatePicker({ selected, onSelect, placeholder, className }: DatePickerProps) {
   const [open, setOpen] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   const trigger = (
-    <Button variant="outline" className={cn('border-2 border-border rounded-none h-12 px')}>
+    <Button
+      variant="outline"
+      className={cn('border-2 border-border rounded-none h-12 px', className)}
+    >
       {selected?.from ? (
         <span>
           {isMobile
@@ -35,7 +39,7 @@ export function DatePicker({ selected, onSelect, placeholder }: DatePickerProps)
       ) : (
         <>
           <CalendarIcon className="shrink-0" />
-          {!isMobile && <span className="uppercase">{placeholder}</span>}
+          {<span className="uppercase">{placeholder}</span>}
         </>
       )}
     </Button>

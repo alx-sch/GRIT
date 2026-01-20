@@ -1,8 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@/generated/client/client';
-import { ReqEventGetPublishedDto, ReqEventPostDraftDto, ReqEventPatchDto } from './event.schema';
 import { LocationService } from '@/location/location.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+
+import { ReqEventGetPublishedDto, ReqEventPatchDto, ReqEventPostDraftDto } from './event.schema';
 
 @Injectable()
 export class EventService {
@@ -38,6 +39,9 @@ export class EventService {
       where.startAt = {};
       if (input.start_from) where.startAt.gte = input.start_from;
       if (input.start_until) where.startAt.lte = input.start_until;
+    }
+    if (input.location_id) {
+      where.locationId = input.location_id;
     }
     return this.prisma.event.findMany({
       where,

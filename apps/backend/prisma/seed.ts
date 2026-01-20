@@ -185,6 +185,15 @@ async function main() {
       authorId: seedUser.id,
       isPublic: true,
     },
+    {
+      name: 'Super Cool Event Space',
+      city: 'Berlin',
+      country: 'Germany',
+      longitude: 13.45177,
+      latitude: 52.49677,
+      authorId: seedUser.id,
+      isPublic: true,
+    },
   ];
 
   let gritHqId = 0;
@@ -199,7 +208,7 @@ async function main() {
         data: loc,
       });
       console.log(`📍 Created Location: ${createdLoc.name ?? 'Unknown Location'} `);
-      gritHqId = createdLoc.id;
+      if (loc.name === 'GRIT HQ') gritHqId = createdLoc.id;
     } else {
       console.log(`⏩ Location '${loc.name}' already exists. Skipping.`);
       gritHqId = existing.id;

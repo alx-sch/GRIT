@@ -15,29 +15,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 
 import { cn } from '@/lib/utils';
 
-const frameworks = [
-  {
-    value: 'next.js',
-    label: 'Next.js',
-  },
-  {
-    value: 'sveltekit',
-    label: 'SvelteKit',
-  },
-  {
-    value: 'nuxt.js',
-    label: 'Nuxt.js',
-  },
-  {
-    value: 'remix',
-    label: 'Remix',
-  },
-  {
-    value: 'astro',
-    label: 'Astro',
-  },
-];
-
 export interface ComboboxOptions {
   value: string;
   label: string;
@@ -49,13 +26,20 @@ export interface ComboboxProps {
   onChange: (value: string) => void;
   placeholder?: string;
   searchPlaceholder?: string;
-  emptyMessage: string;
-
+  emptyMessage?: string;
+  className?: string;
 }
 
-export function Combobox({ options, value, onChange, placeholder, searchPlaceholder, emptyMessage }: ComboboxProps) {
+export function Combobox({
+  options,
+  value,
+  onChange,
+  placeholder,
+  searchPlaceholder,
+  emptyMessage,
+  className,
+}: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
-//  const [value, setValue] = React.useState('');
 
   const selectedLabel = options.find((opt) => opt.value === value)?.label;
 
@@ -66,9 +50,9 @@ export function Combobox({ options, value, onChange, placeholder, searchPlacehol
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between md:max-w-[200px]"
+          className={cn('w-full justify-between h-12 md:max-w-[250px] md:min-w-48', className)}
         >
-			{selectedLabel ?? placeholder}
+          <span className="truncate">{selectedLabel ?? placeholder}</span>
           <ChevronDown />
         </Button>
       </PopoverTrigger>
@@ -89,10 +73,7 @@ export function Combobox({ options, value, onChange, placeholder, searchPlacehol
                 >
                   {options.label}
                   <CheckIcon
-                    className={cn(
-                      'ml-auto',
-                      value === options.value ? 'opacity-100' : 'opacity-0'
-                    )}
+                    className={cn('ml-auto', value === options.value ? 'opacity-100' : 'opacity-0')}
                   />
                 </CommandItem>
               ))}
