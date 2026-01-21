@@ -30,11 +30,6 @@ export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
   return { events, locations };
 };
 
-export const locationsLoader = async ({ request }: LoaderFunctionArgs) => {
-  console.log(request);
-  return locationService.getLocations();
-};
-
 export default function EventFeed() {
   const { events, locations } = useTypedLoaderData<{ events: Event[]; locations: Location[] }>();
 
@@ -42,6 +37,8 @@ export default function EventFeed() {
     value: String(id),
     label: name!,
   }));
+
+  const locationMap = new Map(locations.map(l => [l.id, l]));
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '');
@@ -145,7 +142,7 @@ export default function EventFeed() {
       {events.length > 0 ? (
         <div className="grid gap-6 justify-start md:grid-cols-2 lg:grid-cols-3">
           {events.map((event) => (
-            <EventCard key={event.id} event={event} />
+            <EventCard key={event.id} event={event} location={event.locationId ? locationMap.get(event.locationId) : undefined} />
           ))}
         </div>
       ) : (

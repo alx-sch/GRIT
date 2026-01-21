@@ -1,26 +1,21 @@
-import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
-import { env } from '@/config/env';
-import {
-  CreateBucketCommand,
-  HeadBucketCommand,
-  PutBucketPolicyCommand,
-  PutObjectCommand,
-  S3Client,
-} from '@aws-sdk/client-s3';
+import {env} from '@/config/env';
+import {CreateBucketCommand, HeadBucketCommand, PutBucketPolicyCommand, PutObjectCommand, S3Client,} from '@aws-sdk/client-s3';
+import {PrismaPg} from '@prisma/adapter-pg';
+import {PrismaClient} from '@prisma/client';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import {Pool} from 'pg';
 
 // Setup the Postgres connection
-const pool = new Pool({ connectionString: env.DATABASE_URL });
+const pool = new Pool({connectionString: env.DATABASE_URL});
 const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter }); // Initialize the client WITH the adapter
+const prisma =
+    new PrismaClient({adapter});  // Initialize the client WITH the adapter
 
 // Setup S3/minIO Client
 const s3 = new S3Client({
-  region: 'us-east-1', // MinIO requires a region, even if ignored
+  region: 'us-east-1',  // MinIO requires a region, even if ignored
   endpoint: env.MINIO_ENDPOINT,
   credentials: {
     accessKeyId: env.MINIO_USER,
@@ -30,47 +25,44 @@ const s3 = new S3Client({
 });
 
 interface S3Error {
-  $metadata?: { httpStatusCode?: number };
+  $metadata?: {httpStatusCode?: number};
 }
 
 // This ensures that anyone can view the images via a URL without needing a
 // private signature.
-const getPublicPolicy = (bucketName: string) =>
-  JSON.stringify({
-    Version: '2012-10-17',
-    Statement: [
-      {
-        Effect: 'Allow',
-        Principal: { AWS: ['*'] },
-        Action: ['s3:GetObject'],
-        Resource: [`arn:aws:s3:::${bucketName}/*`],
-      },
-    ],
-  });
+const getPublicPolicy = (bucketName: string) => JSON.stringify({
+  Version: '2012-10-17',
+  Statement: [
+    {
+      Effect: 'Allow',
+      Principal: {AWS: ['*']},
+      Action: ['s3:GetObject'],
+      Resource: [`arn:aws:s3:::${bucketName}/*`],
+    },
+  ],
+});
 
 // Helper: Check if bucket exists, create if not
 async function ensureBucket(bucketName: string) {
   console.log(`Checking for bucket: ${bucketName}...`);
   try {
-    await s3.send(new HeadBucketCommand({ Bucket: bucketName }));
+    await s3.send(new HeadBucketCommand({Bucket: bucketName}));
     console.log(`✅ Bucket ' ${bucketName}' exists.`);
   } catch (error: unknown) {
     const isS3Error = (err: unknown): err is S3Error =>
-      typeof err === 'object' && err !== null && '$metadata' in err;
+        typeof err === 'object' && err !== null && '$metadata' in err;
 
-    const isNotFound =
-      error instanceof Error &&
-      (error.name === 'NotFound' || (isS3Error(error) && error.$metadata?.httpStatusCode === 404));
+    const isNotFound = error instanceof Error &&
+        (error.name === 'NotFound' ||
+         (isS3Error(error) && error.$metadata?.httpStatusCode === 404));
 
     if (isNotFound) {
       console.log(`Bucket not found. Creating '${bucketName}'...`);
-      await s3.send(new CreateBucketCommand({ Bucket: bucketName }));
-      await s3.send(
-        new PutBucketPolicyCommand({
-          Bucket: bucketName,
-          Policy: getPublicPolicy(bucketName),
-        })
-      );
+      await s3.send(new CreateBucketCommand({Bucket: bucketName}));
+      await s3.send(new PutBucketPolicyCommand({
+        Bucket: bucketName,
+        Policy: getPublicPolicy(bucketName),
+      }));
       console.log(`✅ Bucket '${bucketName}' created.`);
     } else {
       throw error;
@@ -79,7 +71,8 @@ async function ensureBucket(bucketName: string) {
 }
 
 // Helper: Upload file to bukcet
-async function uploadToBucket(bucketName: string, localFilePath: string, originalName: string) {
+async function uploadToBucket(
+    bucketName: string, localFilePath: string, originalName: string) {
   // 1. Check if local file exists
   if (!fs.existsSync(localFilePath)) {
     console.warn(`⚠️  File not found locally: ${localFilePath}. Skipping.`);
@@ -96,14 +89,12 @@ async function uploadToBucket(bucketName: string, localFilePath: string, origina
 
   // 3. Upload to S3/MinIO
   try {
-    await s3.send(
-      new PutObjectCommand({
-        Bucket: bucketName,
-        Key: s3Key,
-        Body: fileBuffer,
-        ContentType: 'image/jpeg',
-      })
-    );
+    await s3.send(new PutObjectCommand({
+      Bucket: bucketName,
+      Key: s3Key,
+      Body: fileBuffer,
+      ContentType: 'image/jpeg',
+    }));
     const fileName = path.basename(localFilePath);
     console.log(`⬆️  Uploaded: ${fileName} (Bucket: ${bucketName})`);
     return s3Key;
@@ -129,20 +120,36 @@ async function main() {
   console.log('--- Seeding Users ---');
 
   const usersToCreate = [
-    { email: 'alice@example.com', name: 'Alice', password: '12345678', image: 'avatar-1.jpg' },
-    { email: 'bob@example.com', name: 'Bob', password: '123456pw', image: 'avatar-2.jpg' },
-    { email: 'cindy@example.com', name: 'Cindy', password: '12345678', image: null },
+    {
+      email: 'alice@example.com',
+      name: 'Alice',
+      password: '12345678',
+      image: 'avatar-1.jpg'
+    },
+    {
+      email: 'bob@example.com',
+      name: 'Bob',
+      password: '123456pw',
+      image: 'avatar-2.jpg'
+    },
+    {
+      email: 'cindy@example.com',
+      name: 'Cindy',
+      password: '12345678',
+      image: null
+    },
   ];
 
   // upsert: "Update or Insert" - prevents errors if the user already exists
   for (const u of usersToCreate) {
     // Create User in DB
     const user = await prisma.user.upsert({
-      where: { email: u.email },
+      where: {email: u.email},
       update: {},
-      create: { email: u.email, name: u.name, password: u.password },
+      create: {email: u.email, name: u.name, password: u.password},
     });
-    console.log(`👤 Processed User: ${user.name ?? 'Unknown'} (${String(user.id)})`);
+    console.log(
+        `👤 Processed User: ${user.name ?? 'Unknown'} (${String(user.id)})`);
 
     // Upload Image (Only if one is provided)
     if (u.image && !user.avatarKey) {
@@ -154,18 +161,20 @@ async function main() {
 
       if (bucketKey) {
         await prisma.user.update({
-          where: { id: user.id },
-          data: { avatarKey: bucketKey },
+          where: {id: user.id},
+          data: {avatarKey: bucketKey},
         });
         console.log(`   📝 Saved to DB: ${bucketKey}`);
       }
     } else if (u.image && user.avatarKey) {
-      console.log(`   ⏩ User ${user.name ?? 'Unknown'} already has an avatar. Skipping upload.`);
+      console.log(`   ⏩ User ${
+          user.name ?? 'Unknown'} already has an avatar. Skipping upload.`);
     }
   }
 
-  const alice = await prisma.user.findUnique({ where: { email: 'alice@example.com' } });
-  const bob = await prisma.user.findUnique({ where: { email: 'bob@example.com' } });
+  const alice =
+      await prisma.user.findUnique({where: {email: 'alice@example.com'}});
+  const bob = await prisma.user.findUnique({where: {email: 'bob@example.com'}});
 
   if (!alice || !bob) {
     throw new Error('Seed users Alice or Bob not found');
@@ -193,7 +202,7 @@ async function main() {
       country: 'Germany',
       longitude: 13.45177,
       latitude: 52.49677,
-      authorId: seedUser.id,
+      authorId: alice.id,
       isPublic: true,
     },
   ];
@@ -202,14 +211,15 @@ async function main() {
 
   for (const loc of locationsToCreate) {
     const existing = await prisma.location.findFirst({
-      where: { name: loc.name },
+      where: {name: loc.name},
     });
 
     if (!existing) {
       const createdLoc = await prisma.location.create({
         data: loc,
       });
-      console.log(`📍 Created Location: ${createdLoc.name ?? 'Unknown Location'} `);
+      console.log(
+          `📍 Created Location: ${createdLoc.name ?? 'Unknown Location'} `);
       if (loc.name === 'GRIT HQ') gritHqId = createdLoc.id;
     } else {
       console.log(`⏩ Location '${loc.name}' already exists. Skipping.`);
@@ -233,7 +243,7 @@ async function main() {
       isPublished: true,
       startAt: new Date('2026-02-01T18:00:00Z'),
       endAt: new Date('2026-02-01T22:00:00Z'),
-      image: 'grit-launch.jpg', // local filename in seed-assets
+      image: 'grit-launch.jpg',  // local filename in seed-assets
     },
     {
       title: 'Private Strategy Meeting',
@@ -251,8 +261,8 @@ async function main() {
       content: 'We’re all mad here.!',
       isPublic: true,
       isPublished: true,
-      startAt: new Date('2027-02-15T10:00:00Z'),
-      endAt: new Date('2027-02-15T12:00:00Z'),
+      startAt: new Date('2026-02-15T10:00:00Z'),
+      endAt: new Date('2026-02-15T12:00:00Z'),
       image: null as string | null,
     },
   ];
@@ -260,13 +270,13 @@ async function main() {
   for (const e of eventsToCreate) {
     // Simple check to avoid duplicates if seed run twice
     const existing = await prisma.event.findFirst({
-      where: { title: e.title, authorId: e.authorId },
+      where: {title: e.title, authorId: e.authorId},
     });
 
     if (!existing) {
       // Extract image from event data (not a DB field)
-      const { image, ...eventData } = e;
-      const event = await prisma.event.create({ data: eventData });
+      const {image, ...eventData} = e;
+      const event = await prisma.event.create({data: eventData});
       console.log(`📅 Created Event: ${e.title} for User ${String(e.authorId)}`);
 
       // Upload image if specified
@@ -276,8 +286,8 @@ async function main() {
 
         if (bucketKey) {
           await prisma.event.update({
-            where: { id: event.id },
-            data: { imageKey: bucketKey },
+            where: {id: event.id},
+            data: {imageKey: bucketKey},
           });
           console.log(`   📝 Event image saved: ${bucketKey}`);
         }
@@ -289,14 +299,16 @@ async function main() {
   // ATTENDANCE SEEDING //
   ////////////////////////
 
-  const aliceFromDb = await prisma.user.findUnique({ where: { email: 'alice@example.com' } });
-  const party = await prisma.event.findFirst({ where: { title: 'Grit Launch Party' } });
+  const aliceFromDb =
+      await prisma.user.findUnique({where: {email: 'alice@example.com'}});
+  const party =
+      await prisma.event.findFirst({where: {title: 'Grit Launch Party'}});
 
   if (aliceFromDb && party) {
     await prisma.user.update({
-      where: { id: aliceFromDb.id },
+      where: {id: aliceFromDb.id},
       data: {
-        attending: { connect: { id: party.id } },
+        attending: {connect: {id: party.id}},
       },
     });
     console.log(`✅ Alice is now attending the Party`);
@@ -304,13 +316,13 @@ async function main() {
 }
 
 main()
-  .then(async () => {
-    await prisma.$disconnect();
-    await pool.end();
-  })
-  .catch(async (e: unknown) => {
-    console.error(e);
-    await prisma.$disconnect();
-    await pool.end();
-    process.exit(1);
-  });
+    .then(async () => {
+      await prisma.$disconnect();
+      await pool.end();
+    })
+    .catch(async (e: unknown) => {
+      console.error(e);
+      await prisma.$disconnect();
+      await pool.end();
+      process.exit(1);
+    });

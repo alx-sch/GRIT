@@ -1,5 +1,5 @@
-import { Location } from './location';
-import { User } from './user';
+import {Location} from './location';
+import {User} from './user';
 
 export interface Event {
   id: number;
@@ -18,5 +18,4 @@ export interface Event {
   attending: User[];
 
   locationId?: number;
-  location?: Location;
 }
