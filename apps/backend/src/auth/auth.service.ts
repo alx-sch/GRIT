@@ -2,7 +2,6 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '@/user/user.service';
 import { ReqAuthLoginDto, ResAuthMeDto, ResAuthLoginDto } from '@/auth/auth.schema';
-import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -33,7 +32,7 @@ export class AuthService {
   }
 
   // Logic for creating the session response
-  async login(user: ResAuthMeDto): Promise<ResAuthLoginDto> {
+  login(user: ResAuthMeDto): ResAuthLoginDto {
     const payload = { sub: user.id, email: user.email };
     return {
       accessToken: this.jwtService.sign(payload),

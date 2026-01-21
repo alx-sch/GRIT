@@ -205,18 +205,18 @@ purge: fclean
 
 typecheck: install
 	@echo "$(BOLD)$(YELLOW)--- Typechecking...$(RESET)"
-	@turbo typecheck;
+	@turbo typecheck --no-update-notifier;
 	@echo "$(BOLD)$(GREEN)Typecheck complete.$(RESET)"
 
 lint: install
 	@echo "$(BOLD)$(YELLOW)--- Linting...$(RESET)"
 	@rm -rf /tmp/turbod/*
-	@turbo lint;
+	@turbo lint --no-update-notifier;
 	@echo "$(BOLD)$(GREEN)Linting complete.$(RESET)"
 
 lint-fix: install
 	@echo "$(BOLD)$(YELLOW)--- Linting...$(RESET)"
-	@turbo lint:fix;
+	@turbo lint:fix --no-update-notifier;
 	@echo "$(BOLD)$(GREEN)Linting complete.$(RESET)"
 
 format: install clean
@@ -246,12 +246,12 @@ test-be:
 test-be-unit: install-be
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Unit Tests ...$(RESET)"
 	@pnpm --filter @grit/backend exec prisma generate
-	@NODE_ENV=test turbo test:unit --filter=@grit/backend
+	@NODE_ENV=test turbo test:unit --filter=@grit/backend --no-update-notifier
 
 test-be-integration: install-be test-be-testdb-init
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Integration Tests ...$(RESET)"
 	@pnpm --filter @grit/backend exec prisma generate
-	@NODE_ENV=test turbo test:integration --filter=@grit/backend
+	@NODE_ENV=test turbo test:integration --filter=@grit/backend --no-update-notifier
 	@$(MAKE) test-be-testdb-remove
 
 test-be-e2e: install-be test-be-testdb-init
@@ -281,7 +281,7 @@ test-fe:
 # Helper
 test-fe-integration: install-fe
 	@echo "$(BOLD)$(YELLOW)--- Running Frontend Integration Tests ...$(RESET)"
-	@NODE_ENV=test turbo test:integration --filter=@grit/frontend
+	@NODE_ENV=test turbo test:integration --filter=@grit/frontend --no-update-notifier
 
 #############################
 ## 🚀 DEVELOPMENT COMMANDS ##
@@ -290,17 +290,17 @@ test-fe-integration: install-fe
 dev: check-env stop-dev-processes kill-port-be kill-port-fe install db
 	@echo "$(BOLD)$(YELLOW)--- Starting Backend & Frontend [DEV]...$(RESET)"
 	@rm -rf /tmp/turbod/*
-	turbo dev;
+	turbo dev --no-update-notifier;
 
 # Run only Backend with DB check; NEST clears terminal before printing
 dev-be: check-env kill-port-be db
 	@echo "$(BOLD)$(GREEN)--- Starting BACKEND (API) ---$(RESET)"
-	turbo --filter @grit/backend dev
+	turbo --filter @grit/backend dev --no-update-notifier
 
 # Run only Frontend
 dev-fe: check-env kill-port-fe install-fe
 	@echo "$(BOLD)$(GREEN)--- Starting FRONTEND (UI) ---$(RESET)"
-	turbo --filter @grit/frontend dev
+	turbo --filter @grit/frontend dev --no-update-notifier
 
 ###########################
 ## 📁 DATABASE & STORAGE ##
