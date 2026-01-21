@@ -84,11 +84,11 @@ describe('Events E2E', () => {
     });
 
     it('returns 404 for non-existing event', async () => {
-      const res = await request(app.getHttpServer()).delete(`/events/10`).expect(404);
+      const res = await request(app.getHttpServer()).delete(`/events/200`).expect(404);
 
       expect(res.body).toStrictEqual({
         statusCode: 404,
-        message: 'Event with id 10 not found',
+        message: 'Event with id 200 not found',
         error: 'Not Found',
       });
     });
@@ -109,11 +109,11 @@ describe('Events E2E', () => {
     });
 
     it('returns 404 for non-existing event', async () => {
-      const res = await request(app.getHttpServer()).get(`/events/10`).expect(404);
+      const res = await request(app.getHttpServer()).get(`/events/200`).expect(404);
 
       expect(res.body).toStrictEqual({
         statusCode: 404,
-        message: 'Event with id 10 not found',
+        message: 'Event with id 200 not found',
         error: 'Not Found',
       });
     });
@@ -175,7 +175,7 @@ describe('Events E2E', () => {
 
     it('returns 404 for non-existing event', async () => {
       await request(app.getHttpServer())
-        .patch(`/events/10`)
+        .patch(`/events/200`)
         .send({ title: 'Updated Hello E2E' })
         .expect(404);
     });
@@ -226,6 +226,19 @@ describe('Events E2E', () => {
         title: 'Hello E2E, once again!',
         authorId: user.id,
       });
+    });
+
+    it('returns 400 for bad request (title missing)', async () => {
+      const newEventData = {
+        authorId: user.id,
+        content: 'A new event stored in DB',
+        endAt: '2025-01-01T20:00:00.000Z',
+        isPublished: true,
+        isPublic: true,
+        startAt: '2025-01-01T20:00:00.000Z',
+      };
+
+      await request(app.getHttpServer()).post('/events').send(newEventData).expect(400);
     });
   });
 

@@ -1,0 +1,180 @@
+import { Test } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
+import request from 'supertest';
+import { AppModule } from '@/app.module';
+import { PrismaService } from '@/prisma/prisma.service';
+import { User, Event, Location } from '@/generated/client/client';
+
+/**
+ * ========================================
+ *           LOCATION E2E TESTS
+ * ========================================
+ *
+ * End-to-end tests for the Location module.
+ * Seeds and cleans the database between tests.
+ * Each controller route has several tests to check valid and invalid cases.
+ */
+
+describe('Location E2E', () => {
+  // Test environment variables
+  let app: INestApplication;
+  let prisma: PrismaService;
+
+  // To store event and user (which are seeded in the database).
+  let user: User;
+  let event: Event;
+  let location: Location;
+
+  // Setting up the environment ONCE at start.
+  beforeAll(async () => {
+    const moduleRef = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleRef.createNestApplication();
+    await app.init();
+
+    prisma = app.get(PrismaService);
+  });
+
+  // Happens before each test (deletes and reseeds database).
+  beforeEach(async () => {
+    await prisma.event.deleteMany();
+    await prisma.location.deleteMany();
+    await prisma.user.deleteMany();
+
+    user = await prisma.user.create({
+      data: {
+        email: 'test@example.com',
+        name: 'Test User',
+      },
+    });
+
+    location = await prisma.location.create({
+      data: {
+        isPublic: true,
+        author: { connect: { id: user.id } },
+        longitude: 42,
+        latitude: 42,
+        name: 'Test Location',
+      },
+    });
+
+    event = await prisma.event.create({
+      data: {
+        author: { connect: { id: user.id } },
+        location: { connect: { id: location.id } },
+        content: 'Stored in DB',
+        endAt: new Date('2025-01-01T20:00:00.000Z'),
+        isPublished: true,
+        isPublic: true,
+        startAt: new Date('2025-01-01T20:00:00.000Z'),
+        title: 'Test Event',
+      },
+    });
+  });
+
+  /**
+   * ========================================
+   *                 ACTUAL TESTS
+   * ========================================
+   * All tests below this point are testing
+   * the Event controller endpoints.
+   */
+
+  // Get all locations
+  describe('GET /locations', () => {
+    it('returns all locations', async () => {
+      const res = await request(app.getHttpServer()).get('/locations').expect(200);
+
+      expect(res.body).toMatchObject([
+        {
+          id: location.id,
+          name: 'Test Location',
+        },
+      ]);
+    });
+
+    it('returns all locations (checking if event is correctly added to events-array)', async () => {
+      const res = await request(app.getHttpServer()).get('/locations').expect(200);
+
+      expect(res.body).toMatchObject([
+        {
+          id: location.id,
+          name: 'Test Location',
+          events: [
+            {
+              id: event.id,
+              title: 'Test Event',
+            },
+          ],
+        },
+      ]);
+    });
+  });
+
+  // Delete a location
+  describe('DELETE /locations/:id', () => {
+    it('deletes an existing location', async () => {
+      const res = await request(app.getHttpServer())
+        .delete(`/locations/${location.id.toString()}`)
+        .expect(200);
+
+      expect(res.body).toMatchObject({
+        id: location.id,
+        name: 'Test Location',
+      });
+    });
+
+    it('returns 404 for non-existing location', async () => {
+      const res = await request(app.getHttpServer()).delete(`/locations/10`).expect(404);
+
+      expect(res.body).toStrictEqual({
+        statusCode: 404,
+        message: 'Location with id 10 not found',
+        error: 'Not Found',
+      });
+    });
+  });
+
+  // Post a location
+  describe('POST /locations', () => {
+    it('posts a new location', async () => {
+      const newLocationData = {
+        isPublic: true,
+        authorId: user.id,
+        longitude: 42,
+        latitude: 42,
+        name: 'Test Location 2',
+      };
+
+      const res = await request(app.getHttpServer())
+        .post('/locations')
+        .send(newLocationData)
+        .expect(201);
+
+      expect(res.body).toMatchObject({
+        name: 'Test Location 2',
+      });
+    });
+
+    it('returns 400 for bad request (longitude missing)', async () => {
+      const newLocationData = {
+        isPublic: true,
+        authorId: user.id,
+        latitude: 42,
+        name: 'Test Location 2',
+      };
+
+      await request(app.getHttpServer()).post('/locations').send(newLocationData).expect(400);
+    });
+  });
+
+  // Cleaning up the database and closes the app when tests are finished.
+  afterAll(async () => {
+    await prisma.event.deleteMany();
+    await prisma.location.deleteMany();
+    await prisma.user.deleteMany();
+    await app.close();
+  });
+});
