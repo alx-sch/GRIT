@@ -12,10 +12,10 @@ export class EventService {
   ) {}
 
   async eventDelete(id: number, userId: number) {
-    const exists = await this.eventExists(where.id);
+    const exists = await this.eventExists(id);
 
     if (!exists) {
-      throw new NotFoundException(`Event with id ${where.id.toString()} not found`);
+      throw new NotFoundException(`Event with id ${id.toString()} not found`);
     }
     try {
       return await this.prisma.event.delete({
@@ -29,7 +29,7 @@ export class EventService {
         },
       });
     } catch {
-      throw new NotFoundException(`No permission to delete event with id ${where.id.toString()}.`);
+      throw new NotFoundException(`No permission to delete event with id ${id.toString()}.`);
     }
   }
 
