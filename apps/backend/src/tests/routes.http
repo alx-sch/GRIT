@@ -10,6 +10,18 @@
 http://localhost:3000
 ###
 
+
+// ========== AUTHENTICATOION ========== //
+
+// Get Token for user 1
+GET http://localhost:3000/auth/debug/token/1
+###
+
+// Set the variable (Remove the 'Bearer' prefix here, add it in the request)
+#@token = JWT_TOKE_HERE
+
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoidXNlcjFAZXhhbXBsZS5jb20iLCJpYXQiOjE3Njg4NDkxNjYsImV4cCI6MTc2OTQ1Mzk2Nn0.TxJkAl0A1-y1SY0rrUX_l6HJFPKOsZcoVVOj2vXvoNw
+
 // ========== LOCATION ========== //
 
 // Get all locations
@@ -18,6 +30,7 @@ http://localhost:3000/locations
 
 // Create new location
 POST http://localhost:3000/locations HTTP/1.1
+Authorization: Bearer {{token}}
 content-type: application/json
 
 {
@@ -33,6 +46,7 @@ content-type: application/json
 
 // Delete location
 DELETE http://localhost:3000/locations/1 HTTP/1.1
+Authorization: Bearer {{token}}
 ###
 
 
@@ -48,17 +62,18 @@ POST http://localhost:3000/users HTTP/1.1
 content-type: application/json
 
 {
-    "name": "22",
-    "email": "tester_v332@grit.cosm"
+    "name": "Thomas Test",
+    "email": "tester_v332@grit.com"
 }
 ###
 
 // User attends an event
-PATCH http://localhost:3000/users/3 HTTP/1.1
+PATCH http://localhost:3000/users/attend HTTP/1.1
+Authorization: Bearer {{token}}
 content-type: application/json
 
 {
-	"attending": 1
+	"attending": 2
 }
 ###
 
@@ -76,12 +91,12 @@ http://localhost:3000/events/1
 http://localhost:3000/events?search=Sack
 ###
 
-// Create event, use Alice email from seed
+// Create event, use to whatever user the token resolves to
 POST http://localhost:3000/events HTTP/1.1
+Authorization: Bearer {{token}}
 content-type: application/json
 
 {
-    "authorId": 1,
     "title": "Party at unkown's place!",
     "startAt": "2026-05-01T18:00:00Z",
     "endAt": "2026-05-02T02:00:00Z",
@@ -91,14 +106,16 @@ content-type: application/json
 ###
 
 PATCH http://localhost:3000/events/1 HTTP/1.1
+Authorization: Bearer {{token}}
 content-type: application/json
 
 {
     "endAt": "2025-01-02T02:00:33Z",
-	"locationId": 2
+	"locationId": 1
 }
 ###
 
 // Delete event
-DELETE http://localhost:3000/events/1 HTTP/1.1
+DELETE http://localhost:3000/events/4 HTTP/1.1
+Authorization: Bearer {{token}}
 ###

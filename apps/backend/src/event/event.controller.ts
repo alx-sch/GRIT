@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { EventService } from './event.service';
 import {
   ReqEventDeleteDto,
@@ -13,6 +23,9 @@ import {
   ResEventPostDraftSchema,
 } from './event.schema';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { GetUser } from '@/auth/guards/get-user.decorator';
 
 @Controller('events')
 export class EventController {
@@ -20,9 +33,11 @@ export class EventController {
 
   // Delete an event
   @Delete(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResEventDeleteSchema)
-  eventDelete(@Param() param: ReqEventDeleteDto) {
-    return this.eventService.eventDelete({ id: param.id });
+  eventDelete(@Param() param: ReqEventDeleteDto, @GetUser('id') userId: number) {
+    return this.eventService.eventDelete(param.id, userId);
   }
 
   // Get an individual event by id
@@ -41,15 +56,23 @@ export class EventController {
 
   // Patch an event (Update)
   @Patch(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResEventPatchSchema)
-  eventPatch(@Body() data: ReqEventPatchDto, @Param() param: ReqEventGetByIdDto) {
-    return this.eventService.eventPatch(param.id, data);
+  eventPatch(
+    @Body() data: ReqEventPatchDto,
+    @Param() param: ReqEventGetByIdDto,
+    @GetUser('id') userId: number
+  ) {
+    return this.eventService.eventPatch(param.id, data, userId);
   }
 
   // Post a new event draft
   @Post()
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResEventPostDraftSchema)
-  eventCreateDraft(@Body() data: ReqEventPostDraftDto) {
-    return this.eventService.eventPostDraft(data);
+  eventCreateDraft(@Body() data: ReqEventPostDraftDto, @GetUser('id') userId: number) {
+    return this.eventService.eventPostDraft(Object.assign(data, { authorId: userId }));
   }
 }

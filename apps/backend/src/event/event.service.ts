@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { Prisma } from '@/generated/client/client';
+import { Prisma } from '@prisma/client';
 import { ReqEventGetPublishedDto, ReqEventPostDraftDto, ReqEventPatchDto } from './event.schema';
 import { LocationService } from '@/location/location.service';
 
@@ -11,20 +11,26 @@ export class EventService {
     private locationService: LocationService
   ) {}
 
-  async eventDelete(where: { id: number }) {
+  async eventDelete(id: number, userId: number) {
     const exists = await this.eventExists(where.id);
 
     if (!exists) {
       throw new NotFoundException(`Event with id ${where.id.toString()} not found`);
     }
-
-    return this.prisma.event.delete({
-      where,
-      include: {
-        author: true,
-        location: true,
-      },
-    });
+    try {
+      return await this.prisma.event.delete({
+        where: {
+          id,
+          authorId: userId,
+        },
+        include: {
+          author: true,
+          location: true,
+        },
+      });
+    } catch {
+      throw new NotFoundException(`No permission to delete event with id ${where.id.toString()}.`);
+    }
   }
 
   eventGetPublished(input: ReqEventGetPublishedDto) {
@@ -73,7 +79,7 @@ export class EventService {
     return event;
   }
 
-  async eventPatch(id: number, data: ReqEventPatchDto) {
+  async eventPatch(id: number, data: ReqEventPatchDto, userId: number) {
     const newData: Prisma.EventUpdateInput = {};
     if (data.content !== undefined) newData.content = data.content;
     if (data.endAt !== undefined) newData.endAt = data.endAt;
@@ -98,21 +104,22 @@ export class EventService {
       throw new BadRequestException('No fields to update');
     }
 
-    return this.prisma.event.update({
-      where: { id },
-      data: newData,
-      include: {
-        author: true,
-        location: true,
-      },
-    });
+    try {
+      return await this.prisma.event.update({
+        where: { id, authorId: userId },
+        data: newData,
+        include: {
+          author: true,
+          location: true,
+        },
+      });
+    } catch {
+      throw new NotFoundException(`Event not found or no permission to update it.`);
+    }
   }
 
-  eventPostDraft(data: ReqEventPostDraftDto) {
-    if (!data.authorId) {
-      throw new NotFoundException(`User with id ${data.authorId.toString()} not found`);
-    }
-    return this.prisma.event.create({
+  async eventPostDraft(data: ReqEventPostDraftDto & { authorId: number }) {
+    return await this.prisma.event.create({
       data: {
         title: data.title,
         content: data.content,
