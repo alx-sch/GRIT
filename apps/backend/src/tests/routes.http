@@ -22,8 +22,9 @@ Content-Type: application/json
 
 // ========== AUTHENTICATOION ========== //
 
+# Get token of user 1
 # @name debugGetToken
-GET {{baseUrl}}/auth/debug/token/1
+GET {{baseUrl}}/auth/debug/token/4
 ###
 
 # @name login
@@ -46,6 +47,10 @@ Authorization: Bearer {{token}}
 ###
 
 # ========== USER ACTIONS ==========
+
+# Get all users
+GET {{baseUrl}}/users/
+###
 
 # Get My Events (Attending)
 GET {{baseUrl}}/users/me/events
