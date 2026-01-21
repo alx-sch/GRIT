@@ -111,7 +111,7 @@ install: install-be install-fe
 install-be:
 	@echo "$(BOLD)$(YELLOW)--- Installing Backend Dependencies...$(RESET)"
 	@pnpm --filter @grit/backend install
-	@pnpm --filter @grit/backend exec prisma generate
+	@pnpm --filter @grit/backend exec prisma generate --no-hints
 	@echo "$(BOLD)$(GREEN)Backend dependencies installed.$(RESET)"
 
 # Installs only Frontend dependencies
@@ -245,18 +245,18 @@ test-be:
 # Separate commands for unit, integration and e2e test for faster and cheaper failing in CI
 test-be-unit: install-be
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Unit Tests ...$(RESET)"
-	@pnpm --filter @grit/backend exec prisma generate
+	@pnpm --filter @grit/backend exec prisma generate --no-hints
 	@NODE_ENV=test turbo test:unit --filter=@grit/backend --no-update-notifier
 
 test-be-integration: install-be test-be-testdb-init
 	@echo "$(BOLD)$(YELLOW)--- Running Backend Integration Tests ...$(RESET)"
-	@pnpm --filter @grit/backend exec prisma generate
+	@pnpm --filter @grit/backend exec prisma generate --no-hints
 	@NODE_ENV=test turbo test:integration --filter=@grit/backend --no-update-notifier
 	@$(MAKE) test-be-testdb-remove
 
 test-be-e2e: install-be test-be-testdb-init
 	@echo "$(BOLD)$(YELLOW)--- Running Backend E2E Tests ...$(RESET)"
-	@pnpm --filter @grit/backend exec prisma generate
+	@pnpm --filter @grit/backend exec prisma generate --no-hints
 	@NODE_ENV=test pnpm --filter @grit/backend test:e2e
 	@$(MAKE) test-be-testdb-remove
 
