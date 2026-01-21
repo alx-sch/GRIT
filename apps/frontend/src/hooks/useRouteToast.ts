@@ -2,6 +2,14 @@ import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
+/**
+ * This toast helper is a way to show toast messages in case we redirect in react router actions our loaders.
+ * Often times these cannot be shown reliably since the action or loader redirect the user before the <Toaster />
+ * component is mounted and toast messages might get lost in that case. Below is a list of get parameters that can
+ * be added to the redirects and will cause a toast message on the redirected page through the globally mounted
+ * useRouteToast component which will strip the parameter and show the toast message.
+ */
+
 const preparedToasts = [
   {
     param: 'logged_out',

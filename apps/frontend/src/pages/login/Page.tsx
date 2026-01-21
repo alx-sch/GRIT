@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { redirect } from 'react-router-dom';
 import { Heading } from '@/components/ui/typography';
 import type { LoginRes } from '@/types/loginRes';
+import axios from 'axios';
 
 export async function loginPageAction({ request }: { request: Request }) {
   // This is the action for the login page which takes the form data and sends a POST to the login endpoint
@@ -19,34 +20,30 @@ export async function loginPageAction({ request }: { request: Request }) {
     password: formData.get('password'),
   };
 
-  const res = await fetch('/api/auth/login', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(reqBody),
-  });
-
-  if (!res.ok) {
-    if (res.status >= 500) {
-      throw new Error('Login failed');
-    } else {
+  try {
+    // TODO: This should be made a service employing the api wrapper
+    const res = await axios.post<LoginRes>('/api/auth/login', reqBody); // TOOD, this should maybe be evaluated with Zod
+    const data = res.data;
+    useAuthStore.getState().setAuthenticated(data.accessToken);
+    const currentUser = {
+      id: data.user.id,
+      avatar: data.user.avatarKey,
+      name: data.user.name,
+    };
+    useCurrentUserStore.getState().setUser(currentUser);
+    return redirect('/?logged_in=true');
+  } catch (err) {
+    if (axios.isAxiosError(err)) {
+      const status = err.response?.status;
+      if (!status || status >= 500) throw new Error('Login failed');
       toast.error('Login Failed', {
         description: 'Please try again.',
       });
-      return null;
+    } else {
+      console.error(err);
+      throw err;
     }
   }
-  const json: unknown = await res.json(); // TODO This should be validated with ZOD
-  const data = json as LoginRes;
-  useAuthStore.getState().setAuthenticated(data.accessToken);
-  const currentUser = {
-    id: data.user.id,
-    avatar: data.user.avatarKey,
-    name: data.user.name,
-  };
-  useCurrentUserStore.getState().setUser(currentUser);
-  return redirect('/?logged_in=true');
 }
 
 export const loginPageLoader = () => {
@@ -76,7 +73,7 @@ export const LoginPage = () => {
                   name="email"
                   placeholder="Max Leiter"
                   autoComplete="username"
-                  defaultValue={'test@example.com'}
+                  defaultValue={'alice@example.com'}
                 />
               </Field>
               <Field>
@@ -87,7 +84,7 @@ export const LoginPage = () => {
                   name="password"
                   placeholder="••••••••"
                   autoComplete="current-password"
-                  defaultValue={'password'}
+                  defaultValue={'12345678'}
                 />
               </Field>
               <Field orientation="horizontal">
