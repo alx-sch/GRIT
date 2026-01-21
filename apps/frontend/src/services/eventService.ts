@@ -20,4 +20,9 @@ export const eventService = {
     const response = await api.get<Event[]>(url);
     return response.data;
   },
+
+  postEvent: async (data: FormData): Promise<Event> => {
+	const response = await api.post<Event>('/events', data);
+	return response.data;
+  }
 };
