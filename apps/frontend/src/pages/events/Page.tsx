@@ -38,7 +38,7 @@ export default function EventFeed() {
     label: name!,
   }));
 
-  const locationMap = new Map(locations.map(l => [l.id, l]));
+  const locationMap = new Map(locations.map((l) => [l.id, l]));
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '');
@@ -109,7 +109,9 @@ export default function EventFeed() {
   return (
     <Container className="py-10 space-y-8 p-0 md:px-0">
       <div className="space-y-2">
-        <Heading level={1} className="text-3xl md:text-4xl">Upcoming events</Heading>
+        <Heading level={1} className="text-3xl md:text-4xl">
+          Upcoming events
+        </Heading>
       </div>
 
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
@@ -142,7 +144,11 @@ export default function EventFeed() {
       {events.length > 0 ? (
         <div className="grid gap-6 justify-start md:grid-cols-2 lg:grid-cols-3">
           {events.map((event) => (
-            <EventCard key={event.id} event={event} location={event.locationId ? locationMap.get(event.locationId) : undefined} />
+            <EventCard
+              key={event.id}
+              event={event}
+              location={event.locationId ? locationMap.get(event.locationId) : undefined}
+            />
           ))}
         </div>
       ) : (

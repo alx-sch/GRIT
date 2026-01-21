@@ -52,7 +52,7 @@ export function Combobox({
           aria-expanded={open}
           className={cn('w-full justify-between h-12 md:max-w-[250px]', className)}
         >
-          <span className={selectedLabel? 'truncate' : ''}> {selectedLabel ?? placeholder}</span>
+          <span className={selectedLabel ? 'truncate' : ''}> {selectedLabel ?? placeholder}</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-(--radix-popover-trigger-width) border-0 p-0 bg-secondary font-sans">
