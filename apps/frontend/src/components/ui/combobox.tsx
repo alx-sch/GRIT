@@ -50,10 +50,9 @@ export function Combobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn('w-full justify-between h-12 md:max-w-[250px] md:min-w-48', className)}
+          className={cn('w-full justify-between h-12 md:max-w-[250px]', className)}
         >
-          <span className="truncate">{selectedLabel ?? placeholder}</span>
-          <ChevronDown />
+          <span className={selectedLabel? 'truncate' : ''}> {selectedLabel ?? placeholder}</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-(--radix-popover-trigger-width) border-0 p-0 bg-secondary font-sans">

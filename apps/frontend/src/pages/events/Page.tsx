@@ -109,7 +109,7 @@ export default function EventFeed() {
   return (
     <Container className="py-10 space-y-8 p-0 md:px-0">
       <div className="space-y-2">
-        <Heading level={1}>Upcoming events</Heading>
+        <Heading level={1} className="text-3xl md:text-4xl">Upcoming events</Heading>
       </div>
 
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
@@ -128,14 +128,14 @@ export default function EventFeed() {
             placeholder="Location"
             searchPlaceholder="Search"
             emptyMessage="No location found"
-            className="flex-1 min-w-0 md:flex-none"
+            className="flex-1 min-w-0 md:flex-none text-sm md:text-base"
           />
 
           <DatePicker
             selected={selectedDateRange}
             onSelect={handleDateSelect}
             placeholder="Date"
-            className="flex-1 min-w-0 md:flex-none"
+            className="flex-1 min-w-0 md:flex-none text-sm md:text-base px-7"
           ></DatePicker>
         </div>
       </div>
