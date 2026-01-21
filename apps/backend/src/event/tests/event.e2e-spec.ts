@@ -3,7 +3,8 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/prisma/prisma.service';
-import { User, Event } from '@/generated/client/client';
+import { ReqUserPostDto } from '@/user/user.schema';
+import { ReqEventPostDraftDto } from '@/event/event.schema';
 
 /**
  * ========================================
@@ -21,8 +22,8 @@ describe('Events E2E', () => {
   let prisma: PrismaService;
 
   // To store event and user (which are seeded in the database).
-  let user: User;
-  let event: Event;
+  let user: ReqUserPostDto;
+  let event: ReqEventPostDraftDto;
 
   // Setting up the environment ONCE at start.
   beforeAll(async () => {
