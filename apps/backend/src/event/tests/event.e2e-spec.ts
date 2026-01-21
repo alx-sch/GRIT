@@ -74,7 +74,7 @@ describe('Events E2E', () => {
   describe('DELETE /events/:id', () => {
     it('deletes an existing event', async () => {
       const res = await request(app.getHttpServer())
-        .delete(`/events/${event.id.toString()}`)
+        .delete(`/events/${String(event.id)}`)
         .expect(200);
 
       expect(res.body).toMatchObject({
@@ -99,7 +99,7 @@ describe('Events E2E', () => {
   describe('GET /events/:id', () => {
     it('returns an existing event', async () => {
       const res = await request(app.getHttpServer())
-        .get(`/events/${event.id.toString()}`)
+        .get(`/events/${String(event.id)}`)
         .expect(200);
 
       expect(res.body).toMatchObject({
@@ -163,7 +163,7 @@ describe('Events E2E', () => {
   describe('PATCH /events/:id', () => {
     it('updates an existing event', async () => {
       const res = await request(app.getHttpServer())
-        .patch(`/events/${event.id.toString()}`)
+        .patch(`/events/${String(event.id)}`)
         .send({ title: 'Updated Hello E2E' })
         .expect(200);
 
@@ -183,7 +183,7 @@ describe('Events E2E', () => {
 
     it('returns 404 for non-existing location', async () => {
       const res = await request(app.getHttpServer())
-        .patch(`/events/${event.id.toString()}`)
+        .patch(`/events/${String(event.id)}`)
         .send({ locationId: 1 })
         .expect(404);
 
@@ -196,7 +196,7 @@ describe('Events E2E', () => {
 
     it('returns 400 for no provided fields to update (empty body)', async () => {
       const res = await request(app.getHttpServer())
-        .patch(`/events/${event.id.toString()}`)
+        .patch(`/events/${String(event.id)}`)
         .send({})
         .expect(400);
 

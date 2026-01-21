@@ -117,7 +117,7 @@ describe('Location E2E', () => {
   describe('DELETE /locations/:id', () => {
     it('deletes an existing location', async () => {
       const res = await request(app.getHttpServer())
-        .delete(`/locations/${location.id.toString()}`)
+        .delete(`/locations/${String(location.id)}`)
         .expect(200);
 
       expect(res.body).toMatchObject({
