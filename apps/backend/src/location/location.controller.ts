@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Delete, Param } from '@nestjs/common';
+import { Body, Controller, Get, Post, Delete, Param, UseGuards } from '@nestjs/common';
 import {
   ReqLocationPostDto,
   ResLocationPostSchema,
@@ -8,6 +8,8 @@ import {
 } from '@/location/location.schema';
 import { LocationService } from '@/location/location.service';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 
 @Controller('locations')
 export class LocationController {
@@ -22,6 +24,8 @@ export class LocationController {
 
   // Post a location
   @Post()
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResLocationPostSchema)
   locationPost(@Body() data: ReqLocationPostDto) {
     return this.locationService.locationPost(data);
@@ -29,6 +33,8 @@ export class LocationController {
 
   // Delete a location
   @Delete(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResLocationDeleteSchema)
   eventDelete(@Param() param: ReqLocationDeleteDto) {
     return this.locationService.locationDelete({ id: param.id });

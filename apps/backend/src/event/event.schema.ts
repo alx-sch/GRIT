@@ -103,7 +103,6 @@ export const ResEventPatchSchema = ResEventBaseSchema;
 
 // Post a new event draft
 export const ReqEventPostDraftSchema = z.strictObject({
-  authorId: z.number().int().positive(),
   content: z.string().optional(),
   endAt: z.iso.datetime(),
   isPublic: z.boolean(),

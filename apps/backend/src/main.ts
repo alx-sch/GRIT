@@ -10,6 +10,7 @@ async function bootstrap() {
     .setTitle('GRIT API')
     .setDescription('API built with Zod and Swagger')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
 
   // Create API Documentation Document with Swagger
