@@ -60,24 +60,8 @@ export const ReqUserGetByIdSchema = z.strictObject({
 export class ReqUserGetByIdDto extends createZodDto(ReqUserGetByIdSchema) {}
 export const ResUserGetByIdSchema = ResUserBaseSchema;
 
-// --- Login Schemas ---
-
-// Request schema for logging in
-export const ReqAuthLoginSchema = z.object({
-  email: z.email(),
-  password: z.string('Password must be at least 8 characters'),
-});
-
-// Response schema for a successful login; returns the basic user info along with the token
-export const ResAuthLoginSchema = z.object({
-  accessToken: z.string(),
-  user: ResUserBaseSchema,
-});
-
 // --- DTO classes ---
 export class ResUserBaseDto extends createZodDto(ResUserBaseSchema) {}
 export class ResUserPostDto extends createZodDto(ResUserPostSchema) {}
 export class ReqUserPostDto extends createZodDto(ReqUserPostSchema) {}
-export class ReqAuthLoginDto extends createZodDto(ReqAuthLoginSchema) {}
-export class ResAuthLoginDto extends createZodDto(ResAuthLoginSchema) {}
 export class ResUserEventsDto extends createZodDto(ResUserEventsSchema) {}
