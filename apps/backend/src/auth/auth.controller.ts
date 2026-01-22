@@ -9,7 +9,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from '@/auth/auth.service';
-import { env } from '@/config/env';
 import { ResAuthMeDto, ReqAuthLoginDto, ResAuthLoginDto } from '@/auth/auth.schema';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
@@ -38,7 +37,7 @@ export class AuthController {
   @Get('debug/token/:id')
   @ZodSerializerDto(ResAuthLoginDto)
   async generateTestToken(@Param('id', ParseIntPipe) id: number) {
-    if (env.NODE_ENV === 'production') {
+    if (this.authService.isProduction()) {
       throw new ForbiddenException('This debug route is disabled in production.');
     }
     const user = await this.authService.getMe(id);

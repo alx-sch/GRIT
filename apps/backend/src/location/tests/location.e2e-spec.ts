@@ -116,7 +116,7 @@ describe('Location E2E', () => {
       expect(res.body).toMatchObject([
         {
           id: location.id,
-          name: 'Test Location',
+          name: location.name,
         },
       ]);
     });
@@ -127,11 +127,11 @@ describe('Location E2E', () => {
       expect(res.body).toMatchObject([
         {
           id: location.id,
-          name: 'Test Location',
+          name: location.name,
           events: [
             {
               id: event.id,
-              title: 'Test Event',
+              title: event.title,
             },
           ],
         },
@@ -149,7 +149,7 @@ describe('Location E2E', () => {
 
       expect(res.body).toMatchObject({
         id: location.id,
-        name: 'Test Location',
+        name: location.name,
       });
     });
 
@@ -191,7 +191,7 @@ describe('Location E2E', () => {
         .expect(201);
 
       expect(res.body).toMatchObject({
-        name: 'Test Location 2',
+        name: newLocationData.name,
       });
     });
 

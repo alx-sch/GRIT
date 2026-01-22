@@ -99,7 +99,7 @@ describe('Events E2E', () => {
 
       expect(res.body).toMatchObject({
         id: event.id,
-        title: 'Hello E2E',
+        title: event.title,
         authorId: user.id,
       });
     });
@@ -134,7 +134,7 @@ describe('Events E2E', () => {
       expect(res.body).toMatchObject({
         id: event.id,
         authorId: user.id,
-        title: 'Hello E2E',
+        title: event.title,
       });
     });
 
@@ -158,7 +158,7 @@ describe('Events E2E', () => {
         {
           id: event.id,
           authorId: user.id,
-          title: 'Hello E2E',
+          title: event.title,
         },
       ]);
     });
@@ -178,7 +178,7 @@ describe('Events E2E', () => {
         {
           id: event.id,
           authorId: user.id,
-          title: 'Hello E2E',
+          title: event.title,
         },
       ]);
     });
