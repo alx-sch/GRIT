@@ -23,7 +23,7 @@ const schema = z
     endAt: z.date(),
     locationId: z.string().optional(),
   })
-  .refine((data) => data.endAt > data.startAt, {
+  .refine((data) => data.endAt >= data.startAt, {
     message: 'End date must be after start date',
     path: ['endAt'],
   });
@@ -35,10 +35,13 @@ interface EventFormProps {
 type FormFields = z.infer<typeof schema>;
 
 export default function EventForm({ locations }: EventFormProps) {
-  const locationOptionsCombobox: ComboboxOptions[] = locations.map(({ id, name }) => ({
-    value: String(id),
-    label: name!,
-  }));
+  const locationOptionsCombobox: ComboboxOptions[] = [
+    { value: '', label: 'TBA (To be Announced)' },
+    ...locations.map(({ id, name }) => ({
+      value: String(id),
+      label: name!,
+    })),
+  ];
 
   const {
     register,
@@ -61,12 +64,13 @@ export default function EventForm({ locations }: EventFormProps) {
   });
 
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
-    //could catch errors from backend here
     const payload = {
       ...data,
       startAt: data.startAt.toISOString(),
       endAt: data.endAt.toISOString(),
+      locationId: data.locationId || undefined,
     };
+    console.log(payload);
   };
 
   const startAtValue = watch('startAt');
