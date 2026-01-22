@@ -9,13 +9,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from '@/auth/auth.service';
-import { env } from '@/config/env';
 import { ResAuthMeDto, ResAuthLoginDto } from '@/auth/auth.schema';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { GetUser } from '@/auth/guards/get-user.decorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { type LoginInput } from '@grit/schema';
+import { env } from '@/config/env';
 
 @Controller('auth')
 export class AuthController {
@@ -39,7 +39,7 @@ export class AuthController {
   @Get('debug/token/:id')
   @ZodSerializerDto(ResAuthLoginDto)
   async generateTestToken(@Param('id', ParseIntPipe) id: number) {
-    if (env.NODE_ENV === 'production') {
+    if (this.authService.isProduction()) {
       throw new ForbiddenException('This debug route is disabled in production.');
     }
     const user = await this.authService.getMe(id);

@@ -1,9 +1,10 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '@/user/user.service';
 import { ResAuthMeDto, ResAuthLoginDto } from '@/auth/auth.schema';
 import * as bcrypt from 'bcrypt';
 import { type LoginInput } from '@grit/schema';
+import { env } from '@/config/env';
 
 @Injectable()
 export class AuthService {
@@ -44,7 +45,7 @@ export class AuthService {
   // Logic for the rehydration endpoint
   async getMe(userId: number): Promise<ResAuthMeDto> {
     const user = await this.userService.userGetById(userId);
-    if (!user) throw new UnauthorizedException('User not found');
+    if (!user) throw new NotFoundException('User not found');
 
     return ResAuthMeDto.create({
       id: user.id,
@@ -52,5 +53,10 @@ export class AuthService {
       name: user.name,
       avatarKey: user.avatarKey,
     });
+  }
+
+  // For test purposes (since NODE_ENV is read-only).
+  isProduction(): boolean {
+    return env.NODE_ENV === 'production';
   }
 }

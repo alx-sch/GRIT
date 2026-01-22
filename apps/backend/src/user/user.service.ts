@@ -8,6 +8,7 @@ import {
   ReqUserAttendDto,
 } from '@/user/user.schema';
 import { StorageService } from '@/storage/storage.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -56,7 +57,7 @@ export class UserService {
       data: {
         name: data.name,
         email: data.email,
-        password: data.password,
+        password: await bcrypt.hash(data.password, 10),
         avatarKey: data.avatarKey,
       },
       include: {
