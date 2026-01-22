@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { ReqEventGetPublishedDto, ReqEventPostDraftDto, ReqEventPatchDto } from './event.schema';
@@ -29,7 +34,7 @@ export class EventService {
         },
       });
     } catch {
-      throw new NotFoundException(`No permission to delete event with id ${id.toString()}.`);
+      throw new UnauthorizedException(`No permission to delete event with id ${id.toString()}.`);
     }
   }
 

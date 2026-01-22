@@ -83,17 +83,20 @@ describe('Auth E2E', () => {
     });
 
     it('returns 401 for unauthorized access (wrong password)', async () => {
-      await request(app.getHttpServer())
+      const res = await request(app.getHttpServer())
         .post('/auth/login')
         .send({ email: user.email, password: 'wrongpassword123' })
         .expect(401);
+      expect(res.body.message).toBe('Invalid email or password');
     });
 
     it('returns 401 for unauthorized access (wrong email)', async () => {
-      await request(app.getHttpServer())
+      const res = await request(app.getHttpServer())
         .post('/auth/login')
         .send({ email: 'wrong@email.com', password: 'password123' })
         .expect(401);
+
+      expect(res.body.message).toBe('Invalid email or password');
     });
   });
 
