@@ -10,11 +10,12 @@ import {
 } from '@nestjs/common';
 import { AuthService } from '@/auth/auth.service';
 import { env } from '@/config/env';
-import { ResAuthMeDto, ReqAuthLoginDto, ResAuthLoginDto } from '@/auth/auth.schema';
+import { ResAuthMeDto, ResAuthLoginDto } from '@/auth/auth.schema';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { GetUser } from '@/auth/guards/get-user.decorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { type LoginInput } from '@grit/schema';
 
 @Controller('auth')
 export class AuthController {
@@ -22,7 +23,7 @@ export class AuthController {
 
   @Post('login')
   @ZodSerializerDto(ResAuthLoginDto)
-  async login(@Body() body: ReqAuthLoginDto) {
+  async login(@Body() body: LoginInput) {
     const user = await this.authService.validateUser(body);
     return this.authService.login(user);
   }

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { sharedPortsSchema, AUTH_CONFIG } from '@grit/schema';
 
 // ---------- Base schema (raw env variables + MinIO transform) ----------
-const baseSchema = sharedPortsSchema
+const backendBaseSchema = sharedPortsSchema
   .extend({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
     JWT_SECRET: z
@@ -58,7 +58,7 @@ const baseSchema = sharedPortsSchema
 
 // ---------- Final schema (Postgres DATABASE_URL + test DB logic) ----------
 
-const envSchema = baseSchema.transform((data) => {
+const backendEnvSchema = backendBaseSchema.transform((data) => {
   let dbName = data.POSTGRES_DB;
 
   // Change database name if in test node env
@@ -77,10 +77,10 @@ const envSchema = baseSchema.transform((data) => {
 });
 
 // ---------- Validate environment ----------
-const envValidation = envSchema.safeParse(process.env);
+const envValidation = backendEnvSchema.safeParse(process.env);
 
 // Prepare the variable that will be exported
-type Env = z.infer<typeof envSchema>;
+type Env = z.infer<typeof backendEnvSchema>;
 let validatedEnv: Env;
 
 if (envValidation.success) {

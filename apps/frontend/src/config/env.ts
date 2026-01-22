@@ -11,10 +11,12 @@ const frontendEnvSchema = sharedPortsSchema
     VITE_API_BASE_URL: z.string().optional(),
     VITE_MINIO_URL: z.string().optional(),
   })
-  .transform((ctx) => ({
-    ...ctx,
-    VITE_API_BASE_URL: ctx.VITE_API_BASE_URL ?? `http://localhost:${String(ctx.BE_PORT)}/api`,
-    VITE_MINIO_URL: ctx.VITE_MINIO_URL ?? `http://localhost:${String(ctx.MINIO_PORT)}`,
+  .transform((validatedData) => ({
+    ...validatedData,
+    VITE_API_BASE_URL:
+      validatedData.VITE_API_BASE_URL ?? `http://localhost:${String(validatedData.BE_PORT)}/api`,
+    VITE_MINIO_URL:
+      validatedData.VITE_MINIO_URL ?? `http://localhost:${String(validatedData.MINIO_PORT)}`,
   }));
 
 const envValidation = frontendEnvSchema.safeParse(import.meta.env);
