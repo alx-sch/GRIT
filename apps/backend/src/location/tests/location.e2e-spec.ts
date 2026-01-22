@@ -105,7 +105,7 @@ describe('Location E2E', () => {
    *                 ACTUAL TESTS
    * ========================================
    * All tests below this point are testing
-   * the Event controller endpoints.
+   * the Location controller endpoints.
    */
 
   // Get all locations

@@ -67,7 +67,7 @@ describe('Auth E2E', () => {
    *                 ACTUAL TESTS
    * ========================================
    * All tests below this point are testing
-   * the Event controller endpoints.
+   * the Auth controller endpoints.
    */
 
   // Log in
