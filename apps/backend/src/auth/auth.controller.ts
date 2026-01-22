@@ -15,7 +15,6 @@ import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { GetUser } from '@/auth/guards/get-user.decorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { type LoginInput } from '@grit/schema';
-import { env } from '@/config/env';
 
 @Controller('auth')
 export class AuthController {
