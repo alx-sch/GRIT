@@ -5,7 +5,6 @@ import { AppModule } from '@/app.module';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 
-
 /**
  * ========================================
  *           LOCATION E2E TESTS
