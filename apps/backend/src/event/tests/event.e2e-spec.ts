@@ -3,8 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/prisma/prisma.service';
-import { ReqUserPostDto } from '@/user/user.schema';
-import { ReqEventPostDraftDto } from '@/event/event.schema';
+import { Prisma } from '@prisma/client';
 
 /**
  * ========================================
@@ -21,9 +20,13 @@ describe('Events E2E', () => {
   let app: INestApplication;
   let prisma: PrismaService;
 
-  // To store event and user (which are seeded in the database).
-  let user: ReqUserPostDto;
-  let event: ReqEventPostDraftDto;
+  // Declaring the types of user and event.
+  type User = Prisma.UserGetPayload<{ include: { attending: true } }>;
+  type Event = Prisma.EventGetPayload<{ include: { author: true } }>;
+
+  // To store event, location and user (which are seeded in the database).
+  let user: User;
+  let event: Event;
 
   // Setting up the environment ONCE at start.
   beforeAll(async () => {
@@ -45,8 +48,11 @@ describe('Events E2E', () => {
     user = await prisma.user.create({
       data: {
         email: 'test@example.com',
-        name: 'Tester',
+        name: 'Test User',
         password: 'password123',
+      },
+      include: {
+        attending: true,
       },
     });
 
@@ -59,6 +65,9 @@ describe('Events E2E', () => {
         isPublic: true,
         startAt: new Date('2025-01-01T20:00:00.000Z'),
         title: 'Hello E2E',
+      },
+      include: {
+        author: true,
       },
     });
   });

@@ -3,9 +3,8 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/prisma/prisma.service';
-import { ReqUserPostDto } from '@/user/user.schema';
-import { ReqEventPostDraftDto } from '@/event/event.schema';
-import { ReqLocationPostDto } from '@/location/location.schema';
+import { Prisma } from '@prisma/client';
+
 
 /**
  * ========================================
@@ -22,10 +21,15 @@ describe('Location E2E', () => {
   let app: INestApplication;
   let prisma: PrismaService;
 
-  // To store event and user (which are seeded in the database).
-  let user: ReqUserPostDto;
-  let event: ReqEventPostDraftDto;
-  let location: ReqLocationPostDto;
+  // Declaring the types of user, event, location.
+  type User = Prisma.UserGetPayload<{ include: { attending: true } }>;
+  type Event = Prisma.EventGetPayload<{ include: { author: true; location: true } }>;
+  type Location = Prisma.LocationGetPayload<{ include: { author: true; events: true } }>;
+
+  // To store event, location and user (which are seeded in the database).
+  let user: User;
+  let event: Event;
+  let location: Location;
 
   // Setting up the environment ONCE at start.
   beforeAll(async () => {
@@ -49,6 +53,10 @@ describe('Location E2E', () => {
       data: {
         email: 'test@example.com',
         name: 'Test User',
+        password: 'password123',
+      },
+      include: {
+        attending: true,
       },
     });
 
@@ -59,6 +67,10 @@ describe('Location E2E', () => {
         longitude: 42,
         latitude: 42,
         name: 'Test Location',
+      },
+      include: {
+        events: true,
+        author: true,
       },
     });
 
@@ -72,6 +84,10 @@ describe('Location E2E', () => {
         isPublic: true,
         startAt: new Date('2025-01-01T20:00:00.000Z'),
         title: 'Test Event',
+      },
+      include: {
+        author: true,
+        location: true,
       },
     });
   });
