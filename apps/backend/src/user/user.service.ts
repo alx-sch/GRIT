@@ -8,6 +8,7 @@ import {
   ReqUserAttendDto,
 } from '@/user/user.schema';
 import { StorageService } from '@/storage/storage.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -52,11 +53,12 @@ export class UserService {
   }
 
   async userPost(data: ReqUserPostDto): Promise<ResUserPostDto> {
+    const hashedPassword = await bcrypt.hash(data.password, 10);
     const user = await this.prisma.user.create({
       data: {
         name: data.name,
         email: data.email,
-        password: data.password,
+        password: hashedPassword,
         avatarKey: data.avatarKey,
       },
       include: {
