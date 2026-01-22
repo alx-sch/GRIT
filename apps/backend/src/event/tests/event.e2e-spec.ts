@@ -116,6 +116,12 @@ describe('Events E2E', () => {
         error: 'Not Found',
       });
     });
+
+    it('returns 401 for unauthorized access', async () => {
+      await request(app.getHttpServer())
+        .delete(`/events/${String(event.id)}`)
+        .expect(401);
+    });
   });
 
   // Get an individual event by id
@@ -233,6 +239,13 @@ describe('Events E2E', () => {
         error: 'Bad Request',
       });
     });
+
+    it('returns 401 for unauthorized access', async () => {
+      await request(app.getHttpServer())
+        .patch(`/events/${String(event.id)}`)
+        .send({ title: 'Updated Hello E2E' })
+        .expect(401);
+    });
   });
 
   // Post a new event draft
@@ -271,6 +284,18 @@ describe('Events E2E', () => {
         .send(newEventData)
         .set('Authorization', `Bearer ${token}`)
         .expect(400);
+    });
+
+    it('returns 401 for unauthorized access', async () => {
+      const newEventData = {
+        endAt: '2025-01-01T20:00:00.000Z',
+        isPublished: true,
+        isPublic: true,
+        startAt: '2025-01-01T20:00:00.000Z',
+        title: 'Hello E2E, once again!',
+      };
+
+      await request(app.getHttpServer()).post('/events').send(newEventData).expect(401);
     });
   });
 

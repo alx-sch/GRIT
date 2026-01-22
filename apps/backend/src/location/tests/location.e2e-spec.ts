@@ -155,15 +155,21 @@ describe('Location E2E', () => {
 
     it('returns 404 for non-existing location', async () => {
       const res = await request(app.getHttpServer())
-        .delete(`/locations/10`)
+        .delete(`/locations/200`)
         .set('Authorization', `Bearer ${token}`)
         .expect(404);
 
       expect(res.body).toStrictEqual({
         statusCode: 404,
-        message: 'Location with id 10 not found',
+        message: 'Location with id 200 not found',
         error: 'Not Found',
       });
+    });
+
+    it('returns 401 for unauthorized access', async () => {
+      await request(app.getHttpServer())
+        .delete(`/locations/${String(location.id)}`)
+        .expect(401);
     });
   });
 
@@ -202,6 +208,16 @@ describe('Location E2E', () => {
         .send(newLocationData)
         .set('Authorization', `Bearer ${token}`)
         .expect(400);
+    });
+
+    it('returns 401 for unauthorized access', async () => {
+      const newLocationData = {
+        isPublic: true,
+        authorId: user.id,
+        latitude: 42,
+        name: 'Test Location 2',
+      };
+      await request(app.getHttpServer()).post('/locations').send(newLocationData).expect(401);
     });
   });
 
