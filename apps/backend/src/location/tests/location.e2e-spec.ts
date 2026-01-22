@@ -3,7 +3,9 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/prisma/prisma.service';
+import { JwtService } from '@nestjs/jwt';
 import { Prisma } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 /**
  * ========================================
@@ -19,6 +21,7 @@ describe('Location E2E', () => {
   // Test environment variables
   let app: INestApplication;
   let prisma: PrismaService;
+  let jwtService: JwtService;
 
   // Declaring the types of user, event, location.
   type User = Prisma.UserGetPayload<{ include: { attending: true } }>;
@@ -30,6 +33,9 @@ describe('Location E2E', () => {
   let event: Event;
   let location: Location;
 
+  // To store access token
+  let token: string;
+
   // Setting up the environment ONCE at start.
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -40,6 +46,7 @@ describe('Location E2E', () => {
     await app.init();
 
     prisma = app.get(PrismaService);
+    jwtService = app.get(JwtService);
   });
 
   // Happens before each test (deletes and reseeds database).
@@ -52,12 +59,14 @@ describe('Location E2E', () => {
       data: {
         email: 'test@example.com',
         name: 'Test User',
-        password: 'password123',
+        password: await bcrypt.hash('password123', 10),
       },
       include: {
         attending: true,
       },
     });
+
+    token = jwtService.sign({ sub: user.id, email: user.email }, { expiresIn: '7d' });
 
     location = await prisma.location.create({
       data: {
@@ -135,6 +144,7 @@ describe('Location E2E', () => {
     it('deletes an existing location', async () => {
       const res = await request(app.getHttpServer())
         .delete(`/locations/${String(location.id)}`)
+        .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
       expect(res.body).toMatchObject({
@@ -144,7 +154,10 @@ describe('Location E2E', () => {
     });
 
     it('returns 404 for non-existing location', async () => {
-      const res = await request(app.getHttpServer()).delete(`/locations/10`).expect(404);
+      const res = await request(app.getHttpServer())
+        .delete(`/locations/10`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(404);
 
       expect(res.body).toStrictEqual({
         statusCode: 404,
@@ -168,6 +181,7 @@ describe('Location E2E', () => {
       const res = await request(app.getHttpServer())
         .post('/locations')
         .send(newLocationData)
+        .set('Authorization', `Bearer ${token}`)
         .expect(201);
 
       expect(res.body).toMatchObject({
@@ -183,7 +197,11 @@ describe('Location E2E', () => {
         name: 'Test Location 2',
       };
 
-      await request(app.getHttpServer()).post('/locations').send(newLocationData).expect(400);
+      await request(app.getHttpServer())
+        .post('/locations')
+        .send(newLocationData)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(400);
     });
   });
 

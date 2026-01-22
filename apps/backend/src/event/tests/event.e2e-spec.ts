@@ -3,7 +3,9 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/prisma/prisma.service';
+import { JwtService } from '@nestjs/jwt';
 import { Prisma } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 /**
  * ========================================
@@ -19,6 +21,7 @@ describe('Events E2E', () => {
   // Test environment variables
   let app: INestApplication;
   let prisma: PrismaService;
+  let jwtService: JwtService;
 
   // Declaring the types of user and event.
   type User = Prisma.UserGetPayload<{ include: { attending: true } }>;
@@ -27,6 +30,9 @@ describe('Events E2E', () => {
   // To store event, location and user (which are seeded in the database).
   let user: User;
   let event: Event;
+
+  // To store access token
+  let token: string;
 
   // Setting up the environment ONCE at start.
   beforeAll(async () => {
@@ -38,6 +44,7 @@ describe('Events E2E', () => {
     await app.init();
 
     prisma = app.get(PrismaService);
+    jwtService = app.get(JwtService);
   });
 
   // Happens before each test (deletes and reseeds database).
@@ -49,12 +56,14 @@ describe('Events E2E', () => {
       data: {
         email: 'test@example.com',
         name: 'Test User',
-        password: 'password123',
+        password: await bcrypt.hash('password123', 10),
       },
       include: {
         attending: true,
       },
     });
+
+    token = jwtService.sign({ sub: user.id, email: user.email }, { expiresIn: '7d' });
 
     event = await prisma.event.create({
       data: {
@@ -85,6 +94,7 @@ describe('Events E2E', () => {
     it('deletes an existing event', async () => {
       const res = await request(app.getHttpServer())
         .delete(`/events/${String(event.id)}`)
+        .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
       expect(res.body).toMatchObject({
@@ -95,7 +105,10 @@ describe('Events E2E', () => {
     });
 
     it('returns 404 for non-existing event', async () => {
-      const res = await request(app.getHttpServer()).delete(`/events/200`).expect(404);
+      const res = await request(app.getHttpServer())
+        .delete(`/events/200`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(404);
 
       expect(res.body).toStrictEqual({
         statusCode: 404,
@@ -175,6 +188,7 @@ describe('Events E2E', () => {
       const res = await request(app.getHttpServer())
         .patch(`/events/${String(event.id)}`)
         .send({ title: 'Updated Hello E2E' })
+        .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
       expect(res.body).toMatchObject({
@@ -188,6 +202,7 @@ describe('Events E2E', () => {
       await request(app.getHttpServer())
         .patch(`/events/200`)
         .send({ title: 'Updated Hello E2E' })
+        .set('Authorization', `Bearer ${token}`)
         .expect(404);
     });
 
@@ -195,6 +210,7 @@ describe('Events E2E', () => {
       const res = await request(app.getHttpServer())
         .patch(`/events/${String(event.id)}`)
         .send({ locationId: 1 })
+        .set('Authorization', `Bearer ${token}`)
         .expect(404);
 
       expect(res.body).toStrictEqual({
@@ -208,6 +224,7 @@ describe('Events E2E', () => {
       const res = await request(app.getHttpServer())
         .patch(`/events/${String(event.id)}`)
         .send({})
+        .set('Authorization', `Bearer ${token}`)
         .expect(400);
 
       expect(res.body).toStrictEqual({
@@ -222,8 +239,6 @@ describe('Events E2E', () => {
   describe('POST /events', () => {
     it('posts a new event', async () => {
       const newEventData = {
-        authorId: user.id,
-        content: 'A new event stored in DB',
         endAt: '2025-01-01T20:00:00.000Z',
         isPublished: true,
         isPublic: true,
@@ -231,7 +246,11 @@ describe('Events E2E', () => {
         title: 'Hello E2E, once again!',
       };
 
-      const res = await request(app.getHttpServer()).post('/events').send(newEventData).expect(201);
+      const res = await request(app.getHttpServer())
+        .post('/events')
+        .send(newEventData)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(201);
 
       expect(res.body).toMatchObject({
         title: 'Hello E2E, once again!',
@@ -241,15 +260,17 @@ describe('Events E2E', () => {
 
     it('returns 400 for bad request (title missing)', async () => {
       const newEventData = {
-        authorId: user.id,
-        content: 'A new event stored in DB',
         endAt: '2025-01-01T20:00:00.000Z',
         isPublished: true,
         isPublic: true,
         startAt: '2025-01-01T20:00:00.000Z',
       };
 
-      await request(app.getHttpServer()).post('/events').send(newEventData).expect(400);
+      await request(app.getHttpServer())
+        .post('/events')
+        .send(newEventData)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(400);
     });
   });
 

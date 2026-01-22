@@ -53,12 +53,11 @@ export class UserService {
   }
 
   async userPost(data: ReqUserPostDto): Promise<ResUserPostDto> {
-    const hashedPassword = await bcrypt.hash(data.password, 10);
     const user = await this.prisma.user.create({
       data: {
         name: data.name,
         email: data.email,
-        password: hashedPassword,
+        password: await bcrypt.hash(data.password, 10),
         avatarKey: data.avatarKey,
       },
       include: {
