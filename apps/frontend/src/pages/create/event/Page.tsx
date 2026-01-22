@@ -7,8 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Combobox } from '@/components/ui/combobox';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
-import { useForm } from 'react-hook-form';
 import EventForm from './components/EventForm';
+import { Location } from '@/types/location';
 
 export const eventCreationLoader = async ({ request }: LoaderFunctionArgs) => {
   console.log(request); //we can use this to fitler or smth
@@ -16,12 +16,15 @@ export const eventCreationLoader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function EventCreation() {
-  const { locations } = useTypedLoaderData<{ Location: Location[] }>();
-  const form = useForm();
+  const locations = useTypedLoaderData<{ Location: Location[] }>();
   return (
-    <Container>
-      <Heading level={1}>Create Event</Heading>
-	  <EventForm />
+    <Container className="py-10 space-y-8 p-0 md:px-0">
+      <div className="space-y-2">
+        <Heading level={1} className="text-3xl md:text-4xl">
+          Create Event
+        </Heading>
+      </div>
+	  <EventForm locations={locations}/>
     </Container>
   );
 }

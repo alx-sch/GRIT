@@ -28,6 +28,7 @@ export interface ComboboxProps {
   searchPlaceholder?: string;
   emptyMessage?: string;
   className?: string;
+  showSelectedTick?: boolean;
 }
 
 export function Combobox({
@@ -38,6 +39,7 @@ export function Combobox({
   searchPlaceholder,
   emptyMessage,
   className,
+  showSelectedTick = false,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -50,9 +52,12 @@ export function Combobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn('w-full justify-between h-12 md:max-w-[250px]', className)}
+          className={cn('w-full justify-between h-12', className)}
         >
-          <span className={selectedLabel ? 'truncate' : ''}> {selectedLabel ?? placeholder}</span>
+          <span className={cn('flex items-center gap-2', selectedLabel ? 'truncate' : '')}>
+            {showSelectedTick && value ? <CheckIcon className="h-4 w-4 shrink-0" /> : null}
+            {selectedLabel ?? placeholder}
+          </span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-(--radix-popover-trigger-width) border-0 p-0 bg-secondary font-sans">

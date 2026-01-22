@@ -37,6 +37,7 @@ const buttonVariants = cva(
           neobrutalismAnimation,
           'bg-secondary text-secondary-foreground hover:bg-secondary/80'
         ),
+		selected:cn(neobrutalismAnimation, 'bg-background text-foreground border-5 border-border dark:border-foreground'),
 
         ghost:
           'hover:bg-accent hover:text-accent-foreground border-2 border-transparent hover:border-black',

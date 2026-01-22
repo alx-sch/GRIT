@@ -6,8 +6,8 @@ import ErrorPage from '@/pages/error/Page';
 import EventFeed from '@/pages/events/Page';
 import { createBrowserRouter } from 'react-router-dom';
 import { DefaultLayout } from '@/components/layout/DefaultLayout';
-import EventCreation from '@/pages/create-event/Page';
-import { eventCreationLoader } from '@/pages/create-event/Page';
+import EventCreation from '@/pages/create/event/Page';
+import { eventCreationLoader } from '@/pages/create/event/Page';
 
 export interface NavRoute {
   path: `/${string}`;
@@ -20,7 +20,7 @@ export const navConfig: NavRoute[] = [
   { path: '/design', label: 'Design' },
   { path: '/users', label: 'Users' },
   { path: '/events', label: 'Events' },
-  { path: '/create-event', label: 'Add Event' },
+  { path: '/create/event', label: 'Add Event' },
 ] as const;
 
 export const router = createBrowserRouter([
@@ -51,7 +51,7 @@ export const router = createBrowserRouter([
         handle: { title: 'Events' },
       },
       {
-        path: 'create-event',
+        path: 'create/event',
         Component: EventCreation,
         loader: eventCreationLoader,
         handle: { title: ' Create Event' },

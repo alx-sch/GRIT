@@ -67,6 +67,7 @@ export function DatePicker({ selected, onSelect, placeholder, className }: DateP
           <div className="flex justify-center w-full">{calendar}</div>
           <div className="w-full flex justify-end mt-4 px-2">
             <Button
+              type="button"
               onClick={() => {
                 setOpen(false);
               }}
