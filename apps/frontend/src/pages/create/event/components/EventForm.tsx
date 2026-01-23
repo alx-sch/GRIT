@@ -11,6 +11,8 @@ import { DatePicker } from '@/components/ui/datepicker';
 import { useNavigate } from 'react-router-dom';
 import { eventService } from '@/services/eventService';
 import { format } from 'date-fns';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useEffect } from 'react';
 
 const today = new Date();
 today.setHours(0, 0, 0, 0);
@@ -68,7 +70,29 @@ export default function EventForm({ locations }: EventFormProps) {
       endAt: undefined,
       locationId: undefined,
     },
-  });
+		});
+
+	const DRAFT_KEY = 'event-draft';
+
+	//Restore draft if exists
+	useEffect(() => {
+		const saved = localStorage.getItem(DRAFT_KEY);
+		if (saved) {
+			const draft = JSON.parse(saved);
+			for (const [key, value] of Object.entries(draft)) {
+				setValue(key as keyof FormFields, value);
+			}
+		}
+	}, []);
+
+	//Save draft on change (debounced)
+	const formValues = watch();
+	const debouncedFormValues = useDebounce(formValues, 1000);
+	useEffect(() => {
+		if(debouncedFormValues.title) {
+			localStorage.setItem(DRAFT_KEY, JSON.stringify(debouncedFormValues));
+		}
+	}, [debouncedFormValues]);
 
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
     console.log('1. onSubmit called with:', data);
@@ -85,6 +109,7 @@ export default function EventForm({ locations }: EventFormProps) {
       console.log('2. Payload built:', payload);
       const event = await eventService.postEvent(payload);
       console.log('3. Event created:', event);
+	  localStorage.removeItem(DRAFT_KEY);
       navigate('/events/');
     } catch (error) {
       console.error('4. Failed to create event:', error);
