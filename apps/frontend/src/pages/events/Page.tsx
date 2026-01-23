@@ -122,7 +122,7 @@ export default function EventFeed() {
           onChange={handleSearchChange}
         />
 
-        <div className="flex md:w-auto gap-2 w-full">
+        <div className="flex md:w-auto gap-2 w-full md:justify-end">
           <Combobox
             options={locationOptionsCombobox}
             value={selectedLocation ?? undefined}
@@ -130,14 +130,14 @@ export default function EventFeed() {
             placeholder="Location"
             searchPlaceholder="Search"
             emptyMessage="No location found"
-            className="flex-1 min-w-0 md:flex-none text-sm md:text-base"
+            className="flex-1 min-w-0 md:flex-none text-sm md:text-base max-w-xs truncate"
           />
 
           <DatePicker
             selected={selectedDateRange}
             onSelect={handleDateSelect}
             placeholder="Date"
-            className="flex-1 min-w-0 md:flex-none text-sm md:text-base px-7"
+            className="flex-1 min-w-0 md:flex-none text-sm md:text-base md:px-7 truncate"
           ></DatePicker>
         </div>
       </div>
@@ -147,7 +147,7 @@ export default function EventFeed() {
             <EventCard
               key={event.id}
               event={event}
-              location={event.location?.id ? locationMap.get(event.location.id) : undefined} 
+              location={event.location?.id ? locationMap.get(event.location.id) : undefined}
             />
           ))}
         </div>

@@ -4,7 +4,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { DateRange } from 'react-day-picker';
+import { DateRange, Matcher } from 'react-day-picker';
 import { format } from 'date-fns';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useState } from 'react';
@@ -15,19 +15,20 @@ export interface DatePickerProps {
   onSelect?: (date: DateRange | undefined) => void;
   placeholder?: string;
   className?: string;
+  disabled?: Matcher | Matcher[];
 }
 
-export function DatePicker({ selected, onSelect, placeholder, className }: DatePickerProps) {
+export function DatePicker({ selected, onSelect, placeholder, className, disabled }: DatePickerProps) {
   const [open, setOpen] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   const trigger = (
     <Button
       variant="outline"
-      className={cn('border-2 border-border rounded-none h-12 px', className)}
+      className={cn('border-2 border-border rounded-none h-12 px max-w-full', className)}
     >
       {selected?.from ? (
-        <span>
+        <span className="truncate">
           {isMobile
             ? selected.to
               ? `${format(selected.from, 'MMM dd')} - ${format(selected.to, 'MMM dd')}`
@@ -51,6 +52,7 @@ export function DatePicker({ selected, onSelect, placeholder, className }: DateP
       selected={selected}
       onSelect={onSelect}
       numberOfMonths={isMobile ? 1 : 2}
+	  disabled={disabled}
       className={
         isMobile
           ? 'border-0 shadow-none mx-auto [--rdp-cell-size:clamp(0px,calc(100vw/8),52px)]'
@@ -85,7 +87,7 @@ export function DatePicker({ selected, onSelect, placeholder, className }: DateP
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>{trigger}</PopoverTrigger>
-      <PopoverContent className="w-auto p-0 border-0 shadow-none" align="start">
+      <PopoverContent className="w-auto p-0 border-0 shadow-none" align="end" collisionPadding={16}>
         {calendar}
       </PopoverContent>
     </Popover>

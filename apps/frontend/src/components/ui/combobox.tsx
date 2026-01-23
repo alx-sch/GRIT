@@ -52,9 +52,9 @@ export function Combobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn('w-full justify-between h-12', className)}
+          className={cn('w-full max-w-full justify-between h-12', className)}
         >
-          <span className={cn('flex items-center gap-2', selectedLabel ? 'truncate' : '')}>
+          <span className="flex items-center gap-2 truncate">
             {showSelectedTick && value ? <CheckIcon className="h-4 w-4 shrink-0" /> : null}
             {selectedLabel ?? placeholder}
           </span>

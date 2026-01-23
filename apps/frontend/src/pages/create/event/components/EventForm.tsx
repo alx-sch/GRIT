@@ -186,6 +186,7 @@ export default function EventForm({ locations }: EventFormProps) {
               }}
               placeholder="Date"
               className="flex-1 min-w-0 md:flex-none text-sm md:text-base px-7"
+			  disabled={{before: new Date()}}
             />
             {errors.startAt && <div className="text-red-500 text-sm">{errors.startAt.message}</div>}
             {errors.endAt && <div className="text-red-500 text-sm">{errors.endAt.message}</div>}
