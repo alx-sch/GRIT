@@ -8,6 +8,12 @@ import { Combobox, ComboboxOptions } from '@/components/ui/combobox';
 import { Textarea } from '@/components/ui/textarea';
 import { Text } from '@/components/ui/typography';
 import { DatePicker } from '@/components/ui/datepicker';
+import { useNavigate } from 'react-router-dom';
+import { eventService } from '@/services/eventService';
+import { format } from 'date-fns';
+
+const today = new Date();
+today.setHours(0, 0, 0, 0);
 
 const schema = z
   .object({
@@ -15,12 +21,12 @@ const schema = z
     isPublished: z.boolean(),
     title: z
       .string()
-      .min(1, 'Name must be at least 1 character long')
+      .min(1, 'Name is required')
       .max(100, 'Name must be at most 100 characters long')
       .trim(),
-    description: z.string().max(2000).optional(),
-    startAt: z.date().min(new Date(), 'Start date must be in the future'),
-    endAt: z.date(),
+    content: z.string().max(2000).optional(),
+    startAt: z.date({error: 'Start date is required'}).min(today, 'Start date must be in the future'),
+    endAt: z.date({error: 'End date is required'}),
     locationId: z.string().optional(),
   })
   .refine((data) => data.endAt >= data.startAt, {
@@ -35,6 +41,7 @@ interface EventFormProps {
 type FormFields = z.infer<typeof schema>;
 
 export default function EventForm({ locations }: EventFormProps) {
+  const navigate = useNavigate();
   const locationOptionsCombobox: ComboboxOptions[] = [
     { value: '', label: 'TBA (To be Announced)' },
     ...locations.map(({ id, name }) => ({
@@ -56,7 +63,7 @@ export default function EventForm({ locations }: EventFormProps) {
       isPublic: false,
       isPublished: false,
       title: '',
-      description: '',
+      content: '',
       startAt: undefined,
       endAt: undefined,
       locationId: undefined,
@@ -64,13 +71,24 @@ export default function EventForm({ locations }: EventFormProps) {
   });
 
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
-    const payload = {
-      ...data,
-      startAt: data.startAt.toISOString(),
-      endAt: data.endAt.toISOString(),
-      locationId: data.locationId || undefined,
-    };
-    console.log(payload);
+    console.log('1. onSubmit called with:', data);
+    try {
+      const payload = {
+        title: data.title,
+        isPublic: data.isPublic,
+        isPublished: data.isPublished,
+        startAt: format(data.startAt, "yyyy-MM-dd'T'12:00:00.000'Z'"),
+        endAt: format(data.endAt, "yyyy-MM-dd'T'12:00:00.000'Z'"),
+        content: data.content || undefined,
+        locationId: data.locationId ? Number(data.locationId) : undefined,
+      };
+      console.log('2. Payload built:', payload);
+      const event = await eventService.postEvent(payload);
+      console.log('3. Event created:', event);
+      navigate('/events/');
+    } catch (error) {
+      console.error('4. Failed to create event:', error);
+    }
   };
 
   const startAtValue = watch('startAt');
@@ -111,7 +129,7 @@ export default function EventForm({ locations }: EventFormProps) {
       <div className="flex flex-col py-8">
         <Text className="font-heading">Description</Text>
         <Textarea
-          {...register('description')}
+          {...register('content')}
           placeholder="Tell people what to expect at your event - vibe, music, etc"
         />
       </div>
@@ -175,7 +193,7 @@ export default function EventForm({ locations }: EventFormProps) {
         render={({ field: { onChange, value } }) => (
           <div className="flex flex-row gap-4 md:gap-12 w-full items-center">
             <Button
-              type="button"
+              type="submit"
               variant="outline"
               onClick={() => onChange(false)}
               className="font-heading text-lg md:text-2xl py-4 md:py-8 px-4 md:px-12 flex-1"
@@ -185,6 +203,7 @@ export default function EventForm({ locations }: EventFormProps) {
             <Button
               type="submit"
               disabled={isSubmitting}
+              onClick={() => onChange(true)}
               className="font-heading text-lg md:text-2xl py-4 md:py-8 px-4 md:px-12 flex-1"
             >
               {isSubmitting ? 'Loading...' : 'Publish'}

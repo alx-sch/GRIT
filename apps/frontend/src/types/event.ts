@@ -18,4 +18,5 @@ export interface Event {
   attending: User[];
 
   locationId?: number;
+  location: Location;
 }

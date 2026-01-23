@@ -147,7 +147,7 @@ export default function EventFeed() {
             <EventCard
               key={event.id}
               event={event}
-              location={event.locationId ? locationMap.get(event.locationId) : undefined}
+              location={event.location?.id ? locationMap.get(event.location.id) : undefined} 
             />
           ))}
         </div>
