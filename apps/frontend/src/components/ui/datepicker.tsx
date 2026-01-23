@@ -18,7 +18,13 @@ export interface DatePickerProps {
   disabled?: Matcher | Matcher[];
 }
 
-export function DatePicker({ selected, onSelect, placeholder, className, disabled }: DatePickerProps) {
+export function DatePicker({
+  selected,
+  onSelect,
+  placeholder,
+  className,
+  disabled,
+}: DatePickerProps) {
   const [open, setOpen] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
 
@@ -52,7 +58,7 @@ export function DatePicker({ selected, onSelect, placeholder, className, disable
       selected={selected}
       onSelect={onSelect}
       numberOfMonths={isMobile ? 1 : 2}
-	  disabled={disabled}
+      disabled={disabled}
       className={
         isMobile
           ? 'border-0 shadow-none mx-auto [--rdp-cell-size:clamp(0px,calc(100vw/8),52px)]'

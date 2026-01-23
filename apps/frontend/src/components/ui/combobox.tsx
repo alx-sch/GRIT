@@ -1,4 +1,4 @@
-import { CheckIcon, ChevronDown } from 'lucide-react';
+import { CheckIcon } from 'lucide-react';
 
 import * as React from 'react';
 
@@ -70,7 +70,7 @@ export function Combobox({
                 <CommandItem
                   key={options.value}
                   value={options.label}
-                  onSelect={(currentValue) => {
+                  onSelect={() => {
                     onChange(options.value === value ? '' : options.value);
                     setOpen(false);
                   }}

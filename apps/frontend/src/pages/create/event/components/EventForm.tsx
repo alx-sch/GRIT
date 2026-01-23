@@ -27,8 +27,10 @@ const schema = z
       .max(100, 'Name must be at most 100 characters long')
       .trim(),
     content: z.string().max(2000).optional(),
-    startAt: z.date({error: 'Start date is required'}).min(today, 'Start date must be in the future'),
-    endAt: z.date({error: 'End date is required'}),
+    startAt: z
+      .date({ error: 'Start date is required' })
+      .min(today, 'Start date must be in the future'),
+    endAt: z.date({ error: 'End date is required' }),
     locationId: z.string().optional(),
   })
   .refine((data) => data.endAt >= data.startAt, {
@@ -48,7 +50,7 @@ export default function EventForm({ locations }: EventFormProps) {
     { value: '', label: 'TBA (To be Announced)' },
     ...locations.map(({ id, name }) => ({
       value: String(id),
-      label: name!,
+      label: name ?? '',
     })),
   ];
 
@@ -70,29 +72,30 @@ export default function EventForm({ locations }: EventFormProps) {
       endAt: undefined,
       locationId: undefined,
     },
-		});
+  });
 
-	const DRAFT_KEY = 'event-draft';
+  const DRAFT_KEY = 'event-draft';
 
-	//Restore draft if exists
-	useEffect(() => {
-		const saved = localStorage.getItem(DRAFT_KEY);
-		if (saved) {
-			const draft = JSON.parse(saved);
-			for (const [key, value] of Object.entries(draft)) {
-				setValue(key as keyof FormFields, value);
-			}
-		}
-	}, []);
+  //Restore draft if exists
+  useEffect(() => {
+    const saved = localStorage.getItem(DRAFT_KEY);
+    if (saved) {
+      const draft = JSON.parse(saved) as Record<string, unknown>;
+      for (const [key, value] of Object.entries(draft)) {
+        setValue(key as keyof FormFields, value as FormFields[keyof FormFields]);
+      }
+    }
+  }, [setValue]);
 
-	//Save draft on change (debounced)
-	const formValues = watch();
-	const debouncedFormValues = useDebounce(formValues, 1000);
-	useEffect(() => {
-		if(debouncedFormValues.title) {
-			localStorage.setItem(DRAFT_KEY, JSON.stringify(debouncedFormValues));
-		}
-	}, [debouncedFormValues]);
+  //Save draft on change (debounced)
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const formValues = watch();
+  const debouncedFormValues = useDebounce(formValues, 1000);
+  useEffect(() => {
+    if (debouncedFormValues.title) {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(debouncedFormValues));
+    }
+  }, [debouncedFormValues]);
 
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
     console.log('1. onSubmit called with:', data);
@@ -103,24 +106,28 @@ export default function EventForm({ locations }: EventFormProps) {
         isPublished: data.isPublished,
         startAt: format(data.startAt, "yyyy-MM-dd'T'12:00:00.000'Z'"),
         endAt: format(data.endAt, "yyyy-MM-dd'T'12:00:00.000'Z'"),
-        content: data.content || undefined,
+        content: data.content ?? undefined,
         locationId: data.locationId ? Number(data.locationId) : undefined,
       };
       console.log('2. Payload built:', payload);
       const event = await eventService.postEvent(payload);
       console.log('3. Event created:', event);
-	  localStorage.removeItem(DRAFT_KEY);
-      navigate('/events/');
+      localStorage.removeItem(DRAFT_KEY);
+      void navigate('/events/');
     } catch (error) {
       console.error('4. Failed to create event:', error);
     }
   };
 
-  const startAtValue = watch('startAt');
-  const endAtValue = watch('endAt');
+  const startAtValue = watch('startAt') as Date | undefined;
+  const endAtValue = watch('endAt') as Date | undefined;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form
+      onSubmit={(e) => {
+        void handleSubmit(onSubmit)(e);
+      }}
+    >
       <Controller
         control={control}
         name="isPublic"
@@ -128,8 +135,10 @@ export default function EventForm({ locations }: EventFormProps) {
           <div className="flex flex-row gap-4 md:gap-12 w-full items-center">
             <Button
               type="button"
-              variant={value === false ? 'selected' : 'outline'}
-              onClick={() => onChange(false)}
+              variant={!value ? 'selected' : 'outline'}
+              onClick={() => {
+                onChange(false);
+              }}
               className="shadow-none translate-x-0 translate-y-0 md:shadow-grit md:-translate-x-[2px] md:-translate-y-[2px] font-sans text-lg md:text-2xl py-4 md:py-8 px-4 md:px-12 flex-1"
             >
               Private
@@ -137,8 +146,10 @@ export default function EventForm({ locations }: EventFormProps) {
             <span className="font-heading text-xl">OR</span>
             <Button
               type="button"
-              variant={value === true ? 'selected' : 'outline'}
-              onClick={() => onChange(true)}
+              variant={value ? 'selected' : 'outline'}
+              onClick={() => {
+                onChange(true);
+              }}
               className="shadow-none translate-x-0 translate-y-0 md:shadow-grit md:-translate-x-[2px] md:-translate-y-[2px] font-sans text-lg md:text-2xl py-4 md:py-8 px-4 md:px-12 flex-1"
             >
               Public
@@ -162,19 +173,14 @@ export default function EventForm({ locations }: EventFormProps) {
       <Controller
         control={control}
         name="startAt"
-        render={({ field: { onChange, value } }) => (
+        render={({ field: { onChange } }) => (
           <div className="gap-4 md:gap-12 w-full items-center pt-0 pb-8">
             <DatePicker
               selected={
                 startAtValue
                   ? {
-                      from: startAtValue instanceof Date ? startAtValue : new Date(startAtValue),
-                      to:
-                        endAtValue instanceof Date
-                          ? endAtValue
-                          : endAtValue
-                            ? new Date(endAtValue)
-                            : undefined,
+                      from: startAtValue,
+                      to: endAtValue ?? undefined,
                     }
                   : undefined
               }
@@ -186,7 +192,7 @@ export default function EventForm({ locations }: EventFormProps) {
               }}
               placeholder="Date"
               className="flex-1 min-w-0 md:flex-none text-sm md:text-base px-7"
-			  disabled={{before: new Date()}}
+              disabled={{ before: new Date() }}
             />
             {errors.startAt && <div className="text-red-500 text-sm">{errors.startAt.message}</div>}
             {errors.endAt && <div className="text-red-500 text-sm">{errors.endAt.message}</div>}
@@ -216,12 +222,14 @@ export default function EventForm({ locations }: EventFormProps) {
       <Controller
         control={control}
         name="isPublished"
-        render={({ field: { onChange, value } }) => (
+        render={({ field: { onChange } }) => (
           <div className="flex flex-row gap-4 md:gap-12 w-full items-center">
             <Button
               type="submit"
               variant="outline"
-              onClick={() => onChange(false)}
+              onClick={() => {
+                onChange(false);
+              }}
               className="font-heading text-lg md:text-2xl py-4 md:py-8 px-4 md:px-12 flex-1"
             >
               Save Draft
@@ -229,7 +237,9 @@ export default function EventForm({ locations }: EventFormProps) {
             <Button
               type="submit"
               disabled={isSubmitting}
-              onClick={() => onChange(true)}
+              onClick={() => {
+                onChange(true);
+              }}
               className="font-heading text-lg md:text-2xl py-4 md:py-8 px-4 md:px-12 flex-1"
             >
               {isSubmitting ? 'Loading...' : 'Publish'}

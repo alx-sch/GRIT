@@ -46,6 +46,9 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       'react/jsx-no-target-blank': 'error',
       'react/prop-types': 'off', // Not needed with TypeScript
+
+      // Disable react-compiler rules (not using React Compiler)
+      'react-compiler/react-compiler': 'off',
     },
   }
 );

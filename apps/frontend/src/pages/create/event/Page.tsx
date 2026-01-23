@@ -1,11 +1,7 @@
 import { LoaderFunctionArgs } from 'react-router-dom';
 import { locationService } from '@/services/locationService';
 import { Container } from '@/components/layout/Container';
-import { Heading, Text } from '@/components/ui/typography';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Combobox } from '@/components/ui/combobox';
+import { Heading } from '@/components/ui/typography';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import EventForm from './components/EventForm';
 import { Location } from '@/types/location';
@@ -24,7 +20,7 @@ export default function EventCreation() {
           Create Event
         </Heading>
       </div>
-	  <EventForm locations={locations}/>
+      <EventForm locations={locations} />
     </Container>
   );
 }

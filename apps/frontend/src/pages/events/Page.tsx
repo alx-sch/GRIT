@@ -35,7 +35,7 @@ export default function EventFeed() {
 
   const locationOptionsCombobox: ComboboxOptions[] = locations.map(({ id, name }) => ({
     value: String(id),
-    label: name!,
+    label: name ?? '',
   }));
 
   const locationMap = new Map(locations.map((l) => [l.id, l]));
@@ -165,7 +165,7 @@ export default function EventFeed() {
                 : 'Check back later for new events.'}
           </Text>
 
-          {(searchInput || selectedDateRange || selectedLocation) && (
+          {searchInput || selectedDateRange || selectedLocation ? (
             <Button
               variant="destructive"
               onClick={() => {
@@ -177,7 +177,7 @@ export default function EventFeed() {
             >
               Clear Filters
             </Button>
-          )}
+          ) : null}
         </div>
       )}
     </Container>

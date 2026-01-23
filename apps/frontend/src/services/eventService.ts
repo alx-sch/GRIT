@@ -1,5 +1,5 @@
 import api from '@/lib/api';
-import type {Event} from '@/types/event';
+import type { Event } from '@/types/event';
 
 interface GetEventsParams {
   search?: string;
@@ -19,7 +19,7 @@ interface CreateEventPayload {
 }
 
 export const eventService = {
-  getEvents: async(params?: GetEventsParams): Promise<Event[]> => {
+  getEvents: async (params?: GetEventsParams): Promise<Event[]> => {
     const queryParams = new URLSearchParams();
     if (params?.search) queryParams.set('search', params.search);
     if (params?.startFrom) queryParams.set('start_from', params.startFrom);
@@ -31,7 +31,7 @@ export const eventService = {
     return response.data;
   },
 
-  postEvent: async(data: CreateEventPayload): Promise<Event> => {
+  postEvent: async (data: CreateEventPayload): Promise<Event> => {
     console.log('eventService.postEvent called with:', data);
     console.log('api object:', api);
     console.log('About to call api.post...');
@@ -43,11 +43,11 @@ export const eventService = {
     } catch (err: unknown) {
       console.error('api.post error:', err);
       if (err && typeof err === 'object' && 'response' in err) {
-        const axiosErr = err as {response?: {data?: unknown; status?: number}};
+        const axiosErr = err as { response?: { data?: unknown; status?: number } };
         console.error('Backend error response:', axiosErr.response?.data);
         console.error('Status:', axiosErr.response?.status);
       }
       throw err;
     }
-  }
+  },
 };

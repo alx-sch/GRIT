@@ -6,7 +6,6 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { eventService } from '@/services/eventService';
 import { locationService } from '@/services/locationService';
 import { Location } from '@/types/location';
-import { useEffect } from 'react';
 
 // Mock services
 vi.mock('@/services/eventService', () => ({
@@ -329,9 +328,13 @@ describe('Event Creation Page', () => {
 
     it('shows loading state when submitting', async () => {
       // Delay the mock response to test loading state
-      vi.mocked(eventService.postEvent).mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve(mockCreatedEvent), 100))
-      );
+      vi.mocked(eventService.postEvent).mockImplementation(() => {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve(mockCreatedEvent);
+          }, 100);
+        });
+      });
 
       renderEventCreation();
 
@@ -364,7 +367,8 @@ describe('Event Creation Page', () => {
       await waitFor(() => {
         const saved = localStorage.getItem('event-draft');
         expect(saved).not.toBeNull();
-        const draft = JSON.parse(saved!);
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const draft = JSON.parse(saved!) as Record<string, unknown>;
         expect(draft.title).toBe('My Draft Event');
       });
 

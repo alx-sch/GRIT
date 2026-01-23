@@ -1,8 +1,12 @@
-import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { LocationService } from '@/location/location.service';
 import { PrismaService } from '@/prisma/prisma.service';
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 
 import { ReqEventGetPublishedDto, ReqEventPatchDto, ReqEventPostDraftDto } from './event.schema';
 

@@ -14,31 +14,29 @@ const api = axios.create({
 });
 
 // To do: remove this temp auth interceptor once the proper auth is in place
-//This dev token is only valid for 7 days from Jan 23.
+// This dev token is only valid for 7 days from Jan 23.
 const DEV_TOKEN =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoidXNlcjFAZXhhbXBsZS5jb20iLCJpYXQiOjE3NjkxNjE3MDksImV4cCI6MTc2OTc2NjUwOX0.StP5DYtkd1BaehXyT-uvQqGAXSAjOAdme7C7vuqUyBs'
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoidXNlcjFAZXhhbXBsZS5jb20iLCJpYXQiOjE3NjkxNjE3MDksImV4cCI6MTc2OTc2NjUwOX0.StP5DYtkd1BaehXyT-uvQqGAXSAjOAdme7C7vuqUyBs';
 
-api.interceptors.request.use(
-    (config) => {
-      if (DEV_TOKEN) {
-        config.headers.Authorization = `Bearer ${DEV_TOKEN}`;
-      }
-      return config;
-    }
-
-)
+api.interceptors.request.use((config) => {
+  config.headers.Authorization = `Bearer ${DEV_TOKEN}`;
+  return config;
+});
 
 // Response Interceptor
-api.interceptors.response.use((response) => response, (error: unknown) => {
-  if (axios.isAxiosError(error)) {
-    if (error.response?.status === 401) {
-      console.warn('Unauthorized! Redirecting to login...');
+api.interceptors.response.use(
+  (response) => response,
+  (error: unknown) => {
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 401) {
+        console.warn('Unauthorized! Redirecting to login...');
+      }
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
-  }
 
-  const finalError = error instanceof Error ? error : new Error(String(error));
-  return Promise.reject(finalError);
-});
+    const finalError = error instanceof Error ? error : new Error(String(error));
+    return Promise.reject(finalError);
+  }
+);
 
 export default api;
