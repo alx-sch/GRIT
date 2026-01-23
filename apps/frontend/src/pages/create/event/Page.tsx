@@ -12,7 +12,7 @@ export const eventCreationLoader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function EventCreation() {
-  const locations = useTypedLoaderData<{ Location: Location[] }>();
+  const locations = useTypedLoaderData<Location[]>();
   return (
     <Container className="py-10 space-y-8 p-0 md:px-0">
       <div className="space-y-2">
