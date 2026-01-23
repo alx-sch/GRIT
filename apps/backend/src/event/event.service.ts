@@ -1,7 +1,8 @@
+import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { LocationService } from '@/location/location.service';
 import { PrismaService } from '@/prisma/prisma.service';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 
 import { ReqEventGetPublishedDto, ReqEventPatchDto, ReqEventPostDraftDto } from './event.schema';
 
@@ -13,6 +14,11 @@ export class EventService {
   ) {}
 
   async eventDelete(id: number, userId: number) {
+    const exists = await this.eventExists(id);
+
+    if (!exists) {
+      throw new NotFoundException(`Event with id ${id.toString()} not found`);
+    }
     try {
       return await this.prisma.event.delete({
         where: {
@@ -25,7 +31,7 @@ export class EventService {
         },
       });
     } catch {
-      throw new NotFoundException(`Event not found or no permission to delete it.`);
+      throw new UnauthorizedException(`No permission to delete event with id ${id.toString()}.`);
     }
   }
 

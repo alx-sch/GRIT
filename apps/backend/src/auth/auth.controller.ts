@@ -6,54 +6,41 @@ import {
   Param,
   ParseIntPipe,
   ForbiddenException,
-  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { env } from '@/config/env';
-import { ReqAuthLoginDto, ResAuthLoginDto, ResUserBaseDto } from '@/user/user.schema';
-import { UserService } from '@/user/user.service';
+import { AuthService } from '@/auth/auth.service';
+import { ResAuthMeDto, ReqAuthLoginDto, ResAuthLoginDto } from '@/auth/auth.schema';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { GetUser } from '@/auth/guards/get-user.decorator';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private readonly jwtService: JwtService,
-    private readonly userService: UserService
-  ) {}
-
-  @Get('debug/token/:id')
-  generateTestToken(@Param('id', ParseIntPipe) id: number) {
-    if (env.NODE_ENV === 'production') {
-      throw new ForbiddenException('This debug route is disabled in production.');
-    }
-
-    const payload = { sub: id, email: `user${String(id)}@example.com` };
-    return {
-      accessToken: this.jwtService.sign(payload),
-    };
-  }
+  constructor(private readonly authService: AuthService) {}
 
   @Post('login')
   @ZodSerializerDto(ResAuthLoginDto)
   async login(@Body() body: ReqAuthLoginDto) {
-    const { email, password } = body;
+    const user = await this.authService.validateUser(body);
+    return this.authService.login(user);
+  }
 
-    const user = await this.userService.userGetByEmail(email);
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ZodSerializerDto(ResAuthMeDto)
+  async getMe(@GetUser('id') userId: number) {
+    return this.authService.getMe(userId);
+  }
 
-    if (!user || user.password !== password) {
-      throw new UnauthorizedException('Invalid email or password');
+  @Get('debug/token/:id')
+  @ZodSerializerDto(ResAuthLoginDto)
+  async generateTestToken(@Param('id', ParseIntPipe) id: number) {
+    if (this.authService.isProduction()) {
+      throw new ForbiddenException('This debug route is disabled in production.');
     }
-
-    // Generate token and return user info
-    const payload = { sub: user.id, email: user.email };
-    return {
-      accessToken: this.jwtService.sign(payload),
-      user: ResUserBaseDto.create({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        avatarKey: user.avatarKey,
-      }),
-    };
+    const user = await this.authService.getMe(id);
+    return this.authService.login(user);
   }
 }

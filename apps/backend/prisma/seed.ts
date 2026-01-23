@@ -12,6 +12,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { Pool } from 'pg';
+import * as bcrypt from 'bcrypt';
 
 // Setup the Postgres connection
 const pool = new Pool({ connectionString: env.DATABASE_URL });
@@ -151,11 +152,12 @@ async function main() {
 
   // upsert: "Update or Insert" - prevents errors if the user already exists
   for (const u of usersToCreate) {
+    const hashedPassword = await bcrypt.hash(u.password, 10);
     // Create User in DB
     const user = await prisma.user.upsert({
       where: { email: u.email },
       update: {},
-      create: { email: u.email, name: u.name, password: u.password },
+      create: { email: u.email, name: u.name, password: hashedPassword },
     });
     console.log(`👤 Processed User: ${user.name ?? 'Unknown'} (${String(user.id)})`);
 
@@ -263,7 +265,7 @@ async function main() {
     {
       title: 'Alice in Wonderland',
       authorId: alice.id,
-      content: 'We’re all mad here.!',
+      content: 'We’re all mad here!',
       isPublic: true,
       isPublished: true,
       startAt: new Date('2026-02-15T10:00:00Z'),
