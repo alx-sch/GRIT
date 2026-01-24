@@ -6,12 +6,12 @@ import { useAuthStore } from '@/store/authStore';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import { toast } from 'sonner';
 import { Heading } from '@/components/ui/typography';
-import { loginService } from '@/services/loginService';
-import { FormAuthLoginSchema } from '@/schema/login';
+import { authService } from '@/services/authService';
+import { FormAuthLoginSchema } from '@/schema/auth';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { FormAuthLoginDto } from '@/types/login';
+import type { FormAuthLoginDto } from '@/types/auth';
 import axios from 'axios';
 import z from 'zod';
 
@@ -26,8 +26,8 @@ export async function loginPageAction({ request }: { request: Request }) {
   if (!parsedData.success) return z.flattenError(parsedData.error);
 
   try {
-    // Sending data for loginService for communication with backend and potential error handling
-    const data = await loginService.login(parsedData.data);
+    // Sending data for authService for communication with backend and potential error handling
+    const data = await authService.login(parsedData.data);
     // Side effects in action = not ideal
     useAuthStore.getState().setAuthenticated(data.accessToken);
     useCurrentUserStore.getState().setUser(data.user);
