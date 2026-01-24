@@ -18,8 +18,12 @@ export const useCurrentUserStore = create<CurrentUserState>()(
   persist(
     (set) => ({
       user: null,
-      setUser: (user) => set({ user }),
-      clearUser: () => set({ user: null }),
+      setUser: (user) => {
+        set({ user });
+      },
+      clearUser: () => {
+        set({ user: null });
+      },
     }),
     {
       name: 'current-user',
