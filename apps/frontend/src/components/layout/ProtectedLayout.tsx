@@ -15,7 +15,7 @@ export async function protectedLayoutLoader() {
     const user = await authService.me();
     useCurrentUserStore.getState().setUser(user);
     return null;
-  } catch (err) {
+  } catch {
     throw redirect('/login?forbidden=true');
   }
 }
