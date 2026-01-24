@@ -2,7 +2,7 @@
   "name": "GRIT -- the event social network webapp",
 
   // Debian OS with Node.js 20 and TypeScript
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:24-bookworm",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20-bookworm",
 
   "features": {
     // Docker inside the dev container
@@ -10,7 +10,7 @@
   },
 
   // Install the Caddy binary, 'caddy' cmd formats Caddyfile (gets rid of warning)
-  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y debian-keyring debian-archive-keyring apt-transport-https curl && curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --batch --yes --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg && curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.debian.sources' | sudo tee /etc/apt/sources.list.d/caddy-stable.sources && sudo apt-get update && sudo apt-get install -y caddy",
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y debian-keyring debian-archive-keyring apt-transport-https curl && curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --batch --yes --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg && curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.debian.sources' | sudo tee /etc/apt/sources.list.d/caddy-stable.sources && sudo apt-get update && sudo apt-get install -y caddy && pnpm config set update-notifier false",
 
   "customizations": {
     "vscode": {
@@ -31,7 +31,8 @@
           // Formater for Prisma files (prettier doesn't format these)
           "editor.defaultFormatter": "Prisma.prisma",
           "editor.formatOnSave": true
-        }
+        },
+        "pnpm.updateCheck": "never"
       }
     }
   }

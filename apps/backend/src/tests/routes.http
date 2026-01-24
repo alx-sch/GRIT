@@ -2,93 +2,110 @@
 
 // Check DB updates via prisma view 'make view-db'
 
-// 1. Fix bug for show all published events.
+@baseUrl = http://localhost:3000
 
-// ========== BASIC SERVER ========== //
-
-// See if server is alive and kicking
-http://localhost:3000
+# ========== HEALTH CHECK ==========
+GET {{baseUrl}}
 ###
 
+# ========== USER ONBOARDING ==========
+
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+	"name": "Thomas Test",
+	"email": "tester_v99@grit.com",
+	"password": "password123"
+}
+###
 
 // ========== AUTHENTICATOION ========== //
 
-// Get Token for user 1
-GET http://localhost:3000/auth/debug/token/1
+# Get token of user 1
+# @name debugGetToken
+GET {{baseUrl}}/auth/debug/token/4
 ###
 
-// Set the variable (Remove the 'Bearer' prefix here, add it in the request)
-#@token = JWT_TOKE_HERE
-
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoidXNlcjFAZXhhbXBsZS5jb20iLCJpYXQiOjE3Njg4NDkxNjYsImV4cCI6MTc2OTQ1Mzk2Nn0.TxJkAl0A1-y1SY0rrUX_l6HJFPKOsZcoVVOj2vXvoNw
-
-// ========== LOCATION ========== //
-
-// Get all locations
-http://localhost:3000/locations
-###
-
-// Create new location
-POST http://localhost:3000/locations HTTP/1.1
-Authorization: Bearer {{token}}
-content-type: application/json
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
 
 {
-    "authorId": 1,
-	"name": "Richardunkown 42",
+	"email": "tester_v99@grit.com",
+	"password": "password123"
+}
+###
+
+# Capture the token from response automatically
+# @token = {{debugGetToken.response.body.accessToken}}
+@token = {{login.response.body.accessToken}}
+
+# Verify/Rehydrate Current User
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{token}}
+###
+
+# ========== USER ACTIONS ==========
+
+# Get all users
+GET {{baseUrl}}/users/
+###
+
+# Get My Events (Attending)
+GET {{baseUrl}}/users/me/events
+Authorization: Bearer {{token}}
+###
+
+# User attends an event
+PATCH {{baseUrl}}/users/attend
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+	"attending": 1
+}
+###
+
+# ========== LOCATION ========== //
+
+# Get all locations
+GET {{baseUrl}}/locations
+###
+
+# Create new location
+POST {{baseUrl}}/locations
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+	"authorId": 1,
+	"name": "Secret Lair",
 	"city": "Berlin",
 	"country": "Germany",
-	"longitude": 59.474823,
-	"latitude": 11.447864,
+	"longitude": 59.4748,
+	"latitude": 11.4478,
 	"isPublic": true
 }
 ###
 
 // Delete location
-DELETE http://localhost:3000/locations/1 HTTP/1.1
+DELETE {{baseUrl}}/locations/3 HTTP/1.1
 Authorization: Bearer {{token}}
-###
-
-
-// ========== USERS ========== //
-
-// Get all users
-http://localhost:3000/users
-###
-
-
-// Create new user
-POST http://localhost:3000/users HTTP/1.1
-content-type: application/json
-
-{
-    "name": "Thomas Test",
-    "email": "tester_v332@grit.com"
-}
-###
-
-// User attends an event
-PATCH http://localhost:3000/users/attend HTTP/1.1
-Authorization: Bearer {{token}}
-content-type: application/json
-
-{
-	"attending": 2
-}
 ###
 
 // ========== EVENTS ========== //
 
-// Get all published events
-http://localhost:3000/events
+# Get all published events
+GET {{baseUrl}}/events
 ###
 
-// Get event by event id
-http://localhost:3000/events/1
+# Get event by event id
+GET {{baseUrl}}/events/2
 ###
 
 // Search for event by string
-http://localhost:3000/events?search=Sack
+GET {{baseUrl}}/events?search=app
 ###
 
 // Create event, use to whatever user the token resolves to
@@ -97,25 +114,26 @@ Authorization: Bearer {{token}}
 content-type: application/json
 
 {
-    "title": "Party at unkown's place!",
-    "startAt": "2026-05-01T18:00:00Z",
-    "endAt": "2026-05-02T02:00:00Z",
-    "isPublic": true,
+	"title": "Party at unkown's place!",
+	"startAt": "2026-05-01T18:00:00Z",
+	"endAt": "2026-05-02T02:00:00Z",
+	"isPublic": true,
 	"isPublished": true
 }
 ###
 
+# Update event (using ID 1)
 PATCH http://localhost:3000/events/1 HTTP/1.1
 Authorization: Bearer {{token}}
 content-type: application/json
 
 {
-    "endAt": "2025-01-02T02:00:33Z",
-	"locationId": 1
+	"endAt": "2025-01-02T02:00:33Z",
+	"locationId": 2
 }
 ###
 
-// Delete event
+# Delete event (using ID 4)
 DELETE http://localhost:3000/events/4 HTTP/1.1
 Authorization: Bearer {{token}}
 ###
