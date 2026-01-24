@@ -4,7 +4,7 @@ import NProgress from 'nprogress';
 import { Navbar } from '@/components/layout/Navbar';
 import { Container } from '@/components/layout/Container';
 import { env } from '@/config/env';
-import { useRouteToasts } from '@/lib/useRouteToast';
+import { useRouteToasts } from '@/hooks/useRouteToast';
 
 NProgress.configure({ showSpinner: false, speed: 400 });
 
