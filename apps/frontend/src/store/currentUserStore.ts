@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export interface CurrentUser {
   id: number;
@@ -13,12 +14,15 @@ interface CurrentUserState {
   clearUser: () => void;
 }
 
-export const useCurrentUserStore = create<CurrentUserState>((set) => ({
-  user: null,
-  setUser: (user) => {
-    set({ user });
-  },
-  clearUser: () => {
-    set({ user: null });
-  },
-}));
+export const useCurrentUserStore = create<CurrentUserState>()(
+  persist(
+    (set) => ({
+      user: null,
+      setUser: (user) => set({ user }),
+      clearUser: () => set({ user: null }),
+    }),
+    {
+      name: 'current-user',
+    }
+  )
+);

@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore';
 
 export function protectedLayoutLoader() {
   // Check for token. If no token exists redirect
-  if (!useAuthStore.getState().isLoggedIn) {
+  if (!useAuthStore.getState().token) {
     throw redirect('/login?forbidden=true');
   }
 

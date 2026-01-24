@@ -42,7 +42,7 @@ export async function loginPageAction({ request }: { request: Request }) {
 }
 
 export const loginPageLoader = () => {
-  if (useAuthStore.getState().isLoggedIn) return redirect('/');
+  if (useAuthStore.getState().token) return redirect('/');
   return null;
 };
 

@@ -27,7 +27,7 @@ import { getAvatarImageUrl } from '@/lib/image_utils';
 
 export function Navbar() {
   const navConfig: NavRoute[] = [...baseNavConfig];
-  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  const isLoggedIn = useAuthStore((s) => !!s.token);
   const currentUserAvatar = useCurrentUserStore((s) => s.user?.avatarKey);
 
   navConfig.push(
