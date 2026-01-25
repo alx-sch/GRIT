@@ -19,4 +19,10 @@ export const eventService = {
     const response = await api.get<Event[]>(url);
     return response.data;
   },
+
+  getEvent: async (id: string): Promise<Event> => {
+    const response = await api.get<Event>(`/events/${id}`);
+    // TODO parse once schema is available unified for front and backend
+    return response.data;
+  },
 };
