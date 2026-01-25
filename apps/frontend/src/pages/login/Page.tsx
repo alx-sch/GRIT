@@ -106,7 +106,7 @@ export const LoginPage = () => {
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
-                <Input id="email" type="text" autoComplete="email" {...register('email')} />
+                <Input id="email" type="email" autoComplete="email" {...register('email')} />
                 {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
               </Field>
 
