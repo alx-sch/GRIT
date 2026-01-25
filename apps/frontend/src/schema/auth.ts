@@ -19,6 +19,6 @@ export const ResAuthLoginSchema = z.object({
 });
 
 export const FormAuthLoginSchema = z.object({
-  email: z.email(),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  email: z.email('Invalid email address'),
+  password: z.string().min(10, 'Password must be at least 10 characters'),
 });

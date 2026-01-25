@@ -8,12 +8,13 @@ import { toast } from 'sonner';
 import { Heading } from '@/components/ui/typography';
 import { authService } from '@/services/authService';
 import { FormAuthLoginSchema } from '@/schema/auth';
-import { useEffect } from 'react';
+import { ActionFormError } from '@/types/actionFormError';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { FormAuthLoginDto } from '@/types/auth';
+import { useEffect } from 'react';
 import axios from 'axios';
 import z from 'zod';
+import { FormAuthLoginDto } from '@/types/auth';
 
 export async function loginPageAction({ request }: { request: Request }) {
   const formData = await request.formData();
@@ -23,7 +24,13 @@ export async function loginPageAction({ request }: { request: Request }) {
     email: formData.get('email'),
     password: formData.get('password'),
   });
-  if (!parsedData.success) return z.flattenError(parsedData.error);
+  if (!parsedData.success) {
+    const errorData = z.flattenError(parsedData.error);
+    return {
+      fieldErrors: errorData.fieldErrors,
+      formErrors: errorData.formErrors,
+    } as ActionFormError;
+  }
 
   try {
     // Sending data for authService for communication with backend and potential error handling
@@ -34,52 +41,58 @@ export async function loginPageAction({ request }: { request: Request }) {
     // Redirect on success
     return redirect('/?logged_in=true');
   } catch (err) {
-    if (axios.isAxiosError(err)) {
-      if (err.response?.status === 401) return { formError: 'Invalid credentials' };
-    }
+    if (axios.isAxiosError(err))
+      if (err.response?.status === 401)
+        return { formErrors: ['Invalid credentials'] } satisfies ActionFormError;
     throw err; // other errors are rethrown to react routers error boundary
   }
 }
 
 export const loginPageLoader = () => {
+  // Redirect if already logged in
   if (useAuthStore.getState().token) return redirect('/');
   return null;
 };
 
 export const LoginPage = () => {
-  const actionData = useActionData<typeof loginPageAction>();
-  const navigation = useNavigation();
-  const isSubmitting = navigation.state === 'submitting';
-
+  // Control form with React Hook Form (RHF)
   const {
     register,
     setError,
+    clearErrors,
     formState: { errors },
   } = useForm<FormAuthLoginDto>({
     resolver: zodResolver(FormAuthLoginSchema),
   });
 
-  // Inject action-level errors into RHF
+  /**
+   * ERROR HANDLING FOR FORM SUBMISSIONS
+   */
+  // Get data from form submission action
+  const actionData = useActionData<ActionFormError | undefined>();
+
+  // FORM validation errors appear as toasts
   useEffect(() => {
-    if (!actionData) return;
+    actionData?.formErrors?.forEach((err) => {
+      toast.error(err);
+    });
+  }, [actionData]);
 
-    // Field-level Zod errors
-    if ('fieldErrors' in actionData) {
-      Object.entries(actionData.fieldErrors).forEach(([field, messages]) => {
-        if (messages && messages.length > 0) {
-          setError(field as keyof FormAuthLoginDto, {
-            type: 'server',
-            message: messages[0],
-          });
-        }
+  // FIELD validation errors are injected into RHF for error display
+  useEffect(() => {
+    if (!actionData?.fieldErrors) return;
+    Object.entries(actionData.fieldErrors).forEach(([field, message]) => {
+      setError(field as keyof FormAuthLoginDto, {
+        message,
       });
-    }
-
-    // Form-level error
-    if ('formError' in actionData) {
-      toast.error(actionData.formError);
-    }
+    });
   }, [actionData, setError]);
+
+  /**
+   * DISPLAY THE FORM
+   */
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === 'submitting';
 
   return (
     <>
@@ -88,13 +101,13 @@ export const LoginPage = () => {
       </div>
 
       <div className="w-full max-w-md mt-4">
-        <Form method="post">
+        <Form method="post" onSubmit={() => clearErrors()}>
           <FieldSet>
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
-                <Input id="email" type="email" autoComplete="username" {...register('email')} />
-                {errors.email && <div className="text-red-500 text-sm">{errors.email.message}</div>}
+                <Input id="email" type="text" autoComplete="email" {...register('email')} />
+                {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
               </Field>
 
               <Field>
@@ -106,7 +119,7 @@ export const LoginPage = () => {
                   {...register('password')}
                 />
                 {errors.password && (
-                  <div className="text-red-500 text-sm">{errors.password.message}</div>
+                  <p className="text-red-500 text-sm">{errors.password.message}</p>
                 )}
               </Field>
 
