@@ -101,7 +101,12 @@ export const LoginPage = () => {
       </div>
 
       <div className="w-full max-w-md mt-4">
-        <Form method="post" onSubmit={() => clearErrors()}>
+        <Form
+          method="post"
+          onSubmit={() => {
+            clearErrors();
+          }}
+        >
           <FieldSet>
             <FieldGroup>
               <Field>
