@@ -1,8 +1,9 @@
 import { Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '@/user/user.service';
-import { ReqAuthLoginDto, ResAuthMeDto, ResAuthLoginDto } from '@/auth/auth.schema';
+import { ResAuthMeDto, ResAuthLoginDto } from '@/auth/auth.schema';
 import * as bcrypt from 'bcrypt';
+import { type LoginInput } from '@grit/schema';
 import { env } from '@/config/env';
 
 @Injectable()
@@ -13,7 +14,7 @@ export class AuthService {
   ) {}
 
   // Logic for verifying user credentials
-  async validateUser(loginDto: ReqAuthLoginDto): Promise<ResAuthMeDto> {
+  async validateUser(loginDto: LoginInput): Promise<ResAuthMeDto> {
     const user = await this.userService.userGetByEmail(loginDto.email);
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');

@@ -290,7 +290,7 @@ test-fe-integration: install-fe
 dev: check-env stop-dev-processes kill-port-be kill-port-fe install db
 	@echo "$(BOLD)$(YELLOW)--- Starting Backend & Frontend [DEV]...$(RESET)"
 	@rm -rf /tmp/turbod/*
-	turbo dev --no-update-notifier;
+	turbo dev --no-update-notifier 2>/dev/null
 
 # Run only Backend with DB check; NEST clears terminal before printing
 dev-be: check-env kill-port-be db

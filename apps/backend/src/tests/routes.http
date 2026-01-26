@@ -24,7 +24,7 @@ Content-Type: application/json
 
 # Get token of user 1
 # @name debugGetToken
-GET {{baseUrl}}/auth/debug/token/4
+GET {{baseUrl}}/auth/debug/token/1
 ###
 
 # @name login
@@ -38,8 +38,8 @@ Content-Type: application/json
 ###
 
 # Capture the token from response automatically
-# @token = {{debugGetToken.response.body.accessToken}}
-@token = {{login.response.body.accessToken}}
+@token = {{debugGetToken.response.body.accessToken}}
+# @token = {{login.response.body.accessToken}}
 
 # Verify/Rehydrate Current User
 GET {{baseUrl}}/auth/me
@@ -63,7 +63,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-	"attending": 1
+	"attending": 2
 }
 ###
 
