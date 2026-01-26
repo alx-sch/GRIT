@@ -82,7 +82,11 @@ export default function EventForm({ locations }: EventFormProps) {
     if (saved) {
       const draft = JSON.parse(saved) as Record<string, unknown>;
       for (const [key, value] of Object.entries(draft)) {
-        setValue(key as keyof FormFields, value as FormFields[keyof FormFields]);
+        if (key === 'startAt' || key === 'endAt') {
+          setValue(key, new Date(value as string));
+        } else {
+          setValue(key as keyof FormFields, value as FormFields[keyof FormFields]);
+        }
       }
     }
   }, [setValue]);
