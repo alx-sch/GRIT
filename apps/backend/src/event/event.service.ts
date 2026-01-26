@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 
 import { ReqEventGetPublishedDto, ReqEventPatchDto, ReqEventPostDraftDto } from './event.schema';
+import { encodeCursor, decodeCursor } from '@/event/event.utils';
 
 @Injectable()
 export class EventService {
@@ -39,38 +40,65 @@ export class EventService {
     }
   }
 
-  eventGetPublished(input: ReqEventGetPublishedDto) {
-    const where: Prisma.EventWhereInput = {
-      isPublished: true,
-    };
+  async eventGetPublished(input: ReqEventGetPublishedDto) {
+    const where: Prisma.EventWhereInput = { isPublished: true };
+
     if (input.search) {
       where.OR = [
         { title: { contains: input.search, mode: 'insensitive' } },
         { content: { contains: input.search, mode: 'insensitive' } },
       ];
     }
-    if (input.author_id) {
-      where.authorId = input.author_id;
-    }
+    if (input.author_id) where.authorId = input.author_id;
     if (input.start_from || input.start_until) {
       where.startAt = {};
       if (input.start_from) where.startAt.gte = input.start_from;
       if (input.start_until) where.startAt.lte = input.start_until;
     }
-    if (input.location_id) {
-      where.locationId = input.location_id;
+    if (input.location_id) where.locationId = input.location_id;
+
+    const { limit, cursor } = input;
+    let cursorFilter = {};
+
+    if (cursor) {
+      try {
+        const { startAt, id } = decodeCursor(cursor);
+        if (!(startAt instanceof Date) || isNaN(startAt.getTime()) || typeof id !== 'number') {
+          throw new Error('Invalid cursor');
+        }
+        cursorFilter = {
+          OR: [{ startAt: { gt: startAt } }, { startAt, id: { gt: id } }],
+        };
+      } catch {
+        throw new BadRequestException('Invalid cursor provided');
+      }
     }
-    return this.prisma.event.findMany({
-      where,
+
+    const finalWhere = { ...where, ...cursorFilter };
+
+    const events = await this.prisma.event.findMany({
+      where: finalWhere,
       include: {
         author: true,
         location: true,
         attending: true,
       },
-      orderBy: {
-        startAt: 'asc',
-      },
+      orderBy: [{ startAt: 'asc' }, { id: 'asc' }],
+      take: limit + 1,
     });
+
+    const hasMore = events.length > limit;
+    const slice = hasMore ? events.slice(0, limit) : events;
+
+    return {
+      data: slice,
+      pagination: {
+        nextCursor: hasMore
+          ? encodeCursor(slice[slice.length - 1].startAt!, slice[slice.length - 1].id)
+          : null,
+        hasMore,
+      },
+    };
   }
 
   async eventGetById(id: number) {
