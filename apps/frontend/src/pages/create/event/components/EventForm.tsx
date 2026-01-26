@@ -15,11 +15,10 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { useEffect } from 'react';
 import { useWatch } from 'react-hook-form';
 import { Control } from 'react-hook-form';
+import axios from 'axios';
 
 const today = new Date();
 today.setHours(0, 0, 0, 0);
-
-const DRAFT_KEY = 'event-draft';
 
 const schema = z
   .object({
@@ -48,6 +47,7 @@ interface EventFormProps {
 
 type FormFields = z.infer<typeof schema>;
 
+const DRAFT_KEY = 'event-draft';
 function DraftSaver({ control }: { control: Control<FormFields> }) {
   const formValues = useWatch({ control });
   const debouncedFormValues = useDebounce(formValues, 1000);
@@ -75,6 +75,7 @@ export default function EventForm({ locations }: EventFormProps) {
     watch,
     setValue,
     control,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<FormFields>({
     resolver: zodResolver(schema),
@@ -105,7 +106,6 @@ export default function EventForm({ locations }: EventFormProps) {
   }, [setValue]);
 
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
-    console.log('1. onSubmit called with:', data);
     try {
       const payload = {
         title: data.title,
@@ -116,13 +116,18 @@ export default function EventForm({ locations }: EventFormProps) {
         content: data.content ?? undefined,
         locationId: data.locationId ? Number(data.locationId) : undefined,
       };
-      console.log('2. Payload built:', payload);
-      const event = await eventService.postEvent(payload);
-      console.log('3. Event created:', event);
+      await eventService.postEvent(payload);
       localStorage.removeItem(DRAFT_KEY);
       void navigate('/events/');
     } catch (error) {
-      console.error('4. Failed to create event:', error);
+      let message = 'Something went wrong. Please try again.';
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          message = data.message;
+        }
+      }
+      setError('root', { message });
     }
   };
 
@@ -227,6 +232,7 @@ export default function EventForm({ locations }: EventFormProps) {
           </div>
         )}
       />
+      {errors.root && <div className="text-red-500 text-center mb-4">{errors.root.message}</div>}
 
       <div className="flex flex-row gap-4 md:gap-12 w-full items-center">
         <Button
