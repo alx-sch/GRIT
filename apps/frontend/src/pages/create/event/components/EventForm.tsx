@@ -13,9 +13,13 @@ import { eventService } from '@/services/eventService';
 import { format } from 'date-fns';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useEffect } from 'react';
+import { useWatch } from 'react-hook-form';
+import { Control } from 'react-hook-form';
 
 const today = new Date();
 today.setHours(0, 0, 0, 0);
+
+const DRAFT_KEY = 'event-draft';
 
 const schema = z
   .object({
@@ -43,6 +47,17 @@ interface EventFormProps {
 }
 
 type FormFields = z.infer<typeof schema>;
+
+function DraftSaver({ control }: { control: Control<FormFields> }) {
+  const formValues = useWatch({ control });
+  const debouncedFormValues = useDebounce(formValues, 1000);
+  useEffect(() => {
+    if (debouncedFormValues.title) {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(debouncedFormValues));
+    }
+  }, [debouncedFormValues]);
+  return null;
+}
 
 export default function EventForm({ locations }: EventFormProps) {
   const navigate = useNavigate();
@@ -74,8 +89,6 @@ export default function EventForm({ locations }: EventFormProps) {
     },
   });
 
-  const DRAFT_KEY = 'event-draft';
-
   //Restore draft if exists
   useEffect(() => {
     const saved = localStorage.getItem(DRAFT_KEY);
@@ -90,16 +103,6 @@ export default function EventForm({ locations }: EventFormProps) {
       }
     }
   }, [setValue]);
-
-  //Save draft on change (debounced)
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const formValues = watch();
-  const debouncedFormValues = useDebounce(formValues, 1000);
-  useEffect(() => {
-    if (debouncedFormValues.title) {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(debouncedFormValues));
-    }
-  }, [debouncedFormValues]);
 
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
     console.log('1. onSubmit called with:', data);
@@ -123,6 +126,7 @@ export default function EventForm({ locations }: EventFormProps) {
     }
   };
 
+  //eslint-disable-next-line react-hooks/incompatible-library
   const startAtValue = watch('startAt') as Date | undefined;
   const endAtValue = watch('endAt') as Date | undefined;
 
@@ -132,6 +136,7 @@ export default function EventForm({ locations }: EventFormProps) {
         void handleSubmit(onSubmit)(e);
       }}
     >
+      <DraftSaver control={control} />
       <Controller
         control={control}
         name="isPublic"
