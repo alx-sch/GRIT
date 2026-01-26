@@ -13,14 +13,6 @@ export const ResAuthMeSchema = z.object({
 });
 
 /**
- * LOGIN REQUEST
- */
-export const ReqAuthLoginSchema = z.object({
-  email: z.email(),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-});
-
-/**
  * LOGIN RESPONSE
  */
 export const ResAuthLoginSchema = z.object({
@@ -29,6 +21,5 @@ export const ResAuthLoginSchema = z.object({
 });
 
 // --- DTO Classes ---
-export class ReqAuthLoginDto extends createZodDto(ReqAuthLoginSchema) {}
 export class ResAuthLoginDto extends createZodDto(ResAuthLoginSchema) {}
 export class ResAuthMeDto extends createZodDto(ResAuthMeSchema) {}
