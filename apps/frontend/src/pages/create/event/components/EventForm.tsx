@@ -219,34 +219,30 @@ export default function EventForm({ locations }: EventFormProps) {
         )}
       />
 
-      <Controller
-        control={control}
-        name="isPublished"
-        render={({ field: { onChange } }) => (
-          <div className="flex flex-row gap-4 md:gap-12 w-full items-center">
-            <Button
-              type="submit"
-              variant="outline"
-              onClick={() => {
-                onChange(false);
-              }}
-              className="font-heading text-lg md:text-2xl py-4 md:py-8 px-4 md:px-12 flex-1"
-            >
-              Save Draft
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              onClick={() => {
-                onChange(true);
-              }}
-              className="font-heading text-lg md:text-2xl py-4 md:py-8 px-4 md:px-12 flex-1"
-            >
-              {isSubmitting ? 'Loading...' : 'Publish'}
-            </Button>
-          </div>
-        )}
-      />
+      <div className="flex flex-row gap-4 md:gap-12 w-full items-center">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => {
+            setValue('isPublished', false);
+            void handleSubmit(onSubmit)();
+          }}
+          className="font-heading text-lg md:text-2xl py-4 md:py-8 px-4 md:px-12 flex-1"
+        >
+          Save Draft
+        </Button>
+        <Button
+          type="button"
+          disabled={isSubmitting}
+          onClick={() => {
+            setValue('isPublished', true);
+            void handleSubmit(onSubmit)();
+          }}
+          className="font-heading text-lg md:text-2xl py-4 md:py-8 px-4 md:px-12 flex-1"
+        >
+          {isSubmitting ? 'Loading...' : 'Publish'}
+        </Button>
+      </div>
     </form>
   );
 }
