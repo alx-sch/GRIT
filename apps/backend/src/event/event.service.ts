@@ -9,7 +9,12 @@ import {
 } from '@nestjs/common';
 
 import { ReqEventGetPublishedDto, ReqEventPatchDto, ReqEventPostDraftDto } from './event.schema';
-import { encodeCursor, decodeCursor } from '@/event/event.utils';
+import {
+  encodeCursor,
+  decodeCursor,
+  eventSearchFilter,
+  eventCursorFilter,
+} from '@/event/event.utils';
 
 @Injectable()
 export class EventService {
@@ -41,40 +46,11 @@ export class EventService {
   }
 
   async eventGetPublished(input: ReqEventGetPublishedDto) {
-    const where: Prisma.EventWhereInput = { isPublished: true };
-
-    if (input.search) {
-      where.OR = [
-        { title: { contains: input.search, mode: 'insensitive' } },
-        { content: { contains: input.search, mode: 'insensitive' } },
-      ];
-    }
-    if (input.author_id) where.authorId = input.author_id;
-    if (input.start_from || input.start_until) {
-      where.startAt = {};
-      if (input.start_from) where.startAt.gte = input.start_from;
-      if (input.start_until) where.startAt.lte = input.start_until;
-    }
-    if (input.location_id) where.locationId = input.location_id;
-
-    const { limit, cursor } = input;
-    let cursorFilter = {};
-
-    if (cursor) {
-      try {
-        const { startAt, id } = decodeCursor(cursor);
-        if (!(startAt instanceof Date) || isNaN(startAt.getTime()) || typeof id !== 'number') {
-          throw new Error('Invalid cursor');
-        }
-        cursorFilter = {
-          OR: [{ startAt: { gt: startAt } }, { startAt, id: { gt: id } }],
-        };
-      } catch {
-        throw new BadRequestException('Invalid cursor provided');
-      }
-    }
+    const where: Prisma.EventWhereInput = eventSearchFilter(input); // event.utils.ts
+    let cursorFilter = eventCursorFilter(input); // event.utils.ts
 
     const finalWhere = { ...where, ...cursorFilter };
+    const { limit } = input;
 
     const events = await this.prisma.event.findMany({
       where: finalWhere,
