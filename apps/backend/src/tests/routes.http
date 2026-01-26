@@ -97,7 +97,7 @@ Authorization: Bearer {{token}}
 // ========== EVENTS ========== //
 
 # Get all published events
-GET {{baseUrl}}/events?limit=2&cursor=MjAyNi0wMS0yNFQxMjowMDowMC4wMDBafDc=
+GET {{baseUrl}}/events?limit=1&cursor=MjAyNi0wMS0yNFQxMjowMDowMC4wMDBafDU=
 ###
 
 # Get event by event id

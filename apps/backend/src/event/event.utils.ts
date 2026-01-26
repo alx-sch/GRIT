@@ -19,7 +19,7 @@ import { BadRequestException } from '@nestjs/common';
  */
 
 export function encodeCursor(startAt: Date, id: number) {
-  const str = `${startAt.toISOString()}|${id}`;
+  const str = `${startAt.toISOString()}|${String(id)}`;
   return Buffer.from(str).toString('base64');
 }
 
@@ -67,7 +67,7 @@ export function eventSearchFilter(input: ReqEventGetPublishedDto) {
  * query resumes fetching events after the last event seen.
  * */
 export function eventCursorFilter(input: ReqEventGetPublishedDto) {
-  const { limit, cursor } = input;
+  const { cursor } = input;
   let cursorFilter = {};
 
   if (cursor) {

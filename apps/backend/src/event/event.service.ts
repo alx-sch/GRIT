@@ -9,12 +9,7 @@ import {
 } from '@nestjs/common';
 
 import { ReqEventGetPublishedDto, ReqEventPatchDto, ReqEventPostDraftDto } from './event.schema';
-import {
-  encodeCursor,
-  decodeCursor,
-  eventSearchFilter,
-  eventCursorFilter,
-} from '@/event/event.utils';
+import { encodeCursor, eventSearchFilter, eventCursorFilter } from '@/event/event.utils';
 
 @Injectable()
 export class EventService {
@@ -47,7 +42,7 @@ export class EventService {
 
   async eventGetPublished(input: ReqEventGetPublishedDto) {
     const where: Prisma.EventWhereInput = eventSearchFilter(input); // event.utils.ts
-    let cursorFilter = eventCursorFilter(input); // event.utils.ts
+    const cursorFilter = eventCursorFilter(input); // event.utils.ts
 
     const finalWhere = { ...where, ...cursorFilter };
     const { limit } = input;
@@ -70,7 +65,7 @@ export class EventService {
       data: slice,
       pagination: {
         nextCursor: hasMore
-          ? encodeCursor(slice[slice.length - 1].startAt!, slice[slice.length - 1].id)
+          ? encodeCursor(slice[slice.length - 1].startAt, slice[slice.length - 1].id)
           : null,
         hasMore,
       },
