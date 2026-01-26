@@ -23,9 +23,10 @@ export const Event = () => {
 
   const sendMessage = () => {
     if (!input.trim() || !socketRef.current) return;
-    socketRef.current.emit('chat', {
+    socketRef.current.emit('message', {
       eventId: event.id,
       text: input,
+      time: new Date(),
     });
 
     setInput('');
@@ -39,8 +40,7 @@ export const Event = () => {
     socketRef.current = socket;
 
     socket.on('connect', () => {
-      console.log('connected:', socket.id);
-      socket.emit('chat', { id: event.id }, (response: number) => {
+      socket.emit('join', { eventId: event.id }, (response: any) => {
         console.log('server response:', response);
       });
     });
