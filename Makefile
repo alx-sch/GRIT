@@ -474,13 +474,13 @@ build: check-env install
 	@echo "$(BOLD)$(GREEN)Full project build complete.$(RESET)"
 
 # Build only Backend
-build-be: check-env build-schema install-be
+build-be: check-env install-be
 	@echo "$(BOLD)$(YELLOW)--- Building Backend...$(RESET)"
 	turbo build --filter=@grit/backend
 	@echo "$(BOLD)$(GREEN)Backend build complete.$(RESET)"
 
 # Build only Frontend
-build-fe: check-env build-schema install-fe
+build-fe: check-env install-fe
 	@echo "$(BOLD)$(YELLOW)--- Building Frontend...$(RESET)"
 	turbo build --filter=@grit/frontend
 	@echo "$(BOLD)$(GREEN)Frontend build complete.$(RESET)"
