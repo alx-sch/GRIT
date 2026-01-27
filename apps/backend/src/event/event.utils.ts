@@ -9,7 +9,7 @@ import { BadRequestException } from '@nestjs/common';
  *
  * Cursors are encoded to a single Base64 string to:
  * 1. Hide raw database values (startAt dates and IDs) from the URL.
- * 2. Prevent frontend users from accidentally modifying the cursor and breaking pagination.
+ * 2. Prevent users from accidentally modifying the cursor and breaking pagination.
  *
  * Example WITHOUT encoding:
  * GET /events?limit=20&cursor=2025-01-22T10:00:00.000Z|41

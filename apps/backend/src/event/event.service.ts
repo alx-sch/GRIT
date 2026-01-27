@@ -41,9 +41,9 @@ export class EventService {
   }
 
   async eventGetPublished(input: ReqEventGetPublishedDto) {
-    const where: Prisma.EventWhereInput = eventSearchFilter(input); // event.utils.ts
-    const cursorFilter = eventCursorFilter(input); // event.utils.ts
-
+    // First two functions -----> event.utils.ts
+    const where: Prisma.EventWhereInput = eventSearchFilter(input);
+    const cursorFilter = eventCursorFilter(input);
     const finalWhere = { ...where, ...cursorFilter };
     const { limit } = input;
 
@@ -59,13 +59,16 @@ export class EventService {
     });
 
     const hasMore = events.length > limit;
-    const slice = hasMore ? events.slice(0, limit) : events;
+    const slicedData = hasMore ? events.slice(0, limit) : events;
 
     return {
-      data: slice,
+      data: slicedData,
       pagination: {
         nextCursor: hasMore
-          ? encodeCursor(slice[slice.length - 1].startAt, slice[slice.length - 1].id)
+          ? encodeCursor(
+              slicedData[slicedData.length - 1].startAt,
+              slicedData[slicedData.length - 1].id
+            )
           : null,
         hasMore,
       },

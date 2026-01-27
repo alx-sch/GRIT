@@ -97,15 +97,23 @@ Authorization: Bearer {{token}}
 // ========== EVENTS ========== //
 
 # Get all published events
-GET {{baseUrl}}/events?limit=1&cursor=MjAyNi0wMS0yNFQxMjowMDowMC4wMDBafDU=
-###
-
-# Get event by event id
-GET {{baseUrl}}/events/2
+GET {{baseUrl}}/events
 ###
 
 // Search for event by string
 GET {{baseUrl}}/events?search=app
+###
+
+// Search for event by limit and start time
+GET {{baseUrl}}/events?limit=1&start_from=2026-01-24
+###
+
+// Search for second event by using limit and cursor
+GET {{baseUrl}}/events?limit=1&cursor=MjAyNi0wMS0yNFQxMjowMDowMC4wMDBafDQ=
+###
+
+# Get event by event id
+GET {{baseUrl}}/events/2
 ###
 
 // Create event, use to whatever user the token resolves to
