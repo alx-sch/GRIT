@@ -154,13 +154,14 @@ describe('Events E2E', () => {
     it('returns all published events', async () => {
       const res = await request(app.getHttpServer()).get(`/events`).expect(200);
 
-      expect(res.body).toMatchObject([
-        {
-          id: event.id,
-          authorId: user.id,
-          title: event.title,
-        },
-      ]);
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          data: expect.arrayContaining([
+            expect.objectContaining({ id: event.id, title: event.title, authorId: event.authorId }),
+          ]),
+          pagination: { hasMore: false, nextCursor: null },
+        })
+      );
     });
 
     it('applies filters correctly and returns matching event', async () => {
@@ -174,13 +175,14 @@ describe('Events E2E', () => {
         })
         .expect(200);
 
-      expect(res.body).toMatchObject([
-        {
-          id: event.id,
-          authorId: user.id,
-          title: event.title,
-        },
-      ]);
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          data: expect.arrayContaining([
+            expect.objectContaining({ id: event.id, title: event.title, authorId: event.authorId }),
+          ]),
+          pagination: { hasMore: false, nextCursor: null },
+        })
+      );
     });
 
     it('returns 400 for invalid query params', async () => {
