@@ -30,6 +30,7 @@ describe('Events E2E', () => {
   // To store event, location and user (which are seeded in the database).
   let user: User;
   let event: Event;
+  let event2: Event;
 
   // To store access token
   let token: string;
@@ -164,7 +165,7 @@ describe('Events E2E', () => {
       );
     });
 
-    it('applies filters correctly and returns matching event', async () => {
+    it('returns 200, applies filters correctly and returns matching event', async () => {
       const res = await request(app.getHttpServer())
         .get('/events')
         .query({
@@ -183,6 +184,55 @@ describe('Events E2E', () => {
           pagination: { hasMore: false, nextCursor: null },
         })
       );
+    });
+
+    it('returns 200, limits the amount of events returned to 1, correct cursor to next event is returned', async () => {
+      event2 = await prisma.event.create({
+        data: {
+          author: { connect: { id: user.id } },
+          content: 'Stored in DB',
+          endAt: new Date('2025-01-01T20:00:00.000Z'),
+          isPublished: true,
+          isPublic: true,
+          startAt: new Date('2025-01-01T20:00:00.000Z'),
+          title: 'Hello E2E again',
+        },
+        include: {
+          author: true,
+        },
+      });
+
+      const res = await request(app.getHttpServer())
+        .get('/events')
+        .query({
+          limit: 1,
+        })
+        .expect(200);
+
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          data: expect.arrayContaining([
+            expect.objectContaining({ id: event.id, title: event.title, authorId: event.authorId }),
+            expect.not.objectContaining({ id: event2.id }),
+          ]),
+          pagination: { hasMore: true, nextCursor: 'MjAyNS0wMS0wMVQyMDowMDowMC4wMDBafDg=' },
+        })
+      );
+    });
+
+    it('returns 400 for passing an invalid cursor', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/events')
+        .query({
+          cursor: 'random-shit',
+        })
+        .expect(400);
+
+      expect(res.body).toStrictEqual({
+        error: 'Bad Request',
+        message: 'Invalid cursor provided',
+        statusCode: 400,
+      });
     });
 
     it('returns 400 for invalid query params', async () => {
