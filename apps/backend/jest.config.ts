@@ -11,27 +11,23 @@ const base = {
   coverageDirectory: '../coverage',
 };
 
-export default {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-  transformIgnorePatterns: ['node_modules/(?!(?:@grit/schema)/)'],
+export const projects = [
+  {
+    ...base,
+    displayName: 'unit',
+    testMatch: ['**/*.spec.ts'],
+    testPathIgnorePatterns: ['\\.int\\.spec\\.ts$', '\\.e2e-spec\\.ts$'],
+  },
 
-  projects: [
-    {
-      ...base,
-      displayName: 'unit',
-      testMatch: ['**/*.spec.ts'],
-      testPathIgnorePatterns: ['\\.int\\.spec\\.ts$', '\\.e2e-spec\\.ts$'],
-    },
-    {
-      ...base,
-      displayName: 'integration',
-      testMatch: ['**/*.int.spec.ts'],
-    },
-    {
-      ...base,
-      displayName: 'e2e',
-      testMatch: ['**/*.e2e-spec.ts'],
-    },
-  ],
-};
+  {
+    ...base,
+    displayName: 'integration',
+    testMatch: ['**/*.int.spec.ts'],
+  },
+
+  {
+    ...base,
+    displayName: 'e2e',
+    testMatch: ['**/*.e2e-spec.ts'],
+  },
+];
