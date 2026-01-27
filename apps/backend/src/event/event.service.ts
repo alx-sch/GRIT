@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 
 import { ReqEventGetPublishedDto, ReqEventPatchDto, ReqEventPostDraftDto } from './event.schema';
-import { encodeCursor, eventSearchFilter, eventCursorFilter } from '@/event/event.utils';
+import { eventEncodeCursor, eventSearchFilter, eventCursorFilter } from '@/event/event.utils';
 
 @Injectable()
 export class EventService {
@@ -65,7 +65,7 @@ export class EventService {
       data: slicedData,
       pagination: {
         nextCursor: hasMore
-          ? encodeCursor(
+          ? eventEncodeCursor(
               slicedData[slicedData.length - 1].startAt,
               slicedData[slicedData.length - 1].id
             )

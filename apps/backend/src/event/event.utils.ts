@@ -18,12 +18,12 @@ import { BadRequestException } from '@nestjs/common';
  * GET /events?limit=20&cursor=MjAyNS0wMS0yMlQxMDowMDowMFo=
  */
 
-export function encodeCursor(startAt: Date, id: number) {
+export function eventEncodeCursor(startAt: Date, id: number) {
   const str = `${startAt.toISOString()}|${String(id)}`;
   return Buffer.from(str).toString('base64');
 }
 
-export function decodeCursor(cursor: string): { startAt: Date; id: number } {
+export function eventDecodeCursor(cursor: string): { startAt: Date; id: number } {
   const [startAtStr, idStr] = Buffer.from(cursor, 'base64').toString('utf-8').split('|');
   return { startAt: new Date(startAtStr), id: parseInt(idStr, 10) };
 }
@@ -72,7 +72,7 @@ export function eventCursorFilter(input: ReqEventGetPublishedDto) {
 
   if (cursor) {
     try {
-      const { startAt, id } = decodeCursor(cursor);
+      const { startAt, id } = eventDecodeCursor(cursor);
       if (!(startAt instanceof Date) || isNaN(startAt.getTime()) || typeof id !== 'number') {
         throw new Error('Invalid cursor');
       }

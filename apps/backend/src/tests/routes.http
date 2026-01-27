@@ -15,7 +15,7 @@ Content-Type: application/json
 
 {
 	"name": "Thomas Test",
-	"email": "tester_v99@grit.com",
+	"email": "tester_v99@grit.comss",
 	"password": "password123"
 }
 ###
@@ -32,7 +32,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-	"email": "tester_v99@grit.com",
+	"email": "tester_v99@grit.coms",
 	"password": "password123"
 }
 ###
@@ -49,7 +49,15 @@ Authorization: Bearer {{token}}
 # ========== USER ACTIONS ==========
 
 # Get all users
-GET {{baseUrl}}/users/
+GET {{baseUrl}}/users
+###
+
+# Get all users with limit set to 1
+GET {{baseUrl}}/users?limit=1
+###
+
+# Get all users with a valid cursor (starting from user 2).
+GET {{baseUrl}}/users?cursor=MjAyNi0wMS0yN1QxNDozMDoxMi40NjFafDE=
 ###
 
 # Get My Events (Attending)

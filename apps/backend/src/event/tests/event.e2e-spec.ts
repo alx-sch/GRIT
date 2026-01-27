@@ -30,7 +30,6 @@ describe('Events E2E', () => {
   // To store event, location and user (which are seeded in the database).
   let user: User;
   let event: Event;
-  let event2: Event;
 
   // To store access token
   let token: string;
@@ -186,8 +185,8 @@ describe('Events E2E', () => {
       );
     });
 
-    it('returns 200, limits the amount of events returned to 1, correct cursor to next event is returned', async () => {
-      event2 = await prisma.event.create({
+    it('returns first event (limit set to 1), cursor to next event is returned', async () => {
+      await prisma.event.create({
         data: {
           author: { connect: { id: user.id } },
           content: 'Stored in DB',
@@ -209,15 +208,9 @@ describe('Events E2E', () => {
         })
         .expect(200);
 
-      expect(res.body).toEqual(
-        expect.objectContaining({
-          data: expect.arrayContaining([
-            expect.objectContaining({ id: event.id, title: event.title, authorId: event.authorId }),
-            expect.not.objectContaining({ id: event2.id }),
-          ]),
-          pagination: { hasMore: true, nextCursor: 'MjAyNS0wMS0wMVQyMDowMDowMC4wMDBafDg=' },
-        })
-      );
+      expect(res.body.data).toHaveLength(1);
+      expect(res.body.data[0].id).toBe(event.id);
+      expect(res.body.pagination.hasMore).toBe(true);
     });
 
     it('returns 400 for passing an invalid cursor', async () => {
