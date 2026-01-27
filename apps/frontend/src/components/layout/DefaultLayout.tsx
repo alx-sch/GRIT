@@ -2,9 +2,9 @@ import { useEffect } from 'react';
 import { Outlet, useMatches, useNavigation } from 'react-router-dom';
 import NProgress from 'nprogress';
 import { Navbar } from '@/components/layout/Navbar';
-import { Toaster } from '@/components/ui/sonner';
 import { Container } from '@/components/layout/Container';
 import { env } from '@/config/env';
+import { useRouteToasts } from '@/hooks/useRouteToast';
 
 NProgress.configure({ showSpinner: false, speed: 400 });
 
@@ -39,15 +39,14 @@ export function DefaultLayout() {
     }
   }, [matches]);
 
+  useRouteToasts();
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
-
       <Container as="main" className="py-6">
         <Outlet />
       </Container>
-
-      <Toaster position="bottom-right" richColors />
     </div>
   );
 }

@@ -8,14 +8,14 @@ import { createBrowserRouter } from 'react-router-dom';
 import { DefaultLayout } from '@/components/layout/DefaultLayout';
 import { eventLoader } from '@/pages/event/Page';
 import { Event } from '@/pages/event/Page';
-
-export interface NavRoute {
-  path: `/${string}`;
-  label: string;
-}
+import { LoginPage, loginPageAction, loginPageLoader } from '@/pages/login/Page';
+import type { NavRoute } from './types/navroute';
+import { LogoutPage, logoutPageLoader } from './pages/logout/Page';
+import { ProtectedLayout, protectedLayoutLoader } from './components/layout/ProtectedLayout';
+import { CreateEventPage } from './pages/create/event/Page';
 
 // NOTE: let's define single source of truth for our routes here
-export const navConfig: NavRoute[] = [
+export const baseNavConfig: NavRoute[] = [
   { path: '/', label: 'Home' },
   { path: '/design', label: 'Design' },
   { path: '/users', label: 'Users' },
@@ -53,6 +53,28 @@ export const router = createBrowserRouter([
         path: 'events/:id',
         Component: Event,
         loader: eventLoader,
+      },
+      {
+        path: 'login',
+        Component: LoginPage,
+        action: loginPageAction,
+        loader: loginPageLoader,
+      },
+      {
+        path: 'logout',
+        Component: LogoutPage,
+        loader: logoutPageLoader,
+      },
+      {
+        path: 'create',
+        Component: ProtectedLayout,
+        loader: protectedLayoutLoader,
+        children: [
+          {
+            path: 'event',
+            Component: CreateEventPage,
+          },
+        ],
       },
     ],
   },

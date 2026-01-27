@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useAuthStore } from '@/store/authStore';
 
 /**
  * The global Axios instance for making HTTP requests.
@@ -11,6 +12,13 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
   timeout: 5000,
+});
+
+// Request interceptor → attach token
+api.interceptors.request.use((config) => {
+  const token = useAuthStore.getState().token;
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
 });
 
 // Response Interceptor
