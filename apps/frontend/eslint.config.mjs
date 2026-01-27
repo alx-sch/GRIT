@@ -47,6 +47,11 @@ export default tseslint.config(
       'react/jsx-no-target-blank': 'error',
       'react/prop-types': 'off', // Not needed with TypeScript
 
+      // For React Router loosen the "only throw Errors" rule from default config
+      '@typescript-eslint/only-throw-error': 'off',
+      // Too many stupid false positives
+      '@typescript-eslint/no-unnecessary-condition': 'off',
+
       // Disable react-compiler rules (not using React Compiler)
       'react-compiler/react-compiler': 'off',
     },

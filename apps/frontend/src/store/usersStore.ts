@@ -3,14 +3,14 @@ import { userService } from '@/services/userService';
 import { User } from '@/types/user';
 import axios from 'axios';
 
-interface UserState {
+interface UsersState {
   users: User[];
   loading: boolean;
   error: string | null;
   fetchUsers: () => Promise<void>;
 }
 
-export const useUserStore = create<UserState>((set) => ({
+export const useUsersStore = create<UsersState>((set) => ({
   users: [],
   loading: false,
   error: null,

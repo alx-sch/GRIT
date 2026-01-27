@@ -130,24 +130,9 @@ async function main() {
   console.log('--- Seeding Users ---');
 
   const usersToCreate = [
-    {
-      email: 'alice@example.com',
-      name: 'Alice',
-      password: '12345678',
-      image: 'avatar-1.jpg',
-    },
-    {
-      email: 'bob@example.com',
-      name: 'Bob',
-      password: '123456pw',
-      image: 'avatar-2.jpg',
-    },
-    {
-      email: 'cindy@example.com',
-      name: 'Cindy',
-      password: '12345678',
-      image: null,
-    },
+    { email: 'alice@example.com', name: 'Alice', password: '0123456789', image: 'avatar-1.jpg' },
+    { email: 'bob@example.com', name: 'Bob', password: '12345678pw', image: 'avatar-2.jpg' },
+    { email: 'cindy@example.com', name: 'Cindy', password: '0123456789', image: null },
   ];
 
   // upsert: "Update or Insert" - prevents errors if the user already exists

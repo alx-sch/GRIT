@@ -8,6 +8,11 @@ export function getEventImageUrl(event: Event): string {
   return `${env.VITE_MINIO_URL}/event-images/${event.imageKey}`;
 }
 
+export function getAvatarImageUrl(avatarFilename: string | undefined): string {
+  if (!avatarFilename) return '';
+  return `${env.VITE_MINIO_URL}/user-avatars/${avatarFilename}`;
+}
+
 function wrapLines(text: string, maxLen = 14, maxLines = 3): string[] {
   const words = text.split(/\s+/);
   const lines: string[] = [];

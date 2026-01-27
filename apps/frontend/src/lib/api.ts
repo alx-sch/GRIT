@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useAuthStore } from '@/store/authStore';
 
 /**
  * The global Axios instance for making HTTP requests.
@@ -13,13 +14,10 @@ const api = axios.create({
   timeout: 5000,
 });
 
-// To do: remove this temp auth interceptor once the proper auth is in place
-// This dev token is only valid for 7 days from Jan 23.
-const DEV_TOKEN =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoidXNlcjFAZXhhbXBsZS5jb20iLCJpYXQiOjE3NjkxNjE3MDksImV4cCI6MTc2OTc2NjUwOX0.StP5DYtkd1BaehXyT-uvQqGAXSAjOAdme7C7vuqUyBs';
-
+// Request interceptor → attach token
 api.interceptors.request.use((config) => {
-  config.headers.Authorization = `Bearer ${DEV_TOKEN}`;
+  const token = useAuthStore.getState().token;
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 

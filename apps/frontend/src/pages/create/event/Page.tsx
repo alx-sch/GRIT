@@ -11,7 +11,7 @@ export const eventCreationLoader = async ({ request }: LoaderFunctionArgs) => {
   return locationService.getLocations();
 };
 
-export default function EventCreation() {
+export default function CreateEventPage() {
   const locations = useTypedLoaderData<Location[]>();
   return (
     <Container className="py-10 space-y-8 p-0 md:px-0">
