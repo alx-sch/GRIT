@@ -103,19 +103,26 @@ init-env:
 
 # -- INSTALLATION TARGETS --
 
+# Build shared schema packages
+build-schema:
+	@echo "$(BOLD)$(YELLOW)--- Building Shared Schema...$(RESET)"
+	@pnpm install
+	@pnpm --filter @grit/schema build
+	@echo "$(BOLD)$(GREEN)Shared Schema build complete.$(RESET)"
+
 # Installs all dependencies
 install: install-be install-fe
 	@echo "$(BOLD)$(GREEN)All dependencies installed.$(RESET)"
 
 # Installs only Backend dependencies (incl. Prisma)
-install-be:
+install-be: build-schema
 	@echo "$(BOLD)$(YELLOW)--- Installing Backend Dependencies...$(RESET)"
 	@pnpm --filter @grit/backend install
 	@pnpm --filter @grit/backend exec prisma generate --no-hints
 	@echo "$(BOLD)$(GREEN)Backend dependencies installed.$(RESET)"
 
 # Installs only Frontend dependencies
-install-fe:
+install-fe: build-schema
 	@echo "$(BOLD)$(YELLOW)--- Installing Frontend Dependencies...$(RESET)"
 	@pnpm --filter @grit/frontend install
 	@echo "$(BOLD)$(GREEN)Frontend dependencies installed.$(RESET)"
@@ -467,13 +474,13 @@ build: check-env install
 	@echo "$(BOLD)$(GREEN)Full project build complete.$(RESET)"
 
 # Build only Backend
-build-be: check-env install-be
+build-be: check-env build-schema install-be
 	@echo "$(BOLD)$(YELLOW)--- Building Backend...$(RESET)"
 	turbo build --filter=@grit/backend
 	@echo "$(BOLD)$(GREEN)Backend build complete.$(RESET)"
 
 # Build only Frontend
-build-fe: check-env install-fe
+build-fe: check-env build-schema install-fe
 	@echo "$(BOLD)$(YELLOW)--- Building Frontend...$(RESET)"
 	turbo build --filter=@grit/frontend
 	@echo "$(BOLD)$(GREEN)Frontend build complete.$(RESET)"
@@ -519,6 +526,7 @@ stop:
 		build \
 		build-be \
 		build-fe \
+		build-schema \
 		check-env \
 		clean \
 		clean-backup \

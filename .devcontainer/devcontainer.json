@@ -2,7 +2,7 @@
   "name": "GRIT -- the event social network webapp",
 
   // Debian OS with Node.js 20 and TypeScript
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:20-bookworm",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:24-bookworm",
 
   "features": {
     // Docker inside the dev container
