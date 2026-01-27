@@ -17,8 +17,3 @@ export const ResAuthLoginSchema = z.object({
   accessToken: z.string(),
   user: ResAuthMeSchema,
 });
-
-export const FormAuthLoginSchema = z.object({
-  email: z.email('Invalid email address'),
-  password: z.string().min(10, 'Password must be at least 10 characters'),
-});

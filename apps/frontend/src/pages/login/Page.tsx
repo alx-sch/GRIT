@@ -7,20 +7,20 @@ import { useCurrentUserStore } from '@/store/currentUserStore';
 import { toast } from 'sonner';
 import { Heading } from '@/components/ui/typography';
 import { authService } from '@/services/authService';
-import { FormAuthLoginSchema } from '@/schema/auth';
 import { ActionFormError } from '@/types/actionFormError';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import axios from 'axios';
 import z from 'zod';
-import { FormAuthLoginDto } from '@/types/auth';
+import { LoginSchema } from '@grit/schema';
+import type { LoginInput } from '@grit/schema';
 
 export async function loginPageAction({ request }: { request: Request }) {
   const formData = await request.formData();
 
   // Checking login data before submitting for validity
-  const parsedData = FormAuthLoginSchema.safeParse({
+  const parsedData = LoginSchema.safeParse({
     email: formData.get('email'),
     password: formData.get('password'),
   });
@@ -61,8 +61,8 @@ export const LoginPage = () => {
     setError,
     clearErrors,
     formState: { errors },
-  } = useForm<FormAuthLoginDto>({
-    resolver: zodResolver(FormAuthLoginSchema),
+  } = useForm<LoginInput>({
+    resolver: zodResolver(LoginSchema),
   });
 
   /**
@@ -82,7 +82,7 @@ export const LoginPage = () => {
   useEffect(() => {
     if (!actionData?.fieldErrors) return;
     Object.entries(actionData.fieldErrors).forEach(([field, message]) => {
-      setError(field as keyof FormAuthLoginDto, {
+      setError(field as keyof LoginInput, {
         message,
       });
     });
