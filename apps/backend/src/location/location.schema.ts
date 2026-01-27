@@ -13,14 +13,8 @@ const ResLocationEventIdSchema = z.object({
 // Response schema for the basic location info
 export const ResLocationBaseSchema = z.object({
   id: z.number().int().positive(),
-  authorId: z.number().int().positive(),
   name: z.string().nullable(),
-  city: z.string().nullable(),
-  country: z.string().nullable(),
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
   events: z.array(ResLocationEventIdSchema).nullable().default([]),
-  isPublic: z.boolean(),
 });
 
 /**
@@ -28,9 +22,18 @@ export const ResLocationBaseSchema = z.object({
  */
 
 // Get all locations
-export const ReqLocationGetAllSchema = z.strictObject({});
+export const ReqLocationGetAllSchema = z.strictObject({
+  limit: z.coerce.number().int().positive().max(100).default(20),
+  cursor: z.string().optional(),
+});
 export class ReqLocationGetAllDto extends createZodDto(ReqLocationGetAllSchema) {}
-export const ResLocationGetAllSchema = z.array(ResLocationBaseSchema);
+export const ResLocationGetAllSchema = z.object({
+  data: z.array(ResLocationBaseSchema),
+  pagination: z.object({
+    nextCursor: z.string().nullable(),
+    hasMore: z.boolean(),
+  }),
+});
 
 // Post a new location draft
 export const ReqLocationPostSchema = z.strictObject({

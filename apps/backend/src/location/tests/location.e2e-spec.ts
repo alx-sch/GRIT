@@ -113,29 +113,92 @@ describe('Location E2E', () => {
     it('returns all locations', async () => {
       const res = await request(app.getHttpServer()).get('/locations').expect(200);
 
-      expect(res.body).toMatchObject([
-        {
-          id: location.id,
-          name: location.name,
-        },
-      ]);
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          data: expect.arrayContaining([expect.objectContaining({ id: location.id })]),
+          pagination: { hasMore: false, nextCursor: null },
+        })
+      );
     });
 
     it('returns all locations (checking if event is correctly added to events-array)', async () => {
       const res = await request(app.getHttpServer()).get('/locations').expect(200);
 
-      expect(res.body).toMatchObject([
-        {
-          id: location.id,
-          name: location.name,
-          events: [
-            {
-              id: event.id,
-              title: event.title,
-            },
-          ],
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          data: expect.arrayContaining([
+            expect.objectContaining({
+              id: location.id,
+              events: expect.arrayContaining([
+                expect.objectContaining({ id: event.id, title: event.title }),
+              ]),
+            }),
+          ]),
+          pagination: { hasMore: false, nextCursor: null },
+        })
+      );
+    });
+
+    it('returns new location (confirms sorted alphabetically) -> limit set to 1)', async () => {
+      const location2 = await prisma.location.create({
+        data: {
+          isPublic: true,
+          author: { connect: { id: user.id } },
+          longitude: 42,
+          latitude: 42,
+          name: 'A location',
         },
-      ]);
+        include: {
+          events: true,
+          author: true,
+        },
+      });
+      const res = await request(app.getHttpServer())
+        .get('/locations')
+        .query({ limit: 1 })
+        .expect(200);
+
+      expect(res.body.data).toHaveLength(1);
+      expect(res.body.data[0].id).toBe(location2.id);
+      expect(res.body.pagination.hasMore).toBe(true);
+    });
+
+    it('returns first location (confirms name=null gets placed last) -> limit set to 1)', async () => {
+      await prisma.location.create({
+        data: {
+          isPublic: true,
+          author: { connect: { id: user.id } },
+          longitude: 42,
+          latitude: 42,
+        },
+        include: {
+          events: true,
+          author: true,
+        },
+      });
+      const res = await request(app.getHttpServer())
+        .get('/locations')
+        .query({ limit: 1 })
+        .expect(200);
+
+      expect(res.body.data).toHaveLength(1);
+      expect(res.body.data[0].id).toBe(location.id);
+      expect(res.body.pagination.hasMore).toBe(true);
+    });
+
+    it('returns 400 for passing an invalid cursor', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/locations')
+        .query({
+          cursor: 'random-shit',
+        })
+        .expect(400);
+
+      expect(res.body).toStrictEqual({
+        error: 'Bad Request',
+        message: 'Invalid cursor provided',
+        statusCode: 400,
+      });
     });
   });
 

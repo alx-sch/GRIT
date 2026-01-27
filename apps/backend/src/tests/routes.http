@@ -81,6 +81,10 @@ Content-Type: application/json
 GET {{baseUrl}}/locations
 ###
 
+# Get all locations with limit set to 1
+GET {{baseUrl}}/locations?limit=1
+###
+
 # Create new location
 POST {{baseUrl}}/locations
 Authorization: Bearer {{token}}
@@ -98,7 +102,7 @@ Content-Type: application/json
 ###
 
 // Delete location
-DELETE {{baseUrl}}/locations/3 HTTP/1.1
+DELETE {{baseUrl}}/locations/6 HTTP/1.1
 Authorization: Bearer {{token}}
 ###
 

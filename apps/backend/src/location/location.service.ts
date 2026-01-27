@@ -1,23 +1,40 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { ReqLocationPostDto } from '@/location/location.schema';
+import { ReqLocationPostDto, ReqLocationGetAllDto } from '@/location/location.schema';
+import { locationEncodeCursor, locationCursorFilter } from './location.utils';
 
 @Injectable()
 export class LocationService {
   constructor(private prisma: PrismaService) {}
 
-  locationGet() {
-    return this.prisma.location.findMany({
+  async locationGet(input: ReqLocationGetAllDto) {
+    const cursorFilter = locationCursorFilter(input);
+    const { limit } = input;
+
+    const locations = await this.prisma.location.findMany({
+      where: cursorFilter,
       include: {
-        author: true,
-        events: {
-          select: {
-            id: true,
-            title: true,
-          },
-        },
+        events: true,
       },
+      orderBy: [{ name: { sort: 'asc', nulls: 'last' } }, { id: 'asc' }],
+      take: limit + 1,
     });
+
+    const hasMore = locations.length > limit;
+    const slicedData = hasMore ? locations.slice(0, limit) : locations;
+
+    return {
+      data: slicedData,
+      pagination: {
+        nextCursor: hasMore
+          ? locationEncodeCursor(
+              slicedData[slicedData.length - 1].name,
+              slicedData[slicedData.length - 1].id
+            )
+          : null,
+        hasMore,
+      },
+    };
   }
 
   locationPost(data: ReqLocationPostDto) {

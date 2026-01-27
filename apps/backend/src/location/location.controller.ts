@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Post, Delete, Param, UseGuards } from '@nestjs/common';
+import { Query, Body, Controller, Get, Post, Delete, Param, UseGuards } from '@nestjs/common';
 import {
   ReqLocationPostDto,
   ResLocationPostSchema,
+  ReqLocationGetAllDto,
   ResLocationGetAllSchema,
   ResLocationDeleteSchema,
   ReqLocationDeleteDto,
@@ -18,8 +19,8 @@ export class LocationController {
   // Get all locations
   @Get()
   @ZodSerializerDto(ResLocationGetAllSchema)
-  locationGet() {
-    return this.locationService.locationGet();
+  locationGet(@Query() query: ReqLocationGetAllDto) {
+    return this.locationService.locationGet(query);
   }
 
   // Post a location
