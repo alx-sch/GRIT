@@ -12,8 +12,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import axios from 'axios';
 import z from 'zod';
-import { LoginSchema } from '@grit/schema';
-import type { LoginInput } from '@grit/schema';
+import { RegisterSchema } from '@grit/schema';
+import type { RegisterInput } from '@grit/schema';
 import {
   Card,
   CardContent,
@@ -24,12 +24,13 @@ import {
 } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
 
-export async function loginPageAction({ request }: { request: Request }) {
+export async function registerPageAction({ request }: { request: Request }) {
   const formData = await request.formData();
 
-  // Checking login data before submitting for validity
-  const parsedData = LoginSchema.safeParse({
+  // Checking register data before submitting for validity
+  const parsedData = RegisterSchema.safeParse({
     email: formData.get('email'),
+    name: formData.get('name'),
     password: formData.get('password'),
   });
   if (!parsedData.success) {
@@ -42,35 +43,40 @@ export async function loginPageAction({ request }: { request: Request }) {
 
   try {
     // Sending data for authService for communication with backend and potential error handling
-    const data = await authService.login(parsedData.data);
+    const data = await authService.register(parsedData.data);
     // Side effects in action = not ideal
     useAuthStore.getState().setAuthenticated(data.accessToken);
     useCurrentUserStore.getState().setUser(data.user);
     // Redirect on success
-    return redirect('/?logged_in=true');
+    return redirect('/?registered=true');
   } catch (err) {
-    if (axios.isAxiosError(err))
-      if (err.response?.status === 401)
-        return { formErrors: ['Invalid email or password'] } satisfies ActionFormError;
+    if (axios.isAxiosError(err)) {
+      if (err.response?.status === 409) {
+        return { formErrors: ['Email already exists'] } satisfies ActionFormError;
+      }
+      if (err.response?.status === 400) {
+        return { formErrors: ['Invalid data provided'] } satisfies ActionFormError;
+      }
+    }
     throw err; // other errors are rethrown to react routers error boundary
   }
 }
 
-export const loginPageLoader = () => {
+export const registerPageLoader = () => {
   // Redirect if already logged in
   if (useAuthStore.getState().token) return redirect('/');
   return null;
 };
 
-export const LoginPage = () => {
+export const RegisterPage = () => {
   // Control form with React Hook Form (RHF)
   const {
     register,
     setError,
     clearErrors,
     formState: { errors },
-  } = useForm<LoginInput>({
-    resolver: zodResolver(LoginSchema),
+  } = useForm<RegisterInput>({
+    resolver: zodResolver(RegisterSchema),
   });
 
   /**
@@ -90,7 +96,7 @@ export const LoginPage = () => {
   useEffect(() => {
     if (!actionData?.fieldErrors) return;
     Object.entries(actionData.fieldErrors).forEach(([field, message]) => {
-      setError(field as keyof LoginInput, {
+      setError(field as keyof RegisterInput, {
         message,
       });
     });
@@ -106,8 +112,8 @@ export const LoginPage = () => {
     <div className="flex items-center justify-center min-h-[calc(100vh-200px)] py-12">
       <Card className="w-full max-w-md mx-4 sm:mx-auto">
         <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
-          <CardDescription>Enter your email and password to access your account.</CardDescription>
+          <CardTitle className="text-2xl">Create an account</CardTitle>
+          <CardDescription>Enter your email below to create your account</CardDescription>
         </CardHeader>
         <CardContent>
           <Form
@@ -144,11 +150,24 @@ export const LoginPage = () => {
                 </Field>
 
                 <Field>
+                  <FieldLabel htmlFor="name">Name</FieldLabel>
+                  <Input
+                    id="name"
+                    type="text"
+                    autoComplete="name"
+                    placeholder="John Doe"
+                    error={!!errors.name}
+                    {...register('name')}
+                  />
+                  <FieldError errors={[errors.name]} />
+                </Field>
+
+                <Field>
                   <FieldLabel htmlFor="password">Password</FieldLabel>
                   <Input
                     id="password"
                     type="password"
-                    autoComplete="current-password"
+                    autoComplete="new-password"
                     error={!!errors.password}
                     {...register('password')}
                   />
@@ -156,7 +175,7 @@ export const LoginPage = () => {
                 </Field>
 
                 <Button disabled={isSubmitting} type="submit" className="w-full">
-                  {isSubmitting ? 'Logging in...' : 'Login'}
+                  {isSubmitting ? 'Creating account...' : 'Create account'}
                 </Button>
               </FieldGroup>
             </FieldSet>
@@ -164,9 +183,9 @@ export const LoginPage = () => {
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-muted-foreground">
-            Don't have an account?{' '}
-            <Link to="/register" className="font-semibold text-primary hover:underline">
-              Register
+            Already have an account?{' '}
+            <Link to="/login" className="font-semibold text-primary hover:underline">
+              Login
             </Link>
           </p>
         </CardFooter>

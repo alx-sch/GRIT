@@ -17,10 +17,20 @@ export const AUTH_CONFIG = {
 
 // Shared Auth Schema
 export const LoginSchema = z.object({
-  email: z.string('Please enter a valid email address'),
+  email: z.string().email('Please enter a valid email address'),
   password: z.string().min(AUTH_CONFIG.PASSWORD_MIN_LENGTH, {
     message: `Password must be at least ${AUTH_CONFIG.PASSWORD_MIN_LENGTH} characters`,
   }),
 });
 
 export type LoginInput = z.infer<typeof LoginSchema>;
+
+export const RegisterSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  password: z.string().min(AUTH_CONFIG.PASSWORD_MIN_LENGTH, {
+    message: `Password must be at least ${AUTH_CONFIG.PASSWORD_MIN_LENGTH} characters`,
+  }),
+});
+
+export type RegisterInput = z.infer<typeof RegisterSchema>;
