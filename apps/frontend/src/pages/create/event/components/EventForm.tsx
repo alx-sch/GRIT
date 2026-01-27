@@ -16,6 +16,7 @@ import { useWatch } from 'react-hook-form';
 import { Control } from 'react-hook-form';
 import axios from 'axios';
 import { EventFormSchema, type EventFormFields } from '@/schema/event';
+import { CreateEventSchema } from '@grit/schema';
 
 // Key for localStorage
 const DRAFT_KEY = 'event-draft';
@@ -92,6 +93,13 @@ export default function EventForm({ locations }: EventFormProps) {
         content: data.content ?? undefined,
         locationId: data.locationId ? Number(data.locationId) : undefined,
       };
+      //Validating against shared schema
+      const parsed = CreateEventSchema.safeParse(payload);
+      if (!parsed.success) {
+        setError('root', { message: 'Invalid event data' });
+        return;
+      }
+
       await eventService.postEvent(payload);
       localStorage.removeItem(DRAFT_KEY);
       void navigate('/events/');
