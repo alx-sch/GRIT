@@ -18,9 +18,22 @@ import {
   SheetClose,
 } from '@/components/ui/sheet';
 import { useTheme } from '@/providers/theme-provider';
-import { navConfig } from '@/router';
+import { baseNavConfig } from '@/router';
+import { useAuthStore } from '@/store/authStore';
+import { useCurrentUserStore } from '@/store/currentUserStore';
+import type { NavRoute } from '@/types/navroute';
+import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
+import { getAvatarImageUrl } from '@/lib/image_utils';
 
 export function Navbar() {
+  const navConfig: NavRoute[] = [...baseNavConfig];
+  const isLoggedIn = useAuthStore((s) => !!s.token);
+  const currentUserAvatar = useCurrentUserStore((s) => s.user?.avatarKey);
+
+  navConfig.push(
+    isLoggedIn ? { path: '/logout', label: 'Logout' } : { path: '/login', label: 'Login' }
+  );
+
   const location = useLocation();
   const { setTheme, resolvedTheme } = useTheme();
 
@@ -60,7 +73,12 @@ export function Navbar() {
             ))}
           </NavigationMenuList>
         </NavigationMenu>
-
+        {isLoggedIn && (
+          <Avatar>
+            <AvatarImage src={getAvatarImageUrl(currentUserAvatar)} seed="test" />
+            <AvatarFallback>CN</AvatarFallback>
+          </Avatar>
+        )}
         <Button
           variant="ghost"
           size="icon"
