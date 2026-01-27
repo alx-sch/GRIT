@@ -1,7 +1,6 @@
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Location } from '@/types/location';
 import { Combobox, ComboboxOptions } from '@/components/ui/combobox';
@@ -16,39 +15,12 @@ import { useEffect } from 'react';
 import { useWatch } from 'react-hook-form';
 import { Control } from 'react-hook-form';
 import axios from 'axios';
+import { EventFormSchema, type EventFormFields } from '@/schema/event';
 
-const today = new Date();
-today.setHours(0, 0, 0, 0);
-
-const schema = z
-  .object({
-    isPublic: z.boolean(),
-    isPublished: z.boolean(),
-    title: z
-      .string()
-      .min(1, 'Name is required')
-      .max(100, 'Name must be at most 100 characters long')
-      .trim(),
-    content: z.string().max(2000).optional(),
-    startAt: z
-      .date({ error: 'Start date is required' })
-      .min(today, 'Start date must be in the future'),
-    endAt: z.date({ error: 'End date is required' }),
-    locationId: z.string().optional(),
-  })
-  .refine((data) => data.endAt >= data.startAt, {
-    message: 'End date must be after start date',
-    path: ['endAt'],
-  });
-
-interface EventFormProps {
-  locations: Location[];
-}
-
-type FormFields = z.infer<typeof schema>;
-
+// Key for localStorage
 const DRAFT_KEY = 'event-draft';
-function DraftSaver({ control }: { control: Control<FormFields> }) {
+// Component to auto-save draft to localStorage
+function DraftSaver({ control }: { control: Control<EventFormFields> }) {
   const formValues = useWatch({ control });
   const debouncedFormValues = useDebounce(formValues, 1000);
   useEffect(() => {
@@ -57,6 +29,10 @@ function DraftSaver({ control }: { control: Control<FormFields> }) {
     }
   }, [debouncedFormValues]);
   return null;
+}
+
+interface EventFormProps {
+  locations: Location[];
 }
 
 export default function EventForm({ locations }: EventFormProps) {
@@ -77,8 +53,8 @@ export default function EventForm({ locations }: EventFormProps) {
     control,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<FormFields>({
-    resolver: zodResolver(schema),
+  } = useForm<EventFormFields>({
+    resolver: zodResolver(EventFormSchema),
     defaultValues: {
       isPublic: false,
       isPublished: false,
@@ -99,13 +75,13 @@ export default function EventForm({ locations }: EventFormProps) {
         if (key === 'startAt' || key === 'endAt') {
           setValue(key, new Date(value as string));
         } else {
-          setValue(key as keyof FormFields, value as FormFields[keyof FormFields]);
+          setValue(key as keyof EventFormFields, value as EventFormFields[keyof EventFormFields]);
         }
       }
     }
   }, [setValue]);
 
-  const onSubmit: SubmitHandler<FormFields> = async (data) => {
+  const onSubmit: SubmitHandler<EventFormFields> = async (data) => {
     try {
       const payload = {
         title: data.title,
