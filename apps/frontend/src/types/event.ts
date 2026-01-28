@@ -1,7 +1,15 @@
 import { Location } from './location';
 import { User } from './user';
 
-export interface Event {
+export interface EventResponse {
+  data: EventBase[];
+  pagination: {
+    hasMore: boolean;
+    nextCursor: string | null;
+  };
+}
+
+export interface EventBase {
   id: number;
   createdAt: number;
   content?: string;
