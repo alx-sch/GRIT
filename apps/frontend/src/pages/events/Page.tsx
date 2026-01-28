@@ -12,18 +12,33 @@ import { DateRange } from 'react-day-picker';
 import { format, parse } from 'date-fns';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useState, useEffect } from 'react';
+import { Combobox, ComboboxOptions } from '@/components/ui/combobox';
+import { locationService } from '@/services/locationService';
+import { Location } from '@/types/location';
 
 export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const search = url.searchParams.get('search') ?? undefined;
   const startFrom = url.searchParams.get('start_from') ?? undefined;
   const startUntil = url.searchParams.get('start_until') ?? undefined;
+  const locationId = url.searchParams.get('location_id') ?? undefined;
 
-  return eventService.getEvents({ search, startFrom, startUntil });
+  const [events, locations] = await Promise.all([
+    eventService.getEvents({ search, startFrom, startUntil, locationId }),
+    locationService.getLocations(),
+  ]);
+  return { events, locations };
 };
 
 export default function EventFeed() {
-  const events = useTypedLoaderData<Event[]>();
+  const { events, locations } = useTypedLoaderData<{ events: Event[]; locations: Location[] }>();
+
+  const locationOptionsCombobox: ComboboxOptions[] = locations.map(({ id, name }) => ({
+    value: String(id),
+    label: name ?? '',
+  }));
+
+  const locationMap = new Map(locations.map((l) => [l.id, l]));
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '');
@@ -61,6 +76,8 @@ export default function EventFeed() {
       }
     : undefined;
 
+  const selectedLocation = searchParams.get('location_id');
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(e.target.value);
   };
@@ -80,13 +97,24 @@ export default function EventFeed() {
     setSearchParams(searchParams);
   };
 
+  const handleLocationChange = (locationId: string) => {
+    if (locationId) {
+      searchParams.set('location_id', locationId);
+    } else {
+      searchParams.delete('location_id');
+    }
+    setSearchParams(searchParams);
+  };
+
   return (
     <Container className="py-10 space-y-8 p-0 md:px-0">
       <div className="space-y-2">
-        <Heading level={1}>Upcoming events</Heading>
+        <Heading level={1} className="text-3xl md:text-4xl">
+          Upcoming events
+        </Heading>
       </div>
 
-      <div className="flex justify-between items-center gap-4">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <Input
           placeholder="Search events..."
           className="max-w-sm"
@@ -94,16 +122,33 @@ export default function EventFeed() {
           onChange={handleSearchChange}
         />
 
-        <DatePicker
-          selected={selectedDateRange}
-          onSelect={handleDateSelect}
-          placeholder="Date"
-        ></DatePicker>
+        <div className="flex md:w-auto gap-2 w-full md:justify-end">
+          <Combobox
+            options={locationOptionsCombobox}
+            value={selectedLocation ?? undefined}
+            onChange={handleLocationChange}
+            placeholder="Location"
+            searchPlaceholder="Search"
+            emptyMessage="No location found"
+            className="flex-1 min-w-0 md:flex-none text-sm md:text-base max-w-xs truncate"
+          />
+
+          <DatePicker
+            selected={selectedDateRange}
+            onSelect={handleDateSelect}
+            placeholder="Date"
+            className="flex-1 min-w-0 md:flex-none text-sm md:text-base md:px-7 truncate"
+          ></DatePicker>
+        </div>
       </div>
       {events.length > 0 ? (
         <div className="grid gap-6 justify-start md:grid-cols-2 lg:grid-cols-3">
           {events.map((event) => (
-            <EventCard key={event.id} event={event} />
+            <EventCard
+              key={event.id}
+              event={event}
+              location={event.location?.id ? locationMap.get(event.location.id) : undefined}
+            />
           ))}
         </div>
       ) : (
@@ -120,7 +165,7 @@ export default function EventFeed() {
                 : 'Check back later for new events.'}
           </Text>
 
-          {(searchInput || selectedDateRange) && (
+          {searchInput || selectedDateRange || selectedLocation ? (
             <Button
               variant="destructive"
               onClick={() => {
@@ -132,7 +177,7 @@ export default function EventFeed() {
             >
               Clear Filters
             </Button>
-          )}
+          ) : null}
         </div>
       )}
     </Container>

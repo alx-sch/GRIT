@@ -11,9 +11,35 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Heading, Text, Caption } from '@/components/ui/typography';
 import { DatePicker } from '@/components/ui/datepicker';
 import { DateRange } from 'react-day-picker';
+import { Textarea } from '@/components/ui/textarea';
+import { Combobox } from '@/components/ui/combobox';
+
+const mockedComboboxOptions = [
+  {
+    value: 'berghain',
+    label: 'Berghain',
+  },
+  {
+    value: 'ohm',
+    label: 'Ohm',
+  },
+  {
+    value: 'wilde renate.js',
+    label: 'Wilde Renate',
+  },
+  {
+    value: 'sisyphos',
+    label: 'Sisyphos',
+  },
+  {
+    value: 'grießmühle rip',
+    label: 'Grießmühle RIP',
+  },
+];
 
 export default function Design() {
   const [isLoading, setIsLoading] = useState(false);
+  const [comboboxValue, setComboboxValue] = useState('');
 
   const [selectedDateRange, setSelectedDateRange] = useState<DateRange | undefined>(undefined);
   const handleDateSelect = (date: DateRange | undefined) => {
@@ -87,27 +113,57 @@ export default function Design() {
         <Heading level={2}>2. Interactive Elements</Heading>
         <Separator />
         <div className="grid gap-8 lg:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Buttons</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-wrap gap-4">
-              <Button variant="default">Primary</Button>
-              <Button variant="secondary">Secondary</Button>
-              <Button variant="destructive">Achtung</Button>
-              <Button variant="outline">Outline</Button>
-              <Button variant="ghost">Ghost</Button>
-              <Button variant="link">Link</Button>
-              <Button variant="disabled">Disabled</Button>
-              <div className="w-full" /> {/* Line break */}
-              <Button size="sm">Small</Button>
-              <Button size="default">Default</Button>
-              <Button size="lg">Large</Button>
-              <Button size="icon" variant="outline">
-                <Mail className="w-4 h-4" />
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="space-y-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>Buttons</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-4">
+                <Button variant="default">Primary</Button>
+                <Button variant="secondary">Secondary</Button>
+                <Button variant="destructive">Achtung</Button>
+                <Button variant="outline">Outline</Button>
+                <Button variant="ghost">Ghost</Button>
+                <Button variant="link">Link</Button>
+                <Button variant="disabled">Disabled</Button>
+                <div className="w-full" /> {/* Line break */}
+                <Button size="sm">Small</Button>
+                <Button size="default">Default</Button>
+                <Button size="lg">Large</Button>
+                <Button size="icon" variant="outline">
+                  <Mail className="w-4 h-4" />
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Calendar - Date Picker</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-4">
+                <DatePicker
+                  selected={selectedDateRange}
+                  onSelect={handleDateSelect}
+                  placeholder="Pick a date"
+                ></DatePicker>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Combobox - Select value </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-4">
+                <Combobox
+                  options={mockedComboboxOptions}
+                  value={comboboxValue}
+                  onChange={setComboboxValue}
+                  placeholder="Select Location"
+                  emptyMessage="No locations found"
+                ></Combobox>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Inputs */}
           <Card>
@@ -132,21 +188,8 @@ export default function Design() {
                 <Input placeholder="Search..." className="max-w-50" />
                 <Button>Search</Button>
               </div>
-            </CardContent>
-          </Card>
-        </div>
 
-        <div className="grid gap-8 lg:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Calendar - Date Picker</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-wrap gap-4">
-              <DatePicker
-                selected={selectedDateRange}
-                onSelect={handleDateSelect}
-                placeholder="Pick a date"
-              ></DatePicker>
+              <Textarea placeholder="Your event description here..." />
             </CardContent>
           </Card>
         </div>
