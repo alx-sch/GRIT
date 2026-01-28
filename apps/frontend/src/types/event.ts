@@ -1,7 +1,15 @@
 import { Location } from './location';
-import { User } from './user';
+import { UserBase } from './user';
 
-export interface Event {
+export interface EventResponse {
+  data: EventBase[];
+  pagination: {
+    hasMore: boolean;
+    nextCursor: string | null;
+  };
+}
+
+export interface EventBase {
   id: number;
   createdAt: number;
   content?: string;
@@ -12,10 +20,10 @@ export interface Event {
   title: string;
   imageKey: string;
 
-  author: User;
+  author: UserBase;
   authorId: number;
 
-  attending: User[];
+  attending: UserBase[];
 
   locationId?: number;
   location?: Location;

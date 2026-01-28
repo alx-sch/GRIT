@@ -1,7 +1,7 @@
-import { Event } from '@/types/event';
+import { EventBase } from '@/types/event';
 import { env } from '@/config/env';
 
-export function getEventImageUrl(event: Event): string {
+export function getEventImageUrl(event: EventBase): string {
   if (!event.imageKey) {
     return generateImagePlaceholderEvent(event);
   }
@@ -13,7 +13,7 @@ export function getAvatarImageUrl(avatarFilename: string | undefined): string {
   return `${env.VITE_MINIO_URL}/user-avatars/${avatarFilename}`;
 }
 
-export function generateImagePlaceholderEvent(event: Event) {
+export function generateImagePlaceholderEvent(event: EventBase) {
   const colors = ['oklch(0.68 0.22 45)', 'oklch(0 0 0)', 'oklch(0.4 0 0)'];
 
   const bgColor = colors[event.id % colors.length];

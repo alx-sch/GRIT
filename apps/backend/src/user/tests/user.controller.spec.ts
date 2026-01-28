@@ -54,13 +54,13 @@ describe('UserController', () => {
     // Test 1
     it('should call userService.userGet()', async () => {
       const spy = jest.spyOn(userService, 'userGet');
-      await userController.userGetAll();
+      await userController.userGetAll({ limit: 20 });
       expect(spy).toHaveBeenCalled();
     });
 
     // Test 2
     it('should return users from service', async () => {
-      const result = await userController.userGetAll();
+      const result = await userController.userGetAll({ limit: 20 });
       expect(result).toEqual(allUsers);
     });
   });

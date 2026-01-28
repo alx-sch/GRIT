@@ -297,17 +297,17 @@ test-fe-integration: install-fe
 dev: check-env stop-dev-processes kill-port-be kill-port-fe install db
 	@echo "$(BOLD)$(YELLOW)--- Starting Backend & Frontend [DEV]...$(RESET)"
 	@rm -rf /tmp/turbod/*
-	turbo dev --no-update-notifier 2>/dev/null
+	@turbo dev --no-update-notifier 2>/dev/null
 
 # Run only Backend with DB check; NEST clears terminal before printing
 dev-be: check-env kill-port-be db
 	@echo "$(BOLD)$(GREEN)--- Starting BACKEND (API) ---$(RESET)"
-	turbo --filter @grit/backend dev --no-update-notifier
+	@turbo --filter @grit/backend dev --no-update-notifier
 
 # Run only Frontend
 dev-fe: check-env kill-port-fe install-fe
 	@echo "$(BOLD)$(GREEN)--- Starting FRONTEND (UI) ---$(RESET)"
-	turbo --filter @grit/frontend dev --no-update-notifier
+	@turbo --filter @grit/frontend dev --no-update-notifier
 
 ###########################
 ## 📁 DATABASE & STORAGE ##

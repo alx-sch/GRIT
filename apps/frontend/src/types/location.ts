@@ -1,9 +1,9 @@
-import { Event } from './event';
-import { User } from './user';
+import { EventBase } from './event';
+import { UserBase } from './user';
 
 export interface Location {
   id: number;
-  author: User;
+  author: UserBase;
   authorId: number;
   name?: string;
   city?: string;
@@ -11,5 +11,5 @@ export interface Location {
   longitude: number;
   latitude: number;
   isPublic: boolean;
-  events: Event[];
+  events: EventBase[];
 }

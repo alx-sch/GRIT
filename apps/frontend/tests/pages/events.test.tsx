@@ -4,7 +4,7 @@ import { vi } from 'vitest';
 import EventFeed, { eventsLoader } from '@/pages/events/Page';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { eventService } from '@/services/eventService';
-import { Event } from '@/types/event';
+import { EventBase, EventResponse } from '@/types/event';
 
 // Mock event service
 vi.mock('@/services/eventService', () => ({
@@ -15,7 +15,7 @@ vi.mock('@/services/eventService', () => ({
 
 // Mock image utils to avoid MinIO URL issues in tests
 vi.mock('@/lib/image_utils', () => ({
-  getEventImageUrl: (event: Event) =>
+  getEventImageUrl: (event: EventBase) =>
     event.imageKey ? `http://test-minio/${event.imageKey}` : 'placeholder.svg',
 }));
 
@@ -46,7 +46,7 @@ describe('Event Feed Page', () => {
   };
 
   // Mock events
-  const mockEvents: Event[] = [
+  const mockEvents: EventResponse['data'] = [
     {
       id: 1,
       createdAt: Date.parse('2026-03-01T10:00:00Z'),
@@ -102,10 +102,8 @@ describe('Event Feed Page', () => {
 
       // Filter by search
       if (params?.search) {
-        const search = params.search;
-        filtered = filtered.filter((event) =>
-          event.title.toLowerCase().includes(search.toLowerCase())
-        );
+        const search = params.search.toLowerCase();
+        filtered = filtered.filter((event) => event.title.toLowerCase().includes(search));
       }
 
       // Filter by date
@@ -114,7 +112,13 @@ describe('Event Feed Page', () => {
         filtered = filtered.filter((event) => event.startAt >= startFrom);
       }
 
-      return Promise.resolve(filtered);
+      return Promise.resolve({
+        data: filtered,
+        pagination: {
+          hasMore: false,
+          nextCursor: null,
+        },
+      });
     });
   });
 
@@ -147,7 +151,10 @@ describe('Event Feed Page', () => {
     });
 
     it('shows empty state when no events', async () => {
-      vi.mocked(eventService.getEvents).mockResolvedValue([]);
+      vi.mocked(eventService.getEvents).mockResolvedValue({
+        data: [],
+        pagination: { hasMore: false, nextCursor: null },
+      });
       renderEventFeed();
 
       await waitFor(() => {
