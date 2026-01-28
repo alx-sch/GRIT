@@ -1,5 +1,5 @@
 import { Location } from './location';
-import { User } from './user';
+import { UserBase } from './user';
 
 export interface EventResponse {
   data: EventBase[];
@@ -20,10 +20,10 @@ export interface EventBase {
   title: string;
   imageKey: string;
 
-  author: User;
+  author: UserBase;
   authorId: number;
 
-  attending: User[];
+  attending: UserBase[];
 
   locationId?: number;
   location?: Location;

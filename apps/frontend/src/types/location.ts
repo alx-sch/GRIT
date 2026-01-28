@@ -1,9 +1,9 @@
 import { EventBase } from './event';
-import { User } from './user';
+import { UserBase } from './user';
 
 export interface Location {
   id: number;
-  author: User;
+  author: UserBase;
   authorId: number;
   name?: string;
   city?: string;
