@@ -1,10 +1,10 @@
 import { create } from 'zustand';
 import { userService } from '@/services/userService';
-import { User } from '@/types/user';
+import { UserBase } from '@/types/user';
 import axios from 'axios';
 
 interface UsersState {
-  users: User[];
+  users: UserBase[];
   loading: boolean;
   error: string | null;
   fetchUsers: () => Promise<void>;
@@ -17,8 +17,8 @@ export const useUsersStore = create<UsersState>((set) => ({
   fetchUsers: async () => {
     set({ loading: true, error: null });
     try {
-      const users = await userService.getUsers();
-      set({ users, loading: false });
+      const response = await userService.getUsers();
+      set({ users: response.data, loading: false });
     } catch (err: unknown) {
       console.error(err);
 

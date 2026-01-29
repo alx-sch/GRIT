@@ -8,14 +8,14 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/typography';
-import { Event } from '@/types/event';
+import { EventBase } from '@/types/event';
 import { getEventImageUrl } from '@/lib/image_utils';
 import { User } from 'lucide-react';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
 
 interface EventCardProps {
-  event: Event;
+  event: EventBase;
 }
 
 export function EventCard({ event }: EventCardProps) {

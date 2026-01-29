@@ -1,7 +1,7 @@
 import { Container } from '@/components/layout/Container';
 import { Heading, Text } from '@/components/ui/typography';
 import { EventCard } from '@/pages/events/components/EventCard';
-import { Event } from '@/types/event';
+import { EventResponse } from '@/types/event';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { LoaderFunctionArgs, useSearchParams } from 'react-router-dom';
@@ -18,12 +18,15 @@ export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
   const search = url.searchParams.get('search') ?? undefined;
   const startFrom = url.searchParams.get('start_from') ?? undefined;
   const startUntil = url.searchParams.get('start_until') ?? undefined;
+  const limit = url.searchParams.get('limit') ?? undefined;
+  const authorId = url.searchParams.get('authorId') ?? undefined;
+  const cursor = url.searchParams.get('cursor') ?? undefined;
 
-  return eventService.getEvents({ search, startFrom, startUntil });
+  return eventService.getEvents({ search, startFrom, startUntil, limit, authorId, cursor });
 };
 
 export default function EventFeed() {
-  const events = useTypedLoaderData<Event[]>();
+  const events = useTypedLoaderData<EventResponse>();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '');
@@ -100,9 +103,9 @@ export default function EventFeed() {
           placeholder="Date"
         ></DatePicker>
       </div>
-      {events.length > 0 ? (
+      {events.data.length > 0 ? (
         <div className="grid gap-6 justify-start md:grid-cols-2 lg:grid-cols-3">
-          {events.map((event) => (
+          {events.data.map((event) => (
             <EventCard key={event.id} event={event} />
           ))}
         </div>

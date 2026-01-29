@@ -6,9 +6,11 @@ import {
   ResUserPostDto,
   ResUserBaseDto,
   ReqUserAttendDto,
+  ReqUserGetAllDto,
 } from '@/user/user.schema';
 import { StorageService } from '@/storage/storage.service';
 import * as bcrypt from 'bcrypt';
+import { userEncodeCursor, userCursorFilter } from './user.utils';
 
 @Injectable()
 export class UserService {
@@ -18,12 +20,34 @@ export class UserService {
     private storage: StorageService
   ) {}
 
-  async userGet(): Promise<ResUserBaseDto[]> {
-    return await this.prisma.user.findMany({
+  async userGet(input: ReqUserGetAllDto) {
+    const cursorFilter = userCursorFilter(input);
+    const { limit } = input;
+
+    const users = await this.prisma.user.findMany({
+      where: cursorFilter,
       include: {
         attending: true,
       },
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      take: limit + 1,
     });
+
+    const hasMore = users.length > limit;
+    const slicedData = hasMore ? users.slice(0, limit) : users;
+
+    return {
+      data: slicedData,
+      pagination: {
+        nextCursor: hasMore
+          ? userEncodeCursor(
+              slicedData[slicedData.length - 1].createdAt,
+              slicedData[slicedData.length - 1].id
+            )
+          : null,
+        hasMore,
+      },
+    };
   }
 
   async userGetById(id: number) {

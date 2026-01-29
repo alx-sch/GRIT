@@ -82,9 +82,18 @@ export const ReqEventGetPublishedSchema = z.strictObject({
       return d;
     })
     .optional(),
+  location_id: z.coerce.number().int().positive().optional(),
+  limit: z.coerce.number().int().positive().max(100).default(20),
+  cursor: z.string().optional(),
 });
 export class ReqEventGetPublishedDto extends createZodDto(ReqEventGetPublishedSchema) {}
-export const ResEventGetPublishedSchema = z.array(ResEventBaseSchema);
+export const ResEventGetPublishedSchema = z.object({
+  data: z.array(ResEventBaseSchema),
+  pagination: z.object({
+    nextCursor: z.string().nullable(),
+    hasMore: z.boolean(),
+  }),
+});
 
 // Patch an event (Update)
 export const ReqEventPatchSchema = z.strictObject({
