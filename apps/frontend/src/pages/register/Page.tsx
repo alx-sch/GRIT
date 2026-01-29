@@ -9,11 +9,10 @@ import { authService } from '@/services/authService';
 import { ActionFormError } from '@/types/actionFormError';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import z from 'zod';
 import { RegisterSchema } from '@grit/schema';
-import type { RegisterInput } from '@grit/schema';
 import {
   Card,
   CardContent,
@@ -22,17 +21,34 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Eye, EyeOff } from 'lucide-react';
+
+const LocalRegisterSchema = RegisterSchema.extend({
+  password: z
+    .string()
+    .min(10, 'Password must be at least 10 characters')
+    .regex(/[A-Z]/, 'Must contain an uppercase letter')
+    .regex(/[a-z]/, 'Must contain a lowercase letter')
+    .regex(/[0-9]/, 'Must contain a number'),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ['confirmPassword'],
+});
+
+type LocalRegisterInput = z.infer<typeof LocalRegisterSchema>;
 
 export async function registerPageAction({ request }: { request: Request }) {
   const formData = await request.formData();
 
   // Checking register data before submitting for validity
-  const parsedData = RegisterSchema.safeParse({
+  const parsedData = LocalRegisterSchema.safeParse({
     email: formData.get('email'),
     name: formData.get('name'),
     password: formData.get('password'),
+    confirmPassword: formData.get('confirmPassword'),
   });
+
   if (!parsedData.success) {
     const errorData = z.flattenError(parsedData.error);
     return {
@@ -43,7 +59,10 @@ export async function registerPageAction({ request }: { request: Request }) {
 
   try {
     // Sending data for authService for communication with backend and potential error handling
-    const data = await authService.register(parsedData.data);
+    // Exclude confirmPassword
+    const { confirmPassword, ...registerData } = parsedData.data;
+    const data = await authService.register(registerData);
+
     // Side effects in action = not ideal
     useAuthStore.getState().setAuthenticated(data.accessToken);
     useCurrentUserStore.getState().setUser(data.user);
@@ -74,10 +93,16 @@ export const RegisterPage = () => {
     register,
     setError,
     clearErrors,
+    watch,
     formState: { errors },
-  } = useForm<RegisterInput>({
-    resolver: zodResolver(RegisterSchema),
+  } = useForm<LocalRegisterInput>({
+    resolver: zodResolver(LocalRegisterSchema),
+    mode: 'onChange', // Enable real-time validation for boxes
   });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const password = watch('password') || '';
 
   /**
    * ERROR HANDLING FOR FORM SUBMISSIONS
@@ -96,7 +121,7 @@ export const RegisterPage = () => {
   useEffect(() => {
     if (!actionData?.fieldErrors) return;
     Object.entries(actionData.fieldErrors).forEach(([field, message]) => {
-      setError(field as keyof RegisterInput, {
+      setError(field as keyof LocalRegisterInput, {
         message,
       });
     });
@@ -108,6 +133,13 @@ export const RegisterPage = () => {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
 
+  const criteria = [
+    { label: '10+ chars', valid: password.length >= 10 },
+    { label: 'Uppercase', valid: /[A-Z]/.test(password) },
+    { label: 'Lowercase', valid: /[a-z]/.test(password) },
+    { label: 'Number', valid: /[0-9]/.test(password) },
+  ];
+
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-200px)] py-12">
       <Card className="w-full max-w-md mx-4 sm:mx-auto">
@@ -118,6 +150,7 @@ export const RegisterPage = () => {
         <CardContent>
           <Form
             method="post"
+            noValidate
             onSubmit={() => {
               clearErrors();
             }}
@@ -164,14 +197,65 @@ export const RegisterPage = () => {
 
                 <Field>
                   <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <Input
-                    id="password"
-                    type="password"
-                    autoComplete="new-password"
-                    error={!!errors.password}
-                    {...register('password')}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete="new-password"
+                      error={!!errors.password}
+                      {...register('password')}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+
+                  {/* Password Criteria Boxes */}
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    {criteria.map((c, i) => (
+                      <div
+                        key={i}
+                        className={`text-xs p-2 border rounded-md text-center transition-colors ${
+                          c.valid
+                            ? 'bg-green-500/10 text-green-600 border-green-500/20'
+                            : 'bg-muted text-muted-foreground border-border'
+                        }`}
+                      >
+                        {c.label}
+                      </div>
+                    ))}
+                  </div>
+
                   <FieldError errors={[errors.password]} />
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="confirmPassword">Re-type Password</FieldLabel>
+                  <div className="relative">
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      autoComplete="new-password"
+                      error={!!errors.confirmPassword}
+                      {...register('confirmPassword')}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                  <FieldError errors={[errors.confirmPassword]} />
                 </Field>
 
                 <Button disabled={isSubmitting} type="submit" className="w-full">

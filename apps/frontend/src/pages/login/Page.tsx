@@ -9,7 +9,7 @@ import { authService } from '@/services/authService';
 import { ActionFormError } from '@/types/actionFormError';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import z from 'zod';
 import { LoginSchema } from '@grit/schema';
@@ -22,7 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 export async function loginPageAction({ request }: { request: Request }) {
   const formData = await request.formData();
@@ -73,6 +73,8 @@ export const LoginPage = () => {
     resolver: zodResolver(LoginSchema),
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+
   /**
    * ERROR HANDLING FOR FORM SUBMISSIONS
    */
@@ -112,6 +114,7 @@ export const LoginPage = () => {
         <CardContent>
           <Form
             method="post"
+            noValidate
             onSubmit={() => {
               clearErrors();
             }}
@@ -145,13 +148,22 @@ export const LoginPage = () => {
 
                 <Field>
                   <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <Input
-                    id="password"
-                    type="password"
-                    autoComplete="current-password"
-                    error={!!errors.password}
-                    {...register('password')}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete="current-password"
+                      error={!!errors.password}
+                      {...register('password')}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                   <FieldError errors={[errors.password]} />
                 </Field>
 

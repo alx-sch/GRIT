@@ -276,12 +276,17 @@ test-be-testdb-remove:
 test-fe:
 	@echo "$(BOLD)$(YELLOW)--- Starting Tests ...$(RESET)"
 	@$(MAKE) --no-print-directory test-fe-integration
-	#@$(MAKE) --no-print-directory test-fe-e2e
+	@$(MAKE) --no-print-directory test-fe-e2e
 
 # Helper
 test-fe-integration: install-fe
 	@echo "$(BOLD)$(YELLOW)--- Running Frontend Integration Tests ...$(RESET)"
 	@NODE_ENV=test turbo test:integration --filter=@grit/frontend --no-update-notifier
+
+test-fe-e2e: install-fe
+	@echo "$(BOLD)$(YELLOW)--- Running Frontend E2E Tests ...$(RESET)"
+	@pnpm --filter @grit/frontend exec playwright install
+	@pnpm --filter @grit/frontend exec playwright test
 
 #############################
 ## 🚀 DEVELOPMENT COMMANDS ##
