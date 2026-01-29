@@ -1,18 +1,18 @@
+import { Button } from '@/components/ui/button';
 import {
   Card,
-  CardHeader,
-  CardFooter,
-  CardTitle,
-  CardDescription,
   CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/typography';
-import { Event } from '@/types/event';
 import { getEventImageUrl } from '@/lib/image_utils';
-import { User } from 'lucide-react';
-import { format } from 'date-fns';
+import { Event } from '@/types/event';
 import { Location } from '@/types/location';
+import { format } from 'date-fns';
+import { User } from 'lucide-react';
 
 interface EventCardProps {
   event: Event;

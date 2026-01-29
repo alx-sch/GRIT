@@ -1,20 +1,20 @@
 import { Container } from '@/components/layout/Container';
-import { Heading, Text } from '@/components/ui/typography';
-import { EventCard } from '@/pages/events/components/EventCard';
-import { Event } from '@/types/event';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { LoaderFunctionArgs, useSearchParams } from 'react-router-dom';
-import { eventService } from '@/services/eventService';
-import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
-import { DatePicker } from '@/components/ui/datepicker';
-import { DateRange } from 'react-day-picker';
-import { format, parse } from 'date-fns';
-import { useDebounce } from '@/hooks/useDebounce';
-import { useState, useEffect } from 'react';
 import { Combobox, ComboboxOptions } from '@/components/ui/combobox';
+import { DatePicker } from '@/components/ui/datepicker';
+import { Input } from '@/components/ui/input';
+import { Heading, Text } from '@/components/ui/typography';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
+import { EventCard } from '@/pages/events/components/EventCard';
+import { eventService } from '@/services/eventService';
 import { locationService } from '@/services/locationService';
+import { Event } from '@/types/event';
 import { Location } from '@/types/location';
+import { format, parse } from 'date-fns';
+import { useEffect, useState } from 'react';
+import { DateRange } from 'react-day-picker';
+import { LoaderFunctionArgs, useSearchParams } from 'react-router-dom';
 
 export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);

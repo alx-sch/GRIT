@@ -1,22 +1,20 @@
-import { Controller, SubmitHandler, useForm } from 'react-hook-form';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Location } from '@/types/location';
 import { Combobox, ComboboxOptions } from '@/components/ui/combobox';
+import { DatePicker } from '@/components/ui/datepicker';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Text } from '@/components/ui/typography';
-import { DatePicker } from '@/components/ui/datepicker';
-import { useNavigate } from 'react-router-dom';
-import { eventService } from '@/services/eventService';
-import { format } from 'date-fns';
 import { useDebounce } from '@/hooks/useDebounce';
-import { useEffect } from 'react';
-import { useWatch } from 'react-hook-form';
-import { Control } from 'react-hook-form';
-import axios from 'axios';
 import { EventFormSchema, type EventFormFields } from '@/schema/event';
+import { eventService } from '@/services/eventService';
+import { Location } from '@/types/location';
 import { CreateEventSchema } from '@grit/schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { isAxiosError } from 'axios';
+import { format } from 'date-fns';
+import { useEffect } from 'react';
+import { Control, Controller, SubmitHandler, useForm, useWatch } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 
 // Key for localStorage
 const DRAFT_KEY = 'event-draft';
@@ -105,7 +103,7 @@ export default function EventForm({ locations }: EventFormProps) {
       void navigate('/events/');
     } catch (error) {
       let message = 'Something went wrong. Please try again.';
-      if (axios.isAxiosError(error)) {
+      if (isAxiosError(error)) {
         const data = error.response?.data as { message?: string } | undefined;
         if (data?.message) {
           message = data.message;
@@ -133,22 +131,22 @@ export default function EventForm({ locations }: EventFormProps) {
           <div className="flex flex-row gap-4 md:gap-12 w-full items-center">
             <Button
               type="button"
-              variant={!value ? 'selected' : 'outline'}
+              variant={!value ? 'selected' : 'secondary'}
               onClick={() => {
                 onChange(false);
               }}
-              className="shadow-none translate-x-0 translate-y-0 md:shadow-grit md:-translate-x-[2px] md:-translate-y-[2px] font-sans text-lg md:text-2xl py-4 md:py-8 px-4 md:px-12 flex-1"
+              className="translate-x-0 translate-y-0 md:-translate-x-[2px] md:-translate-y-[2px] font-sans text-lg md:text-2xl py-4 md:py-8 px-4 md:px-12 flex-1"
             >
               Private
             </Button>
             <span className="font-heading text-xl">OR</span>
             <Button
               type="button"
-              variant={value ? 'selected' : 'outline'}
+              variant={value ? 'selected' : 'secondary'}
               onClick={() => {
                 onChange(true);
               }}
-              className="shadow-none translate-x-0 translate-y-0 md:shadow-grit md:-translate-x-[2px] md:-translate-y-[2px] font-sans text-lg md:text-2xl py-4 md:py-8 px-4 md:px-12 flex-1"
+              className="translate-x-0 translate-y-0 md:-translate-x-[2px] md:-translate-y-[2px] font-sans text-lg md:text-2xl py-4 md:py-8 px-4 md:px-12 flex-1"
             >
               Public
             </Button>
@@ -168,60 +166,63 @@ export default function EventForm({ locations }: EventFormProps) {
         />
       </div>
 
-      <Controller
-        control={control}
-        name="startAt"
-        render={({ field: { onChange } }) => (
-          <div className="gap-4 md:gap-12 w-full items-center pt-0 pb-8">
-            <DatePicker
-              selected={
-                startAtValue
-                  ? {
-                      from: startAtValue,
-                      to: endAtValue ?? undefined,
-                    }
-                  : undefined
-              }
-              onSelect={(range) => {
-                onChange(range?.from);
-                if (range?.to) {
-                  setValue('endAt', range.to, { shouldValidate: true });
+      <div className="md:flex flex-row gap-4 md:gap-12 w-full items-center">
+        <Controller
+          control={control}
+          name="startAt"
+          render={({ field: { onChange } }) => (
+            <div className="gap-4 md:gap-12 w-full items-center pt-0 pb-8">
+              <DatePicker
+                selected={
+                  startAtValue
+                    ? {
+                        from: startAtValue,
+                        to: endAtValue ?? undefined,
+                      }
+                    : undefined
                 }
-              }}
-              placeholder="Date"
-              className="flex-1 min-w-0 md:flex-none text-sm md:text-base px-7"
-              disabled={{ before: new Date() }}
-            />
-            {errors.startAt && <div className="text-red-500 text-sm">{errors.startAt.message}</div>}
-            {errors.endAt && <div className="text-red-500 text-sm">{errors.endAt.message}</div>}
-          </div>
-        )}
-      />
+                onSelect={(range) => {
+                  onChange(range?.from);
+                  if (range?.to) {
+                    setValue('endAt', range.to, { shouldValidate: true });
+                  }
+                }}
+                placeholder="Select date & time"
+                className="bg-secondary text-secondary-foreground w-full min-w-0 text-sm md:text-base px-7"
+                disabled={{ before: new Date() }}
+              />
+              {errors.startAt && (
+                <div className="text-red-500 text-sm">{errors.startAt.message}</div>
+              )}
+              {errors.endAt && <div className="text-red-500 text-sm">{errors.endAt.message}</div>}
+            </div>
+          )}
+        />
 
-      <Controller
-        control={control}
-        name="locationId"
-        render={({ field: { onChange, value } }) => (
-          <div className="gap-4 md:gap-12 w-full items-center pt-0 pb-8">
-            <Combobox
-              options={locationOptionsCombobox}
-              value={value ?? undefined}
-              onChange={onChange}
-              placeholder="Select the location or venue"
-              searchPlaceholder="Search"
-              emptyMessage="No location found"
-              className="justify-center text-center"
-              showSelectedTick={true}
-            />
-          </div>
-        )}
-      />
-      {errors.root && <div className="text-red-500 text-center mb-4">{errors.root.message}</div>}
-
+        <Controller
+          control={control}
+          name="locationId"
+          render={({ field: { onChange, value } }) => (
+            <div className="gap-4 md:gap-12 w-full items-center pt-0 pb-8">
+              <Combobox
+                options={locationOptionsCombobox}
+                value={value ?? undefined}
+                onChange={onChange}
+                placeholder="Select the location"
+                searchPlaceholder="Search"
+                emptyMessage="No location found"
+                className="bg-secondary text-secondary-foreground text-sm justify-center text-center"
+                showSelectedTick={true}
+              />
+            </div>
+          )}
+        />
+        {errors.root && <div className="text-red-500 text-center mb-4">{errors.root.message}</div>}
+      </div>
       <div className="flex flex-row gap-4 md:gap-12 w-full items-center">
         <Button
           type="button"
-          variant="outline"
+          variant="secondary"
           onClick={() => {
             setValue('isPublished', false);
             void handleSubmit(onSubmit)();

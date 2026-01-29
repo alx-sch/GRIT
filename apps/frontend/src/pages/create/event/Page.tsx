@@ -1,13 +1,12 @@
-import { LoaderFunctionArgs } from 'react-router-dom';
-import { locationService } from '@/services/locationService';
 import { Container } from '@/components/layout/Container';
 import { Heading } from '@/components/ui/typography';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
-import EventForm from './components/EventForm';
+import { locationService } from '@/services/locationService';
 import { Location } from '@/types/location';
+import { LoaderFunctionArgs } from 'react-router-dom';
+import EventForm from './components/EventForm';
 
 export const eventCreationLoader = async ({ request }: LoaderFunctionArgs) => {
-  console.log(request); //we can use this to fitler or smth
   return locationService.getLocations();
 };
 
