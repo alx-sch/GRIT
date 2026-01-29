@@ -139,7 +139,7 @@ export const LoginPage = () => {
                     id="email"
                     type="email"
                     autoComplete="email"
-                    placeholder="m@example.com"
+                    placeholder="Enter your email..."
                     error={!!errors.email}
                     {...register('email')}
                   />
@@ -158,7 +158,9 @@ export const LoginPage = () => {
                     />
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
+                      onClick={() => {
+                        setShowPassword(!showPassword);
+                      }}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

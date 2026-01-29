@@ -41,7 +41,6 @@ type LocalRegisterInput = z.infer<typeof LocalRegisterSchema>;
 export async function registerPageAction({ request }: { request: Request }) {
   const formData = await request.formData();
 
-  // Checking register data before submitting for validity
   const parsedData = LocalRegisterSchema.safeParse({
     email: formData.get('email'),
     name: formData.get('name'),
@@ -60,13 +59,12 @@ export async function registerPageAction({ request }: { request: Request }) {
   try {
     // Sending data for authService for communication with backend and potential error handling
     // Exclude confirmPassword
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { confirmPassword, ...registerData } = parsedData.data;
     const data = await authService.register(registerData);
 
-    // Side effects in action = not ideal
     useAuthStore.getState().setAuthenticated(data.accessToken);
     useCurrentUserStore.getState().setUser(data.user);
-    // Redirect on success
     return redirect('/?registered=true');
   } catch (err) {
     if (axios.isAxiosError(err)) {
@@ -77,18 +75,16 @@ export async function registerPageAction({ request }: { request: Request }) {
         return { formErrors: ['Invalid data provided'] } satisfies ActionFormError;
       }
     }
-    throw err; // other errors are rethrown to react routers error boundary
+    throw err;
   }
 }
 
 export const registerPageLoader = () => {
-  // Redirect if already logged in
   if (useAuthStore.getState().token) return redirect('/');
   return null;
 };
 
 export const RegisterPage = () => {
-  // Control form with React Hook Form (RHF)
   const {
     register,
     setError,
@@ -97,27 +93,21 @@ export const RegisterPage = () => {
     formState: { errors },
   } = useForm<LocalRegisterInput>({
     resolver: zodResolver(LocalRegisterSchema),
-    mode: 'onChange', // Enable real-time validation for boxes
+    mode: 'onChange',
   });
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const password = watch('password') || '';
 
-  /**
-   * ERROR HANDLING FOR FORM SUBMISSIONS
-   */
-  // Get data from form submission action
   const actionData = useActionData<ActionFormError | undefined>();
 
-  // FORM validation errors appear as toasts (or alert)
   useEffect(() => {
     actionData?.formErrors?.forEach((err) => {
       toast.error(err);
     });
   }, [actionData]);
 
-  // FIELD validation errors are injected into RHF for error display
   useEffect(() => {
     if (!actionData?.fieldErrors) return;
     Object.entries(actionData.fieldErrors).forEach(([field, message]) => {
@@ -127,9 +117,6 @@ export const RegisterPage = () => {
     });
   }, [actionData, setError]);
 
-  /**
-   * DISPLAY THE FORM
-   */
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
 
@@ -175,7 +162,7 @@ export const RegisterPage = () => {
                     id="email"
                     type="email"
                     autoComplete="email"
-                    placeholder="m@example.com"
+                    placeholder="Enter your email"
                     error={!!errors.email}
                     {...register('email')}
                   />
@@ -188,7 +175,7 @@ export const RegisterPage = () => {
                     id="name"
                     type="text"
                     autoComplete="name"
-                    placeholder="John Doe"
+                    placeholder="Enter your name"
                     error={!!errors.name}
                     {...register('name')}
                   />
@@ -207,14 +194,15 @@ export const RegisterPage = () => {
                     />
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
+                      onClick={() => {
+                        setShowPassword(!showPassword);
+                      }}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
 
-                  {/* Password Criteria Boxes */}
                   <div className="grid grid-cols-2 gap-2 mt-2">
                     {criteria.map((c, i) => (
                       <div
@@ -230,7 +218,7 @@ export const RegisterPage = () => {
                     ))}
                   </div>
 
-                  <FieldError errors={[errors.password]} />
+                  {/* <FieldError errors={[errors.password]} /> */}
                 </Field>
 
                 <Field>
@@ -245,7 +233,9 @@ export const RegisterPage = () => {
                     />
                     <button
                       type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onClick={() => {
+                        setShowConfirmPassword(!showConfirmPassword);
+                      }}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
                       {showConfirmPassword ? (
