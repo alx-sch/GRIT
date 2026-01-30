@@ -1,5 +1,5 @@
 import api from '@/lib/api';
-import type { EventResponse } from '@/types/event';
+import type { EventBase, EventResponse } from '@/types/event';
 
 interface GetEventsParams {
   search?: string;
@@ -37,8 +37,8 @@ export const eventService = {
     return response.data;
   },
 
-  postEvent: async (data: CreateEventPayload): Promise<Event> => {
-    const response = await api.post<Event>('/events', data);
+  postEvent: async (data: CreateEventPayload): Promise<EventBase> => {
+    const response = await api.post<EventBase>('/events', data);
     return response.data;
   },
 };

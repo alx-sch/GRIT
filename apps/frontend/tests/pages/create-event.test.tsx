@@ -6,6 +6,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { eventService } from '@/services/eventService';
 import { locationService } from '@/services/locationService';
 import { LocationBase } from '@/types/location';
+import { EventBase } from '@/types/event';
 
 // Mock services
 vi.mock('@/services/eventService', () => ({
@@ -55,7 +56,7 @@ describe('Event Creation Page', () => {
   ];
 
   // Mock created event response
-  const mockCreatedEvent = {
+  const mockCreatedEvent: EventBase = {
     id: 1,
     title: 'Test Event',
     content: 'Test description',
