@@ -245,6 +245,7 @@ export default function EventForm({ locations }: EventFormProps) {
                 placeholder="Select date & time"
                 className="bg-secondary text-secondary-foreground w-full min-w-0 text-sm md:text-base px-7"
                 disabled={{ before: new Date() }}
+                singleDateAsRange
               />
               {showDateError && dateErrorMessage && (
                 <Alert variant="destructive" className="mt-1.5">

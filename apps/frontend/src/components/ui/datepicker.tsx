@@ -16,6 +16,8 @@ export interface DatePickerProps {
   placeholder?: string;
   className?: string;
   disabled?: Matcher | Matcher[];
+  /** When true, selecting a single date sets both start and end to same day */
+  singleDateAsRange?: boolean;
 }
 
 export function DatePicker({
@@ -24,9 +26,52 @@ export function DatePicker({
   placeholder,
   className,
   disabled,
+  singleDateAsRange = false,
 }: DatePickerProps) {
   const [open, setOpen] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
+
+  // Compare dates ignoring time component
+  const isSameDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+
+  // Handle range selection to allow same-day events
+  const handleSelect = (range: DateRange | undefined) => {
+    // If selection was cleared and we only had a start date (no end),
+    // user is clicking on start date to make a same-day event
+    if (!range && selected?.from && !selected?.to) {
+      onSelect?.({ from: selected.from, to: selected.from });
+      return;
+    }
+
+    // If selection was cleared but we had a complete range,
+    // user clicked on start date - make it a same-day event
+    if (!range && selected?.from && selected?.to) {
+      onSelect?.({ from: selected.from, to: selected.from });
+      return;
+    }
+
+    // If we have a complete range and user clicks on start date,
+    // react-day-picker gives us just { from: startDate }
+    // Make it a same-day event on that date
+    if (range?.from && !range?.to && selected?.from && selected?.to) {
+      if (isSameDay(range.from, selected.from)) {
+        onSelect?.({ from: range.from, to: range.from });
+        return;
+      }
+    }
+
+    // If singleDateAsRange is enabled and only start date is selected,
+    // automatically set end date to same as start
+    if (singleDateAsRange && range?.from && !range?.to) {
+      onSelect?.({ from: range.from, to: range.from });
+      return;
+    }
+
+    onSelect?.(range);
+  };
 
   const trigger = (
     <Button
@@ -56,7 +101,7 @@ export function DatePicker({
     <Calendar
       mode="range"
       selected={selected}
-      onSelect={onSelect}
+      onSelect={handleSelect}
       numberOfMonths={isMobile ? 1 : 2}
       disabled={disabled}
       className={
