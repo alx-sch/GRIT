@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 
 import { ReqEventGetPublishedDto, ReqEventPatchDto, ReqEventPostDraftDto } from './event.schema';
+import { eventEncodeCursor, eventSearchFilter, eventCursorFilter } from '@/event/event.utils';
 
 @Injectable()
 export class EventService {
@@ -39,38 +40,39 @@ export class EventService {
     }
   }
 
-  eventGetPublished(input: ReqEventGetPublishedDto) {
-    const where: Prisma.EventWhereInput = {
-      isPublished: true,
-    };
-    if (input.search) {
-      where.OR = [
-        { title: { contains: input.search, mode: 'insensitive' } },
-        { content: { contains: input.search, mode: 'insensitive' } },
-      ];
-    }
-    if (input.author_id) {
-      where.authorId = input.author_id;
-    }
-    if (input.start_from || input.start_until) {
-      where.startAt = {};
-      if (input.start_from) where.startAt.gte = input.start_from;
-      if (input.start_until) where.startAt.lte = input.start_until;
-    }
-    if (input.location_id) {
-      where.locationId = input.location_id;
-    }
-    return this.prisma.event.findMany({
-      where,
+  async eventGetPublished(input: ReqEventGetPublishedDto) {
+    // First two functions -----> event.utils.ts
+    const where: Prisma.EventWhereInput = eventSearchFilter(input);
+    const cursorFilter = eventCursorFilter(input);
+    const finalWhere = { ...where, ...cursorFilter };
+    const { limit } = input;
+
+    const events = await this.prisma.event.findMany({
+      where: finalWhere,
       include: {
         author: true,
         location: true,
         attending: true,
       },
-      orderBy: {
-        startAt: 'asc',
-      },
+      orderBy: [{ startAt: 'asc' }, { id: 'asc' }],
+      take: limit + 1,
     });
+
+    const hasMore = events.length > limit;
+    const slicedData = hasMore ? events.slice(0, limit) : events;
+
+    return {
+      data: slicedData,
+      pagination: {
+        nextCursor: hasMore
+          ? eventEncodeCursor(
+              slicedData[slicedData.length - 1].startAt,
+              slicedData[slicedData.length - 1].id
+            )
+          : null,
+        hasMore,
+      },
+    };
   }
 
   async eventGetById(id: number) {

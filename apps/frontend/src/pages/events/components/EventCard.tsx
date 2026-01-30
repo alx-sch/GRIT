@@ -8,15 +8,15 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Text } from '@/components/ui/typography';
+import { EventBase } from '@/types/event';
 import { getEventImageUrl } from '@/lib/image_utils';
-import { Event } from '@/types/event';
-import { Location } from '@/types/location';
+import { LocationBase } from '@/types/location';
 import { format } from 'date-fns';
 import { User } from 'lucide-react';
 
 interface EventCardProps {
-  event: Event;
-  location?: Location;
+  event: EventBase;
+  location?: LocationBase;
 }
 
 export function EventCard({ event, location }: EventCardProps) {

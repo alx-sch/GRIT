@@ -12,7 +12,7 @@ export const sharedPortsSchema = z.object({
 // Shared Auth Rules
 export const AUTH_CONFIG = {
   JWT_SECRET_MIN_LENGTH: 16,
-  PASSWORD_MIN_LENGTH: 10,
+  PASSWORD_MIN_LENGTH: 8,
 };
 
 // Shared Auth Schema

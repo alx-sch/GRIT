@@ -15,7 +15,7 @@ Content-Type: application/json
 
 {
 	"name": "Thomas Test",
-	"email": "tester_v99@grit.com",
+	"email": "tester_v99@grit.comss",
 	"password": "password123"
 }
 ###
@@ -32,7 +32,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-	"email": "tester_v99@grit.com",
+	"email": "tester_v99@grit.coms",
 	"password": "password123"
 }
 ###
@@ -49,7 +49,15 @@ Authorization: Bearer {{token}}
 # ========== USER ACTIONS ==========
 
 # Get all users
-GET {{baseUrl}}/users/
+GET {{baseUrl}}/users
+###
+
+# Get all users with limit set to 1
+GET {{baseUrl}}/users?limit=1
+###
+
+# Get all users with a valid cursor (starting from user 2).
+GET {{baseUrl}}/users?cursor=MjAyNi0wMS0yN1QxNDozMDoxMi40NjFafDE=
 ###
 
 # Get My Events (Attending)
@@ -73,6 +81,10 @@ Content-Type: application/json
 GET {{baseUrl}}/locations
 ###
 
+# Get all locations with limit set to 1
+GET {{baseUrl}}/locations?limit=1
+###
+
 # Create new location
 POST {{baseUrl}}/locations
 Authorization: Bearer {{token}}
@@ -90,7 +102,7 @@ Content-Type: application/json
 ###
 
 // Delete location
-DELETE {{baseUrl}}/locations/3 HTTP/1.1
+DELETE {{baseUrl}}/locations/6 HTTP/1.1
 Authorization: Bearer {{token}}
 ###
 
@@ -100,12 +112,20 @@ Authorization: Bearer {{token}}
 GET {{baseUrl}}/events
 ###
 
-# Get event by event id
-GET {{baseUrl}}/events/2
-###
-
 // Search for event by string
 GET {{baseUrl}}/events?search=app
+###
+
+// Search for event by limit and start time
+GET {{baseUrl}}/events?limit=1&start_from=2026-01-24
+###
+
+// Search for second event by using limit and cursor
+GET {{baseUrl}}/events?limit=1&cursor=MjAyNi0wMS0yNFQxMjowMDowMC4wMDBafDQ=
+###
+
+# Get event by event id
+GET {{baseUrl}}/events/2
 ###
 
 // Create event, use to whatever user the token resolves to

@@ -9,8 +9,8 @@ import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { EventCard } from '@/pages/events/components/EventCard';
 import { eventService } from '@/services/eventService';
 import { locationService } from '@/services/locationService';
-import { Event } from '@/types/event';
-import { Location } from '@/types/location';
+import { EventResponse } from '@/types/event';
+import { LocationBase } from '@/types/location';
 import { format, parse } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { DateRange } from 'react-day-picker';
@@ -22,16 +22,22 @@ export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
   const startFrom = url.searchParams.get('start_from') ?? undefined;
   const startUntil = url.searchParams.get('start_until') ?? undefined;
   const locationId = url.searchParams.get('location_id') ?? undefined;
+  const limit = url.searchParams.get('limit') ?? undefined;
+  const authorId = url.searchParams.get('authorId') ?? undefined;
+  const cursor = url.searchParams.get('cursor') ?? undefined;
 
-  const [events, locations] = await Promise.all([
-    eventService.getEvents({ search, startFrom, startUntil, locationId }),
+  const [events, locationsResponse] = await Promise.all([
+    eventService.getEvents({ search, startFrom, startUntil, locationId, limit, authorId, cursor }),
     locationService.getLocations(),
   ]);
-  return { events, locations };
+  return { events, locations: locationsResponse.data };
 };
 
 export default function EventFeed() {
-  const { events, locations } = useTypedLoaderData<{ events: Event[]; locations: Location[] }>();
+  const { events, locations } = useTypedLoaderData<{
+    events: EventResponse;
+    locations: LocationBase[];
+  }>();
 
   const locationOptionsCombobox: ComboboxOptions[] = locations.map(({ id, name }) => ({
     value: String(id),
@@ -141,9 +147,9 @@ export default function EventFeed() {
           ></DatePicker>
         </div>
       </div>
-      {events.length > 0 ? (
+      {events.data.length > 0 ? (
         <div className="grid gap-6 justify-start md:grid-cols-2 lg:grid-cols-3">
-          {events.map((event) => (
+          {events.data.map((event) => (
             <EventCard
               key={event.id}
               event={event}

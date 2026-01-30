@@ -7,15 +7,7 @@ import { z } from 'zod';
 
 // Response schema for the event object that can get sent as a subitem in the user response
 export const ResEventUserSchema = z.object({
-  content: z.string().nullable(),
-  createdAt: z.date(),
-  endAt: z.date().nullable(),
-  isPublished: z.boolean(),
-  isPublic: z.boolean(),
-  startAt: z.date().nullable(),
   title: z.string(),
-  imageKey: z.string().nullable(),
-  locationId: z.number().int().positive().nullable(),
 });
 
 export const ResUserEventsSchema = z.array(ResEventUserSchema);
@@ -25,18 +17,26 @@ export const ResUserBaseSchema = z.object({
   id: z.number().int().positive(),
   name: z.string().nullable(),
   avatarKey: z.string().nullable(),
+  attending: z.array(ResEventUserSchema).default([]),
 });
 
 // Response schema for creating new user
 export const ResUserPostSchema = ResUserBaseSchema.extend({
   email: z.email(),
-  attending: z.array(ResEventUserSchema).default([]),
 });
 
 // Get all users
-export const ReqUserGetAllSchema = z.strictObject({});
-export class ReqUserGetAllDto extends createZodDto(ReqUserGetAllSchema) {}
-export const ResUserGetAllSchema = z.array(ResUserBaseSchema);
+export const ReqUserGetAllSchema = z.strictObject({
+  limit: z.coerce.number().int().positive().max(100).default(20),
+  cursor: z.string().optional(),
+});
+export const ResUserGetAllSchema = z.object({
+  data: z.array(ResUserBaseSchema),
+  pagination: z.object({
+    nextCursor: z.string().nullable(),
+    hasMore: z.boolean(),
+  }),
+});
 
 // Post a new user draft
 export const ReqUserPostSchema = z.object({
@@ -62,6 +62,7 @@ export const ResUserGetByIdSchema = ResUserBaseSchema;
 
 // --- DTO classes ---
 export class ResUserBaseDto extends createZodDto(ResUserBaseSchema) {}
+export class ReqUserGetAllDto extends createZodDto(ReqUserGetAllSchema) {}
 export class ResUserPostDto extends createZodDto(ResUserPostSchema) {}
 export class ReqUserPostDto extends createZodDto(ReqUserPostSchema) {}
 export class ResUserEventsDto extends createZodDto(ResUserEventsSchema) {}

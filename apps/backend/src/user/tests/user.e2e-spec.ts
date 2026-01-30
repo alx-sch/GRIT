@@ -108,11 +108,37 @@ describe('User E2E', () => {
       const res = await request(app.getHttpServer()).get('/users').expect(200);
 
       expect(res.body).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ id: user1.id }),
-          expect.objectContaining({ id: user2.id }),
-        ])
+        expect.objectContaining({
+          data: expect.arrayContaining([
+            expect.objectContaining({ id: user1.id }),
+            expect.objectContaining({ id: user2.id }),
+          ]),
+          pagination: { hasMore: false, nextCursor: null },
+        })
       );
+    });
+
+    it('returns first user (limit set to 1)', async () => {
+      const res = await request(app.getHttpServer()).get('/users').query({ limit: 1 }).expect(200);
+
+      expect(res.body.data).toHaveLength(1);
+      expect(res.body.data[0].id).toBe(user1.id);
+      expect(res.body.pagination.hasMore).toBe(true);
+    });
+
+    it('returns 400 for passing an invalid cursor', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/users')
+        .query({
+          cursor: 'random-shit',
+        })
+        .expect(400);
+
+      expect(res.body).toStrictEqual({
+        error: 'Bad Request',
+        message: 'Invalid cursor provided',
+        statusCode: 400,
+      });
     });
   });
 

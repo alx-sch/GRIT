@@ -1,14 +1,24 @@
 import api from '@/lib/api';
-import type { Location } from '@/types/location';
+import type { LocationBase, LocationResponse } from '@/types/location';
+
+interface GetLocationsParams {
+  limit?: string;
+  cursor?: string;
+}
 
 export const locationService = {
-  getLocations: async (): Promise<Location[]> => {
-    const response = await api.get<Location[]>('/locations');
+  getLocations: async (params?: GetLocationsParams): Promise<LocationResponse> => {
+    const queryParams = new URLSearchParams();
+    if (params?.limit) queryParams.set('limit', params.limit);
+    if (params?.cursor) queryParams.set('cursor', params.cursor);
+    const queryString = queryParams.toString();
+    const url = queryString ? `/locations?${queryString}` : '/locations';
+    const response = await api.get<LocationResponse>(url);
     return response.data;
   },
 
-  postLocation: async (data: FormData): Promise<Location> => {
-    const response = await api.post<Location>('/locations', data);
+  postLocation: async (data: FormData): Promise<LocationBase> => {
+    const response = await api.post<LocationBase>('/locations', data);
     return response.data;
   },
 };

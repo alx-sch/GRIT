@@ -4,7 +4,7 @@ import { vi } from 'vitest';
 import EventFeed, { eventsLoader } from '@/pages/events/Page';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { eventService } from '@/services/eventService';
-import { Event } from '@/types/event';
+import { EventBase, EventResponse } from '@/types/event';
 import { locationService } from '@/services/locationService';
 
 // Mock event service
@@ -22,7 +22,7 @@ vi.mock('@/services/locationService', () => ({
 
 // Mock image utils to avoid MinIO URL issues in tests
 vi.mock('@/lib/image_utils', () => ({
-  getEventImageUrl: (event: Event) =>
+  getEventImageUrl: (event: EventBase) =>
     event.imageKey ? `http://test-minio/${event.imageKey}` : 'placeholder.svg',
 }));
 
@@ -53,7 +53,7 @@ describe('Event Feed Page', () => {
   };
 
   // Mock events
-  const mockEvents: Event[] = [
+  const mockEvents: EventResponse['data'] = [
     {
       id: 1,
       createdAt: Date.parse('2026-03-01T10:00:00Z'),
@@ -103,17 +103,18 @@ describe('Event Feed Page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(locationService.getLocations).mockResolvedValue(Object.values(mockLocations));
+    vi.mocked(locationService.getLocations).mockResolvedValue({
+      data: Object.values(mockLocations),
+      pagination: { hasMore: false, nextCursor: null },
+    });
 
     vi.mocked(eventService.getEvents).mockImplementation((params) => {
       let filtered = [...mockEvents];
 
       // Filter by search
       if (params?.search) {
-        const search = params.search;
-        filtered = filtered.filter((event) =>
-          event.title.toLowerCase().includes(search.toLowerCase())
-        );
+        const search = params.search.toLowerCase();
+        filtered = filtered.filter((event) => event.title.toLowerCase().includes(search));
       }
 
       // Filter by date
@@ -128,7 +129,13 @@ describe('Event Feed Page', () => {
         filtered = filtered.filter((event) => event.locationId === locationId);
       }
 
-      return Promise.resolve(filtered);
+      return Promise.resolve({
+        data: filtered,
+        pagination: {
+          hasMore: false,
+          nextCursor: null,
+        },
+      });
     });
   });
 
@@ -161,7 +168,10 @@ describe('Event Feed Page', () => {
     });
 
     it('shows empty state when no events', async () => {
-      vi.mocked(eventService.getEvents).mockResolvedValue([]);
+      vi.mocked(eventService.getEvents).mockResolvedValue({
+        data: [],
+        pagination: { hasMore: false, nextCursor: null },
+      });
       renderEventFeed();
 
       await waitFor(() => {

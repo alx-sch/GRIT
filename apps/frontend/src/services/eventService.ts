@@ -1,10 +1,13 @@
 import api from '@/lib/api';
-import type { Event } from '@/types/event';
+import type { EventResponse } from '@/types/event';
 
 interface GetEventsParams {
   search?: string;
   startFrom?: string;
   startUntil?: string;
+  limit?: string;
+  authorId?: string;
+  cursor?: string;
   locationId?: string;
 }
 
@@ -19,15 +22,18 @@ interface CreateEventPayload {
 }
 
 export const eventService = {
-  getEvents: async (params?: GetEventsParams): Promise<Event[]> => {
+  getEvents: async (params?: GetEventsParams): Promise<EventResponse> => {
     const queryParams = new URLSearchParams();
     if (params?.search) queryParams.set('search', params.search);
     if (params?.startFrom) queryParams.set('start_from', params.startFrom);
     if (params?.startUntil) queryParams.set('start_until', params.startUntil);
+    if (params?.limit) queryParams.set('limit', params.limit);
+    if (params?.authorId) queryParams.set('authorId', params.authorId);
+    if (params?.cursor) queryParams.set('cursor', params.cursor);
     if (params?.locationId) queryParams.set('location_id', params.locationId);
     const queryString = queryParams.toString();
     const url = queryString ? `events?${queryString}` : '/events';
-    const response = await api.get<Event[]>(url);
+    const response = await api.get<EventResponse>(url);
     return response.data;
   },
 

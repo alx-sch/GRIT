@@ -2,15 +2,16 @@ import { Container } from '@/components/layout/Container';
 import { Heading } from '@/components/ui/typography';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { locationService } from '@/services/locationService';
-import { Location } from '@/types/location';
+import { LocationBase } from '@/types/location';
 import EventForm from './components/EventForm';
 
 export const eventCreationLoader = async () => {
-  return locationService.getLocations();
+  const response = await locationService.getLocations();
+  return response.data;
 };
 
 export default function CreateEventPage() {
-  const locations = useTypedLoaderData<Location[]>();
+  const locations = useTypedLoaderData<LocationBase[]>();
   return (
     <Container className="py-10 space-y-8 p-0 md:px-0">
       <div className="space-y-2">

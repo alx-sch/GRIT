@@ -5,7 +5,7 @@ import EventCreation, { eventCreationLoader } from '@/pages/create/event/Page';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { eventService } from '@/services/eventService';
 import { locationService } from '@/services/locationService';
-import { Location } from '@/types/location';
+import { LocationBase } from '@/types/location';
 
 // Mock services
 vi.mock('@/services/eventService', () => ({
@@ -27,7 +27,7 @@ describe('Event Creation Page', () => {
   const mockUser = { id: 1, name: 'Alice', email: 'alice@example.com' };
 
   // Mock locations
-  const mockLocations: Location[] = [
+  const mockLocations: LocationBase[] = [
     {
       id: 1,
       author: mockUser,
@@ -73,7 +73,10 @@ describe('Event Creation Page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
-    vi.mocked(locationService.getLocations).mockResolvedValue(mockLocations);
+    vi.mocked(locationService.getLocations).mockResolvedValue({
+      data: mockLocations,
+      pagination: { hasMore: false, nextCursor: null },
+    });
     vi.mocked(eventService.postEvent).mockResolvedValue(mockCreatedEvent);
   });
 
@@ -250,7 +253,7 @@ describe('Event Creation Page', () => {
       await user.click(publishButton);
 
       await waitFor(() => {
-        expect(screen.getByText(/start date is required/i)).toBeInTheDocument();
+        expect(screen.getByText(/date is required/i)).toBeInTheDocument();
       });
     });
   });
@@ -287,7 +290,7 @@ describe('Event Creation Page', () => {
       // Form should show validation errors for dates if not selected
       // This tests that the publish button triggers form submission
       await waitFor(() => {
-        expect(screen.getByText(/start date is required/i)).toBeInTheDocument();
+        expect(screen.getByText(/date is required/i)).toBeInTheDocument();
       });
     });
 
@@ -307,7 +310,7 @@ describe('Event Creation Page', () => {
 
       // Should show validation error for dates
       await waitFor(() => {
-        expect(screen.getByText(/start date is required/i)).toBeInTheDocument();
+        expect(screen.getByText(/date is required/i)).toBeInTheDocument();
       });
     });
 

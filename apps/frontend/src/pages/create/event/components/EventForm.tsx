@@ -8,7 +8,7 @@ import { Text } from '@/components/ui/typography';
 import { useDebounce } from '@/hooks/useDebounce';
 import { EventFormSchema, type EventFormFields } from '@/schema/event';
 import { eventService } from '@/services/eventService';
-import { Location } from '@/types/location';
+import { LocationBase } from '@/types/location';
 import { CreateEventSchema } from '@grit/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { isAxiosError } from 'axios';
@@ -33,7 +33,7 @@ function DraftSaver({ control }: { control: Control<EventFormFields> }) {
 }
 
 interface EventFormProps {
-  locations: Location[];
+  locations: LocationBase[];
 }
 
 export default function EventForm({ locations }: EventFormProps) {

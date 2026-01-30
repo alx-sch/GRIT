@@ -1,7 +1,7 @@
 import { env } from '@/config/env';
-import { Event } from '@/types/event';
+import { EventBase } from '@/types/event';
 
-export function getEventImageUrl(event: Event): string {
+export function getEventImageUrl(event: EventBase): string {
   if (!event.imageKey) {
     return generateImagePlaceholderEvent(event);
   }
@@ -31,7 +31,7 @@ function wrapLines(text: string, maxLen = 14, maxLines = 3): string[] {
   return lines;
 }
 
-export function generateImagePlaceholderEvent(event: Event) {
+export function generateImagePlaceholderEvent(event: EventBase) {
   const colors = ['oklch(0.68 0.22 45)', 'oklch(0 0 0)', 'oklch(0.4 0 0)'];
   const bgColor = colors[event.id % colors.length];
   const title = event.title.trim() || 'Great Event';
