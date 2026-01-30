@@ -1,5 +1,6 @@
 import api from '@/lib/api';
 import type { EventResponse } from '@/types/event';
+import type { EventBase } from '@/types/event';
 
 interface GetEventsParams {
   search?: string;
@@ -26,8 +27,8 @@ export const eventService = {
     return response.data;
   },
 
-  getEvent: async (id: string): Promise<Event> => {
-    const response = await api.get<Event>(`/events/${id}`);
+  getEvent: async (id: string): Promise<EventBase> => {
+    const response = await api.get<EventBase>(`/events/${id}`);
     // TODO parse once schema is available unified for front and backend
     return response.data;
   },

@@ -59,4 +59,14 @@ export class AuthService {
   isProduction(): boolean {
     return env.NODE_ENV === 'production';
   }
+
+  // For Sockets we cannot use the AuthGuard decorator so need a manual verify Token function
+  async verifyToken(token: string): Promise<number | null> {
+    try {
+      const payload = this.jwtService.verify(token) as { sub: number };
+      return payload.sub;
+    } catch {
+      return null;
+    }
+  }
 }
