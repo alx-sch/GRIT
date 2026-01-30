@@ -12,7 +12,6 @@ import { LocationBase } from '@/types/location';
 import { CreateEventSchema } from '@grit/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { isAxiosError } from 'axios';
-import { format } from 'date-fns';
 import { AlertCircleIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Control, Controller, SubmitHandler, useForm, useWatch } from 'react-hook-form';
@@ -88,8 +87,8 @@ export default function EventForm({ locations }: EventFormProps) {
         title: data.title,
         isPublic: data.isPublic,
         isPublished: data.isPublished,
-        startAt: format(data.startAt, "yyyy-MM-dd'T'12:00:00.000'Z'"),
-        endAt: format(data.endAt, "yyyy-MM-dd'T'12:00:00.000'Z'"),
+        startAt: data.startAt.toISOString(),
+        endAt: data.endAt.toISOString(),
         content: data.content ?? undefined,
         locationId: data.locationId ? Number(data.locationId) : undefined,
       };
@@ -118,6 +117,33 @@ export default function EventForm({ locations }: EventFormProps) {
   //eslint-disable-next-line react-hooks/incompatible-library
   const startAtValue = watch('startAt') as Date | undefined;
   const endAtValue = watch('endAt') as Date | undefined;
+
+  // Helper to extract time string from Date
+  const getTimeFromDate = (date: Date | undefined): string => {
+    if (!date) return '12:00';
+    return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+  };
+
+  // Helper to set time on a Date
+  const setTimeOnDate = (date: Date, time: string): Date => {
+    const [hours, minutes] = time.split(':').map(Number);
+    const newDate = new Date(date);
+    newDate.setHours(hours, minutes, 0, 0);
+    return newDate;
+  };
+
+  // Handlers to update form dates when time changes
+  const handleStartTimeChange = (time: string) => {
+    if (startAtValue) {
+      setValue('startAt', setTimeOnDate(startAtValue, time), { shouldValidate: true });
+    }
+  };
+
+  const handleEndTimeChange = (time: string) => {
+    if (endAtValue) {
+      setValue('endAt', setTimeOnDate(endAtValue, time), { shouldValidate: true });
+    }
+  };
 
   // Auto-dismiss title errors after 15 seconds
   const [showTitleError, setShowTitleError] = useState(false);
@@ -237,15 +263,37 @@ export default function EventForm({ locations }: EventFormProps) {
                     : undefined
                 }
                 onSelect={(range) => {
-                  onChange(range?.from);
+                  // When selecting dates, preserve existing time or default to 12:00
+                  if (range?.from) {
+                    const newStart = new Date(range.from);
+                    if (startAtValue) {
+                      // Preserve existing time
+                      newStart.setHours(startAtValue.getHours(), startAtValue.getMinutes(), 0, 0);
+                    } else {
+                      // Default to 12:00
+                      newStart.setHours(12, 0, 0, 0);
+                    }
+                    onChange(newStart);
+                  }
                   if (range?.to) {
-                    setValue('endAt', range.to, { shouldValidate: true });
+                    const newEnd = new Date(range.to);
+                    if (endAtValue) {
+                      newEnd.setHours(endAtValue.getHours(), endAtValue.getMinutes(), 0, 0);
+                    } else {
+                      newEnd.setHours(12, 0, 0, 0);
+                    }
+                    setValue('endAt', newEnd, { shouldValidate: true });
                   }
                 }}
                 placeholder="Select date & time"
                 className="bg-secondary text-secondary-foreground w-full min-w-0 text-sm md:text-base px-7"
                 disabled={{ before: new Date() }}
                 singleDateAsRange
+                showTime
+                startTime={getTimeFromDate(startAtValue)}
+                endTime={getTimeFromDate(endAtValue)}
+                onStartTimeChange={handleStartTimeChange}
+                onEndTimeChange={handleEndTimeChange}
               />
               {showDateError && dateErrorMessage && (
                 <Alert variant="destructive" className="mt-1.5">
