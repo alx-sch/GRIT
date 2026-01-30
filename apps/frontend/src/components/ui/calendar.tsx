@@ -30,9 +30,9 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         nav_button_previous: 'absolute left-1',
         nav_button_next: 'absolute right-1',
         table: 'w-full border-collapse space-y-1',
-        head_row: 'flex',
+        head_row: 'flex justify-center',
         head_cell: 'text-muted-foreground text-center w-9 font-heading text-[0.8rem]',
-        row: 'flex w-full mt-2',
+        row: 'flex justify-center w-full mt-2',
         cell: cn('relative p-0 text-center text-sm focus-within:relative focus-within:z-20'),
         day: cn(
           buttonVariants({ variant: 'ghost' }),

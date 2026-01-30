@@ -1,7 +1,12 @@
 import { EventBase } from './event';
 import { UserBase } from './user';
 
-export interface Location {
+export interface LocationResponse {
+  data: LocationBase[];
+  pagination: { hasMore: boolean; nextCursor: string | null };
+}
+
+export interface LocationBase {
   id: number;
   author: UserBase;
   authorId: number;
