@@ -26,7 +26,6 @@ export type LoginInput = z.infer<typeof LoginSchema>;
 
 // Chat Message sent from client
 export const ChatMessageCreateSchema = z.object({
-  eventId: z.number(),
   text: z.string(),
 });
 export type ChatMessageCreate = z.infer<typeof ChatMessageCreateSchema>;
@@ -35,9 +34,11 @@ export type ChatMessageCreate = z.infer<typeof ChatMessageCreateSchema>;
 export const ChatMessageSchema = z.object({
   eventId: z.number(),
   text: z.string(),
-  time: z.iso.datetime(),
+  sentAt: z.iso.datetime(),
   userId: z.number(),
   userName: z.string(),
+  avatarKey: z.string(),
+  id: z.string(),
 });
 
 export type ChatMessage = z.infer<typeof ChatMessageSchema>;

@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -51,8 +45,8 @@ model Event {
   createdAt   DateTime    @default(now())
   content     String?
   endAt       DateTime
-  isPublic    Boolean  @default(true)
-  isPublished Boolean  @default(false)
+  isPublic    Boolean     @default(true)
+  isPublished Boolean     @default(false)
   startAt     DateTime
   title       String
   imageKey    String?
@@ -64,4 +58,18 @@ model Event {
 
   locationId  Int?
   location    Location?   @relation(fields: [locationId], references: [id])
+}
+
+model ChatMessage {
+  id          String      @id
+  eventId     Int
+  authorId    Int
+  text        String
+  sentAt      DateTime
+  createdAt   DateTime    @default(now())
+
+  author      User        @relation(fields: [authorId], references: [id])
+  event       Event       @relation(fields: [eventId], references: [id])
+
+  @@index([eventId, createdAt])
 }

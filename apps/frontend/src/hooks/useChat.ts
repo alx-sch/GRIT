@@ -1,12 +1,12 @@
 import { io, type Socket } from 'socket.io-client';
 import { useEffect, useRef, useState } from 'react';
 import { useCurrentUserStore } from '@/store/currentUserStore';
-import type { ChatMessageInput } from '@grit/schema';
+import type { ChatMessage } from '@grit/schema';
 import { useAuthStore } from '@/store/authStore';
 
 export function useChat(eventId: number) {
   const socketRef = useRef<Socket | null>(null);
-  const [messages, setMessages] = useState<ChatMessageInput[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const user = useCurrentUserStore((s) => s.user);
   const token = useAuthStore((s) => s.token);
 
@@ -25,8 +25,7 @@ export function useChat(eventId: number) {
       socket.emit('join', { eventId });
     });
 
-    socket.on('message', (msg: ChatMessageInput) => {
-      console.log(msg);
+    socket.on('message', (msg: ChatMessage) => {
       setMessages((prev) => [...prev, msg]);
     });
 
