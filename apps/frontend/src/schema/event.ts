@@ -9,7 +9,7 @@ today.setHours(0, 0, 0, 0);
 export const EventFormSchema = CreateEventSchema.extend({
   startAt: z
     .date({
-      error: 'Start date is required',
+      error: 'Date is required',
     })
     .min(today, 'Start date must be in the future'),
   endAt: z.date({ error: 'End date is required' }),

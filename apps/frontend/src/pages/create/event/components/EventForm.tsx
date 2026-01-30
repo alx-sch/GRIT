@@ -1,3 +1,4 @@
+import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Combobox, ComboboxOptions } from '@/components/ui/combobox';
 import { DatePicker } from '@/components/ui/datepicker';
@@ -12,7 +13,8 @@ import { CreateEventSchema } from '@grit/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { isAxiosError } from 'axios';
 import { format } from 'date-fns';
-import { useEffect } from 'react';
+import { AlertCircleIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Control, Controller, SubmitHandler, useForm, useWatch } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
@@ -51,7 +53,7 @@ export default function EventForm({ locations }: EventFormProps) {
     setValue,
     control,
     setError,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, submitCount },
   } = useForm<EventFormFields>({
     resolver: zodResolver(EventFormSchema),
     defaultValues: {
@@ -117,6 +119,54 @@ export default function EventForm({ locations }: EventFormProps) {
   const startAtValue = watch('startAt') as Date | undefined;
   const endAtValue = watch('endAt') as Date | undefined;
 
+  // Auto-dismiss title errors after 15 seconds
+  const [showTitleError, setShowTitleError] = useState(false);
+  const titleErrorMessage = errors.title?.message;
+
+  useEffect(() => {
+    if (titleErrorMessage) {
+      setShowTitleError(true);
+      const timer = setTimeout(() => {
+        setShowTitleError(false);
+      }, 15000);
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+  }, [titleErrorMessage, submitCount]);
+
+  // Auto-dismiss date errors after 15 seconds
+  const [showDateError, setShowDateError] = useState(false);
+  const dateErrorMessage = errors.startAt?.message ?? errors.endAt?.message;
+
+  useEffect(() => {
+    if (dateErrorMessage) {
+      setShowDateError(true);
+      const timer = setTimeout(() => {
+        setShowDateError(false);
+      }, 15000);
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+  }, [dateErrorMessage, submitCount]);
+
+  // Auto-dismiss root errors after 15 seconds
+  const [showRootError, setShowRootError] = useState(false);
+  const rootErrorMessage = errors.root?.message;
+
+  useEffect(() => {
+    if (rootErrorMessage) {
+      setShowRootError(true);
+      const timer = setTimeout(() => {
+        setShowRootError(false);
+      }, 15000);
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+  }, [rootErrorMessage, submitCount]);
+
   return (
     <form
       onSubmit={(e) => {
@@ -156,7 +206,12 @@ export default function EventForm({ locations }: EventFormProps) {
       <div className="flex flex-col py-8 pb-0">
         <Text className="font-heading">Name</Text>
         <Input {...register('title')} placeholder="Give your event a catchy name" />
-        {errors.title && <div className="text-red-500">{errors.title.message}</div>}
+        {showTitleError && titleErrorMessage && (
+          <Alert variant="destructive" className="mt-1.5 md:w-1/3 self-start">
+            <AlertCircleIcon className="h-4 w-4" />
+            <AlertTitle className="text-sm">{titleErrorMessage}</AlertTitle>
+          </Alert>
+        )}
       </div>
       <div className="flex flex-col py-8">
         <Text className="font-heading">Description</Text>
@@ -166,12 +221,12 @@ export default function EventForm({ locations }: EventFormProps) {
         />
       </div>
 
-      <div className="md:flex flex-row gap-4 md:gap-12 w-full items-center">
+      <div className="md:flex flex-row gap-4 md:gap-12 w-full items-start">
         <Controller
           control={control}
           name="startAt"
           render={({ field: { onChange } }) => (
-            <div className="gap-4 md:gap-12 w-full items-center pt-0 pb-8">
+            <div className="w-full pt-0 pb-4 md:pb-8">
               <DatePicker
                 selected={
                   startAtValue
@@ -191,10 +246,12 @@ export default function EventForm({ locations }: EventFormProps) {
                 className="bg-secondary text-secondary-foreground w-full min-w-0 text-sm md:text-base px-7"
                 disabled={{ before: new Date() }}
               />
-              {errors.startAt && (
-                <div className="text-red-500 text-sm">{errors.startAt.message}</div>
+              {showDateError && dateErrorMessage && (
+                <Alert variant="destructive" className="mt-1.5">
+                  <AlertCircleIcon className="h-4 w-4" />
+                  <AlertTitle className="text-sm">{dateErrorMessage}</AlertTitle>
+                </Alert>
               )}
-              {errors.endAt && <div className="text-red-500 text-sm">{errors.endAt.message}</div>}
             </div>
           )}
         />
@@ -203,7 +260,7 @@ export default function EventForm({ locations }: EventFormProps) {
           control={control}
           name="locationId"
           render={({ field: { onChange, value } }) => (
-            <div className="gap-4 md:gap-12 w-full items-center pt-0 pb-8">
+            <div className="w-full pt-0 pb-8">
               <Combobox
                 options={locationOptionsCombobox}
                 value={value ?? undefined}
@@ -211,13 +268,18 @@ export default function EventForm({ locations }: EventFormProps) {
                 placeholder="Select the location"
                 searchPlaceholder="Search"
                 emptyMessage="No location found"
-                className="bg-secondary text-secondary-foreground text-sm justify-center text-center"
+                className="bg-secondary text-secondary-foreground text-sm md:text-base justify-center text-center"
                 showSelectedTick={true}
               />
             </div>
           )}
         />
-        {errors.root && <div className="text-red-500 text-center mb-4">{errors.root.message}</div>}
+        {showRootError && rootErrorMessage && (
+          <Alert variant="destructive" className="mt-1.5">
+            <AlertCircleIcon className="h-4 w-4" />
+            <AlertTitle className="text-sm">{rootErrorMessage}</AlertTitle>
+          </Alert>
+        )}
       </div>
       <div className="flex flex-row gap-4 md:gap-12 w-full items-center">
         <Button

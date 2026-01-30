@@ -3,10 +3,9 @@ import { Heading } from '@/components/ui/typography';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { locationService } from '@/services/locationService';
 import { Location } from '@/types/location';
-import { LoaderFunctionArgs } from 'react-router-dom';
 import EventForm from './components/EventForm';
 
-export const eventCreationLoader = async ({ request }: LoaderFunctionArgs) => {
+export const eventCreationLoader = async () => {
   return locationService.getLocations();
 };
 

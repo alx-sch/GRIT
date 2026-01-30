@@ -1,18 +1,19 @@
-import { useState } from 'react';
-import { toast } from 'sonner';
-import { Loader2, Mail } from 'lucide-react';
 import { Container } from '@/components/layout/Container';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Combobox } from '@/components/ui/combobox';
+import { DatePicker } from '@/components/ui/datepicker';
+import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Heading, Text, Caption } from '@/components/ui/typography';
-import { DatePicker } from '@/components/ui/datepicker';
-import { DateRange } from 'react-day-picker';
 import { Textarea } from '@/components/ui/textarea';
-import { Combobox } from '@/components/ui/combobox';
+import { Caption, Heading, Text } from '@/components/ui/typography';
+import { AlertCircleIcon, CheckCircle2Icon, Loader2, Mail } from 'lucide-react';
+import { useState } from 'react';
+import { DateRange } from 'react-day-picker';
+import { toast } from 'sonner';
 
 const mockedComboboxOptions = [
   {
@@ -265,6 +266,29 @@ export default function Design() {
                   </div>
                 </div>
               )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Alerts</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="gap-2 flex flex-col">
+                <Alert>
+                  <CheckCircle2Icon />
+                  <AlertTitle>Success!</AlertTitle>
+                  <AlertDescription>
+                    This is an alert with icon, title and description.
+                  </AlertDescription>
+                </Alert>
+                <Alert variant={'destructive'}>
+                  <AlertCircleIcon />
+                  <AlertTitle>Error!</AlertTitle>
+                  <AlertDescription>
+                    This is an alert with icon, title and description.
+                  </AlertDescription>
+                </Alert>
+              </div>
             </CardContent>
           </Card>
         </div>

@@ -1,5 +1,5 @@
 import api from '@/lib/api';
-import type {Event} from '@/types/event';
+import type { Event } from '@/types/event';
 
 interface GetEventsParams {
   search?: string;
@@ -19,7 +19,7 @@ interface CreateEventPayload {
 }
 
 export const eventService = {
-  getEvents: async(params?: GetEventsParams): Promise<Event[]> => {
+  getEvents: async (params?: GetEventsParams): Promise<Event[]> => {
     const queryParams = new URLSearchParams();
     if (params?.search) queryParams.set('search', params.search);
     if (params?.startFrom) queryParams.set('start_from', params.startFrom);
@@ -31,15 +31,8 @@ export const eventService = {
     return response.data;
   },
 
-  postEvent: async(data: CreateEventPayload): Promise<Event> => {
-    try {
-      const response = await api.post<Event>('/events', data);
-      return response.data;
-    } catch (err: unknown) {
-      if (err && typeof err === 'object' && 'response' in err) {
-        const axiosErr = err as {response?: {data?: unknown; status?: number}};
-      }
-      throw err;
-    }
+  postEvent: async (data: CreateEventPayload): Promise<Event> => {
+    const response = await api.post<Event>('/events', data);
+    return response.data;
   },
 };
