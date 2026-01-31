@@ -8,7 +8,9 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { UserService } from '@/user/user.service';
+import { ChatService } from '@/chat/chat.service';
 import { randomUUID } from 'crypto';
+import { ReqChatMessagePostDto, ReqChatJoinSchemaDto, IntChatMessageDto } from '@/chat/chat.schema';
 
 // TODO Need to add validation
 
@@ -22,6 +24,7 @@ export class ChatGateway {
   // First check on connection that user has a valid token
   constructor(
     private readonly authService: AuthService,
+    private readonly chatService: ChatService,
     private readonly userService: UserService
   ) {}
 
@@ -46,7 +49,7 @@ export class ChatGateway {
   }
 
   @SubscribeMessage('join')
-  async handleJoin(@MessageBody() body: { eventId: number }, @ConnectedSocket() client: Socket) {
+  async handleJoin(@MessageBody() body: ReqChatJoinSchemaDto, @ConnectedSocket() client: Socket) {
     // Check if the client is allowed to join the chat room
     const userIsAttendingEvent = await this.userService.userIsAttendingEvent(
       client.data.userId,
@@ -63,21 +66,34 @@ export class ChatGateway {
 
   // The client sends XYZ and we handle it with handleXYZ, this could be named anything
   @SubscribeMessage('message')
-  handleMessage(@MessageBody() body: { text: string }, @ConnectedSocket() client: Socket) {
+  handleMessage(@MessageBody() body: ReqChatMessagePostDto, @ConnectedSocket() client: Socket) {
     const eventId = client.data.eventId;
-    // Client must have joined an eventId (room) before accepting a message
+    // Client must have joined an even room
     if (!eventId) {
       client.disconnect();
       return null;
     }
+    const id = randomUUID();
+    const sentAt = new Date();
+
+    // Emit immediately (realtime first)
     this.server.to(`event:${eventId}`).emit('message', {
+      id,
       eventId,
       text: body.text,
-      sentAt: new Date().toISOString(),
+      sentAt: sentAt.toISOString(),
       userId: client.data.userId,
       userName: client.data.userName,
       avatarKey: client.data.userAvatarKey,
-      id: randomUUID(),
+    });
+
+    // Persist asynchronously (durability second)
+    this.chatService.save({
+      id,
+      eventId,
+      authorId: client.data.userId,
+      text: body.text,
+      sentAt,
     });
   }
 }

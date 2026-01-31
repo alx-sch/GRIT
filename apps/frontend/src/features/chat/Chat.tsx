@@ -12,7 +12,7 @@ export const Chat = ({ event }: { event: EventBase }) => {
 
   return (
     <>
-      <ScrollArea className="h-[300px] border px-4 border-input mt-4 mb-4 flex">
+      <ScrollArea className="h-75 border px-4 border-input mt-4 mb-4 flex">
         {messages.map((message) => (
           <ChatBubble key={message.id} message={message} />
         ))}

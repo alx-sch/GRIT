@@ -10,16 +10,18 @@ datasource db {
 // User can attend events
 // User can add locations
 model User {
-  id          Int         @id @default(autoincrement())
-  createdAt   DateTime    @default(now())
-  email       String      @unique
-  password    String
-  name        String?
-  avatarKey   String?
+  id            Int         @id @default(autoincrement())
+  createdAt     DateTime    @default(now())
+  email         String      @unique
+  password      String
+  name          String?
+  avatarKey     String?
 
-  events      Event[]     @relation("EventAuthor")
-  attending   Event[]     @relation("EventAttendees")
-  location    Location[]
+  events        Event[]     @relation("EventAuthor")
+  attending     Event[]     @relation("EventAttendees")
+  location      Location[]
+
+  chatMessages  ChatMessage[]
 }
 
 // Location has a creator
@@ -41,35 +43,37 @@ model Location {
 // Event can have attending users
 // Event can have a location
 model Event {
-  id          Int         @id @default(autoincrement())
-  createdAt   DateTime    @default(now())
-  content     String?
-  endAt       DateTime
-  isPublic    Boolean     @default(true)
-  isPublished Boolean     @default(false)
-  startAt     DateTime
-  title       String
-  imageKey    String?
+  id            Int         @id @default(autoincrement())
+  createdAt     DateTime    @default(now())
+  content       String?
+  endAt         DateTime
+  isPublic      Boolean     @default(true)
+  isPublished   Boolean     @default(false)
+  startAt       DateTime
+  title         String
+  imageKey      String?
 
-  author      User       @relation("EventAuthor", fields: [authorId], references: [id])
-  authorId    Int
+  author        User       @relation("EventAuthor", fields: [authorId], references: [id])
+  authorId      Int
 
-  attending   User[]      @relation("EventAttendees")
+  attending     User[]      @relation("EventAttendees")
 
-  locationId  Int?
-  location    Location?   @relation(fields: [locationId], references: [id])
+  locationId    Int?
+  location      Location?   @relation(fields: [locationId], references: [id])
+
+  chatMessages  ChatMessage[]
 }
 
 model ChatMessage {
-  id          String      @id
-  eventId     Int
-  authorId    Int
-  text        String
-  sentAt      DateTime
-  createdAt   DateTime    @default(now())
+  id            String      @id
+  eventId       Int
+  authorId      Int
+  text          String
+  sentAt        DateTime
+  createdAt     DateTime    @default(now())
 
-  author      User        @relation(fields: [authorId], references: [id])
-  event       Event       @relation(fields: [eventId], references: [id])
+  author        User        @relation(fields: [authorId], references: [id])
+  event         Event       @relation(fields: [eventId], references: [id])
 
   @@index([eventId, createdAt])
 }

@@ -1,10 +1,10 @@
-import type { ChatMessage } from '@grit/schema';
+import type { ResChatMessage } from '@grit/schema';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getAvatarImageUrl } from '@/lib/image_utils';
 import { timestampToLocalTime } from '@/lib/time_utils';
 
-export const ChatBubble = ({ message }: { message: ChatMessage }) => {
+export const ChatBubble = ({ message }: { message: ResChatMessage }) => {
   const currentUser = useCurrentUserStore((s) => s.user);
   const isFromCurrentUser = currentUser?.id === message.userId;
   const align = isFromCurrentUser ? 'justify-end' : 'justify-start';
