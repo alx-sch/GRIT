@@ -60,10 +60,10 @@ export class AuthService {
     return env.NODE_ENV === 'production';
   }
 
-  // For Sockets we cannot use the AuthGuard decorator so need a manual verify Token function
-  async verifyToken(token: string): Promise<number | null> {
+  // For Sockets we cannot use the AuthGuard decorator so we need a manual verify Token function
+  verifyToken(token: string): number | null {
     try {
-      const payload = this.jwtService.verify(token) as { sub: number };
+      const payload = this.jwtService.verify<{ sub: number }>(token);
       return payload.sub;
     } catch {
       return null;

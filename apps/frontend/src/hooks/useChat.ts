@@ -29,6 +29,10 @@ export function useChat(eventId: number) {
       setMessages((prev) => [...prev, msg]);
     });
 
+    socket.on('history', (msgs: ResChatMessage[]) => {
+      setMessages((prev) => [...msgs, ...prev]);
+    });
+
     return () => {
       socket.disconnect();
     };

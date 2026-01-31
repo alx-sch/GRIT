@@ -10,7 +10,8 @@ import { Server, Socket } from 'socket.io';
 import { UserService } from '@/user/user.service';
 import { ChatService } from '@/chat/chat.service';
 import { randomUUID } from 'crypto';
-import { ReqChatMessagePostDto, ReqChatJoinSchemaDto, IntChatMessageDto } from '@/chat/chat.schema';
+import { ReqChatMessagePostDto, ReqChatJoinSchemaDto } from '@/chat/chat.schema';
+import { ResChatMessageSchema } from '@grit/schema';
 
 // TODO Need to add validation
 
@@ -34,7 +35,7 @@ export class ChatGateway {
       const token = socket.handshake.auth?.token;
       if (!token) return next(new Error('Unauthorized'));
 
-      const userId = await this.authService.verifyToken(token);
+      const userId = this.authService.verifyToken(token);
       if (!userId) return next(new Error('Unauthorized'));
 
       const user = await this.userService.userGetById(userId);
@@ -62,6 +63,12 @@ export class ChatGateway {
     client.join(`event:${body.eventId}`);
     // We lock down which room (eventId) this socket belongs to
     client.data.eventId = body.eventId;
+
+    // Get message histroy to prefill chat
+    const rows = await this.chatService.loadRecentForEvent(body.eventId);
+    // Serialization in Websocket context
+    const history = rows.map((row) => ResChatMessageSchema.parse(row));
+    client.emit('history', history);
   }
 
   // The client sends XYZ and we handle it with handleXYZ, this could be named anything
@@ -81,10 +88,12 @@ export class ChatGateway {
       id,
       eventId,
       text: body.text,
-      sentAt: sentAt.toISOString(),
-      userId: client.data.userId,
-      userName: client.data.userName,
-      avatarKey: client.data.userAvatarKey,
+      sentAt,
+      author: {
+        id: client.data.userId,
+        name: client.data.userName,
+        avatarKey: client.data.userAvatarKey,
+      },
     });
 
     // Persist asynchronously (durability second)

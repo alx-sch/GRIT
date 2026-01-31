@@ -7,13 +7,15 @@ export const ReqChatMessagePostSchema = z.object({
 
 // Chat Message sent from server
 export const ResChatMessageSchema = z.object({
-  eventId: z.number(),
+  id: z.uuid(),
+  eventId: z.number().int().positive(),
   text: z.string(),
-  sentAt: z.iso.datetime(),
-  userId: z.number(),
-  userName: z.string(),
-  avatarKey: z.string(),
-  id: z.string(),
+  sentAt: z.date(),
+  author: z.object({
+    id: z.number().int().positive(),
+    name: z.string().optional(),
+    avatarKey: z.string().optional(),
+  }),
 });
 export type ResChatMessage = z.infer<typeof ResChatMessageSchema>;
 

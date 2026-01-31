@@ -19,4 +19,21 @@ export class ChatService {
       update: {},
     });
   }
+
+  async loadRecentForEvent(eventId: number, limit = 50) {
+    return this.prisma.chatMessage.findMany({
+      where: { eventId },
+      orderBy: [{ sentAt: 'asc' }, { id: 'asc' }],
+      take: limit,
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            avatarKey: true,
+          },
+        },
+      },
+    });
+  }
 }
