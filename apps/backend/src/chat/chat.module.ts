@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ChatGateway } from '@/chat/chat.gateway';
 import { AuthModule } from '@/auth/auth.module';
 import { UserModule } from '@/user/user.module';
-import { ChatService } from './chat.service';
+import { ChatService } from '@/chat/chat.service';
 
 @Module({
   imports: [AuthModule, UserModule],

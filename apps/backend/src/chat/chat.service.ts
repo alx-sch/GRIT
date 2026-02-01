@@ -20,7 +20,7 @@ export class ChatService {
     });
   }
 
-  async loadRecentForEvent(eventId: number, limit = 50) {
+  async loadRecentForEvent(eventId: number, limit = 50, cursor?: { sentAt: Date; id: string }) {
     return this.prisma.chatMessage.findMany({
       where: { eventId },
       orderBy: [{ sentAt: 'asc' }, { id: 'asc' }],
