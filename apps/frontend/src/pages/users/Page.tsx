@@ -7,22 +7,27 @@ import { Heading, Text } from '@/components/ui/typography';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User } from '@/types/user';
+import { UserResponse } from '@/types/user';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 
-export const usersLoader = async ({ request }: LoaderFunctionArgs) => {
+export const usersLoader = async ({ request }: LoaderFunctionArgs): Promise<UserResponse> => {
+  const url = new URL(request.url);
+  const limit = url.searchParams.get('limit') ?? undefined;
+  const cursor = url.searchParams.get('cursor') ?? undefined;
+
   console.log(request); //we can use this to fitler or smth
-  return userService.getUsers();
+
+  return userService.getUsers({ limit, cursor });
 };
 
 export default function Users() {
-  const users = useTypedLoaderData<User[]>();
+  const users = useTypedLoaderData<UserResponse>();
 
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredUsers = useMemo(() => {
-    if (!searchTerm) return users;
-    return users.filter((user) => user.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    if (!searchTerm) return users.data;
+    return users.data.filter((user) => user.name.toLowerCase().includes(searchTerm.toLowerCase()));
   }, [users, searchTerm]);
 
   return (

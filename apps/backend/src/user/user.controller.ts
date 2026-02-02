@@ -1,6 +1,7 @@
 import { ResUserAttendSchema, ReqUserAttendDto } from './user.schema';
 import {
   Body,
+  Query,
   Controller,
   Get,
   Post,
@@ -18,6 +19,8 @@ import {
   ResUserPostDto,
   ReqUserPostDto,
   ResUserEventsDto,
+  ReqUserGetAllDto,
+  ResUserGetAllSchema,
 } from '@/user/user.schema';
 import { UserService } from '@/user/user.service';
 import { ZodSerializerDto } from 'nestjs-zod';
@@ -31,9 +34,9 @@ export class UserController {
 
   // Get all users
   @Get()
-  @ZodSerializerDto([ResUserBaseDto])
-  userGetAll() {
-    return this.userService.userGet();
+  @ZodSerializerDto(ResUserGetAllSchema)
+  userGetAll(@Query() query: ReqUserGetAllDto) {
+    return this.userService.userGet(query);
   }
 
   // Create new user

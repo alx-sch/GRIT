@@ -1,6 +1,3 @@
-import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
 import { env } from '@/config/env';
 import {
   CreateBucketCommand,
@@ -9,9 +6,12 @@ import {
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { Pool } from 'pg';
 import * as bcrypt from 'bcrypt';
 
 // Setup the Postgres connection
@@ -141,7 +141,7 @@ async function main() {
     // Create User in DB
     const user = await prisma.user.upsert({
       where: { email: u.email },
-      update: {},
+      update: { name: u.name, password: hashedPassword },
       create: { email: u.email, name: u.name, password: hashedPassword },
     });
     console.log(`👤 Processed User: ${user.name ?? 'Unknown'} (${String(user.id)})`);
@@ -189,6 +189,15 @@ async function main() {
       authorId: alice.id,
       isPublic: true,
     },
+    {
+      name: 'Super Cool Event Space',
+      city: 'Berlin',
+      country: 'Germany',
+      longitude: 13.45177,
+      latitude: 52.49677,
+      authorId: alice.id,
+      isPublic: true,
+    },
   ];
 
   let gritHqId = 0;
@@ -203,7 +212,7 @@ async function main() {
         data: loc,
       });
       console.log(`📍 Created Location: ${createdLoc.name ?? 'Unknown Location'} `);
-      gritHqId = createdLoc.id;
+      if (loc.name === 'GRIT HQ') gritHqId = createdLoc.id;
     } else {
       console.log(`⏩ Location '${loc.name}' already exists. Skipping.`);
       gritHqId = existing.id;
@@ -244,8 +253,8 @@ async function main() {
       content: 'We’re all mad here!',
       isPublic: true,
       isPublished: true,
-      startAt: new Date('2027-02-15T10:00:00Z'),
-      endAt: new Date('2027-02-15T12:00:00Z'),
+      startAt: new Date('2026-02-15T10:00:00Z'),
+      endAt: new Date('2026-02-15T12:00:00Z'),
       image: null as string | null,
     },
   ];

@@ -103,19 +103,26 @@ init-env:
 
 # -- INSTALLATION TARGETS --
 
+# Build shared schema packages
+build-schema:
+	@echo "$(BOLD)$(YELLOW)--- Building Shared Schema...$(RESET)"
+	@pnpm install
+	@pnpm --filter @grit/schema build
+	@echo "$(BOLD)$(GREEN)Shared Schema build complete.$(RESET)"
+
 # Installs all dependencies
 install: install-be install-fe
 	@echo "$(BOLD)$(GREEN)All dependencies installed.$(RESET)"
 
 # Installs only Backend dependencies (incl. Prisma)
-install-be:
+install-be: build-schema
 	@echo "$(BOLD)$(YELLOW)--- Installing Backend Dependencies...$(RESET)"
 	@pnpm --filter @grit/backend install
 	@pnpm --filter @grit/backend exec prisma generate --no-hints
 	@echo "$(BOLD)$(GREEN)Backend dependencies installed.$(RESET)"
 
 # Installs only Frontend dependencies
-install-fe:
+install-fe: build-schema
 	@echo "$(BOLD)$(YELLOW)--- Installing Frontend Dependencies...$(RESET)"
 	@pnpm --filter @grit/frontend install
 	@echo "$(BOLD)$(GREEN)Frontend dependencies installed.$(RESET)"
@@ -295,17 +302,17 @@ test-fe-e2e: install-fe
 dev: check-env stop-dev-processes kill-port-be kill-port-fe install db
 	@echo "$(BOLD)$(YELLOW)--- Starting Backend & Frontend [DEV]...$(RESET)"
 	@rm -rf /tmp/turbod/*
-	turbo dev --no-update-notifier 2>/dev/null
+	@turbo dev --no-update-notifier 2>/dev/null
 
 # Run only Backend with DB check; NEST clears terminal before printing
 dev-be: check-env kill-port-be db
 	@echo "$(BOLD)$(GREEN)--- Starting BACKEND (API) ---$(RESET)"
-	turbo --filter @grit/backend dev --no-update-notifier
+	@turbo --filter @grit/backend dev --no-update-notifier
 
 # Run only Frontend
 dev-fe: check-env kill-port-fe install-fe
 	@echo "$(BOLD)$(GREEN)--- Starting FRONTEND (UI) ---$(RESET)"
-	turbo --filter @grit/frontend dev --no-update-notifier
+	@turbo --filter @grit/frontend dev --no-update-notifier
 
 ###########################
 ## 📁 DATABASE & STORAGE ##
@@ -524,6 +531,7 @@ stop:
 		build \
 		build-be \
 		build-fe \
+		build-schema \
 		check-env \
 		clean \
 		clean-backup \
