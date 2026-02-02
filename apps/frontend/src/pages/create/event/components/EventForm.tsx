@@ -12,7 +12,7 @@ import { LocationBase } from '@/types/location';
 import { CreateEventSchema } from '@grit/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { isAxiosError } from 'axios';
-import { AlertCircleIcon } from 'lucide-react';
+import { AlertCircleIcon, PlusIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Control, Controller, SubmitHandler, useForm, useWatch } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -319,6 +319,7 @@ export default function EventForm({ locations }: EventFormProps) {
                 emptyMessage="No location found"
                 className="bg-secondary text-secondary-foreground text-sm md:text-base justify-center text-center"
                 showSelectedTick={true}
+                footer={<Button variant="ghost" className='w-full justify-start'> <PlusIcon/>Add New Location</Button>}
               />
             </div>
           )}

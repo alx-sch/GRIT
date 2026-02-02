@@ -29,6 +29,7 @@ export interface ComboboxProps {
   emptyMessage?: string;
   className?: string;
   showSelectedTick?: boolean;
+  footer?: React.ReactNode;
 }
 
 export function Combobox({
@@ -40,6 +41,7 @@ export function Combobox({
   emptyMessage,
   className,
   showSelectedTick = false,
+  footer,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -83,6 +85,7 @@ export function Combobox({
               ))}
             </CommandGroup>
           </CommandList>
+          {footer && <div className='border-t'>{footer}</div>}
         </Command>
       </PopoverContent>
     </Popover>
