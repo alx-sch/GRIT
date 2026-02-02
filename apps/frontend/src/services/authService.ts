@@ -1,11 +1,16 @@
 import api from '@/lib/api';
 import { ResAuthLoginInput, ResAuthMeInput } from '@/types/auth';
-import { LoginInput } from '@grit/schema';
+import { LoginInput, RegisterInput } from '@grit/schema';
 
 export const authService = {
   login: async (reqBody: LoginInput): Promise<ResAuthLoginInput> => {
     console.log('trying with', reqBody);
     const response = await api.post<ResAuthLoginInput>('/auth/login', reqBody);
+    return response.data;
+  },
+
+  register: async (reqBody: RegisterInput): Promise<ResAuthLoginInput> => {
+    const response = await api.post<ResAuthLoginInput>('/auth/register', reqBody);
     return response.data;
   },
 

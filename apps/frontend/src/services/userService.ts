@@ -17,4 +17,8 @@ export const userService = {
     const response = await api.get<UserResponse>(url);
     return response.data;
   },
+  getMe: async (): Promise<User> => {
+    const response = await api.get<User>('/users/me');
+    return response.data;
+  },
 };

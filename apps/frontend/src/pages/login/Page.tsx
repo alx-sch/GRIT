@@ -1,3 +1,10 @@
+import { Field, FieldGroup, FieldLabel, FieldSet, FieldError } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Form, redirect, useNavigation, useActionData, Link } from 'react-router-dom';
+import { useAuthStore } from '@/store/authStore';
+import { useCurrentUserStore } from '@/store/currentUserStore';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Field, FieldGroup, FieldLabel, FieldSet } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -6,6 +13,22 @@ import { authService } from '@/services/authService';
 import { useAuthStore } from '@/store/authStore';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import { ActionFormError } from '@/types/actionFormError';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import z from 'zod';
+import { LoginSchema } from '@grit/schema';
+import type { LoginInput } from '@grit/schema';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { AlertCircle, Eye, EyeOff } from 'lucide-react';
 import type { LoginInput } from '@grit/schema';
 import { LoginSchema } from '@grit/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -43,7 +66,7 @@ export async function loginPageAction({ request }: { request: Request }) {
   } catch (err) {
     if (axios.isAxiosError(err))
       if (err.response?.status === 401)
-        return { formErrors: ['Invalid credentials'] } satisfies ActionFormError;
+        return { formErrors: ['Invalid email or password'] } satisfies ActionFormError;
     throw err; // other errors are rethrown to react routers error boundary
   }
 }
@@ -65,13 +88,15 @@ export const LoginPage = () => {
     resolver: zodResolver(LoginSchema),
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+
   /**
    * ERROR HANDLING FOR FORM SUBMISSIONS
    */
   // Get data from form submission action
   const actionData = useActionData<ActionFormError | undefined>();
 
-  // FORM validation errors appear as toasts
+  // FORM validation errors appear as toasts (or alert)
   useEffect(() => {
     actionData?.formErrors?.forEach((err) => {
       toast.error(err);
@@ -95,48 +120,86 @@ export const LoginPage = () => {
   const isSubmitting = navigation.state === 'submitting';
 
   return (
-    <>
-      <div className="space-y-2">
-        <Heading level={1}>Login</Heading>
-      </div>
+    <div className="flex items-center justify-center min-h-[calc(100vh-200px)] py-12">
+      <Card className="w-full max-w-md mx-4 sm:mx-auto">
+        <CardHeader>
+          <CardTitle className="text-2xl">Login</CardTitle>
+          <CardDescription>Enter your email and password to access your account.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form
+            method="post"
+            noValidate
+            onSubmit={() => {
+              clearErrors();
+            }}
+            className="space-y-4"
+          >
+            {actionData?.formErrors && actionData.formErrors.length > 0 && (
+              <div className="flex items-center gap-3 p-3 text-sm border rounded-md bg-destructive/15 text-destructive border-destructive/50">
+                <AlertCircle className="w-4 h-4" />
+                <div className="flex-1">
+                  {actionData.formErrors.map((err, i) => (
+                    <div key={i}>{err}</div>
+                  ))}
+                </div>
+              </div>
+            )}
 
-      <div className="w-full max-w-md mt-4">
-        <Form
-          method="post"
-          onSubmit={() => {
-            clearErrors();
-          }}
-        >
-          <FieldSet>
-            <FieldGroup>
-              <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
-                <Input id="email" type="email" autoComplete="email" {...register('email')} />
-                {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
-              </Field>
+            <FieldSet>
+              <FieldGroup>
+                <Field>
+                  <FieldLabel htmlFor="email">Email</FieldLabel>
+                  <Input
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="Enter your email..."
+                    error={!!errors.email}
+                    {...register('email')}
+                  />
+                  <FieldError errors={[errors.email]} />
+                </Field>
 
-              <Field>
-                <FieldLabel htmlFor="password">Password</FieldLabel>
-                <Input
-                  id="password"
-                  type="password"
-                  autoComplete="current-password"
-                  {...register('password')}
-                />
-                {errors.password && (
-                  <p className="text-red-500 text-sm">{errors.password.message}</p>
-                )}
-              </Field>
+                <Field>
+                  <FieldLabel htmlFor="password">Password</FieldLabel>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete="current-password"
+                      error={!!errors.password}
+                      {...register('password')}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowPassword(!showPassword);
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  <FieldError errors={[errors.password]} />
+                </Field>
 
-              <Field orientation="horizontal">
-                <Button disabled={isSubmitting} type="submit">
-                  {isSubmitting ? 'Logging in' : 'Login'}
+                <Button disabled={isSubmitting} type="submit" className="w-full">
+                  {isSubmitting ? 'Logging in...' : 'Login'}
                 </Button>
-              </Field>
-            </FieldGroup>
-          </FieldSet>
-        </Form>
-      </div>
-    </>
+              </FieldGroup>
+            </FieldSet>
+          </Form>
+        </CardContent>
+        <CardFooter className="flex justify-center">
+          <p className="text-sm text-muted-foreground">
+            Don't have an account?{' '}
+            <Link to="/register" className="font-semibold text-primary hover:underline">
+              Register
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
+    </div>
   );
 };

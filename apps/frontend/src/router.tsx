@@ -8,6 +8,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import { DefaultLayout } from '@/components/layout/DefaultLayout';
 import { eventCreationLoader } from '@/pages/create/event/Page';
 import { LoginPage, loginPageAction, loginPageLoader } from '@/pages/login/Page';
+import { RegisterPage, registerPageAction, registerPageLoader } from '@/pages/register/Page';
 import type { NavRoute } from './types/navroute';
 import { LogoutPage, logoutPageLoader } from './pages/logout/Page';
 import { ProtectedLayout, protectedLayoutLoader } from './components/layout/ProtectedLayout';
@@ -54,6 +55,12 @@ export const router = createBrowserRouter([
         Component: LoginPage,
         action: loginPageAction,
         loader: loginPageLoader,
+      },
+      {
+        path: 'register',
+        Component: RegisterPage,
+        action: registerPageAction,
+        loader: registerPageLoader,
       },
       {
         path: 'logout',
