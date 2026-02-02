@@ -1,23 +1,25 @@
+import { Button } from '@/components/ui/button';
 import {
   Card,
-  CardHeader,
-  CardFooter,
-  CardTitle,
-  CardDescription,
   CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/typography';
 import { EventBase } from '@/types/event';
 import { getEventImageUrl } from '@/lib/image_utils';
-import { User } from 'lucide-react';
+import { LocationBase } from '@/types/location';
 import { format } from 'date-fns';
+import { User } from 'lucide-react';
 
 interface EventCardProps {
   event: EventBase;
+  location?: LocationBase;
 }
 
-export function EventCard({ event }: EventCardProps) {
+export function EventCard({ event, location }: EventCardProps) {
   return (
     <Card className="w-full flex flex-col rounded border-3 mx-auto hover:-translate-y-1 transition-transform duration-200 max-w-100">
       <CardHeader>
@@ -32,7 +34,7 @@ export function EventCard({ event }: EventCardProps) {
           {event.title}
         </CardTitle>
         <CardDescription className="font-heading font-medium text-xl">
-          {format(event.startAt, 'EEE, MMM d')} @ {event.location?.name ?? 'TBA'}
+          {format(event.startAt, 'EEE, MMM d')} @ {location?.name ?? 'TBA'}
         </CardDescription>
         <div className="flex items-center gap-2 text-base font-normal text-muted-foreground">
           <User className="h-5 w-5 text-primary" strokeWidth={2} />

@@ -6,11 +6,12 @@ import ErrorPage from '@/pages/error/Page';
 import EventFeed from '@/pages/events/Page';
 import { createBrowserRouter } from 'react-router-dom';
 import { DefaultLayout } from '@/components/layout/DefaultLayout';
+import { eventCreationLoader } from '@/pages/create/event/Page';
 import { LoginPage, loginPageAction, loginPageLoader } from '@/pages/login/Page';
 import type { NavRoute } from './types/navroute';
 import { LogoutPage, logoutPageLoader } from './pages/logout/Page';
 import { ProtectedLayout, protectedLayoutLoader } from './components/layout/ProtectedLayout';
-import { CreateEventPage } from './pages/create/event/Page';
+import CreateEventPage from './pages/create/event/Page';
 
 // NOTE: let's define single source of truth for our routes here
 export const baseNavConfig: NavRoute[] = [
@@ -18,6 +19,7 @@ export const baseNavConfig: NavRoute[] = [
   { path: '/design', label: 'Design' },
   { path: '/users', label: 'Users' },
   { path: '/events', label: 'Events' },
+  { path: '/create/event', label: 'Add Event' },
 ] as const;
 
 export const router = createBrowserRouter([
@@ -66,6 +68,7 @@ export const router = createBrowserRouter([
           {
             path: 'event',
             Component: CreateEventPage,
+            loader: eventCreationLoader,
           },
         ],
       },
