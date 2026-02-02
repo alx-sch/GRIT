@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import {z} from 'zod';
 
 // Shared Port Schema
 export const sharedPortsSchema = z.object({
@@ -19,7 +19,8 @@ export const AUTH_CONFIG = {
 export const LoginSchema = z.object({
   email: z.string('Please enter a valid email address'),
   password: z.string().min(AUTH_CONFIG.PASSWORD_MIN_LENGTH, {
-    message: `Password must be at least ${AUTH_CONFIG.PASSWORD_MIN_LENGTH} characters`,
+    message: `Password must be at least ${
+        AUTH_CONFIG.PASSWORD_MIN_LENGTH} characters`,
   }),
 });
 
@@ -32,19 +33,17 @@ export const EVENT_CONFIG = {
   CONTENT_MAX_LENGTH: 2000,
 };
 
-//Shared event schema for creating an event
+// Shared event schema for creating an event
 export const CreateEventSchema = z.object({
   isPublic: z.boolean(),
   isPublished: z.boolean(),
-  title: z
-    .string()
-    .min(EVENT_CONFIG.TITLE_MIN_LENGTH, 'Name is required')
-    .max(
-      EVENT_CONFIG.TITLE_MAX_LENGTH,
-      `Name must be at most ${EVENT_CONFIG.TITLE_MAX_LENGTH} characters
-  long`
-    )
-    .trim(),
+  title:
+      z.string()
+          .min(EVENT_CONFIG.TITLE_MIN_LENGTH, 'Name is required')
+          .max(
+              EVENT_CONFIG.TITLE_MAX_LENGTH,
+              `Name must be at most ${EVENT_CONFIG.TITLE_MAX_LENGTH} characters
+  long`).trim(),
   content: z.string().max(EVENT_CONFIG.CONTENT_MAX_LENGTH).optional(),
   startAt: z.iso.datetime(),
   endAt: z.iso.datetime(),
@@ -53,3 +52,27 @@ export const CreateEventSchema = z.object({
 });
 
 export type CreateEventInput = z.infer<typeof CreateEventSchema>;
+
+// Shared Location rules
+export const LOCATION_CONFIG = {
+  NAME_MIN_LENGTH: 1,
+  NAME_MAX_LENGTH: 100,
+}
+
+// Shared location schema for creating a location
+export const CreateLocationSchema = z.object({
+  name: z.string()
+            .min(LOCATION_CONFIG.NAME_MIN_LENGTH, 'Name is required')
+            .max(
+                LOCATION_CONFIG.NAME_MAX_LENGTH,
+                `Name must be at most ${
+                    LOCATION_CONFIG.NAME_MAX_LENGTH} characters long`),
+  city: z.string().optional(),
+  country: z.string().optional(),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  isPublic: z.boolean().optional(),
+  address: z.string().optional(),
+})
+
+export type CreateLocationInput = z.infer<typeof CreateLocationSchema>;

@@ -11,6 +11,7 @@ import { LocationService } from '@/location/location.service';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { GetUser } from '@/auth/guards/get-user.decorator';
 
 @Controller('locations')
 export class LocationController {
@@ -28,8 +29,8 @@ export class LocationController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResLocationPostSchema)
-  locationPost(@Body() data: ReqLocationPostDto) {
-    return this.locationService.locationPost(data);
+  locationPost(@Body() data: ReqLocationPostDto, @GetUser('id') userId: number) {
+    return this.locationService.locationPost({...data, authorId: userId});
   }
 
   // Delete a location

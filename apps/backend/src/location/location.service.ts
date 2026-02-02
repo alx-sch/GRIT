@@ -37,7 +37,7 @@ export class LocationService {
     };
   }
 
-  locationPost(data: ReqLocationPostDto) {
+  locationPost(data: ReqLocationPostDto & { authorId: number }) {
     return this.prisma.location.create({
       data: {
         name: data.name,
@@ -46,6 +46,7 @@ export class LocationService {
         longitude: data.longitude,
         latitude: data.latitude,
         isPublic: data.isPublic,
+		address: data.address,
         author: {
           connect: { id: data.authorId },
         },

@@ -16,5 +16,6 @@ export interface LocationBase {
   longitude: number;
   latitude: number;
   isPublic: boolean;
+  address?: string;
   events: EventBase[];
 }

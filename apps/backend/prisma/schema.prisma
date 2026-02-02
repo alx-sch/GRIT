@@ -40,6 +40,7 @@ model Location {
   longitude   Float
   latitude    Float
   isPublic    Boolean     @default(false)
+  address	  String?
   events      Event[]
 }
 
