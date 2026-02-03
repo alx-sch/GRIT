@@ -1,17 +1,17 @@
-import { Query, Body, Controller, Get, Post, Delete, Param, UseGuards } from '@nestjs/common';
+import { GetUser } from '@/auth/guards/get-user.decorator';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import {
-  ReqLocationPostDto,
-  ResLocationPostSchema,
-  ReqLocationGetAllDto,
-  ResLocationGetAllSchema,
-  ResLocationDeleteSchema,
   ReqLocationDeleteDto,
+  ReqLocationGetAllDto,
+  ReqLocationPostDto,
+  ResLocationDeleteSchema,
+  ResLocationGetAllSchema,
+  ResLocationPostSchema,
 } from '@/location/location.schema';
 import { LocationService } from '@/location/location.service';
-import { ZodSerializerDto } from 'nestjs-zod';
+import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
-import { GetUser } from '@/auth/guards/get-user.decorator';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('locations')
 export class LocationController {
@@ -30,7 +30,7 @@ export class LocationController {
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResLocationPostSchema)
   locationPost(@Body() data: ReqLocationPostDto, @GetUser('id') userId: number) {
-    return this.locationService.locationPost({...data, authorId: userId});
+    return this.locationService.locationPost(Object.assign(data, { authorId: userId }));
   }
 
   // Delete a location

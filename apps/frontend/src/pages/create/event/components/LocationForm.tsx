@@ -3,14 +3,29 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/typography';
+import { useDebounce } from '@/hooks/useDebounce';
 import { locationService } from '@/services/locationService';
 import { LocationBase } from '@/types/location';
 import { CreateLocationInput, CreateLocationSchema } from '@grit/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { isAxiosError } from 'axios';
 import { AlertCircleIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Controller, SubmitHandler, useForm } from 'react-hook-form';
+import { useEffect } from 'react';
+import { Control, Controller, SubmitHandler, useForm, useWatch } from 'react-hook-form';
+
+//Key for local Storage
+const DRAFT_KEY = 'location-draft';
+//Component to auto-sav draft to localStorage
+function DraftSaver({ control }: { control: Control<CreateLocationInput> }) {
+  const formValues = useWatch({ control });
+  const debouncedFormValues = useDebounce(formValues, 1000);
+  useEffect(() => {
+    if (debouncedFormValues.name) {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(debouncedFormValues));
+    }
+  }, [debouncedFormValues]);
+  return null;
+}
 
 interface LocationFormProps {
   onSuccess: (location: LocationBase) => void;
@@ -25,19 +40,33 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
     setValue,
     control,
     setError,
-    formState: { errors, isSubmitting, submitCount },
+    formState: { errors, isSubmitting },
   } = useForm<CreateLocationInput>({
     resolver: zodResolver(CreateLocationSchema),
     defaultValues: {
       name: '',
       city: '',
       country: '',
-      latitude: 52.520008,
-      longitude: 13.404954,
+      latitude: 52.45,
+      longitude: 13.34,
       isPublic: undefined,
       address: '',
     },
   });
+
+  //Restore draft if exists
+  useEffect(() => {
+    const saved = localStorage.getItem(DRAFT_KEY);
+    if (saved) {
+      const draft = JSON.parse(saved) as Record<string, unknown>;
+      for (const [key, value] of Object.entries(draft)) {
+        setValue(
+          key as keyof CreateLocationInput,
+          value as CreateLocationInput[keyof CreateLocationInput]
+        );
+      }
+    }
+  }, [setValue]);
 
   const onSubmit: SubmitHandler<CreateLocationInput> = async (data) => {
     console.log('on submit call');
@@ -50,13 +79,14 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
         name: data.name,
         city: data.city,
         country: data.country,
-        latitude: Number(data.latitude),
-        longitude: Number(data.longitude),
+        latitude: data.latitude,
+        longitude: data.longitude,
         isPublic: data.isPublic,
         address: data.address,
       };
 
       const newLocation = await locationService.postLocation(payload);
+      localStorage.removeItem(DRAFT_KEY);
       onSuccess(newLocation);
     } catch (error) {
       let message = 'Something went wrong. Please try again.';
@@ -70,39 +100,6 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
     }
   };
 
-  //Auto-dimiss name error after 15 seconds
-  const [showNameError, setShowNameError] = useState(false);
-  const nameErrorMessage = errors.name?.message;
-
-  (useEffect(() => {
-    if (nameErrorMessage) {
-      setShowNameError(true);
-      const timer = setTimeout(() => {
-        setShowNameError(false);
-      }, 15000);
-      return () => {
-        clearTimeout(timer);
-      };
-    }
-  }),
-    [nameErrorMessage, submitCount]);
-
-  // Auto-dismiss root errors after 15 seconds
-  const [showRootError, setShowRootError] = useState(false);
-  const rootErrorMessage = errors.root?.message;
-
-  useEffect(() => {
-    if (rootErrorMessage) {
-      setShowRootError(true);
-      const timer = setTimeout(() => {
-        setShowRootError(false);
-      }, 15000);
-      return () => {
-        clearTimeout(timer);
-      };
-    }
-  }, [rootErrorMessage, submitCount]);
-
   return (
     <>
       <form
@@ -115,6 +112,7 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
         }}
         className="flex flex-col gap-4 h-full overflow-y-auto flex-1 px-1 pb-1"
       >
+        <DraftSaver control={control} />
         {/* Hidden Inputs: latitude and longitude */}
         <Input type="hidden" {...register('latitude')} />
         <Input type="hidden" {...register('longitude')} />
@@ -125,17 +123,16 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
             Name of the location{' '}
           </label>
           <Input
-            required
             id="name"
             type="text"
             aria-invalid={!!errors.name}
             {...register('name')}
             placeholder="e.g Berghain, My awesome flat, etc."
           />
-          {showNameError && nameErrorMessage && (
+          {errors.name?.message && (
             <Alert variant="destructive" className="self-start">
               <AlertCircleIcon className="h-4 w-4" />
-              <AlertTitle className="text-sm">{nameErrorMessage}</AlertTitle>
+              <AlertTitle className="text-sm">{errors.name.message}</AlertTitle>
             </Alert>
           )}
         </div>
@@ -187,7 +184,7 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
                   onClick={() => {
                     onChange(false);
                   }}
-                  className="font-sans text-sm py-2 md:py-3 px-3 md:px-6 flex-1 shadow-none rounded-r-none border-r-0"
+                  className="font-sans text-sm py-2 md:py-3 px-3 flex-1 shadow-none rounded-r-none border-r-0"
                 >
                   Private
                 </Button>
@@ -197,7 +194,7 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
                   onClick={() => {
                     onChange(true);
                   }}
-                  className="font-sans text-sm py-2 md:py-3 px-3 md:px-6 flex-1 shadow-none rounded-l-none border-l-0"
+                  className="font-sans text-sm py-2 md:py-3 px-3 flex-1 shadow-none rounded-l-none border-l-0"
                 >
                   Public
                 </Button>
@@ -206,10 +203,10 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
           />
         </fieldset>
 
-        {showRootError && rootErrorMessage && (
+        {errors.root?.message && (
           <Alert variant="destructive" className="mt-1.5">
             <AlertCircleIcon className="h-4 w-4" />
-            <AlertTitle className="text-sm">{rootErrorMessage}</AlertTitle>
+            <AlertTitle className="text-sm">{errors.root.message}</AlertTitle>
           </Alert>
         )}
 

@@ -85,7 +85,7 @@ export function Combobox({
               ))}
             </CommandGroup>
           </CommandList>
-          {footer && <div className='border-t'>{footer}</div>}
+          {footer && <div className="border-t">{footer}</div>}
         </Command>
       </PopoverContent>
     </Popover>

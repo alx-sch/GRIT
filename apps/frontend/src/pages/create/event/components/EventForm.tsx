@@ -330,7 +330,9 @@ export default function EventForm({ locations }: EventFormProps) {
                   footer={
                     <Button
                       type="button"
-                      onClick={() => setShowAddLocation(true)}
+                      onClick={() => {
+                        setShowAddLocation(true);
+                      }}
                       variant="ghost"
                       className="w-full justify-start text-1xl font-sans h-8"
                     >
@@ -395,7 +397,9 @@ export default function EventForm({ locations }: EventFormProps) {
               setValue('locationId', String(location.id));
               setShowAddLocation(false);
             }}
-            onCancel={() => setShowAddLocation(false)}
+            onCancel={() => {
+              setShowAddLocation(false);
+            }}
           />
         </SheetContent>
       </Sheet>

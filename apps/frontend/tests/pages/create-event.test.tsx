@@ -167,7 +167,7 @@ describe('Event Creation Page', () => {
 
       await waitFor(() => {
         const privateButton = screen.getByRole('button', { name: /private/i });
-        expect(privateButton).toHaveClass('border-5');
+        expect(privateButton).toHaveClass('bg-primary');
       });
     });
 
@@ -182,7 +182,7 @@ describe('Event Creation Page', () => {
       await user.click(publicButton);
 
       await waitFor(() => {
-        expect(publicButton).toHaveClass('border-5');
+        expect(publicButton).toHaveClass('bg-primary');
       });
     });
 
@@ -200,7 +200,7 @@ describe('Event Creation Page', () => {
       await user.click(privateButton);
 
       await waitFor(() => {
-        expect(privateButton).toHaveClass('border-5');
+        expect(privateButton).toHaveClass('bg-primary');
       });
     });
   });

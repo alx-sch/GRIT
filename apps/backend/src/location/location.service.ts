@@ -46,7 +46,7 @@ export class LocationService {
         longitude: data.longitude,
         latitude: data.latitude,
         isPublic: data.isPublic,
-		address: data.address,
+        address: data.address,
         author: {
           connect: { id: data.authorId },
         },

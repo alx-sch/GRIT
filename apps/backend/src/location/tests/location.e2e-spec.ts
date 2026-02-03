@@ -241,7 +241,6 @@ describe('Location E2E', () => {
     it('posts a new location', async () => {
       const newLocationData = {
         isPublic: true,
-        authorId: user.id,
         longitude: 42,
         latitude: 42,
         name: 'Test Location 2',
@@ -255,13 +254,13 @@ describe('Location E2E', () => {
 
       expect(res.body).toMatchObject({
         name: newLocationData.name,
+        authorId: user.id,
       });
     });
 
     it('returns 400 for bad request (longitude missing)', async () => {
       const newLocationData = {
         isPublic: true,
-        authorId: user.id,
         latitude: 42,
         name: 'Test Location 2',
       };
@@ -276,7 +275,6 @@ describe('Location E2E', () => {
     it('returns 401 for unauthorized access', async () => {
       const newLocationData = {
         isPublic: true,
-        authorId: user.id,
         latitude: 42,
         name: 'Test Location 2',
       };
