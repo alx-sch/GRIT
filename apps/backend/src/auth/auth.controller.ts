@@ -3,27 +3,46 @@ import {
   Get,
   Post,
   Body,
+  Query,
   Param,
   ParseIntPipe,
   ForbiddenException,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from '@/auth/auth.service';
-import { ResAuthMeDto, ResAuthLoginDto } from '@/auth/auth.schema';
+import {
+  ReqRegisterDto,
+  ResRegisterDto,
+  ReqConfirmEmailDto,
+  ReqLoginDto,
+  ResLoginDto,
+  ResLoginSchema,
+  ResAuthMeDto,
+} from '@/auth/auth.schema';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { GetUser } from '@/auth/guards/get-user.decorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { type LoginInput } from '@grit/schema';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Post('register')
+  @ZodSerializerDto(ResRegisterDto)
+  async register(@Body() data: ReqRegisterDto): Promise<ResRegisterDto> {
+    return this.authService.register(data);
+  }
+
+  @Get('confirm')
+  async confirm(@Query() query: ReqConfirmEmailDto) {
+    return this.authService.confirmEmail(query.token);
+  }
+
   @Post('login')
-  @ZodSerializerDto(ResAuthLoginDto)
-  async login(@Body() body: LoginInput) {
-    const user = await this.authService.validateUser(body);
+  @ZodSerializerDto(ResLoginSchema)
+  async login(@Body() data: ReqLoginDto) {
+    const user = await this.authService.validateUser(data);
     return this.authService.login(user);
   }
 
@@ -36,7 +55,7 @@ export class AuthController {
   }
 
   @Get('debug/token/:id')
-  @ZodSerializerDto(ResAuthLoginDto)
+  @ZodSerializerDto(ResLoginDto)
   async generateTestToken(@Param('id', ParseIntPipe) id: number) {
     if (this.authService.isProduction()) {
       throw new ForbiddenException('This debug route is disabled in production.');

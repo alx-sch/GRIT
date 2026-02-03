@@ -3,9 +3,10 @@ import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { EventModule } from '@/event/event.module';
+import { MailModule } from '@/mail/mail.module';
 
 @Module({
-  imports: [PrismaModule, EventModule],
+  imports: [PrismaModule, EventModule, MailModule],
   controllers: [UserController],
   providers: [UserService],
   exports: [UserService],

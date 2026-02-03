@@ -14,8 +14,8 @@ POST {{baseUrl}}/users
 Content-Type: application/json
 
 {
-	"name": "Thomas Test",
-	"email": "tester_v99@grit.comss",
+	"name": "Robert Test",
+	"email": "test@test.com",
 	"password": "password123"
 }
 ###

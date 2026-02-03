@@ -16,39 +16,42 @@ datasource db {
 // User can attend events
 // User can add locations
 model User {
-  id          Int         @id @default(autoincrement())
-  createdAt   DateTime    @default(now())
-  email       String      @unique
-  password    String
-  name        String?
-  avatarKey   String?
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  email     String   @unique
+  password  String
+  name      String?
+  avatarKey String?
 
-  events      Event[]     @relation("EventAuthor")
-  attending   Event[]     @relation("EventAttendees")
-  location    Location[]
+  isConfirmed       Boolean @default(false)
+  confirmationToken String? @unique
+
+  events    Event[]    @relation("EventAuthor")
+  attending Event[]    @relation("EventAttendees")
+  location  Location[]
 }
 
 // Location has a creator
 // Location can have events
 model Location {
-  id          Int         @id @default(autoincrement())
-  author      User        @relation(fields: [authorId], references: [id])
-  authorId    Int
-  name        String?
-  city        String?
-  country     String?
-  longitude   Float
-  latitude    Float
-  isPublic    Boolean     @default(false)
-  events      Event[]
+  id        Int     @id @default(autoincrement())
+  author    User    @relation(fields: [authorId], references: [id])
+  authorId  Int
+  name      String?
+  city      String?
+  country   String?
+  longitude Float
+  latitude  Float
+  isPublic  Boolean @default(false)
+  events    Event[]
 }
 
 // Event must have a creator
 // Event can have attending users
 // Event can have a location
 model Event {
-  id          Int         @id @default(autoincrement())
-  createdAt   DateTime    @default(now())
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
   content     String?
   endAt       DateTime
   isPublic    Boolean  @default(true)
@@ -57,11 +60,11 @@ model Event {
   title       String
   imageKey    String?
 
-  author      User       @relation("EventAuthor", fields: [authorId], references: [id])
-  authorId    Int
+  author   User @relation("EventAuthor", fields: [authorId], references: [id])
+  authorId Int
 
-  attending   User[]      @relation("EventAttendees")
+  attending User[] @relation("EventAttendees")
 
-  locationId  Int?
-  location    Location?   @relation(fields: [locationId], references: [id])
+  locationId Int?
+  location   Location? @relation(fields: [locationId], references: [id])
 }

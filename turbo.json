@@ -40,6 +40,12 @@
     "VITE_API_BASE_URL",
     "MINIO_USER",
     "MINIO_PASSWORD",
-    "JWT_SECRET"
+    "JWT_SECRET",
+    "MAIL_HOST",
+    "MAIL_PORT",
+    "MAIL_USER",
+    "MAIL_PASS",
+    "MAIL_FROM",
+    "FRONTEND_URL"
   ]
 }
