@@ -10,7 +10,7 @@ export const ResChatMessageSchema = z.object({
   id: z.uuid(),
   eventId: z.number().int().positive(),
   text: z.string(),
-  sentAt: z.date(),
+  createdAt: z.date(),
   author: z.object({
     id: z.number().int().positive(),
     name: z.string().optional(),

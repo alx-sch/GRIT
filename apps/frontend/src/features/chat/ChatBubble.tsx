@@ -23,7 +23,7 @@ export const ChatBubble = ({ message }: { message: ResChatMessage }) => {
               <div className="font-bold uppercase text-xs">{message.author.name}</div>
             )}
             {message.text}
-            <div className="text-right text-xs mt-1">{timestampToLocalTime(message.sentAt)}</div>
+            <div className="text-right text-xs mt-1">{timestampToLocalTime(message.createdAt)}</div>
           </div>
         </div>
       </div>

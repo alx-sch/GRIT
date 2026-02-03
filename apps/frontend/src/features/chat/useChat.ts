@@ -33,11 +33,6 @@ export function useChat(eventId: number) {
       setMessages((prev) => [...msgs, ...prev]);
     });
 
-    socket.on('history_more', (msgs: ResChatMessage[]) => {
-      console.log('received more');
-      setMessages((prev) => [...msgs, ...prev]);
-    });
-
     socket.on('history_end', () => {
       setHasMore(false);
     });
@@ -54,10 +49,10 @@ export function useChat(eventId: number) {
     });
   };
 
-  const loadMore = (cursor: { sentAt: string; id: string }) => {
+  const loadMore = (cursor: { createdAt: Date; id: string }) => {
     if (!hasMore) return;
     socketRef.current?.emit('load_more', {
-      cursorSentAt: cursor.sentAt,
+      cursorSentAt: cursor.createdAt,
       cursorId: cursor.id,
     });
   };

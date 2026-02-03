@@ -7,7 +7,6 @@ export const IntChatMessageSchema = z.object({
   eventId: z.number().int().positive(),
   authorId: z.number().int().positive(),
   text: z.string().min(1),
-  sentAt: z.date(),
 });
 export class IntChatMessageDto extends createZodDto(IntChatMessageSchema) {}
 

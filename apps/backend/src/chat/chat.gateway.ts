@@ -32,7 +32,7 @@ export class ChatGateway {
   // Middleware in which we make sure that we first enrich the socket data with user data before allowing anything else
   afterInit(server: Server) {
     server.use(async (socket, next) => {
-      const token = socket.handshake.auth?.token;
+      const token: string = socket.handshake.auth?.token;
       if (!token) return next(new Error('Unauthorized'));
 
       const userId = this.authService.verifyToken(token);
@@ -64,8 +64,8 @@ export class ChatGateway {
     // We lock down which room (eventId) this socket belongs to
     client.data.eventId = body.eventId;
 
-    // Get message histroy to prefill chat
-    const rows = await this.chatService.loadRecentForEvent(body.eventId);
+    // Get message history to prefill chat
+    const rows = await this.chatService.loadMessages(body.eventId);
     const messages = rows.reverse().map((row) => ResChatMessageSchema.parse(row));
     // Serialization in Websocket context
     const history = messages.map((message) => ResChatMessageSchema.parse(message));
@@ -75,34 +75,32 @@ export class ChatGateway {
   @SubscribeMessage('message')
   handleMessage(@MessageBody() body: ReqChatMessagePostDto, @ConnectedSocket() client: Socket) {
     const eventId = client.data.eventId;
-    // Client must have joined an even room
+    // Client must have joined an event room
     if (!eventId) {
       client.disconnect();
       return null;
     }
     const id = randomUUID();
-    const sentAt = new Date();
 
     // Emit immediately (realtime first)
     this.server.to(`event:${eventId}`).emit('message', {
       id,
       eventId,
       text: body.text,
-      sentAt,
       author: {
         id: client.data.userId,
         name: client.data.userName,
         avatarKey: client.data.userAvatarKey,
       },
+      createdAt: new Date(),
     });
 
     // Persist asynchronously (durability second)
-    this.chatService.save({
+    this.chatService.saveMessage({
       id,
       eventId,
       authorId: client.data.userId,
       text: body.text,
-      sentAt,
     });
   }
 
@@ -113,25 +111,18 @@ export class ChatGateway {
   ) {
     const eventId = client.data.eventId;
     if (!eventId) return null;
-    console.log('receive request for more');
 
-    const rows = await this.chatService.loadBeforeForEvent(
-      eventId,
-      {
-        sentAt: new Date(body.cursorSentAt),
-        id: body.cursorId,
-      },
-      2
-    );
+    const rows = await this.chatService.loadMessages(eventId, 2, {
+      createdAt: new Date(body.cursorSentAt),
+      id: body.cursorId,
+    });
 
     if (rows.length === 0) {
-      console.log('history end');
       client.emit('history_end');
       return;
     }
 
     const messages = rows.reverse().map((row) => ResChatMessageSchema.parse(row));
-
-    client.emit('history_more', messages);
+    client.emit('history', messages);
   }
 }

@@ -299,7 +299,7 @@ async function main() {
         attending: { connect: { id: party.id } },
       },
     });
-    console.log(`✅ ${attendee.name} is now attending the Party`);
+    if (attendee.name) console.log(`✅ ${attendee.name} is now attending the Party`);
   }
 }
 

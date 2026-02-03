@@ -6,7 +6,7 @@ import type { IntChatMessageDto } from './chat.schema';
 export class ChatService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async save(message: IntChatMessageDto) {
+  async saveMessage(message: IntChatMessageDto) {
     return this.prisma.chatMessage.upsert({
       where: { id: message.id },
       create: {
@@ -14,42 +14,26 @@ export class ChatService {
         eventId: message.eventId,
         authorId: message.authorId,
         text: message.text,
-        sentAt: message.sentAt,
       },
       update: {},
     });
   }
 
-  async loadRecentForEvent(eventId: number, limit = 10, cursor?: { sentAt: Date; id: string }) {
+  async loadMessages(eventId: number, limit = 10, cursor?: { createdAt: Date; id: string }) {
     return this.prisma.chatMessage.findMany({
-      where: { eventId },
-      orderBy: [{ sentAt: 'desc' }, { id: 'desc' }],
-      take: limit,
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            avatarKey: true,
-          },
-        },
-      },
-    });
-  }
-
-  async loadBeforeForEvent(eventId: number, cursor: { sentAt: Date; id: string }, limit = 5) {
-    const messages = await this.prisma.chatMessage.findMany({
       where: {
         eventId,
-        OR: [
-          { sentAt: { lt: cursor.sentAt } },
-          {
-            sentAt: cursor.sentAt,
-            id: { lt: cursor.id },
-          },
-        ],
+        ...(cursor && {
+          OR: [
+            { createdAt: { lt: cursor.createdAt } },
+            {
+              createdAt: cursor.createdAt,
+              id: { lt: cursor.id },
+            },
+          ],
+        }),
       },
-      orderBy: [{ sentAt: 'desc' }, { id: 'desc' }], // for cursor based pagination reverse order is better
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
       include: {
         author: {
@@ -61,6 +45,5 @@ export class ChatService {
         },
       },
     });
-    return messages;
   }
 }

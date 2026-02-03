@@ -17,10 +17,7 @@ export const Chat = ({ event }: { event: EventBase }) => {
   const isLoadingMoreHistory = useRef(false);
   const isInitialLoad = useRef(true);
 
-  /***
-   * every time a new message arrives we check if we are either near the bottom or if it
-   * is from us and in that case scroll down
-   */
+  // Every time a new messages arrive we check if we need to scroll to the message or how to handle the ui
   useEffect(() => {
     if (!messages.length) return;
     const lastMessage = messages[messages.length - 1];
@@ -31,33 +28,31 @@ export const Chat = ({ event }: { event: EventBase }) => {
       // wait for 1 frame until scroll has settled
       requestAnimationFrame(() => (isInitialLoad.current = false));
     }
-    // If messages changed from loading more history, don't scroll but set the isLoadingMoreHistory flag to false
+    // If the messages array changed from loading more chat history, don't scroll but set the isLoadingMoreHistory flag to false
     else if (isLoadingMoreHistory.current) {
       isLoadingMoreHistory.current = false;
     }
-    // Else messages changed because of a new incoming message
+    // Else the messages array was changed because of a new incoming message
     else {
+      // If we are close to the bottom or the last message was one of our own, scroll down
       const isOwnMessage = lastMessage.author.id === currentUserId;
       if (isOwnMessage || isNearBottom) {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
         setHasNewMessages(false);
       } else {
+        // otherwise we set a flag which will cause the display of a "new messages" notification but don't scroll down.
         setHasNewMessages(true);
       }
     }
   }, [messages]);
 
-  /**
-   * We track if the the scroll position of the chat box is near the bottom. If that is the case we set a flag
-   * isNearBottom to false which we can use in case a new message comes in to 1. not auto-scroll 2. show a
-   * notification that a new message was received.
-   */
+  // We implement a scroll position based event handling for loading more of the chat history.
   useEffect(() => {
     const viewport = viewportRef.current;
     if (!viewport) return;
 
+    // Event handler
     const onScroll = () => {
-      console.log('scrolling');
       // Don't do anything while we are in the initial loading phase
       if (isInitialLoad.current === true) return;
 
@@ -66,11 +61,10 @@ export const Chat = ({ event }: { event: EventBase }) => {
       const nearBottom = distanceFromBottom < 80;
       setIsNearBottom(nearBottom);
 
-      // Actions
-
-      // If near bottom we remove new message notification that might be present
+      // If we are near the bottom we remove any new message notification that might be present
       if (nearBottom) setHasNewMessages(false);
 
+      // If we scroll close to the top and there are no other reasons not to, we load more chat history
       if (
         viewport.scrollTop < 100 &&
         hasMore &&
@@ -78,38 +72,30 @@ export const Chat = ({ event }: { event: EventBase }) => {
         !isLoadingMoreHistory.current
       ) {
         isLoadingMoreHistory.current = true;
-        console.log('looking for more');
         const oldest = messages[0];
         loadMore({
-          sentAt: oldest.sentAt,
+          createdAt: oldest.createdAt,
           id: oldest.id,
         });
       }
     };
-
     viewport.addEventListener('scroll', onScroll);
 
-    console.log(
-      'isInitialLoad.current',
-      isInitialLoad.current,
-      'hasMore',
-      hasMore,
-      'isLoadingMoreHistory.current',
-      isLoadingMoreHistory.current,
-      'viewport.scrollTop',
-      viewport.scrollTop
-    );
+    /**
+     * Fallback case for if we are already scrolled to the top and cannot scroll anymore. In this case the
+     * messages array state will still have changed. If there is still more to load, we must load more.
+     * Without this we might get stuck on very fast scroll which might not fire the event
+     */
     if (
-      !isInitialLoad.current &&
+      viewport.scrollTop < 100 &&
       hasMore &&
-      !isLoadingMoreHistory.current &&
-      viewport.scrollTop < 100
+      !isInitialLoad.current &&
+      !isLoadingMoreHistory.current
     ) {
       isLoadingMoreHistory.current = true;
-
       const oldest = messages[0];
       loadMore({
-        sentAt: oldest.sentAt,
+        createdAt: oldest.createdAt,
         id: oldest.id,
       });
     }

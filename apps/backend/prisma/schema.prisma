@@ -65,15 +65,14 @@ model Event {
 }
 
 model ChatMessage {
-  id            String      @id
-  eventId       Int
-  authorId      Int
-  text          String
-  sentAt        DateTime
-  createdAt     DateTime    @default(now())
+  id        String   @id
+  eventId   Int
+  authorId  Int
+  text      String
+  createdAt DateTime @default(now())
 
-  author        User        @relation(fields: [authorId], references: [id])
-  event         Event       @relation(fields: [eventId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id])
+  event     Event    @relation(fields: [eventId], references: [id])
 
-  @@index([eventId, createdAt])
+  @@index([eventId, createdAt, id])
 }
