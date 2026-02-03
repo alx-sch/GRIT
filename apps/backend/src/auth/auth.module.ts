@@ -2,6 +2,7 @@ import { Module, Global } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from '@/auth/strategies/jwt.strategy';
+import { GoogleStrategy } from '@/auth/strategies/google.strategy';
 import { AuthController } from '@/auth/auth.controller';
 import { AuthService } from '@/auth/auth.service';
 import { env } from '@/config/env';
@@ -27,14 +28,14 @@ import { ConfigModule } from '@nestjs/config';
   imports: [
     UserModule,
     ConfigModule,
-    PassportModule.register({ defaultStrategy: 'jwt' }),
+    PassportModule.register({ defaultStrategy: 'googles' }),
     JwtModule.register({
       secret: env.JWT_SECRET,
       signOptions: { expiresIn: '7d' },
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, GoogleStrategy],
   exports: [PassportModule, JwtModule],
 })
 export class AuthModule {}
