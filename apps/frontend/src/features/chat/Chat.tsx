@@ -7,13 +7,15 @@ import { ChatBubble } from '@/features/chat/ChatBubble';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 
 export const Chat = ({ event }: { event: EventBase }) => {
-  const { messages, sendMessage } = useChat(event.id);
+  const { messages, sendMessage, loadMore, hasMore } = useChat(event.id);
   const [input, setInput] = useState('');
   const [isNearBottom, setIsNearBottom] = useState(true);
   const [hasNewMessages, setHasNewMessages] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const currentUserId = useCurrentUserStore((s) => s.user?.id);
+  const isLoadingMoreHistory = useRef(false);
+  const isInitialLoad = useRef(true);
 
   /**
    * We track if the the scroll position of the chat box is near the bottom. If that is the case we set a flag
@@ -24,29 +26,59 @@ export const Chat = ({ event }: { event: EventBase }) => {
     const viewport = viewportRef.current;
     if (!viewport) return;
     const onScroll = () => {
-      console.log('run');
+      // Don't do anything while we are in the initial loading phase
+      if (isInitialLoad.current === true) return;
       const distanceFromBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight;
       const nearBottom = distanceFromBottom < 80;
       setIsNearBottom(nearBottom);
       if (nearBottom) setHasNewMessages(false);
-      console.log('nearbottom', nearBottom);
+      if (
+        viewport.scrollTop < 100 &&
+        hasMore &&
+        messages.length > 0 &&
+        !isLoadingMoreHistory.current
+      ) {
+        isLoadingMoreHistory.current = true;
+        console.log('looking for more');
+        const oldest = messages[0];
+        loadMore({
+          sentAt: oldest.sentAt,
+          id: oldest.id,
+        });
+      }
     };
 
     viewport.addEventListener('scroll', onScroll);
     return () => viewport.removeEventListener('scroll', onScroll);
-  }, []);
+  }, [messages, hasMore, loadMore]);
 
+  /***
+   * every time a new message arrives we check if we are either near the bottom or if it
+   * is from us and in that case scroll down
+   */
   useEffect(() => {
     if (!messages.length) return;
-
     const lastMessage = messages[messages.length - 1];
-    const isOwnMessage = lastMessage.author.id === currentUserId;
 
-    if (isOwnMessage || isNearBottom) {
-      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-      setHasNewMessages(false);
-    } else {
-      setHasNewMessages(true);
+    // If this is the initial page load we want to scroll to the bottom
+    if (isInitialLoad.current) {
+      bottomRef.current?.scrollIntoView({ behavior: 'auto' });
+      // wait for 1 frame until scroll has settled
+      requestAnimationFrame(() => (isInitialLoad.current = false));
+    }
+    // If messages changed from loading more history, don't scroll but set the isLoadingMoreHistory flag to false
+    else if (isLoadingMoreHistory.current) {
+      isLoadingMoreHistory.current = false;
+    }
+    // Else messages changed because of a new incoming message
+    else {
+      const isOwnMessage = lastMessage.author.id === currentUserId;
+      if (isOwnMessage || isNearBottom) {
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+        setHasNewMessages(false);
+      } else {
+        setHasNewMessages(true);
+      }
     }
   }, [messages]);
 

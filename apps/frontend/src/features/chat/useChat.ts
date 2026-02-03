@@ -7,7 +7,7 @@ import { useAuthStore } from '@/store/authStore';
 export function useChat(eventId: number) {
   const socketRef = useRef<Socket | null>(null);
   const [messages, setMessages] = useState<ResChatMessage[]>([]);
-  const user = useCurrentUserStore((s) => s.user);
+  const [hasMore, setHasMore] = useState(true);
   const token = useAuthStore((s) => s.token);
 
   useEffect(() => {
@@ -33,6 +33,15 @@ export function useChat(eventId: number) {
       setMessages((prev) => [...msgs, ...prev]);
     });
 
+    socket.on('history_more', (msgs: ResChatMessage[]) => {
+      console.log('received more');
+      setMessages((prev) => [...msgs, ...prev]);
+    });
+
+    socket.on('history_end', () => {
+      setHasMore(false);
+    });
+
     return () => {
       socket.disconnect();
     };
@@ -45,5 +54,13 @@ export function useChat(eventId: number) {
     });
   };
 
-  return { messages, sendMessage };
+  const loadMore = (cursor: { sentAt: string; id: string }) => {
+    if (!hasMore) return;
+    socketRef.current?.emit('load_more', {
+      cursorSentAt: cursor.sentAt,
+      cursorId: cursor.id,
+    });
+  };
+
+  return { messages, sendMessage, loadMore, hasMore };
 }

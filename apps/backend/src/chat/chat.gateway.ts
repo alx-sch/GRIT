@@ -66,12 +66,12 @@ export class ChatGateway {
 
     // Get message histroy to prefill chat
     const rows = await this.chatService.loadRecentForEvent(body.eventId);
+    const messages = rows.reverse().map((row) => ResChatMessageSchema.parse(row));
     // Serialization in Websocket context
-    const history = rows.map((row) => ResChatMessageSchema.parse(row));
+    const history = messages.map((message) => ResChatMessageSchema.parse(message));
     client.emit('history', history);
   }
 
-  // The client sends XYZ and we handle it with handleXYZ, this could be named anything
   @SubscribeMessage('message')
   handleMessage(@MessageBody() body: ReqChatMessagePostDto, @ConnectedSocket() client: Socket) {
     const eventId = client.data.eventId;
@@ -104,5 +104,34 @@ export class ChatGateway {
       text: body.text,
       sentAt,
     });
+  }
+
+  @SubscribeMessage('load_more')
+  async handleLoadMore(
+    @MessageBody() body: { cursorSentAt: string; cursorId: string },
+    @ConnectedSocket() client: Socket
+  ) {
+    const eventId = client.data.eventId;
+    if (!eventId) return null;
+    console.log('receive request for more');
+
+    const rows = await this.chatService.loadBeforeForEvent(
+      eventId,
+      {
+        sentAt: new Date(body.cursorSentAt),
+        id: body.cursorId,
+      },
+      2
+    );
+
+    if (rows.length === 0) {
+      console.log('history end');
+      client.emit('history_end');
+      return;
+    }
+
+    const messages = rows.reverse().map((row) => ResChatMessageSchema.parse(row));
+
+    client.emit('history_more', messages);
   }
 }

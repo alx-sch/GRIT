@@ -20,10 +20,10 @@ export class ChatService {
     });
   }
 
-  async loadRecentForEvent(eventId: number, limit = 50, cursor?: { sentAt: Date; id: string }) {
+  async loadRecentForEvent(eventId: number, limit = 10, cursor?: { sentAt: Date; id: string }) {
     return this.prisma.chatMessage.findMany({
       where: { eventId },
-      orderBy: [{ sentAt: 'asc' }, { id: 'asc' }],
+      orderBy: [{ sentAt: 'desc' }, { id: 'desc' }],
       take: limit,
       include: {
         author: {
@@ -35,5 +35,32 @@ export class ChatService {
         },
       },
     });
+  }
+
+  async loadBeforeForEvent(eventId: number, cursor: { sentAt: Date; id: string }, limit = 5) {
+    const messages = await this.prisma.chatMessage.findMany({
+      where: {
+        eventId,
+        OR: [
+          { sentAt: { lt: cursor.sentAt } },
+          {
+            sentAt: cursor.sentAt,
+            id: { lt: cursor.id },
+          },
+        ],
+      },
+      orderBy: [{ sentAt: 'desc' }, { id: 'desc' }], // for cursor based pagination reverse order is better
+      take: limit,
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            avatarKey: true,
+          },
+        },
+      },
+    });
+    return messages;
   }
 }
