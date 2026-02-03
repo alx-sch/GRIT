@@ -332,7 +332,7 @@ export default function EventForm({ locations }: EventFormProps) {
                       type="button"
                       onClick={() => setShowAddLocation(true)}
                       variant="ghost"
-                      className="w-full justify-start"
+                      className="w-full justify-start text-1xl font-sans h-8"
                     >
                       {' '}
                       <PlusIcon />
