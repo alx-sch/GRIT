@@ -1,19 +1,46 @@
-import { useState } from 'react';
-import { toast } from 'sonner';
-import { Loader2, Mail } from 'lucide-react';
 import { Container } from '@/components/layout/Container';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Combobox } from '@/components/ui/combobox';
+import { DatePicker } from '@/components/ui/datepicker';
+import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Heading, Text, Caption } from '@/components/ui/typography';
-import { DatePicker } from '@/components/ui/datepicker';
+import { Textarea } from '@/components/ui/textarea';
+import { Caption, Heading, Text } from '@/components/ui/typography';
+import { AlertCircleIcon, CheckCircle2Icon, Loader2, Mail } from 'lucide-react';
+import { useState } from 'react';
 import { DateRange } from 'react-day-picker';
+import { toast } from 'sonner';
+
+const mockedComboboxOptions = [
+  {
+    value: 'berghain',
+    label: 'Berghain',
+  },
+  {
+    value: 'ohm',
+    label: 'Ohm',
+  },
+  {
+    value: 'wilde renate.js',
+    label: 'Wilde Renate',
+  },
+  {
+    value: 'sisyphos',
+    label: 'Sisyphos',
+  },
+  {
+    value: 'grießmühle rip',
+    label: 'Grießmühle RIP',
+  },
+];
 
 export default function Design() {
   const [isLoading, setIsLoading] = useState(false);
+  const [comboboxValue, setComboboxValue] = useState('');
 
   const [selectedDateRange, setSelectedDateRange] = useState<DateRange | undefined>(undefined);
   const handleDateSelect = (date: DateRange | undefined) => {
@@ -87,27 +114,57 @@ export default function Design() {
         <Heading level={2}>2. Interactive Elements</Heading>
         <Separator />
         <div className="grid gap-8 lg:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Buttons</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-wrap gap-4">
-              <Button variant="default">Primary</Button>
-              <Button variant="secondary">Secondary</Button>
-              <Button variant="destructive">Achtung</Button>
-              <Button variant="outline">Outline</Button>
-              <Button variant="ghost">Ghost</Button>
-              <Button variant="link">Link</Button>
-              <Button variant="disabled">Disabled</Button>
-              <div className="w-full" /> {/* Line break */}
-              <Button size="sm">Small</Button>
-              <Button size="default">Default</Button>
-              <Button size="lg">Large</Button>
-              <Button size="icon" variant="outline">
-                <Mail className="w-4 h-4" />
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="space-y-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>Buttons</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-4">
+                <Button variant="default">Primary</Button>
+                <Button variant="secondary">Secondary</Button>
+                <Button variant="destructive">Achtung</Button>
+                <Button variant="outline">Outline</Button>
+                <Button variant="ghost">Ghost</Button>
+                <Button variant="link">Link</Button>
+                <Button variant="disabled">Disabled</Button>
+                <div className="w-full" /> {/* Line break */}
+                <Button size="sm">Small</Button>
+                <Button size="default">Default</Button>
+                <Button size="lg">Large</Button>
+                <Button size="icon" variant="outline">
+                  <Mail className="w-4 h-4" />
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Calendar - Date Picker</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-4">
+                <DatePicker
+                  selected={selectedDateRange}
+                  onSelect={handleDateSelect}
+                  placeholder="Pick a date"
+                ></DatePicker>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Combobox - Select value </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-4">
+                <Combobox
+                  options={mockedComboboxOptions}
+                  value={comboboxValue}
+                  onChange={setComboboxValue}
+                  placeholder="Select Location"
+                  emptyMessage="No locations found"
+                ></Combobox>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Inputs */}
           <Card>
@@ -132,21 +189,8 @@ export default function Design() {
                 <Input placeholder="Search..." className="max-w-50" />
                 <Button>Search</Button>
               </div>
-            </CardContent>
-          </Card>
-        </div>
 
-        <div className="grid gap-8 lg:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Calendar - Date Picker</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-wrap gap-4">
-              <DatePicker
-                selected={selectedDateRange}
-                onSelect={handleDateSelect}
-                placeholder="Pick a date"
-              ></DatePicker>
+              <Textarea placeholder="Your event description here..." />
             </CardContent>
           </Card>
         </div>
@@ -222,6 +266,29 @@ export default function Design() {
                   </div>
                 </div>
               )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Alerts</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="gap-2 flex flex-col">
+                <Alert>
+                  <CheckCircle2Icon />
+                  <AlertTitle>Success!</AlertTitle>
+                  <AlertDescription>
+                    This is an alert with icon, title and description.
+                  </AlertDescription>
+                </Alert>
+                <Alert variant={'destructive'}>
+                  <AlertCircleIcon />
+                  <AlertTitle>Error!</AlertTitle>
+                  <AlertDescription>
+                    This is an alert with icon, title and description.
+                  </AlertDescription>
+                </Alert>
+              </div>
             </CardContent>
           </Card>
         </div>

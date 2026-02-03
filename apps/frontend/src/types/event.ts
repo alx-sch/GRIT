@@ -1,4 +1,4 @@
-import { Location } from './location';
+import { LocationBase } from './location';
 import { UserBase } from './user';
 
 export interface EventResponse {
@@ -23,5 +23,5 @@ export interface EventBase {
   authorId: number;
   attending: UserBase[];
   locationId?: number;
-  location?: Location;
+  location?: LocationBase;
 }

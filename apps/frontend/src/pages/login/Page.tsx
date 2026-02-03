@@ -1,20 +1,20 @@
+import { Button } from '@/components/ui/button';
 import { Field, FieldGroup, FieldLabel, FieldSet } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Form, redirect, useNavigation, useActionData } from 'react-router-dom';
-import { useAuthStore } from '@/store/authStore';
-import { useCurrentUserStore } from '@/store/currentUserStore';
-import { toast } from 'sonner';
 import { Heading } from '@/components/ui/typography';
 import { authService } from '@/services/authService';
+import { useAuthStore } from '@/store/authStore';
+import { useCurrentUserStore } from '@/store/currentUserStore';
 import { ActionFormError } from '@/types/actionFormError';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
-import axios from 'axios';
-import z from 'zod';
-import { LoginSchema } from '@grit/schema';
 import type { LoginInput } from '@grit/schema';
+import { LoginSchema } from '@grit/schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import axios from 'axios';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { Form, redirect, useActionData, useNavigation } from 'react-router-dom';
+import { toast } from 'sonner';
+import z from 'zod';
 
 export async function loginPageAction({ request }: { request: Request }) {
   const formData = await request.formData();
