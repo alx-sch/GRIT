@@ -57,7 +57,7 @@ export type CreateEventInput = z.infer<typeof CreateEventSchema>;
 // Shared Location rules
 export const LOCATION_CONFIG = {
   NAME_MIN_LENGTH: 1,
-  NAME_MAX_LENGTH: 100,
+  NAME_MAX_LENGTH: 64,
 };
 
 // Shared location schema for creating a location
