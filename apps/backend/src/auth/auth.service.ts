@@ -27,9 +27,9 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
     }
-    if (!user.isConfirmed) {
-      throw new UnauthorizedException('Please confirm your email address before logging in.');
-    }
+    // if (!user.isConfirmed) {
+    //   throw new UnauthorizedException('Please confirm your email address before logging in.');
+    // }
 
     const isMatch = await bcrypt.compare(loginDto.password, user.password);
     if (!isMatch) {
