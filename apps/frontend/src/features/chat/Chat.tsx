@@ -17,41 +17,6 @@ export const Chat = ({ event }: { event: EventBase }) => {
   const isLoadingMoreHistory = useRef(false);
   const isInitialLoad = useRef(true);
 
-  /**
-   * We track if the the scroll position of the chat box is near the bottom. If that is the case we set a flag
-   * isNearBottom to false which we can use in case a new message comes in to 1. not auto-scroll 2. show a
-   * notification that a new message was received.
-   */
-  useEffect(() => {
-    const viewport = viewportRef.current;
-    if (!viewport) return;
-    const onScroll = () => {
-      // Don't do anything while we are in the initial loading phase
-      if (isInitialLoad.current === true) return;
-      const distanceFromBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight;
-      const nearBottom = distanceFromBottom < 80;
-      setIsNearBottom(nearBottom);
-      if (nearBottom) setHasNewMessages(false);
-      if (
-        viewport.scrollTop < 100 &&
-        hasMore &&
-        messages.length > 0 &&
-        !isLoadingMoreHistory.current
-      ) {
-        isLoadingMoreHistory.current = true;
-        console.log('looking for more');
-        const oldest = messages[0];
-        loadMore({
-          sentAt: oldest.sentAt,
-          id: oldest.id,
-        });
-      }
-    };
-
-    viewport.addEventListener('scroll', onScroll);
-    return () => viewport.removeEventListener('scroll', onScroll);
-  }, [messages, hasMore, loadMore]);
-
   /***
    * every time a new message arrives we check if we are either near the bottom or if it
    * is from us and in that case scroll down
@@ -81,6 +46,76 @@ export const Chat = ({ event }: { event: EventBase }) => {
       }
     }
   }, [messages]);
+
+  /**
+   * We track if the the scroll position of the chat box is near the bottom. If that is the case we set a flag
+   * isNearBottom to false which we can use in case a new message comes in to 1. not auto-scroll 2. show a
+   * notification that a new message was received.
+   */
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+
+    const onScroll = () => {
+      console.log('scrolling');
+      // Don't do anything while we are in the initial loading phase
+      if (isInitialLoad.current === true) return;
+
+      // Calcs
+      const distanceFromBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight;
+      const nearBottom = distanceFromBottom < 80;
+      setIsNearBottom(nearBottom);
+
+      // Actions
+
+      // If near bottom we remove new message notification that might be present
+      if (nearBottom) setHasNewMessages(false);
+
+      if (
+        viewport.scrollTop < 100 &&
+        hasMore &&
+        messages.length > 0 &&
+        !isLoadingMoreHistory.current
+      ) {
+        isLoadingMoreHistory.current = true;
+        console.log('looking for more');
+        const oldest = messages[0];
+        loadMore({
+          sentAt: oldest.sentAt,
+          id: oldest.id,
+        });
+      }
+    };
+
+    viewport.addEventListener('scroll', onScroll);
+
+    console.log(
+      'isInitialLoad.current',
+      isInitialLoad.current,
+      'hasMore',
+      hasMore,
+      'isLoadingMoreHistory.current',
+      isLoadingMoreHistory.current,
+      'viewport.scrollTop',
+      viewport.scrollTop
+    );
+    if (
+      !isInitialLoad.current &&
+      hasMore &&
+      !isLoadingMoreHistory.current &&
+      viewport.scrollTop < 100
+    ) {
+      isLoadingMoreHistory.current = true;
+
+      const oldest = messages[0];
+      loadMore({
+        sentAt: oldest.sentAt,
+        id: oldest.id,
+      });
+    }
+
+    return () => viewport.removeEventListener('scroll', onScroll);
+  }, [messages, hasMore, loadMore]);
 
   return (
     <>
