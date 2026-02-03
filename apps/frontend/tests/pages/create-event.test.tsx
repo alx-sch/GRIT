@@ -1,12 +1,12 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { vi, beforeEach, describe, it, expect } from 'vitest';
 import EventCreation, { eventCreationLoader } from '@/pages/create/event/Page';
-import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { eventService } from '@/services/eventService';
 import { locationService } from '@/services/locationService';
-import { LocationBase } from '@/types/location';
 import { EventBase } from '@/types/event';
+import { LocationBase } from '@/types/location';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock services
 vi.mock('@/services/eventService', () => ({
@@ -167,7 +167,7 @@ describe('Event Creation Page', () => {
 
       await waitFor(() => {
         const privateButton = screen.getByRole('button', { name: /private/i });
-        expect(privateButton).toHaveClass('bg-primary');
+        expect(privateButton).toHaveClass('border-5');
       });
     });
 
@@ -182,7 +182,7 @@ describe('Event Creation Page', () => {
       await user.click(publicButton);
 
       await waitFor(() => {
-        expect(publicButton).toHaveClass('bg-primary');
+        expect(publicButton).toHaveClass('border-5');
       });
     });
 
@@ -200,7 +200,7 @@ describe('Event Creation Page', () => {
       await user.click(privateButton);
 
       await waitFor(() => {
-        expect(privateButton).toHaveClass('bg-primary');
+        expect(privateButton).toHaveClass('border-5');
       });
     });
   });

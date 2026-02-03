@@ -5,7 +5,6 @@ import { DatePicker } from '@/components/ui/datepicker';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
-import { Text } from '@/components/ui/typography';
 import { useDebounce } from '@/hooks/useDebounce';
 import LocationForm from '@/pages/create/event/components/LocationForm';
 import { EventFormSchema, type EventFormFields } from '@/schema/event';
@@ -202,44 +201,54 @@ export default function EventForm({ locations }: EventFormProps) {
 
   return (
     <>
-      <form
-        onSubmit={(e) => {
-          void handleSubmit(onSubmit)(e);
-        }}
-      >
+      <form className="flex flex-col gap-8">
         <DraftSaver control={control} />
-        <Controller
-          control={control}
-          name="isPublic"
-          render={({ field: { onChange, value } }) => (
-            <div className="flex flex-row gap-4 md:gap-12 w-full items-center">
-              <Button
-                type="button"
-                variant={!value ? 'default' : 'secondary'}
-                onClick={() => {
-                  onChange(false);
-                }}
-                className="translate-x-0 translate-y-0 md:-translate-x-[2px] md:-translate-y-[2px] font-sans text-lg md:text-2xl py-4 md:py-8 px-4 md:px-12 flex-1"
-              >
-                Private
-              </Button>
-              <span className="font-heading text-xl">OR</span>
-              <Button
-                type="button"
-                variant={value ? 'default' : 'secondary'}
-                onClick={() => {
-                  onChange(true);
-                }}
-                className="translate-x-0 translate-y-0 md:-translate-x-[2px] md:-translate-y-[2px] font-sans text-lg md:text-2xl py-4 md:py-8 px-4 md:px-12 flex-1"
-              >
-                Public
-              </Button>
-            </div>
-          )}
-        />
-        <div className="flex flex-col py-8 pb-0">
-          <Text className="font-heading">Name</Text>
-          <Input {...register('title')} placeholder="Give your event a catchy name" />
+        {/*Visibility*/}
+        <div className="flex flex-col gap-4">
+          <Controller
+            control={control}
+            name="isPublic"
+            render={({ field: { onChange, value } }) => (
+              <div className="flex flex-row gap-4 md:gap-12 w-full items-center">
+                <Button
+                  type="button"
+                  variant={!value ? 'selected' : 'secondary'}
+                  aria-pressed={!value}
+                  onClick={() => {
+                    onChange(false);
+                  }}
+                  className="font-sans text-lg md:text-2xl md:py-8 md:px-12 flex-1"
+                >
+                  Private
+                </Button>
+                <span className="font-heading text-xl">OR</span>
+                <Button
+                  type="button"
+                  variant={value ? 'selected' : 'secondary'}
+                  aria-pressed={!value}
+                  onClick={() => {
+                    onChange(true);
+                  }}
+                  className="font-sans text-lg md:text-2xl md:py-8 md:px-12 flex-1"
+                >
+                  Public
+                </Button>
+              </div>
+            )}
+          />
+        </div>
+        {/*Name*/}
+        <div className="flex flex-col gap-4">
+          <label htmlFor="title" className="font-heading">
+            Name
+          </label>
+          <Input
+            type="text"
+            id="title"
+            aria-invalid={!!errors.title}
+            {...register('title')}
+            placeholder="Give your event a catchy name"
+          />
           {showTitleError && titleErrorMessage && (
             <Alert variant="destructive" className="mt-1.5 md:w-1/3 self-start">
               <AlertCircleIcon className="h-4 w-4" />
@@ -247,20 +256,24 @@ export default function EventForm({ locations }: EventFormProps) {
             </Alert>
           )}
         </div>
-        <div className="flex flex-col py-8">
-          <Text className="font-heading">Description</Text>
+        {/* Description */}
+        <div className="flex flex-col gap-4">
+          <label htmlFor="content" className="font-heading">
+            Description
+          </label>
           <Textarea
+            id="content"
             {...register('content')}
             placeholder="Tell people what to expect at your event - vibe, music, etc"
           />
         </div>
 
-        <div className="md:flex flex-row gap-4 md:gap-12 w-full items-start">
+        <div className="md:flex flex-row gap-4 md:gap-12">
           <Controller
             control={control}
             name="startAt"
             render={({ field: { onChange } }) => (
-              <div className="w-full pt-0 pb-4 md:pb-8">
+              <div className="w-full pb-4 md:pb-8">
                 <DatePicker
                   selected={
                     startAtValue
@@ -317,7 +330,7 @@ export default function EventForm({ locations }: EventFormProps) {
             control={control}
             name="locationId"
             render={({ field: { onChange, value } }) => (
-              <div className="w-full pt-0 pb-8">
+              <div className="w-full pb-8">
                 <Combobox
                   options={locationOptionsCombobox}
                   value={value ?? undefined}
@@ -334,7 +347,7 @@ export default function EventForm({ locations }: EventFormProps) {
                         setShowAddLocation(true);
                       }}
                       variant="ghost"
-                      className="w-full justify-start text-1xl font-sans h-8"
+                      className="w-full justify-start text-xs font-sans h-8"
                     >
                       {' '}
                       <PlusIcon />
@@ -345,14 +358,14 @@ export default function EventForm({ locations }: EventFormProps) {
               </div>
             )}
           />
-          {showRootError && rootErrorMessage && (
-            <Alert variant="destructive" className="mt-1.5">
-              <AlertCircleIcon className="h-4 w-4" />
-              <AlertTitle className="text-sm">{rootErrorMessage}</AlertTitle>
-            </Alert>
-          )}
         </div>
-        <div className="flex flex-row gap-4 md:gap-12 w-full items-center">
+        {showRootError && rootErrorMessage && (
+          <Alert variant="destructive" className="mt-1.5">
+            <AlertCircleIcon className="h-4 w-4" />
+            <AlertTitle className="text-sm">{rootErrorMessage}</AlertTitle>
+          </Alert>
+        )}
+        <div className="flex flex-row gap-4 md:gap-12">
           <Button
             type="button"
             variant="secondary"
@@ -360,7 +373,7 @@ export default function EventForm({ locations }: EventFormProps) {
               setValue('isPublished', false);
               void handleSubmit(onSubmit)();
             }}
-            className="font-heading text-lg md:text-2xl py-4 md:py-8 px-4 md:px-12 flex-1"
+            className="font-heading text-lg md:text-2xl md:py-8 flex-1"
           >
             Save Draft
           </Button>
@@ -371,7 +384,7 @@ export default function EventForm({ locations }: EventFormProps) {
               setValue('isPublished', true);
               void handleSubmit(onSubmit)();
             }}
-            className="font-heading text-lg md:text-2xl py-4 md:py-8 px-4 md:px-12 flex-1"
+            className="font-heading text-lg md:text-2xl md:py-8 flex-1"
           >
             {isSubmitting ? 'Loading...' : 'Publish'}
           </Button>
@@ -380,7 +393,7 @@ export default function EventForm({ locations }: EventFormProps) {
       <Sheet open={showAddLocation} onOpenChange={setShowAddLocation}>
         <SheetContent
           side="right"
-          className="flex flex-col w-full h-full sm:w-full [&>button]:hidden overflow-hidden"
+          className="flex flex-col w-full h-full sm:w-full [&>button]:hidden overflow-hidden border-l-0"
         >
           <SheetHeader className="flex flex-row items-center justify-between border-b-2 border-border pb-4 mb-4 space-y-0 text-left">
             <SheetTitle className="font-bold uppercase tracking-wider">Add New Location</SheetTitle>

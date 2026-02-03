@@ -118,9 +118,8 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
         <Input type="hidden" {...register('longitude')} />
         {/* Name */}
         <div className="flex flex-col gap-2">
-          <label htmlFor="text" className="font-heading">
-            {' '}
-            Name of the location{' '}
+          <label htmlFor="name" className="font-heading">
+            Name of the location
           </label>
           <Input
             id="name"
@@ -143,8 +142,7 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
         {/* Address */}
         <div className="flex flex-col gap-2">
           <label htmlFor="address" className="font-heading">
-            {' '}
-            Address{' '}
+            Address
           </label>
           <Input
             id="address"
@@ -157,15 +155,13 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
         <div className="flex flex-row gap-6">
           <div className="flex flex-col flex-1 gap-2">
             <label htmlFor="city" className="font-heading">
-              {' '}
-              City{' '}
+              City
             </label>
             <Input id="city" type="text" {...register('city')} placeholder="e.g Berlin" />
           </div>
           <div className="flex flex-col flex-1 gap-2">
             <label htmlFor="country" className="font-heading">
-              {' '}
-              Country{' '}
+              Country
             </label>
             <Input id="country" type="text" {...register('country')} placeholder="e.g Germany" />
           </div>
