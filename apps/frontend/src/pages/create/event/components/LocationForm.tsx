@@ -1,7 +1,8 @@
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Heading, Text } from '@/components/ui/typography';
+import { Text } from '@/components/ui/typography';
 import { locationService } from '@/services/locationService';
 import { LocationBase } from '@/types/location';
 import { CreateLocationInput, CreateLocationSchema } from '@grit/schema';
@@ -31,14 +32,19 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
       name: '',
       city: '',
       country: '',
-      latitude: 52.52,
-      longitude: 13.405,
+      latitude: 52.520008,
+      longitude: 13.404954,
       isPublic: undefined,
       address: '',
     },
   });
 
   const onSubmit: SubmitHandler<CreateLocationInput> = async (data) => {
+    console.log('on submit call');
+    if (!data.longitude || !data.latitude) {
+      setError('root', { message: 'Invalid address. Please select a location on the map' });
+      return;
+    }
     try {
       const payload = {
         name: data.name,
@@ -50,7 +56,6 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
         address: data.address,
       };
 
-      console.log('Submitting location with payload:', payload);
       const newLocation = await locationService.postLocation(payload);
       onSuccess(newLocation);
     } catch (error) {
@@ -102,12 +107,31 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
     <>
       <form
         onSubmit={(e) => {
-          void handleSubmit(onSubmit)(e);
+          void handleSubmit(onSubmit, (validationErrors) => {
+            if (validationErrors.latitude || validationErrors.longitude) {
+              setError('root', { message: 'Please select a location on the map' });
+            }
+          })(e);
         }}
+        className="flex flex-col gap-4 h-full overflow-y-auto flex-1 px-1 pb-1"
       >
-        <div className="flex flex-col py-8 pb-0">
-          <Text className="font-heading"> Name </Text>
-          <Input {...register('name')} placeholder="e.g Berghain, My awesome flat, etc." />
+        {/* Hidden Inputs: latitude and longitude */}
+        <Input type="hidden" {...register('latitude')} />
+        <Input type="hidden" {...register('longitude')} />
+        {/* Name */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="text" className="font-heading">
+            {' '}
+            Name of the location{' '}
+          </label>
+          <Input
+            required
+            id="name"
+            type="text"
+            aria-invalid={!!errors.name}
+            {...register('name')}
+            placeholder="e.g Berghain, My awesome flat, etc."
+          />
           {showNameError && nameErrorMessage && (
             <Alert variant="destructive" className="self-start">
               <AlertCircleIcon className="h-4 w-4" />
@@ -115,52 +139,72 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
             </Alert>
           )}
         </div>
-        <div className="flex flex-col py-4">
-          <Text>***PLACEHOLDER FOR GOOGLE MAPS***</Text>
+        {/* Map component */}
+        <Card className="h-80 flex items-center text-center">
+          <Text>***PLACEHOLDER FOR GOOGLE MAPS COMPONENT (including search input)***</Text>
+        </Card>
+        {/* Address */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="address" className="font-heading">
+            {' '}
+            Address{' '}
+          </label>
+          <Input
+            id="address"
+            type="text"
+            {...register('address')}
+            placeholder="e.g Finowstraße 43, 10245 Berlin, Germany"
+          />
         </div>
-        <div className="flex flex-col py-4">
-			<Text className="font-heading"> Address </Text>
-          <Input {...register('address')} placeholder="e.g Finowstraße 43, 10245 Berlin, Germany" />
+        {/* City/Country */}
+        <div className="flex flex-row gap-6">
+          <div className="flex flex-col flex-1 gap-2">
+            <label htmlFor="city" className="font-heading">
+              {' '}
+              City{' '}
+            </label>
+            <Input id="city" type="text" {...register('city')} placeholder="e.g Berlin" />
+          </div>
+          <div className="flex flex-col flex-1 gap-2">
+            <label htmlFor="country" className="font-heading">
+              {' '}
+              Country{' '}
+            </label>
+            <Input id="country" type="text" {...register('country')} placeholder="e.g Germany" />
+          </div>
         </div>
-        <div className="flex flex-col py-4 pb-8">
-		  <Text className="font-heading"> City </Text>
-          <Input {...register('city')} placeholder="e.g Berlin" />
-		  <Text className="font-heading"> Country </Text>
-          <Input {...register('country')} placeholder="e.g Germany" />
-        </div>
-        <div className="flex flex-col py-4">
-          <Input type="hidden" {...register('latitude')} />
-          <Input type="hidden" {...register('longitude')} />
-        </div>
-        <Text className="font-heading"> Choose your location visibility </Text>
-        <Controller
-          control={control}
-          name="isPublic"
-          render={({ field: { onChange, value } }) => (
-            <div className="flex flex-row w-full items-center">
-              <Button
-                type="button"
-                variant={!value ? 'selected' : 'secondary'}
-                onClick={() => {
-                  onChange(false);
-                }}
-                className="font-sans text-sm md:text-base py-2 md:py-3 px-3 md:px-6 flex-1"
-              >
-                Private
-              </Button>
-              <Button
-                type="button"
-                variant={value ? 'selected' : 'secondary'}
-                onClick={() => {
-                  onChange(true);
-                }}
-                className="font-sans text-sm md:text-base py-2 md:py-3 px-3 md:px-6 flex-1"
-              >
-                Public
-              </Button>
-            </div>
-          )}
-        />
+        {/* Visibility */}
+        <fieldset className="flex flex-col gap-4">
+          <legend className="font-heading mb-2"> Choose your location visibility </legend>
+          <Controller
+            control={control}
+            name="isPublic"
+            render={({ field: { onChange, value } }) => (
+              <div className="flex w-fit">
+                <Button
+                  type="button"
+                  variant={!value ? 'default' : 'secondary'}
+                  onClick={() => {
+                    onChange(false);
+                  }}
+                  className="font-sans text-sm py-2 md:py-3 px-3 md:px-6 flex-1 shadow-none rounded-r-none border-r-0"
+                >
+                  Private
+                </Button>
+                <Button
+                  type="button"
+                  variant={value ? 'default' : 'secondary'}
+                  onClick={() => {
+                    onChange(true);
+                  }}
+                  className="font-sans text-sm py-2 md:py-3 px-3 md:px-6 flex-1 shadow-none rounded-l-none border-l-0"
+                >
+                  Public
+                </Button>
+              </div>
+            )}
+          />
+        </fieldset>
 
         {showRootError && rootErrorMessage && (
           <Alert variant="destructive" className="mt-1.5">
@@ -168,22 +212,21 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
             <AlertTitle className="text-sm">{rootErrorMessage}</AlertTitle>
           </Alert>
         )}
-        <div className="flex flex-row w-full items-center gap-4">
+
+        {/* Buttons */}
+        <div className="flex flex-row gap-4 mt-auto">
           <Button
             type="button"
-			variant="secondary"
+            variant="secondary"
             onClick={onCancel}
             className="font-sans text-sm md:text-base py-2 md:py-3 px-3 md:px-6 flex-1"
           >
             Cancel
           </Button>
           <Button
-            type="button"
-			variant="secondary"
+            type="submit"
+            variant="default"
             disabled={isSubmitting}
-            onClick={() => {
-              void handleSubmit(onSubmit)();
-            }}
             className="font-sans text-sm md:text-base py-2 md:py-3 px-3 md:px-6 flex-1"
           >
             {isSubmitting ? 'Loading...' : 'Submit'}

@@ -215,7 +215,7 @@ export default function EventForm({ locations }: EventFormProps) {
             <div className="flex flex-row gap-4 md:gap-12 w-full items-center">
               <Button
                 type="button"
-                variant={!value ? 'selected' : 'secondary'}
+                variant={!value ? 'default' : 'secondary'}
                 onClick={() => {
                   onChange(false);
                 }}
@@ -226,7 +226,7 @@ export default function EventForm({ locations }: EventFormProps) {
               <span className="font-heading text-xl">OR</span>
               <Button
                 type="button"
-                variant={value ? 'selected' : 'secondary'}
+                variant={value ? 'default' : 'secondary'}
                 onClick={() => {
                   onChange(true);
                 }}
@@ -378,7 +378,7 @@ export default function EventForm({ locations }: EventFormProps) {
       <Sheet open={showAddLocation} onOpenChange={setShowAddLocation}>
         <SheetContent
           side="right"
-          className="w-75 border-l-2 border-border sm:w-100 [&>button]:hidden"
+          className="flex flex-col w-full h-full sm:w-full [&>button]:hidden overflow-hidden"
         >
           <SheetHeader className="flex flex-row items-center justify-between border-b-2 border-border pb-4 mb-4 space-y-0 text-left">
             <SheetTitle className="font-bold uppercase tracking-wider">Add New Location</SheetTitle>
