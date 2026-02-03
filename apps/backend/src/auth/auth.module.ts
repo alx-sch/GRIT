@@ -6,6 +6,7 @@ import { AuthController } from '@/auth/auth.controller';
 import { AuthService } from '@/auth/auth.service';
 import { env } from '@/config/env';
 import { UserModule } from '@/user/user.module';
+import { ConfigModule } from '@nestjs/config';
 
 /**
  * AUTH MODULE
@@ -25,6 +26,7 @@ import { UserModule } from '@/user/user.module';
 @Module({
   imports: [
     UserModule,
+    ConfigModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: env.JWT_SECRET,

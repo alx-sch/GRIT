@@ -1,7 +1,8 @@
 import { Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '@/user/user.service';
-import { ResAuthMeDto, ReqRegisterDto, ResLoginDto } from '@/auth/auth.schema';
+import { PrismaService } from '@/prisma/prisma.service';
+import { ResAuthMeDto, ReqRegisterDto, ResLoginDto, GoogleProfile } from '@/auth/auth.schema';
 import * as bcrypt from 'bcrypt';
 import { type LoginInput } from '@grit/schema';
 import { env } from '@/config/env';
@@ -10,7 +11,8 @@ import { env } from '@/config/env';
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly userService: UserService
+    private readonly userService: UserService,
+    private readonly prisma: PrismaService
   ) {}
 
   async register(data: ReqRegisterDto) {
@@ -24,7 +26,7 @@ export class AuthService {
   // Logic for verifying user credentials
   async validateUser(loginDto: LoginInput): Promise<ResAuthMeDto> {
     const user = await this.userService.userGetByEmail(loginDto.email);
-    if (!user) {
+    if (!user || !user.password) {
       throw new UnauthorizedException('Invalid email or password');
     }
     // if (!user.isConfirmed) {
@@ -65,6 +67,37 @@ export class AuthService {
       avatarKey: user.avatarKey,
       isConfirmed: user.isConfirmed,
     });
+  }
+
+  async validateOAuthUser(profile: GoogleProfile) {
+    const { email, firstName, lastName, provider, providerId } = profile;
+
+    // Upsert: Find by email, update provider info, or create new
+    const user = await this.prisma.user.upsert({
+      where: { email },
+      update: {
+        provider,
+        providerId,
+        isConfirmed: true, // OAuth emails are trusted
+      },
+      create: {
+        email,
+        name: `${firstName} ${lastName}`,
+        provider,
+        providerId,
+        isConfirmed: true,
+        password: null, // No password for OAuth users
+      },
+    });
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      avatarKey: user.avatarKey,
+      isConfirmed: user.isConfirmed,
+      attending: [],
+    };
   }
 
   // For test purposes (since NODE_ENV is read-only).
