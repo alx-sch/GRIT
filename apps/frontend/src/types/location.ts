@@ -18,4 +18,5 @@ export interface LocationBase {
   isPublic: boolean;
   address?: string;
   events: EventBase[];
+  postalCode?: string;
 }

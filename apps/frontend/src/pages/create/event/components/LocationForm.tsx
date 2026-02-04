@@ -1,6 +1,6 @@
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/typography';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -12,6 +12,7 @@ import { isAxiosError } from 'axios';
 import { AlertCircleIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { Control, Controller, SubmitHandler, useForm, useWatch } from 'react-hook-form';
+import { Search } from 'lucide-react';
 
 //Key for local Storage
 const DRAFT_KEY = 'location-draft';
@@ -51,8 +52,14 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
       longitude: 13.34,
       isPublic: undefined,
       address: '',
+	  postalCode: '',
     },
   });
+
+   // Log all errors when they change
+  useEffect(() => {
+    console.log('Form errors:', errors);
+  }, [errors]);
 
   //Restore draft if exists
   useEffect(() => {
@@ -83,6 +90,7 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
         longitude: data.longitude,
         isPublic: data.isPublic,
         address: data.address,
+		postalCode: data.postalCode,
       };
 
       const newLocation = await locationService.postLocation(payload);
@@ -104,13 +112,13 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
     <>
       <form
         onSubmit={(e) => {
-          void handleSubmit(onSubmit, (validationErrors) => {
+          void handleSubmit(onSubmit, /*(validationErrors) => {
             if (validationErrors.latitude || validationErrors.longitude) {
               setError('root', { message: 'Please select a location on the map' });
             }
-          })(e);
+          }*/)(e);
         }}
-        className="flex flex-col gap-4 h-full overflow-y-auto flex-1 px-1 pb-1"
+        className="flex flex-col gap-4 h-full overflow-y-auto flex-1 px-1 pb-1 pr-3"
       >
         <DraftSaver control={control} />
         {/* Hidden Inputs: latitude and longitude */}
@@ -135,12 +143,32 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
             </Alert>
           )}
         </div>
+
         {/* Map component */}
-        <Card className="h-80 flex items-center text-center">
-          <Text>***PLACEHOLDER FOR GOOGLE MAPS COMPONENT (including search input)***</Text>
+        <Card className="h-80 min-h-70 flex flex-col">
+
+			<CardContent className='flex flex-col h-full p-4 gap-4'>
+
+		{/* Search input */}
+
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search your location address"
+              className="pl-9"
+            />
+          </div>
+		  <div className='flex flex-1 text-center justify-center'>
+
+          <Text >***PLACEHOLDER FOR GOOGLE MAPS COMPONENT***</Text>
+		  </div>
+			</CardContent>
         </Card>
-        {/* Address */}
-        <div className="flex flex-col gap-2">
+        {/* Address/PostCode */}
+        <div className="flex flex-row gap-6">
+			<div className="flex flex-col flex-1 gap-2">
+
           <label htmlFor="address" className="font-heading">
             Address
           </label>
@@ -148,24 +176,36 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
             id="address"
             type="text"
             {...register('address')}
-            placeholder="e.g Finowstraße 43, 10245 Berlin, Germany"
-          />
+            placeholder='e.g "Harzer Straße 42"'
+			/>
+			</div>
         </div>
         {/* City/Country */}
         <div className="flex flex-row gap-6">
+			<div className="flex flex-col flex-1 gap-2">
+          <label htmlFor="postalCode" className="font-heading">
+            Postal Code
+          </label>
+          <Input
+            id="postalCode"
+            type="text"
+            {...register('postalCode')}
+            placeholder='e.g "12059"'
+			/>
+			</div>
           <div className="flex flex-col flex-1 gap-2">
             <label htmlFor="city" className="font-heading">
               City
             </label>
-            <Input id="city" type="text" {...register('city')} placeholder="e.g Berlin" />
+            <Input id="city" type="text" {...register('city')} placeholder='e.g "Berlin"' />
           </div>
+        </div>
           <div className="flex flex-col flex-1 gap-2">
             <label htmlFor="country" className="font-heading">
               Country
             </label>
-            <Input id="country" type="text" {...register('country')} placeholder="e.g Germany" />
+            <Input id="country" type="text" {...register('country')} placeholder='e.g "Germany"' />
           </div>
-        </div>
         {/* Visibility */}
         <fieldset className="flex flex-col gap-4">
           <legend className="font-heading mb-2"> Choose your location visibility </legend>

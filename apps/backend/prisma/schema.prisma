@@ -34,9 +34,10 @@ model Location {
   id          Int         @id @default(autoincrement())
   author      User        @relation(fields: [authorId], references: [id])
   authorId    Int
-  name        String?
+  name        String
   city        String?
   country     String?
+  postalCode  String?
   longitude   Float
   latitude    Float
   isPublic    Boolean     @default(false)

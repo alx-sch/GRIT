@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
-import { ReqLocationPostDto, ReqLocationGetAllDto } from '@/location/location.schema';
-import { locationEncodeCursor, locationCursorFilter } from './location.utils';
+import {ReqLocationGetAllDto, ReqLocationPostDto} from '@/location/location.schema';
+import {PrismaService} from '@/prisma/prisma.service';
+import {Injectable, NotFoundException} from '@nestjs/common';
+
+import {locationCursorFilter, locationEncodeCursor} from './location.utils';
 
 @Injectable()
 export class LocationService {
@@ -9,14 +10,14 @@ export class LocationService {
 
   async locationGet(input: ReqLocationGetAllDto) {
     const cursorFilter = locationCursorFilter(input);
-    const { limit } = input;
+    const {limit} = input;
 
     const locations = await this.prisma.location.findMany({
       where: cursorFilter,
       include: {
         events: true,
       },
-      orderBy: [{ name: { sort: 'asc', nulls: 'last' } }, { id: 'asc' }],
+      orderBy: [{name: 'asc'}, {id: 'asc'}],
       take: limit + 1,
     });
 
@@ -26,18 +27,16 @@ export class LocationService {
     return {
       data: slicedData,
       pagination: {
-        nextCursor: hasMore
-          ? locationEncodeCursor(
-              slicedData[slicedData.length - 1].name,
-              slicedData[slicedData.length - 1].id
-            )
-          : null,
+        nextCursor: hasMore ? locationEncodeCursor(
+                                  slicedData[slicedData.length - 1].name,
+                                  slicedData[slicedData.length - 1].id) :
+                              null,
         hasMore,
       },
     };
   }
 
-  locationPost(data: ReqLocationPostDto & { authorId: number }) {
+  locationPost(data: ReqLocationPostDto&{authorId: number}) {
     return this.prisma.location.create({
       data: {
         name: data.name,
@@ -47,8 +46,9 @@ export class LocationService {
         latitude: data.latitude,
         isPublic: data.isPublic,
         address: data.address,
+        postalCode: data.postalCode,
         author: {
-          connect: { id: data.authorId },
+          connect: {id: data.authorId},
         },
       },
       include: {
@@ -63,10 +63,11 @@ export class LocationService {
     });
   }
 
-  async locationDelete(where: { id: number }) {
+  async locationDelete(where: {id: number}) {
     const exist = await this.locationExists(where.id);
     if (!exist) {
-      throw new NotFoundException(`Location with id ${String(where.id)} not found`);
+      throw new NotFoundException(
+          `Location with id ${String(where.id)} not found`);
     }
 
     return this.prisma.location.delete({
@@ -80,8 +81,8 @@ export class LocationService {
 
   async locationExists(id: number) {
     const location = await this.prisma.location.findUnique({
-      where: { id },
-      select: { id: true },
+      where: {id},
+      select: {id: true},
     });
     return !!location;
   }

@@ -395,7 +395,7 @@ export default function EventForm({ locations }: EventFormProps) {
           side="right"
           className="flex flex-col w-full h-full sm:w-full [&>button]:hidden overflow-hidden border-l-0"
         >
-          <SheetHeader className="flex flex-row items-center justify-between border-b-2 border-border pb-4 mb-4 space-y-0 text-left">
+          <SheetHeader className="flex flex-row items-center justify-between border-b-2 border-border pb-4 mb-2 space-y-0 text-left">
             <SheetTitle className="font-bold uppercase tracking-wider">Add New Location</SheetTitle>
             <SheetClose asChild>
               <button className="focus:outline-none hover:opacity-70 transition-opacity">
