@@ -38,7 +38,6 @@ export const eventService = {
   },
   getEvent: async (id: string): Promise<EventBase> => {
     const response = await api.get<EventBase>(`/events/${id}`);
-    // TODO validate once schema is available unified for front and backend
     return response.data;
   },
   postEvent: async (data: CreateEventPayload): Promise<EventBase> => {

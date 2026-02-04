@@ -1,6 +1,6 @@
-export * from './env.js';
-export * from './auth.js';
-export * from './chat.js';
+export * from './env';
+export * from './auth';
+export * from './chat';
 import { z } from 'zod';
 
 // Shared Event Rules

@@ -10,7 +10,7 @@ export function useChat(eventId: number) {
   const token = useAuthStore((s) => s.token);
 
   useEffect(() => {
-    // TODO the url needs to be changed, no CORS necessary though
+    // The url for websockets should be part of the .env?
     const socket = io('http://localhost:3000', {
       transports: ['websocket'],
       auth: {
