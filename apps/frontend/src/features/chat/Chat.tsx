@@ -38,10 +38,16 @@ export const Chat = ({ event }: { event: EventBase }) => {
       const isOwnMessage = lastMessage.author.id === currentUserId;
       if (isOwnMessage || isNearBottom) {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-        setHasNewMessages(false);
+        requestAnimationFrame(() => {
+          // Too silence that bitch of a linter
+          setHasNewMessages(false);
+        });
       } else {
         // otherwise we set a flag which will cause the display of a "new messages" notification but don't scroll down.
-        setHasNewMessages(true);
+        requestAnimationFrame(() => {
+          // Too silence that bitch of a linter
+          setHasNewMessages(true);
+        });
       }
     }
   }, [messages]);
@@ -54,7 +60,7 @@ export const Chat = ({ event }: { event: EventBase }) => {
     // Event handler
     const onScroll = () => {
       // Don't do anything while we are in the initial loading phase
-      if (isInitialLoad.current === true) return;
+      if (isInitialLoad.current) return;
 
       // Calcs
       const distanceFromBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight;
@@ -100,8 +106,10 @@ export const Chat = ({ event }: { event: EventBase }) => {
       });
     }
 
-    return () => viewport.removeEventListener('scroll', onScroll);
-  }, [messages, hasMore, loadMore]);
+    return () => {
+      viewport.removeEventListener('scroll', onScroll);
+    };
+  }, [messages, hasMore]);
 
   return (
     <>
@@ -129,10 +137,19 @@ export const Chat = ({ event }: { event: EventBase }) => {
       </div>
 
       <Textarea
-        className="mb-2 rounded-none"
+        className="mb-2 rounded-none border h-20"
         placeholder="Type your message here."
         value={input}
-        onChange={(e) => setInput(e.target.value)}
+        onChange={(e) => {
+          setInput(e.target.value);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage(input);
+            setInput('');
+          }
+        }}
       />
 
       <Button

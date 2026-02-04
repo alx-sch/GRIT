@@ -13,3 +13,8 @@ export class IntChatMessageDto extends createZodDto(IntChatMessageSchema) {}
 // Dtos from shared schema
 export class ReqChatMessagePostDto extends createZodDto(ReqChatMessagePostSchema) {}
 export class ReqChatJoinSchemaDto extends createZodDto(ReqChatJoinSchema) {}
+
+/**
+ * Note that there is also ResChatMessageSchema and ReqSocketCreationSchema which will be
+ * imported directly from grit schema package as we don't need a Dto for it.
+ */

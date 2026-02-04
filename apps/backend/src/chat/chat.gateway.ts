@@ -11,9 +11,19 @@ import { UserService } from '@/user/user.service';
 import { ChatService } from '@/chat/chat.service';
 import { randomUUID } from 'crypto';
 import { ReqChatMessagePostDto, ReqChatJoinSchemaDto } from '@/chat/chat.schema';
-import { ResChatMessageSchema } from '@grit/schema';
+import { ResChatMessageSchema, ReqSocketAuthSchema } from '@grit/schema';
+import 'socket.io';
+import type { DefaultEventsMap } from 'socket.io';
 
-// TODO Need to add validation
+interface SocketData {
+  userId: number;
+  userName: string;
+  userAvatarKey?: string;
+  eventId?: number;
+}
+
+export type AppSocket = Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>;
+export type AppServer = Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>;
 
 // The WebsocketGateway creates the socket similar to `const io = new Server();` and listens to it with .listen internally
 @WebSocketGateway()
@@ -22,35 +32,49 @@ export class ChatGateway {
   @WebSocketServer()
   private server!: Server;
 
-  // First check on connection that user has a valid token
   constructor(
     private readonly authService: AuthService,
     private readonly chatService: ChatService,
     private readonly userService: UserService
   ) {}
 
-  // Middleware in which we make sure that we first enrich the socket data with user data before allowing anything else
+  // afterInit runs ONCE when the gateway is initialized. We can install middleware in here.
   afterInit(server: Server) {
-    server.use(async (socket, next) => {
-      const token: string = socket.handshake.auth?.token;
-      if (!token) return next(new Error('Unauthorized'));
+    // This registers a Socket.IO middleware. It does not run immediately but for every incoming connection attempt. socket will be the client that tries to connect
+    server.use((socket: AppSocket, next) => {
+      const parsed_token = ReqSocketAuthSchema.safeParse(socket.handshake.auth);
+      if (!parsed_token.success) {
+        next(new Error('Unauthorized'));
+        return;
+      }
+      void (async () => {
+        const token = parsed_token.data.token;
+        const userId = this.authService.verifyToken(token);
+        if (!userId) {
+          next(new Error('Unauthorized'));
+          return;
+        }
 
-      const userId = this.authService.verifyToken(token);
-      if (!userId) return next(new Error('Unauthorized'));
+        const user = await this.userService.userGetById(userId);
+        if (!user) {
+          next(new Error('Unauthorized'));
+          return;
+        }
 
-      const user = await this.userService.userGetById(userId);
-      if (!user) return next(new Error('Unauthorized'));
+        socket.data.userId = user.id;
+        socket.data.userName = user.name ?? 'No username';
+        socket.data.userAvatarKey = user.avatarKey ?? undefined;
 
-      socket.data.userId = user.id;
-      socket.data.userName = user.name;
-      socket.data.userAvatarKey = user.avatarKey;
-
-      next();
+        next();
+      })();
     });
   }
 
   @SubscribeMessage('join')
-  async handleJoin(@MessageBody() body: ReqChatJoinSchemaDto, @ConnectedSocket() client: Socket) {
+  async handleJoin(
+    @MessageBody() body: ReqChatJoinSchemaDto,
+    @ConnectedSocket() client: AppSocket
+  ) {
     // Check if the client is allowed to join the chat room
     const userIsAttendingEvent = await this.userService.userIsAttendingEvent(
       client.data.userId,
@@ -60,7 +84,7 @@ export class ChatGateway {
       client.disconnect();
       return 0;
     }
-    client.join(`event:${body.eventId}`);
+    await client.join(`event:${String(body.eventId)}`);
     // We lock down which room (eventId) this socket belongs to
     client.data.eventId = body.eventId;
 
@@ -73,7 +97,10 @@ export class ChatGateway {
   }
 
   @SubscribeMessage('message')
-  handleMessage(@MessageBody() body: ReqChatMessagePostDto, @ConnectedSocket() client: Socket) {
+  async handleMessage(
+    @MessageBody() body: ReqChatMessagePostDto,
+    @ConnectedSocket() client: AppSocket
+  ) {
     const eventId = client.data.eventId;
     // Client must have joined an event room
     if (!eventId) {
@@ -83,7 +110,7 @@ export class ChatGateway {
     const id = randomUUID();
 
     // Emit immediately (realtime first)
-    this.server.to(`event:${eventId}`).emit('message', {
+    const res = {
       id,
       eventId,
       text: body.text,
@@ -93,10 +120,12 @@ export class ChatGateway {
         avatarKey: client.data.userAvatarKey,
       },
       createdAt: new Date(),
-    });
+    };
+    const message = ResChatMessageSchema.parse(res);
+    this.server.to(`event:${String(eventId)}`).emit('message', message);
 
     // Persist asynchronously (durability second)
-    this.chatService.saveMessage({
+    await this.chatService.saveMessage({
       id,
       eventId,
       authorId: client.data.userId,
@@ -107,7 +136,7 @@ export class ChatGateway {
   @SubscribeMessage('load_more')
   async handleLoadMore(
     @MessageBody() body: { cursorSentAt: string; cursorId: string },
-    @ConnectedSocket() client: Socket
+    @ConnectedSocket() client: AppSocket
   ) {
     const eventId = client.data.eventId;
     if (!eventId) return null;

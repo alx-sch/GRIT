@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+// Connection request from Client
+export const ReqSocketAuthSchema = z.object({
+  token: z.string(),
+});
+
 // Chat Message sent from client
 export const ReqChatMessagePostSchema = z.object({
   text: z.string(),

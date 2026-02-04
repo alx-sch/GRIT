@@ -1,6 +1,5 @@
 import { io, type Socket } from 'socket.io-client';
 import { useEffect, useRef, useState } from 'react';
-import { useCurrentUserStore } from '@/store/currentUserStore';
 import type { ResChatMessage } from '@grit/schema';
 import { useAuthStore } from '@/store/authStore';
 
