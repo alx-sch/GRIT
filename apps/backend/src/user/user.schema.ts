@@ -16,13 +16,23 @@ export const ResUserEventsSchema = z.array(ResEventUserSchema);
 export const ResUserBaseSchema = z.object({
   id: z.number().int().positive(),
   name: z.string().nullable(),
+  email: z.email(),
   avatarKey: z.string().nullable(),
+  isConfirmed: z.boolean().default(false),
   attending: z.array(ResEventUserSchema).default([]),
 });
 
 // Response schema for creating new user
 export const ResUserPostSchema = ResUserBaseSchema.extend({
   email: z.email(),
+  message: z
+    .string()
+    .default('Registration successful. Please check your email to confirm your account.'),
+});
+
+// Schema for the email confirmation endpoint
+export const ReqUserConfirmSchema = z.strictObject({
+  token: z.string().min(1, 'Token is required'),
 });
 
 // Get all users
@@ -66,3 +76,4 @@ export class ReqUserGetAllDto extends createZodDto(ReqUserGetAllSchema) {}
 export class ResUserPostDto extends createZodDto(ResUserPostSchema) {}
 export class ReqUserPostDto extends createZodDto(ReqUserPostSchema) {}
 export class ResUserEventsDto extends createZodDto(ResUserEventsSchema) {}
+export class ReqUserConfirmDto extends createZodDto(ReqUserConfirmSchema) {}
