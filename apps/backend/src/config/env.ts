@@ -40,6 +40,14 @@ const backendBaseSchema = sharedPortsSchema
     MINIO_HOST: z.string().default('localhost'),
     MINIO_ENDPOINT: z.string().optional(),
 
+    // Email serice
+    MAIL_HOST: z.string().default('sandbox.smtp.mailtrap.io'),
+    MAIL_PORT: z.coerce.number().default(2525),
+    MAIL_USER: z.string(),
+    MAIL_PASS: z.string(),
+    MAIL_FROM: z.email().default('noreply@grit.social'),
+    FRONTEND_URL: z.url().default('http://localhost:3000'),
+
     // Ports (backend only)
     HTTP_PORT: z.coerce.number().default(80),
     HTTPS_PORT: z.coerce.number().default(443),

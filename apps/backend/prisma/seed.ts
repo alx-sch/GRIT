@@ -141,8 +141,14 @@ async function main() {
     // Create User in DB
     const user = await prisma.user.upsert({
       where: { email: u.email },
-      update: { name: u.name, password: hashedPassword },
-      create: { email: u.email, name: u.name, password: hashedPassword },
+      update: { name: u.name, password: hashedPassword, isConfirmed: true },
+      create: {
+        email: u.email,
+        name: u.name,
+        password: hashedPassword,
+        isConfirmed: true,
+        confirmationToken: null,
+      },
     });
     console.log(`👤 Processed User: ${user.name ?? 'Unknown'} (${String(user.id)})`);
 
