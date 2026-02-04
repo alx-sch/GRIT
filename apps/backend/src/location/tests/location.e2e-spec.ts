@@ -1,11 +1,11 @@
-import { Test } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/prisma/prisma.service';
+import { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { Test } from '@nestjs/testing';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import request from 'supertest';
 
 /**
  * ========================================
@@ -163,9 +163,10 @@ describe('Location E2E', () => {
       expect(res.body.pagination.hasMore).toBe(true);
     });
 
-    it('returns first location (confirms name=null gets placed last) -> limit set to 1)', async () => {
+    it('returns first location -> limit set to 1)', async () => {
       await prisma.location.create({
         data: {
+          name: 'location 1',
           isPublic: true,
           author: { connect: { id: user.id } },
           longitude: 42,

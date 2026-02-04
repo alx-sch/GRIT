@@ -211,7 +211,7 @@ async function main() {
       const createdLoc = await prisma.location.create({
         data: loc,
       });
-      console.log(`📍 Created Location: ${createdLoc.name ?? 'Unknown Location'} `);
+      console.log(`📍 Created Location: ${createdLoc.name} `);
       if (loc.name === 'GRIT HQ') gritHqId = createdLoc.id;
     } else {
       console.log(`⏩ Location '${loc.name}' already exists. Skipping.`);

@@ -28,6 +28,9 @@ describe('Location Form', () => {
     longitude: 52,
     latitude: 13,
     address: 'HarzerStrasse 42 Berlin',
+    postalCode: '12345',
+    city: 'Berlin',
+    country: 'Germany',
     events: [],
   };
 
@@ -61,6 +64,14 @@ describe('Location Form', () => {
 
       await waitFor(() => {
         expect(screen.getByRole('textbox', { name: /address/i })).toBeInTheDocument();
+      });
+    });
+
+    it('renders the postal code input', async () => {
+      renderLocationForm();
+
+      await waitFor(() => {
+        expect(screen.getByRole('textbox', { name: /postal code/i })).toBeInTheDocument();
       });
     });
 
@@ -197,11 +208,13 @@ describe('Location Form', () => {
 
       const nameInput = screen.getByRole('textbox', { name: /name of the location/i });
       const addressInput = screen.getByRole('textbox', { name: /address/i });
+      const postalCodeInput = screen.getByRole('textbox', { name: /postal code/i });
       const cityInput = screen.getByRole('textbox', { name: /city/i });
       const countryInput = screen.getByRole('textbox', { name: /country/i });
 
       await user.type(nameInput, 'My Location');
       await user.type(addressInput, 'Finowstraße 43');
+      await user.type(postalCodeInput, '12345');
       await user.type(cityInput, 'Berlin');
       await user.type(countryInput, 'Germany');
 
@@ -215,6 +228,7 @@ describe('Location Form', () => {
         expect(locationService.postLocation).toHaveBeenCalledWith({
           name: 'My Location',
           address: 'Finowstraße 43',
+          postalCode: '12345',
           city: 'Berlin',
           country: 'Germany',
           latitude: 52.45,
