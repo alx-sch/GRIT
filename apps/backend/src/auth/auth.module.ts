@@ -7,6 +7,7 @@ import { AuthController } from '@/auth/auth.controller';
 import { AuthService } from '@/auth/auth.service';
 import { env } from '@/config/env';
 import { UserModule } from '@/user/user.module';
+import { StorageModule } from '@/storage/storage.module';
 import { ConfigModule } from '@nestjs/config';
 
 /**
@@ -32,6 +33,7 @@ import { ConfigModule } from '@nestjs/config';
 @Global()
 @Module({
   imports: [
+    StorageModule,
     UserModule,
     ConfigModule,
     PassportModule.register({ defaultStrategy: 'googles' }),

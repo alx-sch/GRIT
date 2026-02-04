@@ -10,7 +10,7 @@ GET {{baseUrl}}
 
 # ========== USER ONBOARDING ==========
 
-POST {{baseUrl}}/users
+POST {{baseUrl}}/auth/register
 Content-Type: application/json
 
 {
@@ -26,7 +26,7 @@ Content-Type: application/json
 GET {{baseUrl}}/auth/confirm?token={{confToken}}
 ###
 
-// ========== AUTHENTICATOION ========== //
+// ========== AUTHENTICATION ========== //
 
 # Get token of user 1
 # @name debugGetToken

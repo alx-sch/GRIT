@@ -8,8 +8,7 @@ import {
   PutBucketPolicyCommand,
 } from '@aws-sdk/client-s3';
 import { env } from '@/config/env';
-import crypto from 'crypto';
-import path from 'path';
+import { generateS3Key, getPublicS3Policy } from './storage.utils';
 
 // Define the error interface for the helper
 interface S3Error {
@@ -44,9 +43,7 @@ export class StorageService implements OnModuleInit {
     originalName: string,
     mimetype = 'image/jpeg'
   ): Promise<string> {
-    const fileHash = crypto.randomBytes(4).toString('hex');
-    const timestamp = Date.now();
-    const s3Key = `${String(timestamp)}-${fileHash}${path.extname(originalName)}`;
+    const s3Key = generateS3Key(originalName);
 
     try {
       await this.s3.send(
@@ -108,7 +105,7 @@ export class StorageService implements OnModuleInit {
         await this.s3.send(
           new PutBucketPolicyCommand({
             Bucket: bucketName,
-            Policy: this.getPublicPolicy(bucketName),
+            Policy: getPublicS3Policy(bucketName),
           })
         );
         console.log(`✅ Bucket '${bucketName}' created.`);
@@ -116,20 +113,5 @@ export class StorageService implements OnModuleInit {
         throw error;
       }
     }
-  }
-
-  // Generates the policy that allows public read access to images.
-  private getPublicPolicy(bucketName: string): string {
-    return JSON.stringify({
-      Version: '2012-10-17',
-      Statement: [
-        {
-          Effect: 'Allow',
-          Principal: { AWS: ['*'] },
-          Action: ['s3:GetObject'],
-          Resource: [`arn:aws:s3:::${bucketName}/*`],
-        },
-      ],
-    });
   }
 }
