@@ -69,6 +69,9 @@ export class AuthService {
     });
   }
 
+  // Handles both new signups and returning logins via upsert.
+  // If a user originally signed up with a password but now clicks "Login with Google",
+  // this will "link" their Google ID to their existing email account automatically.
   async validateOAuthUser(profile: GoogleProfile) {
     const { email, firstName, lastName, provider, providerId } = profile;
 
