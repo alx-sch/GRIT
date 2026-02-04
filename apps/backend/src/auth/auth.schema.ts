@@ -28,3 +28,14 @@ export class ResLoginDto extends createZodDto(ResLoginSchema) {}
 
 // --- Me / Auth Status ---
 export class ResAuthMeDto extends createZodDto(ResUserBaseSchema) {}
+
+// --- Google OAuth Profile ---
+export const GoogleProfileSchema = z.object({
+  email: z.email(),
+  firstName: z.string(),
+  lastName: z.string(),
+  picture: z.url().optional(),
+  provider: z.literal('google'),
+  providerId: z.string(),
+});
+export type GoogleProfile = z.infer<typeof GoogleProfileSchema>;

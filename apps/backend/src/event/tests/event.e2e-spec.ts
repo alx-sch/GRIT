@@ -6,6 +6,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { StorageService } from '@/storage/storage.service';
 
 /**
  * ========================================
@@ -38,7 +39,14 @@ describe('Events E2E', () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(StorageService)
+      .useValue({
+        onModuleInit: jest.fn().mockResolvedValue(undefined),
+        ensureBucket: jest.fn().mockResolvedValue(undefined),
+        uploadBuffer: jest.fn().mockResolvedValue('mock-key'),
+      })
+      .compile();
 
     app = moduleRef.createNestApplication();
     await app.init();

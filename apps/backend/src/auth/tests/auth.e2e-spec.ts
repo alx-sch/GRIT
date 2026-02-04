@@ -8,6 +8,7 @@ import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { AuthService } from '@/auth/auth.service';
 import { MailService } from '@/mail/mail.service';
+import { StorageService } from '@/storage/storage.service';
 
 /**
  * ========================================
@@ -40,6 +41,12 @@ describe('Auth E2E', () => {
     }) // The two lines below to stop real emails from being sent
       .overrideProvider(MailService)
       .useValue({ sendConfirmationEmail: jest.fn().mockResolvedValue(undefined) })
+      .overrideProvider(StorageService)
+      .useValue({
+        onModuleInit: jest.fn().mockResolvedValue(undefined),
+        ensureBucket: jest.fn().mockResolvedValue(undefined),
+        uploadBuffer: jest.fn().mockResolvedValue('mock-key'),
+      })
       .compile();
 
     app = moduleRef.createNestApplication();

@@ -40,13 +40,18 @@ const backendBaseSchema = sharedPortsSchema
     MINIO_HOST: z.string().default('localhost'),
     MINIO_ENDPOINT: z.string().optional(),
 
-    // Email serice
+    // Email service
     MAIL_HOST: z.string().default('sandbox.smtp.mailtrap.io'),
     MAIL_PORT: z.coerce.number().default(2525),
     MAIL_USER: z.string(),
     MAIL_PASS: z.string(),
     MAIL_FROM: z.email().default('noreply@grit.social'),
     FRONTEND_URL: z.url().default('http://localhost:3000'),
+
+    // Google OAuth
+    GOOGLE_CLIENT_ID: z.string().min(1, 'Google Client ID is required'),
+    GOOGLE_CLIENT_SECRET: z.string().min(1, 'Google Client Secret is required'),
+    GOOGLE_CALLBACK_URL: z.url().default('http://localhost:3000/auth/google/callback'),
 
     // Ports (backend only)
     HTTP_PORT: z.coerce.number().default(80),

@@ -3,6 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../app.module';
+import { StorageService } from '@/storage/storage.service';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
@@ -10,7 +11,14 @@ describe('AppController (e2e)', () => {
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(StorageService)
+      .useValue({
+        onModuleInit: jest.fn().mockResolvedValue(undefined),
+        ensureBucket: jest.fn().mockResolvedValue(undefined),
+        uploadBuffer: jest.fn().mockResolvedValue('mock-key'),
+      })
+      .compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();

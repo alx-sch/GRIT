@@ -8,11 +8,11 @@ import {
 } from '@aws-sdk/client-s3';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
-import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { Pool } from 'pg';
 import * as bcrypt from 'bcrypt';
+import { getPublicS3Policy, generateS3Key } from '@/storage/storage.utils';
 
 // Setup the Postgres connection
 const pool = new Pool({ connectionString: env.DATABASE_URL });
@@ -34,21 +34,6 @@ interface S3Error {
   $metadata?: { httpStatusCode?: number };
 }
 
-// This ensures that anyone can view the images via a URL without needing a
-// private signature.
-const getPublicPolicy = (bucketName: string) =>
-  JSON.stringify({
-    Version: '2012-10-17',
-    Statement: [
-      {
-        Effect: 'Allow',
-        Principal: { AWS: ['*'] },
-        Action: ['s3:GetObject'],
-        Resource: [`arn:aws:s3:::${bucketName}/*`],
-      },
-    ],
-  });
-
 // Helper: Check if bucket exists, create if not
 async function ensureBucket(bucketName: string) {
   console.log(`Checking for bucket: ${bucketName}...`);
@@ -69,7 +54,7 @@ async function ensureBucket(bucketName: string) {
       await s3.send(
         new PutBucketPolicyCommand({
           Bucket: bucketName,
-          Policy: getPublicPolicy(bucketName),
+          Policy: getPublicS3Policy(bucketName),
         })
       );
       console.log(`✅ Bucket '${bucketName}' created.`);
@@ -79,7 +64,7 @@ async function ensureBucket(bucketName: string) {
   }
 }
 
-// Helper: Upload file to bukcet
+// Helper: Upload file to bucket
 async function uploadToBucket(bucketName: string, localFilePath: string, originalName: string) {
   // 1. Check if local file exists
   if (!fs.existsSync(localFilePath)) {
@@ -87,13 +72,9 @@ async function uploadToBucket(bucketName: string, localFilePath: string, origina
     return null;
   }
 
-  // 2. Read file from disk
+  // 2. Read file from disk and hash
   const fileBuffer = fs.readFileSync(localFilePath);
-
-  const fileHash = crypto.randomBytes(4).toString('hex');
-  const timestamp = Date.now();
-  const extension = path.extname(originalName);
-  const s3Key = `${String(timestamp)}-${fileHash}${extension}`;
+  const s3Key = generateS3Key(originalName);
 
   // 3. Upload to S3/MinIO
   try {
