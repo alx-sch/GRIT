@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '@/user/user.service';
-import { ResAuthMeDto, ResAuthLoginDto } from '@/auth/auth.schema';
+import { ResAuthMeDto, ReqRegisterDto, ResLoginDto } from '@/auth/auth.schema';
 import * as bcrypt from 'bcrypt';
 import { type LoginInput } from '@grit/schema';
 import { env } from '@/config/env';
@@ -13,28 +13,39 @@ export class AuthService {
     private readonly userService: UserService
   ) {}
 
+  async register(data: ReqRegisterDto) {
+    return this.userService.userPost(data);
+  }
+
+  async confirmEmail(token: string) {
+    return this.userService.userConfirm(token);
+  }
+
   // Logic for verifying user credentials
   async validateUser(loginDto: LoginInput): Promise<ResAuthMeDto> {
     const user = await this.userService.userGetByEmail(loginDto.email);
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
     }
+    // if (!user.isConfirmed) {
+    //   throw new UnauthorizedException('Please confirm your email address before logging in.');
+    // }
 
     const isMatch = await bcrypt.compare(loginDto.password, user.password);
     if (!isMatch) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    return ResAuthMeDto.create({
+    return {
       id: user.id,
       email: user.email,
       name: user.name,
       avatarKey: user.avatarKey,
-    });
+    } as ResAuthMeDto;
   }
 
   // Logic for creating the session response
-  login(user: ResAuthMeDto): ResAuthLoginDto {
+  login(user: ResAuthMeDto): ResLoginDto {
     const payload = { sub: user.id, email: user.email };
     return {
       accessToken: this.jwtService.sign(payload),
@@ -52,6 +63,7 @@ export class AuthService {
       email: user.email,
       name: user.name,
       avatarKey: user.avatarKey,
+      isConfirmed: user.isConfirmed,
     });
   }
 

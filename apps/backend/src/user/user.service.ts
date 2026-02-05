@@ -11,13 +11,16 @@ import {
 import { StorageService } from '@/storage/storage.service';
 import * as bcrypt from 'bcrypt';
 import { userEncodeCursor, userCursorFilter } from './user.utils';
+import { randomBytes } from 'crypto';
+import { MailService } from '@/mail/mail.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private prisma: PrismaService,
     private eventService: EventService,
-    private storage: StorageService
+    private storage: StorageService,
+    private mailService: MailService
   ) {}
 
   async userGet(input: ReqUserGetAllDto) {
@@ -92,18 +95,55 @@ export class UserService {
   }
 
   async userPost(data: ReqUserPostDto): Promise<ResUserPostDto> {
+    const token = randomBytes(32).toString('hex');
+
     const user = await this.prisma.user.create({
       data: {
         name: data.name,
         email: data.email,
         password: await bcrypt.hash(data.password, 10),
         avatarKey: data.avatarKey,
+        isConfirmed: false,
+        confirmationToken: token,
       },
       include: {
         attending: true,
       },
     });
-    return { ...user, attending: [] };
+
+    // Send confirmation email
+    try {
+      await this.mailService.sendConfirmationEmail(user.email, token);
+    } catch (error) {
+      console.error('Failed to send confirmation email:', error);
+    }
+
+    return {
+      ...user,
+      attending: [],
+      message: 'Registration successful. Please check your email to confirm your account.',
+    };
+  }
+
+  async userConfirm(token: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { confirmationToken: token },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Invalid or expired confirmation token.');
+    }
+
+    return await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isConfirmed: true,
+        confirmationToken: null, // Token is one-time use
+      },
+      include: {
+        attending: true,
+      },
+    });
   }
 
   async userUpdateAvatar(userId: number, file: Express.Multer.File): Promise<ResUserBaseDto> {

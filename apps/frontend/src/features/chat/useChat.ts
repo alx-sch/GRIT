@@ -2,6 +2,7 @@ import { io, type Socket } from 'socket.io-client';
 import { useEffect, useRef, useState } from 'react';
 import type { ResChatMessage } from '@grit/schema';
 import { useAuthStore } from '@/store/authStore';
+import { env } from '@/config/env';
 
 export function useChat(eventId: number) {
   const socketRef = useRef<Socket | null>(null);
@@ -11,7 +12,8 @@ export function useChat(eventId: number) {
 
   useEffect(() => {
     // The url for websockets should be part of the .env?
-    const socket = io('http://localhost:3000', {
+    console.log(env);
+    const socket = io(`http://localhost:3333`, {
       transports: ['websocket'],
       auth: {
         token,

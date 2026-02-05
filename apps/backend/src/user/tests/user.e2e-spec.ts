@@ -6,6 +6,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { MailService } from '@/mail/mail.service';
 
 /**
  * ========================================
@@ -40,7 +41,12 @@ describe('User E2E', () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(MailService)
+      .useValue({
+        sendConfirmationEmail: jest.fn().mockResolvedValue(undefined),
+      })
+      .compile();
 
     app = moduleRef.createNestApplication();
     await app.init();
@@ -57,6 +63,7 @@ describe('User E2E', () => {
         email: 'Alice@example.com',
         name: 'Alice',
         password: await bcrypt.hash('alicepassword123', 10),
+        isConfirmed: true,
       },
       include: {
         attending: true,
@@ -69,6 +76,7 @@ describe('User E2E', () => {
         email: 'Bob@example.com',
         name: 'Bob',
         password: await bcrypt.hash('bobpassword123', 10),
+        isConfirmed: true,
       },
       include: {
         attending: true,
@@ -143,7 +151,7 @@ describe('User E2E', () => {
   });
 
   // Create a user
-  describe('POST /users', () => {
+  describe('POST auth/register', () => {
     it('posts a new user', async () => {
       const newUser = {
         email: 'David@example.com',

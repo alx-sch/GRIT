@@ -7,6 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { AuthService } from '@/auth/auth.service';
+import { MailService } from '@/mail/mail.service';
 
 /**
  * ========================================
@@ -36,7 +37,10 @@ describe('Auth E2E', () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    }) // The two lines below to stop real emails from being sent
+      .overrideProvider(MailService)
+      .useValue({ sendConfirmationEmail: jest.fn().mockResolvedValue(undefined) })
+      .compile();
 
     app = moduleRef.createNestApplication();
     await app.init();
@@ -55,6 +59,7 @@ describe('Auth E2E', () => {
         email: 'test@example.com',
         name: 'Test User',
         password: await bcrypt.hash('password123', 10),
+        isConfirmed: true,
       },
       include: {
         attending: true,
@@ -115,6 +120,8 @@ describe('Auth E2E', () => {
         email: user.email,
         id: user.id,
         name: user.name,
+        isConfirmed: true,
+        attending: [],
       });
     });
 
