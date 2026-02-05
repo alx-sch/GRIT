@@ -34,16 +34,18 @@ model User {
 // Location has a creator
 // Location can have events
 model Location {
-  id        Int     @id @default(autoincrement())
-  author    User    @relation(fields: [authorId], references: [id])
-  authorId  Int
-  name      String?
-  city      String?
-  country   String?
-  longitude Float
-  latitude  Float
-  isPublic  Boolean @default(false)
-  events    Event[]
+  id          Int         @id @default(autoincrement())
+  author      User        @relation(fields: [authorId], references: [id])
+  authorId    Int
+  name        String
+  city        String?
+  country     String?
+  postalCode  String?
+  longitude   Float
+  latitude    Float
+  isPublic    Boolean     @default(false)
+  address	  String?
+  events      Event[]
 }
 
 // Event must have a creator

@@ -1,5 +1,6 @@
 import api from '@/lib/api';
 import type { EventBase, EventResponse } from '@/types/event';
+import { CreateEventInput } from '@grit/schema';
 
 interface GetEventsParams {
   search?: string;
@@ -9,16 +10,6 @@ interface GetEventsParams {
   authorId?: string;
   cursor?: string;
   locationId?: string;
-}
-
-interface CreateEventPayload {
-  title: string;
-  content?: string;
-  startAt: string;
-  endAt: string;
-  isPublic: boolean;
-  isPublished: boolean;
-  locationId?: number;
 }
 
 export const eventService = {
@@ -37,7 +28,7 @@ export const eventService = {
     return response.data;
   },
 
-  postEvent: async (data: CreateEventPayload): Promise<EventBase> => {
+  postEvent: async (data: CreateEventInput): Promise<EventBase> => {
     const response = await api.post<EventBase>('/events', data);
     return response.data;
   },
