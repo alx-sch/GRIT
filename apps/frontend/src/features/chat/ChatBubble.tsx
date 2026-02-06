@@ -14,7 +14,7 @@ export const ChatBubble = ({ message }: { message: ResChatMessage }) => {
         <div className={`border border-input p-2 max-w-4/5 flex`}>
           {!isFromCurrentUser && (
             <Avatar className="mr-2 w-6 h-6">
-              <AvatarImage src={getAvatarImageUrl(message.author.avatarKey)} />
+              <AvatarImage src={getAvatarImageUrl(message.author.avatarKey ?? undefined)} />
               <AvatarFallback>JD</AvatarFallback>
             </Avatar>
           )}

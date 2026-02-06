@@ -75,8 +75,8 @@ export const ResChatMessageSchema = z.object({
   createdAt: z.date(),
   author: z.object({
     id: z.number().int().positive(),
-    name: z.string().optional(),
-    avatarKey: z.string().optional(),
+    name: z.string().nullable().optional(),
+    avatarKey: z.string().nullable().optional(),
   }),
 });
 export type ResChatMessage = z.infer<typeof ResChatMessageSchema>;
