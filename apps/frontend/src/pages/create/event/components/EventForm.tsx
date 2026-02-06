@@ -124,7 +124,7 @@ export default function EventForm({ locations }: EventFormProps) {
         }
       }
       localStorage.removeItem(DRAFT_KEY);
-      void navigate('/events/');
+      void navigate(`/events/${result.id}`, { replace: true });
     } catch (error) {
       let message = 'Something went wrong. Please try again.';
       if (isAxiosError(error)) {
