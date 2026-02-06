@@ -1,9 +1,10 @@
 import {eventCursorFilter, eventEncodeCursor, eventSearchFilter} from '@/event/event.utils';
 import {LocationService} from '@/location/location.service';
 import {PrismaService} from '@/prisma/prisma.service';
+import {StorageService} from '@/storage/storage.service';
 import {BadRequestException, Injectable, NotFoundException, UnauthorizedException,} from '@nestjs/common';
 import {Prisma} from '@prisma/client';
-import { StorageService } from '@/storage/storage.service';
+
 import {ReqEventGetPublishedDto, ReqEventPatchDto, ReqEventPostDraftDto} from './event.schema';
 
 @Injectable()
@@ -168,6 +169,24 @@ export class EventService {
       }
       throw error;
     }
+  }
+
+  async eventDeleteImage(eventId: number, userId: number) {
+    // Verify ownership
+    const event = await this.prisma.event.findUnique({
+      where: {id: eventId},
+      select: {authorId: true, imageKey: true},
+    });
+    if (!event) throw new NotFoundException('Event not found');
+    if (event.authorId !== userId) throw new UnauthorizedException();
+    if (!event.imageKey) throw new BadRequestException('Event has no image');
+
+    await this.storage.deleteFile(event.imageKey, 'event-images');
+    return this.prisma.event.update({
+      where: {id: eventId},
+      data: {imageKey: null},
+      include: {author: true, location: true, attending: true},
+    });
   }
 
   async eventPostDraft(data: ReqEventPostDraftDto&{authorId: number}) {

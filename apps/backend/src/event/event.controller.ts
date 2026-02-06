@@ -74,6 +74,17 @@ export class EventController {
     return await this.eventService.eventUpdateImage(param.id, userId, file);
   }
 
+  // Delete event image
+  @Delete('id/delete-image')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(ResEventBaseSchema)
+  async deleteEventImage(
+      @Param() param: ReqEventDeleteDto, @GetUser('id') userId: number) {
+    return this.eventService.eventDeleteImage(param.id, userId);
+  }
+
+
   // Post a new event draft
   @Post()
   @ApiBearerAuth()
