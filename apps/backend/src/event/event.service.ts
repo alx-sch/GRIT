@@ -2,6 +2,7 @@ import {eventCursorFilter, eventEncodeCursor, eventSearchFilter} from '@/event/e
 import {LocationService} from '@/location/location.service';
 import {PrismaService} from '@/prisma/prisma.service';
 import {StorageService} from '@/storage/storage.service';
+import {DeletedObject$} from '@aws-sdk/client-s3/dist-types/schemas/schemas_0';
 import {BadRequestException, Injectable, NotFoundException, UnauthorizedException,} from '@nestjs/common';
 import {Prisma} from '@prisma/client';
 
@@ -22,7 +23,7 @@ export class EventService {
       throw new NotFoundException(`Event with id ${id.toString()} not found`);
     }
     try {
-      return await this.prisma.event.delete({
+      const deleted = await this.prisma.event.delete({
         where: {
           id,
           authorId: userId,
@@ -32,6 +33,17 @@ export class EventService {
           location: true,
         },
       });
+
+      if (deleted.imageKey) {
+        try {
+          await this.storage.deleteFile(deleted.imageKey, 'event-images');
+        } catch (error) {
+          console.error(
+              `Failed to delete event image with key ${deleted.imageKey}:`,
+              error);
+        }
+      }
+      return deleted;
     } catch {
       throw new UnauthorizedException(
           `No permission to delete event with id ${id.toString()}.`);
