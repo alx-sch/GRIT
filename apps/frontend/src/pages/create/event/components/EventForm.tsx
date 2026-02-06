@@ -2,6 +2,7 @@ import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Combobox, ComboboxOptions } from '@/components/ui/combobox';
 import { DatePicker } from '@/components/ui/datepicker';
+import { ImageUpload } from '@/components/ui/imageUpload';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,6 +18,7 @@ import { AlertCircleIcon, PlusIcon, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Control, Controller, SubmitHandler, useForm, useWatch } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 // Key for localStorage
 const DRAFT_KEY = 'event-draft';
@@ -57,6 +59,7 @@ export default function EventForm({ locations }: EventFormProps) {
       startAt: undefined,
       endAt: undefined,
       locationId: undefined,
+      imageKey: undefined,
     },
   });
 
@@ -71,6 +74,11 @@ export default function EventForm({ locations }: EventFormProps) {
       label: name ?? '',
     })),
   ];
+
+  //image upload
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [imageError, setImageError] = useState<string | null>(null);
 
   //Restore draft if exists
   useEffect(() => {
@@ -105,7 +113,16 @@ export default function EventForm({ locations }: EventFormProps) {
         return;
       }
 
-      await eventService.postEvent(payload);
+      const result = await eventService.postEvent(payload);
+      if (imageFile) {
+        try {
+          await eventService.uploadEventImage(result.id, imageFile, setUploadProgress);
+        } catch (uploadError) {
+          console.error('Image upload failed:', uploadError);
+
+          toast.warning('Event created, but image upload failed');
+        }
+      }
       localStorage.removeItem(DRAFT_KEY);
       void navigate('/events/');
     } catch (error) {
@@ -273,7 +290,7 @@ export default function EventForm({ locations }: EventFormProps) {
             control={control}
             name="startAt"
             render={({ field: { onChange } }) => (
-              <div className="w-full pb-4 md:pb-8">
+              <div className="w-full pb-4">
                 <DatePicker
                   selected={
                     startAtValue
@@ -330,7 +347,7 @@ export default function EventForm({ locations }: EventFormProps) {
             control={control}
             name="locationId"
             render={({ field: { onChange, value } }) => (
-              <div className="w-full pb-8">
+              <div className="w-full">
                 <Combobox
                   options={locationOptionsCombobox}
                   value={value ?? undefined}
@@ -359,6 +376,28 @@ export default function EventForm({ locations }: EventFormProps) {
             )}
           />
         </div>
+
+        {/* Image Upload */}
+        <div className="flex flex-col gap-4">
+          <label htmlFor="image" className="font-heading">
+            Cover image
+          </label>
+          <div className="items-center">
+            <ImageUpload
+              onChange={setImageFile}
+              progress={uploadProgress}
+              aspectRatio="square"
+              onError={setImageError}
+            />
+            {imageError && (
+              <Alert variant="destructive">
+                <AlertCircleIcon className="h-4 w-4" />
+                <AlertTitle className="text-sm">{imageError}</AlertTitle>
+              </Alert>
+            )}
+          </div>
+        </div>
+
         {showRootError && rootErrorMessage && (
           <Alert variant="destructive" className="mt-1.5">
             <AlertCircleIcon className="h-4 w-4" />

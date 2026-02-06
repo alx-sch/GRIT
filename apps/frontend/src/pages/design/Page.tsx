@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Combobox } from '@/components/ui/combobox';
 import { DatePicker } from '@/components/ui/datepicker';
+import { ImageUpload } from '@/components/ui/imageUpload';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -65,6 +66,8 @@ export default function Design() {
       setIsLoading(false);
     }, 2000);
   };
+
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   return (
     <Container className="py-10 space-y-12">
@@ -289,6 +292,24 @@ export default function Design() {
                   </AlertDescription>
                 </Alert>
               </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* SECTION 4: IMAGES*/}
+      <section className="space-y-4">
+        <Heading level={2}>4. Images</Heading>
+        <Separator />
+
+        <div className="grid gap-8 md:grid-cols-3">
+          {/* Image upload*/}
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle>Image Upload</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ImageUpload onChange={setImageFile} aspectRatio='square'></ImageUpload>
             </CardContent>
           </Card>
         </div>
