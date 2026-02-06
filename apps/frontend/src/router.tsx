@@ -6,6 +6,8 @@ import ErrorPage from '@/pages/error/Page';
 import EventFeed from '@/pages/events/Page';
 import { createBrowserRouter } from 'react-router-dom';
 import { DefaultLayout } from '@/components/layout/DefaultLayout';
+import { eventLoader } from '@/pages/event/Page';
+import { Event } from '@/pages/event/Page';
 import { eventCreationLoader } from '@/pages/create/event/Page';
 import { LoginPage, loginPageAction, loginPageLoader } from '@/pages/login/Page';
 import type { NavRoute } from './types/navroute';
@@ -48,6 +50,11 @@ export const router = createBrowserRouter([
         Component: EventFeed,
         loader: eventsLoader,
         handle: { title: 'Events' },
+      },
+      {
+        path: 'events/:id',
+        Component: Event,
+        loader: eventLoader,
       },
       {
         path: 'login',

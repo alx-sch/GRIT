@@ -28,6 +28,11 @@ export const eventService = {
     return response.data;
   },
 
+  getEvent: async(id: string): Promise<EventBase> => {
+    const response = await api.get<EventBase>(`/events/${id}`);
+    return response.data;
+  },
+
   postEvent: async(data: CreateEventInput): Promise<EventBase> => {
     const response = await api.post<EventBase>('/events', data);
     return response.data;

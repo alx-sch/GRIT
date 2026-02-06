@@ -21,6 +21,7 @@ import { PrismaModule } from '@/prisma/prisma.module';
 import { EventModule } from '@/event/event.module';
 import { LocationModule } from '@/location/location.module';
 import { AuthModule } from '@/auth/auth.module';
+import { ChatModule } from './chat/chat.module';
 
 /**
  * Filter for NestJS's default error handling for enrichment with Zod and Prisma errors
@@ -41,7 +42,7 @@ class HttpExceptionFilter extends BaseExceptionFilter {
     }
 
     // For Zod we simply log the error and hand it off to the BaseExceptionFilter base (super) class
-    // The loggin should later probably reduced to only necessary errors.
+    // The logging should later probably be reduced to only necessary errors.
     if (exception instanceof ZodSerializationException) {
       const zodError = exception.getZodError();
       if (zodError instanceof ZodError) {
@@ -63,6 +64,7 @@ class HttpExceptionFilter extends BaseExceptionFilter {
     LocationModule,
     StorageModule,
     AuthModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [
