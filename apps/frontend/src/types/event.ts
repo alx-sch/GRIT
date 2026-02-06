@@ -19,12 +19,9 @@ export interface EventBase {
   startAt: string;
   title: string;
   imageKey: string;
-
   author: UserBase;
   authorId: number;
-
   attending: UserBase[];
-
   locationId?: number;
   location?: LocationBase;
 }

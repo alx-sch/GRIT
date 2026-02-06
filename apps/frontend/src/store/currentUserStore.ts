@@ -1,12 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-
-export interface CurrentUser {
-  id: number;
-  email?: string;
-  avatarKey?: string;
-  name?: string;
-}
+import type { CurrentUser } from '@/types/user';
 
 interface CurrentUserState {
   user: CurrentUser | null;

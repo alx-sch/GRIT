@@ -13,6 +13,8 @@ const frontendEnvSchema = sharedPortsSchema
   })
   .transform((validatedData) => ({
     ...validatedData,
+    VITE_CHAT_BASE_URL:
+      validatedData.VITE_API_BASE_URL ?? `http://localhost:${String(validatedData.BE_PORT)}`,
     VITE_API_BASE_URL:
       validatedData.VITE_API_BASE_URL ?? `http://localhost:${String(validatedData.BE_PORT)}/api`,
     VITE_MINIO_URL:

@@ -79,6 +79,21 @@ export class UserService {
     });
   }
 
+  async userIsAttendingEvent(userId: number, eventId: number): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        attending: {
+          where: { id: eventId },
+          select: { id: true },
+        },
+      },
+    });
+
+    if (!user) return false;
+    return user.attending.length === 1;
+  }
+
   async userPost(data: ReqUserPostDto): Promise<ResUserPostDto> {
     const token = randomBytes(32).toString('hex');
 
