@@ -297,19 +297,19 @@ export default function Design() {
         </div>
       </section>
 
-      {/* SECTION 4: IMAGES*/}
+      {/* SECTION 4: Files*/}
       <section className="space-y-4">
-        <Heading level={2}>4. Images</Heading>
+        <Heading level={2}>4. Files</Heading>
         <Separator />
 
         <div className="grid gap-8 md:grid-cols-3">
-          {/* Fuke upload*/}
+          {/* File upload*/}
           <Card className="h-full">
             <CardHeader>
               <CardTitle>File Upload</CardTitle>
             </CardHeader>
             <CardContent>
-              <FileUpload onChange={setImageFile} aspectRatio='square'></FileUpload>
+              <FileUpload onChange={setImageFile} aspectRatio="square"></FileUpload>
             </CardContent>
           </Card>
         </div>

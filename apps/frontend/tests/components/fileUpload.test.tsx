@@ -47,10 +47,7 @@ describe('FileUpload Component', () => {
   it('clears image when delete button is clicked', async () => {
     const handleChange = vi.fn();
     render(
-      <FileUpload
-        onChange={handleChange}
-        value="http://localhost:9000/event-images/existing.jpg"
-      />
+      <FileUpload onChange={handleChange} value="http://localhost:9000/event-images/existing.jpg" />
     );
 
     const deleteButton = screen.getByRole('button');

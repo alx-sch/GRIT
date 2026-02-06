@@ -10,10 +10,8 @@ import {ReqEventGetPublishedDto, ReqEventPatchDto, ReqEventPostDraftDto} from '.
 @Injectable()
 export class EventService {
   constructor(
-      private prisma: PrismaService,
-      private locationService: LocationService,
-      private storage: StorageService,
-  ) {}
+      private prisma: PrismaService, private locationService: LocationService,
+      private storage: StorageService) {}
 
   async eventDelete(id: number, userId: number) {
     const exists = await this.eventExists(id);
@@ -210,6 +208,7 @@ export class EventService {
         isPublic: data.isPublic,
         isPublished: data.isPublished,
         imageKey: data.imageKey,
+        attending: {connect: {id: data.authorId}},
         author: {
           connect: {id: data.authorId},
         },
