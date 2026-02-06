@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Combobox } from '@/components/ui/combobox';
 import { DatePicker } from '@/components/ui/datepicker';
-import { ImageUpload } from '@/components/ui/imageUpload';
+import { FileUpload } from '@/components/ui/fileUpload';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -303,13 +303,13 @@ export default function Design() {
         <Separator />
 
         <div className="grid gap-8 md:grid-cols-3">
-          {/* Image upload*/}
+          {/* Fuke upload*/}
           <Card className="h-full">
             <CardHeader>
-              <CardTitle>Image Upload</CardTitle>
+              <CardTitle>File Upload</CardTitle>
             </CardHeader>
             <CardContent>
-              <ImageUpload onChange={setImageFile} aspectRatio='square'></ImageUpload>
+              <FileUpload onChange={setImageFile} aspectRatio='square'></FileUpload>
             </CardContent>
           </Card>
         </div>
