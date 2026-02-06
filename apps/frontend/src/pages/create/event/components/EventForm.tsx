@@ -19,6 +19,7 @@ import { useEffect, useState } from 'react';
 import { Control, Controller, SubmitHandler, useForm, useWatch } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { FileUpload } from '@/components/ui/fileUpload';
 
 // Key for localStorage
 const DRAFT_KEY = 'event-draft';
@@ -383,7 +384,7 @@ export default function EventForm({ locations }: EventFormProps) {
             Cover image
           </label>
           <div className="items-center">
-            <ImageUpload
+            <FileUpload
               onChange={setImageFile}
               progress={uploadProgress}
               aspectRatio="square"

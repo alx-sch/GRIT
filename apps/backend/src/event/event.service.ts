@@ -2,7 +2,6 @@ import {eventCursorFilter, eventEncodeCursor, eventSearchFilter} from '@/event/e
 import {LocationService} from '@/location/location.service';
 import {PrismaService} from '@/prisma/prisma.service';
 import {StorageService} from '@/storage/storage.service';
-import {DeletedObject$} from '@aws-sdk/client-s3/dist-types/schemas/schemas_0';
 import {BadRequestException, Injectable, NotFoundException, UnauthorizedException,} from '@nestjs/common';
 import {Prisma} from '@prisma/client';
 

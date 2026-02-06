@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { UploadIcon, X } from 'lucide-react';
 import { useState } from 'react';
 
-interface ImageUploadProps {
+interface FileUploadProps {
   disabled?: boolean;
   value?: string | null;
   onChange: (file: File | null) => void;
@@ -12,9 +12,20 @@ interface ImageUploadProps {
   className?: string;
   aspectRatio?: 'square' | 'video' | 'auto';
   onError?: (error: string | null) => void;
+  accept?: Record<string, string[]>;
+  maxSize?: number;
 }
 
-export function ImageUpload({
+const DEFAULT_ACCEPT = { 'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'] };
+const DEFAULT_MAX_SIZE = 5 * 1024 * 1024;
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes}B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)}KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(0)}MB`;
+}
+
+export function FileUpload({
   disabled,
   value,
   onChange,
@@ -22,7 +33,9 @@ export function ImageUpload({
   className,
   aspectRatio = 'square',
   onError,
-}: ImageUploadProps) {
+  accept = DEFAULT_ACCEPT,
+  maxSize = DEFAULT_MAX_SIZE,
+}: FileUploadProps) {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -48,9 +61,9 @@ export function ImageUpload({
 
   const handleError = (err: Error) => {
     if (err.message.includes('larger than')) {
-      onError?.('Image must be less than 5MB');
+      onError?.(`File must be less than ${formatBytes(maxSize)}`);
     } else if (err.message.includes('File type')) {
-      onError?.('Please upload a PNG, JPG, GIF, or WebP image');
+      onError?.('Invalid file type');
     } else {
       onError?.(err.message);
     }
@@ -97,8 +110,8 @@ export function ImageUpload({
         <Dropzone
           src={file ? [file] : undefined}
           onDrop={handleDrop}
-          accept={{ 'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'] }}
-          maxSize={5 * 1024 * 1024}
+          accept={accept}
+          maxSize={maxSize}
           disabled={disabled}
           className={cn('w-full h-48', aspectClass)}
           onError={handleError}
@@ -110,7 +123,7 @@ export function ImageUpload({
                 <UploadIcon size={16} />
               </div>
               <p className="my-2 font-medium text-sm normal-case text-wrap">
-                Drag and drop your image here, or click to select a file.
+                Drag and drop, or click to select a file.
               </p>
             </div>
           </DropzoneEmptyState>
