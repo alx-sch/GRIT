@@ -19,7 +19,7 @@ describe('FileUpload Component', () => {
     const file = new File(['test'], 'test.png', { type: 'image/png' });
     const input = document.querySelector('input[type="file"]');
 
-    if (!input) {
+    if (!(input instanceof HTMLInputElement)) {
       throw new Error('File input not found');
     }
 
@@ -34,7 +34,7 @@ describe('FileUpload Component', () => {
     const file = new File(['test'], 'test.png', { type: 'image/png' });
     const input = document.querySelector('input[type="file"]');
 
-    if (!input) {
+    if (!(input instanceof HTMLInputElement)) {
       throw new Error('File input not found');
     }
 
@@ -86,7 +86,7 @@ describe('FileUpload Component', () => {
     const largeFile = new File(['x'.repeat(6 * 1024 * 1024)], 'large.png', { type: 'image/png' });
     const input = document.querySelector('input[type="file"]');
 
-    if (!input) {
+    if (!(input instanceof HTMLInputElement)) {
       throw new Error('File input not found');
     }
 

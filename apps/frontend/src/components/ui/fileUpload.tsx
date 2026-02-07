@@ -89,8 +89,8 @@ export function FileUpload({
           <img src={displayImage} alt="preview" className="w-full h-full object-cover" />
           {/* Progress overlay when uploading */}
           {isUploading && (
-            <div className="absolute flex items-center justify-center">
-              <Progress value={progress} className="w-full" />
+            <div className="absolute inset-0 flex items-center justify-center bg-background/80 p-8">
+              <Progress value={progress} className="w-full bg-muted" />
             </div>
           )}
 
