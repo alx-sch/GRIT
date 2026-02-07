@@ -55,11 +55,6 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
     },
   });
 
-  // Log all errors when they change
-  useEffect(() => {
-    console.log('Form errors:', errors);
-  }, [errors]);
-
   //Restore draft if exists
   useEffect(() => {
     const saved = localStorage.getItem(DRAFT_KEY);
@@ -75,7 +70,6 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
   }, [setValue]);
 
   const onSubmit: SubmitHandler<CreateLocationInput> = async (data) => {
-    console.log('on submit call');
     if (!data.longitude || !data.latitude) {
       setError('root', { message: 'Invalid address. Please select a location on the map' });
       return;

@@ -8,12 +8,12 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Text } from '@/components/ui/typography';
-import { EventBase } from '@/types/event';
 import { getEventImageUrl } from '@/lib/image_utils';
+import { EventBase } from '@/types/event';
 import { LocationBase } from '@/types/location';
 import { format } from 'date-fns';
-import { Link } from 'react-router-dom';
 import { User } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface EventCardProps {
   event: EventBase;
@@ -23,7 +23,7 @@ interface EventCardProps {
 export function EventCard({ event, location }: EventCardProps) {
   return (
     <Link to={event.id.toString()}>
-      <Card className="w-full flex flex-col rounded border-3 mx-auto hover:-translate-y-1 transition-transform duration-200 max-w-100">
+      <Card className="w-full h-full flex flex-col rounded border-3 mx-auto hover:-translate-y-1 transition-transform duration-200 max-w-100">
         <CardHeader>
           <img
             src={getEventImageUrl(event)}
@@ -31,11 +31,14 @@ export function EventCard({ event, location }: EventCardProps) {
             className="w-full aspect-square object-cover"
           />
         </CardHeader>
-        <CardContent className="px-4 pb-4 pt-0 space-y-3">
+        <CardContent className="px-4 pb-4 pt-0 space-y-3 overflow-hidden">
           <CardTitle className="font-bold text-3xl line-clamp-2" title={event.title}>
             {event.title}
           </CardTitle>
-          <CardDescription className="font-heading font-medium text-xl">
+          <CardDescription
+            className="font-heading font-medium text-xl line-clamp-2 min-w-0"
+            title={`${format(event.startAt, 'EEE, MMM d')} @ ${location?.name ?? 'TBA'}`}
+          >
             {format(event.startAt, 'EEE, MMM d')} @ {location?.name ?? 'TBA'}
           </CardDescription>
           <div className="flex items-center gap-2 text-base font-normal text-muted-foreground">
@@ -76,10 +79,10 @@ export function EventCard({ event, location }: EventCardProps) {
           {/* Action buttons */}
           <div className="flex items-center gap-2 w-full">
             <Button variant="default" className="flex-1">
-              INVITE
+              Invite
             </Button>
-            <Button variant="outline" className="flex-1">
-              GOING
+            <Button variant="outline" className="flex-1 onClick=">
+              Going
             </Button>
           </div>
         </CardFooter>

@@ -37,4 +37,23 @@ export const eventService = {
     const response = await api.post<EventBase>('/events', data);
     return response.data;
   },
+
+  uploadEventImage: async (
+    eventId: number,
+    file: File,
+    onProgress?: (progress: number) => void
+  ): Promise<EventBase> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await api.patch<EventBase>(
+      `/events/${String(eventId)}/upload-image`,
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (e) => onProgress?.(Math.round((e.loaded * 100) / (e.total ?? 1))),
+      }
+    );
+    return response.data;
+  },
 };

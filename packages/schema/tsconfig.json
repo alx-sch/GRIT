@@ -4,7 +4,7 @@
     "outDir": "dist",
     "rootDir": "src",
     "declaration": true,
-    "noEmit": false,
+    "noEmit": false
   },
   "include": ["src"]
 }
