@@ -1,17 +1,24 @@
-import {eventCursorFilter, eventEncodeCursor, eventSearchFilter} from '@/event/event.utils';
-import {LocationService} from '@/location/location.service';
-import {PrismaService} from '@/prisma/prisma.service';
-import {StorageService} from '@/storage/storage.service';
-import {BadRequestException, Injectable, NotFoundException, UnauthorizedException,} from '@nestjs/common';
-import {Prisma} from '@prisma/client';
+import { eventCursorFilter, eventEncodeCursor, eventSearchFilter } from '@/event/event.utils';
+import { LocationService } from '@/location/location.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { StorageService } from '@/storage/storage.service';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 
-import {ReqEventGetPublishedDto, ReqEventPatchDto, ReqEventPostDraftDto} from './event.schema';
+import { ReqEventGetPublishedDto, ReqEventPatchDto, ReqEventPostDraftDto } from './event.schema';
 
 @Injectable()
 export class EventService {
   constructor(
-      private prisma: PrismaService, private locationService: LocationService,
-      private storage: StorageService) {}
+    private prisma: PrismaService,
+    private locationService: LocationService,
+    private storage: StorageService
+  ) {}
 
   async eventDelete(id: number, userId: number) {
     const exists = await this.eventExists(id);
@@ -35,15 +42,12 @@ export class EventService {
         try {
           await this.storage.deleteFile(deleted.imageKey, 'event-images');
         } catch (error) {
-          console.error(
-              `Failed to delete event image with key ${deleted.imageKey}:`,
-              error);
+          console.error(`Failed to delete event image with key ${deleted.imageKey}:`, error);
         }
       }
       return deleted;
     } catch {
-      throw new UnauthorizedException(
-          `No permission to delete event with id ${id.toString()}.`);
+      throw new UnauthorizedException(`No permission to delete event with id ${id.toString()}.`);
     }
   }
 
@@ -51,8 +55,8 @@ export class EventService {
     // First two functions -----> event.utils.ts
     const where: Prisma.EventWhereInput = eventSearchFilter(input);
     const cursorFilter = eventCursorFilter(input);
-    const finalWhere = {...where, ...cursorFilter};
-    const {limit} = input;
+    const finalWhere = { ...where, ...cursorFilter };
+    const { limit } = input;
 
     const events = await this.prisma.event.findMany({
       where: finalWhere,
@@ -61,7 +65,7 @@ export class EventService {
         location: true,
         attending: true,
       },
-      orderBy: [{startAt: 'asc'}, {id: 'asc'}],
+      orderBy: [{ startAt: 'asc' }, { id: 'asc' }],
       take: limit + 1,
     });
 
@@ -71,10 +75,12 @@ export class EventService {
     return {
       data: slicedData,
       pagination: {
-        nextCursor: hasMore ? eventEncodeCursor(
-                                  slicedData[slicedData.length - 1].startAt,
-                                  slicedData[slicedData.length - 1].id) :
-                              null,
+        nextCursor: hasMore
+          ? eventEncodeCursor(
+              slicedData[slicedData.length - 1].startAt,
+              slicedData[slicedData.length - 1].id
+            )
+          : null,
         hasMore,
       },
     };
@@ -82,7 +88,7 @@ export class EventService {
 
   async eventGetById(id: number) {
     const event = await this.prisma.event.findUnique({
-      where: {id},
+      where: { id },
       include: {
         author: true,
         location: true,
@@ -106,15 +112,13 @@ export class EventService {
 
     if (data.locationId !== undefined) {
       if (data.locationId === null) {
-        newData.location = {disconnect: true};
+        newData.location = { disconnect: true };
       } else {
-        const exists =
-            await this.locationService.locationExists(data.locationId);
+        const exists = await this.locationService.locationExists(data.locationId);
         if (!exists) {
-          throw new NotFoundException(
-              `Location with id ${String(data.locationId)} not found`);
+          throw new NotFoundException(`Location with id ${String(data.locationId)} not found`);
         }
-        newData.location = {connect: {id: data.locationId}};
+        newData.location = { connect: { id: data.locationId } };
       }
     }
 
@@ -124,7 +128,7 @@ export class EventService {
 
     try {
       return await this.prisma.event.update({
-        where: {id, authorId: userId},
+        where: { id, authorId: userId },
         data: newData,
         include: {
           author: true,
@@ -132,20 +136,18 @@ export class EventService {
         },
       });
     } catch {
-      throw new NotFoundException(
-          `Event not found or no permission to update it.`);
+      throw new NotFoundException(`Event not found or no permission to update it.`);
     }
   }
 
-  async eventUpdateImage(
-      eventId: number, userId: number, file: Express.Multer.File) {
+  async eventUpdateImage(eventId: number, userId: number, file: Express.Multer.File) {
     const bucket = 'event-images';
-    let newBucketKey: string|null = null;
+    let newBucketKey: string | null = null;
 
     // Verify ownership
     const event = await this.prisma.event.findUnique({
-      where: {id: eventId},
-      select: {authorId: true, imageKey: true},
+      where: { id: eventId },
+      select: { authorId: true, imageKey: true },
     });
     if (!event) throw new NotFoundException('Event not found');
     if (event.authorId !== userId) throw new UnauthorizedException();
@@ -156,9 +158,9 @@ export class EventService {
 
       // Update the database with the new key
       const updatedEvent = await this.prisma.event.update({
-        where: {id: eventId},
-        data: {imageKey: newBucketKey},
-        include: {author: true, location: true, attending: true},
+        where: { id: eventId },
+        data: { imageKey: newBucketKey },
+        include: { author: true, location: true, attending: true },
       });
 
       // Cleanup - delete old image from miniIO if exists
@@ -166,8 +168,7 @@ export class EventService {
         try {
           await this.storage.deleteFile(event.imageKey, bucket);
         } catch (error) {
-          console.error(
-              `Failed to cleanup old event image: ${event.imageKey}`, error);
+          console.error(`Failed to cleanup old event image: ${event.imageKey}`, error);
         }
       }
       return updatedEvent;
@@ -183,8 +184,8 @@ export class EventService {
   async eventDeleteImage(eventId: number, userId: number) {
     // Verify ownership
     const event = await this.prisma.event.findUnique({
-      where: {id: eventId},
-      select: {authorId: true, imageKey: true},
+      where: { id: eventId },
+      select: { authorId: true, imageKey: true },
     });
     if (!event) throw new NotFoundException('Event not found');
     if (event.authorId !== userId) throw new UnauthorizedException();
@@ -192,13 +193,13 @@ export class EventService {
 
     await this.storage.deleteFile(event.imageKey, 'event-images');
     return this.prisma.event.update({
-      where: {id: eventId},
-      data: {imageKey: null},
-      include: {author: true, location: true, attending: true},
+      where: { id: eventId },
+      data: { imageKey: null },
+      include: { author: true, location: true, attending: true },
     });
   }
 
-  async eventPostDraft(data: ReqEventPostDraftDto&{authorId: number}) {
+  async eventPostDraft(data: ReqEventPostDraftDto & { authorId: number }) {
     return await this.prisma.event.create({
       data: {
         title: data.title,
@@ -208,16 +209,17 @@ export class EventService {
         isPublic: data.isPublic,
         isPublished: data.isPublished,
         imageKey: data.imageKey,
-        attending: {connect: {id: data.authorId}},
+        attending: { connect: { id: data.authorId } },
         author: {
-          connect: {id: data.authorId},
+          connect: { id: data.authorId },
         },
-        ...(data.locationId ? {
-          location: {
-            connect: {id: data.locationId},
-          },
-        } :
-                              {}),
+        ...(data.locationId
+          ? {
+              location: {
+                connect: { id: data.locationId },
+              },
+            }
+          : {}),
       },
       include: {
         author: true,
@@ -228,8 +230,8 @@ export class EventService {
 
   async eventExists(id: number) {
     const event = await this.prisma.event.findUnique({
-      where: {id},
-      select: {id: true},
+      where: { id },
+      select: { id: true },
     });
     return !!event;
   }

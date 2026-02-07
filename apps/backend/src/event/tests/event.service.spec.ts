@@ -71,6 +71,7 @@ describe('Event / Service / Unit Tests', () => {
       const result = await testEventService.eventUpdateImage(1, 1, mockFile);
 
       expect(storageServiceMock.uploadFile).toHaveBeenCalledWith(mockFile, 'event-images');
+      /* eslint-disable @typescript-eslint/no-unsafe-assignment */
       expect(prismaServiceMock.event.update).toHaveBeenCalledWith({
         where: { id: 1 },
         data: { imageKey: 'new-image-key.jpg' },

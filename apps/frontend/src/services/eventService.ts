@@ -46,10 +46,14 @@ export const eventService = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await api.patch<EventBase>(`/events/${eventId}/upload-image`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-      onUploadProgress: (e) => onProgress?.(Math.round((e.loaded * 100) / (e.total ?? 1))),
-    });
+    const response = await api.patch<EventBase>(
+      `/events/${String(eventId)}/upload-image`,
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (e) => onProgress?.(Math.round((e.loaded * 100) / (e.total ?? 1))),
+      }
+    );
     return response.data;
   },
 };

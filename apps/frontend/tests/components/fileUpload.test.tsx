@@ -17,7 +17,11 @@ describe('FileUpload Component', () => {
     render(<FileUpload onChange={handleChange} />);
 
     const file = new File(['test'], 'test.png', { type: 'image/png' });
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const input = document.querySelector('input[type="file"]');
+
+    if (!input) {
+      throw new Error('File input not found');
+    }
 
     await user.upload(input, file);
 
@@ -28,7 +32,11 @@ describe('FileUpload Component', () => {
     render(<FileUpload onChange={vi.fn()} />);
 
     const file = new File(['test'], 'test.png', { type: 'image/png' });
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const input = document.querySelector('input[type="file"]');
+
+    if (!input) {
+      throw new Error('File input not found');
+    }
 
     await user.upload(input, file);
 
@@ -76,7 +84,11 @@ describe('FileUpload Component', () => {
 
     // Create a file larger than 5MB
     const largeFile = new File(['x'.repeat(6 * 1024 * 1024)], 'large.png', { type: 'image/png' });
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const input = document.querySelector('input[type="file"]');
+
+    if (!input) {
+      throw new Error('File input not found');
+    }
 
     await user.upload(input, largeFile);
 

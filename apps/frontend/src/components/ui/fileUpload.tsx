@@ -20,7 +20,7 @@ const DEFAULT_ACCEPT = { 'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'] }
 const DEFAULT_MAX_SIZE = 5 * 1024 * 1024;
 
 function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes}B`;
+  if (bytes < 1024) return `${String(bytes)}B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)}KB`;
   return `${(bytes / (1024 * 1024)).toFixed(0)}MB`;
 }
@@ -40,7 +40,7 @@ export function FileUpload({
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const displayImage = preview || value;
+  const displayImage = preview ?? value;
   const isUploading = progress > 0 && progress < 100;
 
   const aspectClass = {

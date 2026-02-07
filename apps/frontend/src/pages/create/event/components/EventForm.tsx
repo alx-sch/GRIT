@@ -2,7 +2,7 @@ import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Combobox, ComboboxOptions } from '@/components/ui/combobox';
 import { DatePicker } from '@/components/ui/datepicker';
-import { ImageUpload } from '@/components/ui/imageUpload';
+import { FileUpload } from '@/components/ui/fileUpload';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,7 +19,6 @@ import { useEffect, useState } from 'react';
 import { Control, Controller, SubmitHandler, useForm, useWatch } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { FileUpload } from '@/components/ui/fileUpload';
 
 // Key for localStorage
 const DRAFT_KEY = 'event-draft';
@@ -125,7 +124,7 @@ export default function EventForm({ locations }: EventFormProps) {
         }
       }
       localStorage.removeItem(DRAFT_KEY);
-      void navigate(`/events/${result.id}`, { replace: true });
+      void navigate(`/events/${String(result.id)}`, { replace: true });
     } catch (error) {
       let message = 'Something went wrong. Please try again.';
       if (isAxiosError(error)) {

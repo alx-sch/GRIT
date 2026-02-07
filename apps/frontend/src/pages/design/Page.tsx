@@ -67,8 +67,6 @@ export default function Design() {
     }, 2000);
   };
 
-  const [imageFile, setImageFile] = useState<File | null>(null);
-
   return (
     <Container className="py-10 space-y-12">
       <section className="space-y-4">
@@ -309,7 +307,12 @@ export default function Design() {
               <CardTitle>File Upload</CardTitle>
             </CardHeader>
             <CardContent>
-              <FileUpload onChange={setImageFile} aspectRatio="square"></FileUpload>
+              <FileUpload
+                onChange={() => {
+                  console.log('File changed');
+                }}
+                aspectRatio="square"
+              ></FileUpload>
             </CardContent>
           </Card>
         </div>

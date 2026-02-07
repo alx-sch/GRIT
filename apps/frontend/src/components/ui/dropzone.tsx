@@ -128,7 +128,7 @@ export const DropzoneContent = ({ children, className }: DropzoneContentProps) =
         {src.length > maxLabelItems
           ? `${new Intl.ListFormat('en').format(
               src.slice(0, maxLabelItems).map((file) => file.name)
-            )} and ${src.length - maxLabelItems} more`
+            )} and ${String(src.length - maxLabelItems)} more`
           : new Intl.ListFormat('en').format(src.map((file) => file.name))}
       </p>
     </div>
