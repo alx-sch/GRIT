@@ -21,8 +21,6 @@ const frontendEnvSchema = sharedPortsSchema
       validatedData.VITE_API_BASE_URL ?? `http://localhost:${String(validatedData.BE_PORT)}/api`,
     MINIO_URL:
       validatedData.VITE_MINIO_URL ?? `http://localhost:${String(validatedData.MINIO_PORT)}`,
-    MINIO_URL:
-      validatedData.VITE_MINIO_URL ?? `http://localhost:${String(validatedData.MINIO_PORT)}`,
     AUTH: AUTH_CONFIG,
     EVENTS: EVENT_CONFIG,
   }));
