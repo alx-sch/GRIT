@@ -40,13 +40,10 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
    * The returned object is attached to the Request as 'req.user'.
    */
   validate(_accessToken: string, _refreshToken: string, profile: Profile) {
-    const { name, emails, photos, id } = profile;
+    const { name, emails, id } = profile;
     const user = {
       email: emails?.[0]?.value ?? '',
       firstName: name?.givenName ?? '',
-      lastName: name?.familyName ?? '',
-      picture: photos?.[0]?.value ?? '',
-      provider: 'google',
       providerId: id,
     };
     return user;

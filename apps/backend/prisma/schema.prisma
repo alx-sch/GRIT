@@ -23,8 +23,7 @@ model User {
   avatarKey String?
 
   // OAuth
-  provider   String? @default("local")
-  providerId String?
+  googleId String?
 
   // Email / Password
   password          String?

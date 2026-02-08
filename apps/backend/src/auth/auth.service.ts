@@ -7,7 +7,6 @@ import * as bcrypt from 'bcrypt';
 import { type LoginInput } from '@grit/schema';
 import { env } from '@/config/env';
 import { StorageService } from '@/storage/storage.service';
-import axios from 'axios';
 
 @Injectable()
 export class AuthService {
@@ -76,43 +75,22 @@ export class AuthService {
   // If a user originally signed up with a password but now clicks "Login with Google",
   // this will "link" their Google ID to their existing email account automatically.
   async validateOAuthUser(profile: GoogleProfile) {
-    const { email, firstName, provider, providerId, picture } = profile;
+    const { email, firstName, providerId } = profile;
 
-    let GoogleAvatarKey: string | null = null;
-
-    // Download picture and sync avatar, if it exists in GoogleProfile
-    if (picture) {
-      try {
-        // Download the actual image bytes from the Google URL
-        const response = await axios.get(picture, { responseType: 'arraybuffer' });
-
-        // Upload those bytes to bucket
-        GoogleAvatarKey = await this.storageService.uploadBuffer(
-          Buffer.from(response.data as ArrayBuffer),
-          'user-avatars',
-          `google-${providerId}.jpg`
-        );
-      } catch (error) {
-        console.error(`Avatar sync failed for ${email}:`, error);
-      }
-    }
     // Upsert: Find by email, update provider info, or create new
     const user = await this.prisma.user.upsert({
       where: { email },
       update: {
-        provider,
-        providerId,
+        googleId: providerId,
         isConfirmed: true, // OAuth emails are trusted
-        ...(GoogleAvatarKey && { avatarKey: GoogleAvatarKey }),
       },
       create: {
         email,
         name: firstName,
-        provider,
-        providerId,
+        googleId: providerId,
         isConfirmed: true,
         password: null, // No password for OAuth users
-        avatarKey: GoogleAvatarKey ?? null,
+        avatarKey: null,
       },
     });
 
