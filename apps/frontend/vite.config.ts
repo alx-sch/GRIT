@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
   const frontendPort = parseInt(env.FE_PORT || '5173');
 
   return {
+    envPrefix: ['VITE_', 'BE_', 'MINIO_'],
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
