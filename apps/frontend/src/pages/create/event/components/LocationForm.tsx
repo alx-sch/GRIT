@@ -1,0 +1,258 @@
+import { Alert, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Text } from '@/components/ui/typography';
+import { useDebounce } from '@/hooks/useDebounce';
+import { locationService } from '@/services/locationService';
+import { LocationBase } from '@/types/location';
+import { CreateLocationInput, CreateLocationSchema } from '@grit/schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { isAxiosError } from 'axios';
+import { AlertCircleIcon, Search } from 'lucide-react';
+import { useEffect } from 'react';
+import { Control, Controller, SubmitHandler, useForm, useWatch } from 'react-hook-form';
+
+//Key for local Storage
+const DRAFT_KEY = 'location-draft';
+//Component to auto-sav draft to localStorage
+function DraftSaver({ control }: { control: Control<CreateLocationInput> }) {
+  const formValues = useWatch({ control });
+  const debouncedFormValues = useDebounce(formValues, 1000);
+  useEffect(() => {
+    if (debouncedFormValues.name) {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(debouncedFormValues));
+    }
+  }, [debouncedFormValues]);
+  return null;
+}
+
+interface LocationFormProps {
+  onSuccess: (location: LocationBase) => void;
+  onCancel: () => void;
+}
+
+//TODO: Remove default coordinate value (lng/lat) once Google maps is integrated
+export default function LocationForm({ onSuccess, onCancel }: LocationFormProps) {
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    control,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<CreateLocationInput>({
+    resolver: zodResolver(CreateLocationSchema),
+    defaultValues: {
+      name: '',
+      city: '',
+      country: '',
+      latitude: 52.45,
+      longitude: 13.34,
+      isPublic: undefined,
+      address: '',
+      postalCode: '',
+    },
+  });
+
+  //Restore draft if exists
+  useEffect(() => {
+    const saved = localStorage.getItem(DRAFT_KEY);
+    if (saved) {
+      const draft = JSON.parse(saved) as Record<string, unknown>;
+      for (const [key, value] of Object.entries(draft)) {
+        setValue(
+          key as keyof CreateLocationInput,
+          value as CreateLocationInput[keyof CreateLocationInput]
+        );
+      }
+    }
+  }, [setValue]);
+
+  const onSubmit: SubmitHandler<CreateLocationInput> = async (data) => {
+    if (!data.longitude || !data.latitude) {
+      setError('root', { message: 'Invalid address. Please select a location on the map' });
+      return;
+    }
+    try {
+      const payload = {
+        name: data.name,
+        city: data.city,
+        country: data.country,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        isPublic: data.isPublic,
+        address: data.address,
+        postalCode: data.postalCode,
+      };
+
+      const newLocation = await locationService.postLocation(payload);
+      localStorage.removeItem(DRAFT_KEY);
+      onSuccess(newLocation);
+    } catch (error) {
+      let message = 'Something went wrong. Please try again.';
+      if (isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          message = data.message;
+        }
+      }
+      setError('root', { message });
+    }
+  };
+
+  return (
+    <>
+      <form
+        onSubmit={(e) => {
+          void handleSubmit(
+            onSubmit /*(validationErrors) => {
+            if (validationErrors.latitude || validationErrors.longitude) {
+              setError('root', { message: 'Please select a location on the map' });
+            }
+          }*/
+          )(e);
+        }}
+        className="flex flex-col gap-4 h-full overflow-y-auto flex-1 px-1 pb-1 pr-3"
+      >
+        <DraftSaver control={control} />
+        {/* Hidden Inputs: latitude and longitude */}
+        <Input type="hidden" {...register('latitude')} />
+        <Input type="hidden" {...register('longitude')} />
+        {/* Name */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="name" className="font-heading">
+            Name of the location
+          </label>
+          <Input
+            id="name"
+            type="text"
+            aria-invalid={!!errors.name}
+            {...register('name')}
+            placeholder="e.g Berghain, My awesome flat, etc."
+          />
+          {errors.name?.message && (
+            <Alert variant="destructive" className="self-start">
+              <AlertCircleIcon className="h-4 w-4" />
+              <AlertTitle className="text-sm">{errors.name.message}</AlertTitle>
+            </Alert>
+          )}
+        </div>
+
+        {/* Map component */}
+        <Card className="h-80 min-h-70 flex flex-col">
+          <CardContent className="flex flex-col h-full p-4 gap-4">
+            {/* Search input */}
+
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input type="text" placeholder="Search your location address" className="pl-9" />
+            </div>
+            <div className="flex flex-1 text-center justify-center">
+              <Text>***PLACEHOLDER FOR GOOGLE MAPS COMPONENT***</Text>
+            </div>
+          </CardContent>
+        </Card>
+        {/* Address/PostCode */}
+        <div className="flex flex-row gap-6">
+          <div className="flex flex-col flex-1 gap-2">
+            <label htmlFor="address" className="font-heading">
+              Address
+            </label>
+            <Input
+              id="address"
+              type="text"
+              {...register('address')}
+              placeholder='e.g "Harzer Straße 42"'
+            />
+          </div>
+        </div>
+        {/* City/Country */}
+        <div className="flex flex-row gap-6">
+          <div className="flex flex-col flex-1 gap-2">
+            <label htmlFor="postalCode" className="font-heading">
+              Postal Code
+            </label>
+            <Input
+              id="postalCode"
+              type="text"
+              {...register('postalCode')}
+              placeholder='e.g "12059"'
+            />
+          </div>
+          <div className="flex flex-col flex-1 gap-2">
+            <label htmlFor="city" className="font-heading">
+              City
+            </label>
+            <Input id="city" type="text" {...register('city')} placeholder='e.g "Berlin"' />
+          </div>
+        </div>
+        <div className="flex flex-col gap-2">
+          <label htmlFor="country" className="font-heading">
+            Country
+          </label>
+          <Input id="country" type="text" {...register('country')} placeholder='e.g "Germany"' />
+        </div>
+        {/* Visibility */}
+        <fieldset className="flex flex-col gap-4">
+          <legend className="font-heading mb-2"> Choose your location visibility </legend>
+          <Controller
+            control={control}
+            name="isPublic"
+            render={({ field: { onChange, value } }) => (
+              <div className="flex w-fit">
+                <Button
+                  type="button"
+                  variant={!value ? 'default' : 'secondary'}
+                  onClick={() => {
+                    onChange(false);
+                  }}
+                  className="font-sans text-sm py-2 md:py-3 px-3 flex-1 shadow-none rounded-r-none border-r-0"
+                >
+                  Private
+                </Button>
+                <Button
+                  type="button"
+                  variant={value ? 'default' : 'secondary'}
+                  onClick={() => {
+                    onChange(true);
+                  }}
+                  className="font-sans text-sm py-2 md:py-3 px-3 flex-1 shadow-none rounded-l-none border-l-0"
+                >
+                  Public
+                </Button>
+              </div>
+            )}
+          />
+        </fieldset>
+
+        {errors.root?.message && (
+          <Alert variant="destructive" className="mt-1.5">
+            <AlertCircleIcon className="h-4 w-4" />
+            <AlertTitle className="text-sm">{errors.root.message}</AlertTitle>
+          </Alert>
+        )}
+
+        {/* Buttons */}
+        <div className="flex flex-row gap-4 mt-auto">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={onCancel}
+            className="font-sans text-sm md:text-base py-2 md:py-3 px-3 md:px-6 flex-1"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            variant="default"
+            disabled={isSubmitting}
+            className="font-sans text-sm md:text-base py-2 md:py-3 px-3 md:px-6 flex-1"
+          >
+            {isSubmitting ? 'Loading...' : 'Submit'}
+          </Button>
+        </div>
+      </form>
+    </>
+  );
+}

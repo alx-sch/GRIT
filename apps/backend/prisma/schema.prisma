@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -30,45 +24,63 @@ model User {
   isConfirmed       Boolean @default(false)
   confirmationToken String? @unique
 
-  events    Event[]    @relation("EventAuthor")
-  attending Event[]    @relation("EventAttendees")
-  location  Location[]
+  events            Event[]     @relation("EventAuthor")
+  attending         Event[]     @relation("EventAttendees")
+  location          Location[]
+  chatMessages      ChatMessage[]
 }
 
 // Location has a creator
 // Location can have events
 model Location {
-  id        Int     @id @default(autoincrement())
-  author    User    @relation(fields: [authorId], references: [id])
-  authorId  Int
-  name      String?
-  city      String?
-  country   String?
-  longitude Float
-  latitude  Float
-  isPublic  Boolean @default(false)
-  events    Event[]
+  id          Int         @id @default(autoincrement())
+  author      User        @relation(fields: [authorId], references: [id])
+  authorId    Int
+  name        String
+  city        String?
+  country     String?
+  postalCode  String?
+  longitude   Float
+  latitude    Float
+  isPublic    Boolean     @default(false)
+  address	    String?
+  events      Event[]
 }
 
 // Event must have a creator
 // Event can have attending users
 // Event can have a location
 model Event {
-  id          Int      @id @default(autoincrement())
-  createdAt   DateTime @default(now())
-  content     String?
-  endAt       DateTime
-  isPublic    Boolean  @default(true)
-  isPublished Boolean  @default(false)
-  startAt     DateTime
-  title       String
-  imageKey    String?
+  id            Int       @id @default(autoincrement())
+  createdAt     DateTime  @default(now())
+  content       String?
+  endAt         DateTime
+  isPublic      Boolean   @default(true)
+  isPublished   Boolean   @default(false)
+  startAt       DateTime
+  title         String
+  imageKey      String?
 
-  author   User @relation("EventAuthor", fields: [authorId], references: [id])
-  authorId Int
+  author        User      @relation("EventAuthor", fields: [authorId], references: [id])
+  authorId      Int
 
-  attending User[] @relation("EventAttendees")
+  attending     User[]    @relation("EventAttendees")
 
-  locationId Int?
-  location   Location? @relation(fields: [locationId], references: [id])
+  locationId    Int?
+  location      Location? @relation(fields: [locationId], references: [id])
+
+  chatMessages  ChatMessage[]
+}
+
+model ChatMessage {
+  id        String   @id
+  eventId   Int
+  authorId  Int
+  text      String
+  createdAt DateTime @default(now())
+
+  author    User     @relation(fields: [authorId], references: [id])
+  event     Event    @relation(fields: [eventId], references: [id])
+
+  @@index([eventId, createdAt, id])
 }

@@ -6,14 +6,14 @@ import { env } from '@/config/env';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Create API Documentation Document with Swagger
   const document = new DocumentBuilder()
     .setTitle('GRIT API')
     .setDescription('API built with Zod and Swagger')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
-
-  // Create API Documentation Document with Swagger
   const openApiDoc = SwaggerModule.createDocument(app, document);
   SwaggerModule.setup('api', app, cleanupOpenApiDoc(openApiDoc));
 

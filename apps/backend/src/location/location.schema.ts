@@ -37,13 +37,14 @@ export const ResLocationGetAllSchema = z.object({
 
 // Post a new location draft
 export const ReqLocationPostSchema = z.strictObject({
-  authorId: z.number().int().positive(),
-  name: z.string().optional(),
+  name: z.string(),
   city: z.string().optional(),
   country: z.string().optional(),
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
   isPublic: z.boolean().optional().default(false),
+  address: z.string().optional(),
+  postalCode: z.string().optional(),
 });
 export class ReqLocationPostDto extends createZodDto(ReqLocationPostSchema) {}
 export const ResLocationPostSchema = z.object({}).loose(); // return everything

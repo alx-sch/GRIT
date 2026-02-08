@@ -1,21 +1,23 @@
-import { Prisma } from '@prisma/client';
+import { eventCursorFilter, eventEncodeCursor, eventSearchFilter } from '@/event/event.utils';
 import { LocationService } from '@/location/location.service';
 import { PrismaService } from '@/prisma/prisma.service';
+import { StorageService } from '@/storage/storage.service';
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 
 import { ReqEventGetPublishedDto, ReqEventPatchDto, ReqEventPostDraftDto } from './event.schema';
-import { eventEncodeCursor, eventSearchFilter, eventCursorFilter } from '@/event/event.utils';
 
 @Injectable()
 export class EventService {
   constructor(
     private prisma: PrismaService,
-    private locationService: LocationService
+    private locationService: LocationService,
+    private storage: StorageService
   ) {}
 
   async eventDelete(id: number, userId: number) {
@@ -25,7 +27,7 @@ export class EventService {
       throw new NotFoundException(`Event with id ${id.toString()} not found`);
     }
     try {
-      return await this.prisma.event.delete({
+      const deleted = await this.prisma.event.delete({
         where: {
           id,
           authorId: userId,
@@ -35,6 +37,15 @@ export class EventService {
           location: true,
         },
       });
+
+      if (deleted.imageKey) {
+        try {
+          await this.storage.deleteFile(deleted.imageKey, 'event-images');
+        } catch (error) {
+          console.error(`Failed to delete event image with key ${deleted.imageKey}:`, error);
+        }
+      }
+      return deleted;
     } catch {
       throw new UnauthorizedException(`No permission to delete event with id ${id.toString()}.`);
     }
@@ -129,6 +140,65 @@ export class EventService {
     }
   }
 
+  async eventUpdateImage(eventId: number, userId: number, file: Express.Multer.File) {
+    const bucket = 'event-images';
+    let newBucketKey: string | null = null;
+
+    // Verify ownership
+    const event = await this.prisma.event.findUnique({
+      where: { id: eventId },
+      select: { authorId: true, imageKey: true },
+    });
+    if (!event) throw new NotFoundException('Event not found');
+    if (event.authorId !== userId) throw new UnauthorizedException();
+
+    try {
+      // Upload new image
+      newBucketKey = await this.storage.uploadFile(file, bucket);
+
+      // Update the database with the new key
+      const updatedEvent = await this.prisma.event.update({
+        where: { id: eventId },
+        data: { imageKey: newBucketKey },
+        include: { author: true, location: true, attending: true },
+      });
+
+      // Cleanup - delete old image from miniIO if exists
+      if (event.imageKey && event.imageKey !== newBucketKey) {
+        try {
+          await this.storage.deleteFile(event.imageKey, bucket);
+        } catch (error) {
+          console.error(`Failed to cleanup old event image: ${event.imageKey}`, error);
+        }
+      }
+      return updatedEvent;
+    } catch (error) {
+      // Rollback: delete file if DB update failed
+      if (newBucketKey) {
+        await this.storage.deleteFile(newBucketKey, bucket);
+      }
+      throw error;
+    }
+  }
+
+  async eventDeleteImage(eventId: number, userId: number) {
+    // Verify ownership
+    const event = await this.prisma.event.findUnique({
+      where: { id: eventId },
+      select: { authorId: true, imageKey: true },
+    });
+    if (!event) throw new NotFoundException('Event not found');
+    if (event.authorId !== userId) throw new UnauthorizedException();
+    if (!event.imageKey) throw new BadRequestException('Event has no image');
+
+    await this.storage.deleteFile(event.imageKey, 'event-images');
+    return this.prisma.event.update({
+      where: { id: eventId },
+      data: { imageKey: null },
+      include: { author: true, location: true, attending: true },
+    });
+  }
+
   async eventPostDraft(data: ReqEventPostDraftDto & { authorId: number }) {
     return await this.prisma.event.create({
       data: {
@@ -139,6 +209,7 @@ export class EventService {
         isPublic: data.isPublic,
         isPublished: data.isPublished,
         imageKey: data.imageKey,
+        attending: { connect: { id: data.authorId } },
         author: {
           connect: { id: data.authorId },
         },

@@ -198,7 +198,7 @@ async function main() {
       const createdLoc = await prisma.location.create({
         data: loc,
       });
-      console.log(`📍 Created Location: ${createdLoc.name ?? 'Unknown Location'} `);
+      console.log(`📍 Created Location: ${createdLoc.name} `);
       if (loc.name === 'GRIT HQ') gritHqId = createdLoc.id;
     } else {
       console.log(`⏩ Location '${loc.name}' already exists. Skipping.`);
@@ -278,17 +278,24 @@ async function main() {
   // ATTENDANCE SEEDING //
   ////////////////////////
 
+  console.log('--- Seeding Atendance ---');
+
   const aliceFromDb = await prisma.user.findUnique({ where: { email: 'alice@example.com' } });
+  const bobFromDb = await prisma.user.findUnique({ where: { email: 'bob@example.com' } });
   const party = await prisma.event.findFirst({ where: { title: 'Grit Launch Party' } });
 
-  if (aliceFromDb && party) {
+  const attendees = [aliceFromDb, bobFromDb];
+
+  if (!party) throw new Error('Party not found');
+  for (const attendee of attendees) {
+    if (!attendee) continue;
     await prisma.user.update({
-      where: { id: aliceFromDb.id },
+      where: { id: attendee.id },
       data: {
         attending: { connect: { id: party.id } },
       },
     });
-    console.log(`✅ Alice is now attending the Party`);
+    if (attendee.name) console.log(`✅ ${attendee.name} is now attending the Party`);
   }
 }
 
