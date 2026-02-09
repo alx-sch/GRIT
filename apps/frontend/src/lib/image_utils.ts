@@ -1,5 +1,5 @@
-import { env } from '@/config/env';
-import { EventBase } from '@/types/event';
+import {env} from '@/config/env';
+import {EventBase} from '@/types/event';
 
 export function getEventImageUrl(event: EventBase): string {
   if (!event.imageKey) {
@@ -8,15 +8,24 @@ export function getEventImageUrl(event: EventBase): string {
   return `${env.VITE_MINIO_URL}/event-images/${event.imageKey}`;
 }
 
-export function getAvatarImageUrl(avatarFilename: string | undefined): string {
+export function getAvatarImageUrl(avatarFilename: string|undefined): string {
   if (!avatarFilename) return '';
   return `${env.VITE_MINIO_URL}/user-avatars/${avatarFilename}`;
 }
 
-function wrapLines(text: string, maxLen = 14, maxLines = 3): string[] {
-  const words = text.split(/\s+/);
+function wrapLines(text: string, maxLen = 12, maxLines = 3): string[] {
+  const words = text.split(/\s+/).flatMap((word) => {
+    if (word.length <= maxLen) return [word];
+    const chunks: string[] = [];
+    for (let i = 0; i < word.length; i += maxLen) {
+      chunks.push(word.slice(i, i + maxLen));
+    }
+    return chunks;
+  });
+
   const lines: string[] = [];
   let line = '';
+
   for (const word of words) {
     const next = line ? `${line} ${word}` : word;
     if (next.length <= maxLen) {
@@ -27,6 +36,7 @@ function wrapLines(text: string, maxLen = 14, maxLines = 3): string[] {
     }
     if (lines.length === maxLines) break;
   }
+
   if (line && lines.length < maxLines) lines.push(line);
   return lines;
 }
@@ -34,13 +44,19 @@ function wrapLines(text: string, maxLen = 14, maxLines = 3): string[] {
 export function generateImagePlaceholderEvent(event: EventBase) {
   const colors = ['oklch(0.68 0.22 45)', 'oklch(0 0 0)', 'oklch(0.4 0 0)'];
   const bgColor = colors[event.id % colors.length];
-  const title = event.title.trim() || 'Great Event';
-  const lines = wrapLines(title, 8, 8);
+  let title = event.title.trim() || 'Great Event';
+  if (title.length > 40) {
+    title = title.slice(0, 37) + ' ...';
+  }
+  const lines = wrapLines(title, 12, 6);
   const longest = Math.max(...lines.map((l) => l.length));
   const fontSize = longest > 18 ? 26 : longest > 14 ? 32 : 48;
   const lineHeight = Math.round(fontSize * 1.05);
   const blockHeight = (lines.length - 1) * lineHeight;
-  const startY = 300 / 2 - blockHeight / 2; // vertically center block
+  const verticalPadding = 24;
+  const availableHeight = 300 - verticalPadding * 2;
+  const startY = verticalPadding + (availableHeight - blockHeight) / 2;
+
 
   const svg = `
     <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
@@ -54,15 +70,15 @@ export function generateImagePlaceholderEvent(event: EventBase) {
         font-weight="bold"
         fill="white"
       >
-        ${lines
+        ${
+      lines
           .map(
-            (line, idx) =>
-              `<tspan x="50%" dy="${String(idx === 0 ? 0 : lineHeight)}">${line}</tspan>`
-          )
+              (line, idx) => `<tspan x="50%" dy="${
+                  String(idx === 0 ? 0 : lineHeight)}">${line}</tspan>`)
           .join('')}
       </text>
     </svg>
   `;
 
-  return `data:image/svg+xml;base64,${btoa(svg)}`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
