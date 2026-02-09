@@ -9,11 +9,16 @@ import {
 } from '@/components/ui/card';
 import { Text } from '@/components/ui/typography';
 import { getEventImageUrl } from '@/lib/image_utils';
+import { userService } from '@/services/userService';
+import { useCurrentUserStore } from '@/store/currentUserStore';
 import { EventBase } from '@/types/event';
 import { LocationBase } from '@/types/location';
+import type { CurrentUser } from '@/types/user';
 import { format } from 'date-fns';
 import { User } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface EventCardProps {
   event: EventBase;
@@ -21,6 +26,37 @@ interface EventCardProps {
 }
 
 export function EventCard({ event, location }: EventCardProps) {
+  const [isAttending, setIsAttending] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const currentUser: CurrentUser | null = useCurrentUserStore((s) => s.user);
+  const navigate = useNavigate();
+
+  //Check if user is attending
+  useEffect(() => {
+    if (currentUser) {
+      setIsAttending(event.attending.some((el) => el.id === currentUser.id));
+    }
+  }, [event.attending, currentUser]);
+
+  const handleGoing = async (e: React.MouseEvent) => {
+    e.preventDefault(); //Prevent Link navigation
+
+    console.log('user:', currentUser);
+    if (!currentUser) {
+      navigate('/login?redirect=' + encodeURIComponent(`/events/${event.id}`));
+      return;
+    }
+    setIsLoading(true);
+    try {
+      await userService.attendEvent(event.id);
+      setIsAttending(true);
+    } catch (error) {
+      toast.error('Something went wrong:' + error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Link to={event.id.toString()}>
       <Card className="w-full h-full flex flex-col rounded border-3 mx-auto hover:-translate-y-1 transition-transform duration-200 max-w-100">
@@ -81,8 +117,13 @@ export function EventCard({ event, location }: EventCardProps) {
             <Button variant="default" className="flex-1">
               Invite
             </Button>
-            <Button variant="outline" className="flex-1 onClick=">
-              Going
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={handleGoing}
+              disabled={isLoading || isAttending}
+            >
+              {isAttending ? 'Going ✓' : 'Going'}
             </Button>
           </div>
         </CardFooter>
