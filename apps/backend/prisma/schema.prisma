@@ -10,22 +10,24 @@ datasource db {
 // User can attend events
 // User can add locations
 model User {
-  id                Int         @id @default(autoincrement())
-  createdAt         DateTime    @default(now())
-  email             String      @unique
-  password          String
-  name              String?
-  avatarKey         String?
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  email     String   @unique
+  name      String?
+  avatarKey String?
+
+  // OAuth
+  googleId String?
+
+  // Email / Password
+  password          String?
+  isConfirmed       Boolean @default(false)
+  confirmationToken String? @unique
 
   events            Event[]     @relation("EventAuthor")
   attending         Event[]     @relation("EventAttendees")
   location          Location[]
-
-  isConfirmed       Boolean     @default(false)
-  confirmationToken String?     @unique
-
   chatMessages      ChatMessage[]
-
 }
 
 // Location has a creator
