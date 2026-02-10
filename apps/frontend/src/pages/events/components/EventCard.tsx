@@ -30,6 +30,7 @@ export function EventCard({ event, location }: EventCardProps) {
   const [isLoading, setIsLoading] = useState(false);
   const currentUser: CurrentUser | null = useCurrentUserStore((s) => s.user);
   const navigate = useNavigate();
+  const [countAttending, setCountAttending] = useState(event.attending.length);
 
   //Check if user is attending
   useEffect(() => {
@@ -50,6 +51,7 @@ export function EventCard({ event, location }: EventCardProps) {
     try {
       await userService.attendEvent(event.id);
       setIsAttending(true);
+	  setCountAttending(prev => prev + 1);
     } catch (error) {
       toast.error('Something went wrong:' + error);
     } finally {
@@ -80,8 +82,8 @@ export function EventCard({ event, location }: EventCardProps) {
           <div className="flex items-center gap-2 text-base font-normal text-muted-foreground">
             <User className="h-5 w-5 text-primary" strokeWidth={2} />
             <Text>
-              {event.attending.length > 0
-                ? event.attending.length.toLocaleString()
+              {countAttending > 0
+                ? countAttending.toLocaleString()
                 : 'Be the first'}
             </Text>
           </div>
