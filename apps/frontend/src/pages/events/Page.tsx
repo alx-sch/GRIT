@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Combobox, ComboboxOptions } from '@/components/ui/combobox';
 import { DatePicker } from '@/components/ui/datepicker';
 import { Input } from '@/components/ui/input';
+import { SortOption, SortSelect } from '@/components/ui/sort-select';
 import { Heading, Text } from '@/components/ui/typography';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
@@ -25,13 +26,32 @@ export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
   const limit = url.searchParams.get('limit') ?? undefined;
   const authorId = url.searchParams.get('authorId') ?? undefined;
   const cursor = url.searchParams.get('cursor') ?? undefined;
+  const sort = url.searchParams.get('sort') ?? 'date-asc';
 
   const [events, locationsResponse] = await Promise.all([
-    eventService.getEvents({ search, startFrom, startUntil, locationId, limit, authorId, cursor }),
+    eventService.getEvents({
+      search,
+      startFrom,
+      startUntil,
+      locationId,
+      limit,
+      authorId,
+      cursor,
+      sort,
+    }),
     locationService.getLocations(),
   ]);
   return { events, locations: locationsResponse.data };
 };
+
+//Sorting Options
+const sortOption: SortOption[] = [
+  { value: 'date-asc', label: 'Date (Soonest)' },
+  { value: 'date-dsc', label: 'Date (Latest)' },
+  { value: 'alpha-asc', label: 'Name (A-Z)' },
+  { value: 'alpha-dsc', label: 'Name (Z-A)' },
+  { value: 'popularity', label: 'Most popular' },
+];
 
 export default function EventFeed() {
   const { events, locations } = useTypedLoaderData<{
@@ -112,6 +132,14 @@ export default function EventFeed() {
     setSearchParams(searchParams);
   };
 
+  //Sorting
+  const [sort, setSort] = useState(searchParams.get('sort') ?? 'date-asc');
+  const handleSortChange = (value: string) => {
+    setSort(value);
+    searchParams.set('sort', value);
+    setSearchParams(searchParams);
+  };
+
   return (
     <Container className="py-10 space-y-8 p-0 md:px-0">
       <div className="space-y-2">
@@ -145,6 +173,13 @@ export default function EventFeed() {
             placeholder="Date"
             className="flex-1 min-w-0 md:flex-none text-sm md:text-base md:px-7 truncate"
           ></DatePicker>
+
+          <SortSelect
+            options={sortOption}
+            value={sort}
+            onChange={handleSortChange}
+            className="h-12"
+          />
         </div>
       </div>
       {events.data.length > 0 ? (

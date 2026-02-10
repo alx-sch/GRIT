@@ -251,6 +251,10 @@ describe('Event Feed Page', () => {
           startFrom: undefined,
           startUntil: undefined,
           locationId: '1',
+          authorId: undefined,
+          cursor: undefined,
+          limit: undefined,
+          sort: 'date-asc',
         });
       });
     });
@@ -322,6 +326,10 @@ describe('Event Feed Page', () => {
         startFrom: undefined,
         startUntil: undefined,
         locationId: undefined,
+        authorId: undefined,
+        cursor: undefined,
+        limit: undefined,
+        sort: 'date-asc',
       });
 
       // Type in Search
@@ -339,6 +347,10 @@ describe('Event Feed Page', () => {
         startFrom: undefined,
         startUntil: undefined,
         locationId: undefined,
+        authorId: undefined,
+        cursor: undefined,
+        limit: undefined,
+        sort: 'date-asc',
       });
     });
 
@@ -369,6 +381,10 @@ describe('Event Feed Page', () => {
         startFrom: undefined,
         startUntil: undefined,
         locationId: undefined,
+        authorId: undefined,
+        cursor: undefined,
+        limit: undefined,
+        sort: 'date-asc',
       });
 
       // Clear the initial call
@@ -388,6 +404,10 @@ describe('Event Feed Page', () => {
         startFrom: '2026-01-15',
         startUntil: '2026-01-20',
         locationId: undefined,
+        authorId: undefined,
+        cursor: undefined,
+        limit: undefined,
+        sort: 'date-asc',
       });
     });
 

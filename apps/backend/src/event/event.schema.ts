@@ -5,19 +5,22 @@ import { z } from 'zod';
  * SHARED RESPONSE SCHEMAS
  */
 
-// Response schema for the author object that can get sent as a subitem in the event response
+// Response schema for the author object that can get sent as a subitem in the
+// event response
 const ResEventAuthorSchema = z.object({
   id: z.number(),
   name: z.string(),
 });
 
-// Response schema for the attendee object that can get sent as a subitem in the event response
+// Response schema for the attendee object that can get sent as a subitem in the
+// event response
 const ResEventAttendeeSchema = z.object({
   id: z.number(),
   name: z.string(),
 });
 
-// Response schema for the location object that can get sent as a subitem in the event response
+// Response schema for the location object that can get sent as a subitem in the
+// event response
 const ResEventLocationSchema = z.object({
   id: z.number().int().positive(),
   authorId: z.number().int().positive(),
@@ -85,6 +88,7 @@ export const ReqEventGetPublishedSchema = z.strictObject({
   location_id: z.coerce.number().int().positive().optional(),
   limit: z.coerce.number().int().positive().max(100).default(20),
   cursor: z.string().optional(),
+  sort: z.enum(['date-asc', 'date-dsc', 'alpha-asc', 'alpha-dsc', 'popularity']).optional(),
 });
 export class ReqEventGetPublishedDto extends createZodDto(ReqEventGetPublishedSchema) {}
 export const ResEventGetPublishedSchema = z.object({
