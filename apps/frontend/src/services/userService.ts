@@ -1,5 +1,5 @@
 import api from '@/lib/api';
-import type {UserBase, UserResponse} from '@/types/user';
+import type { UserBase, UserResponse } from '@/types/user';
 
 interface GetUsersParams {
   limit?: string;
@@ -7,7 +7,7 @@ interface GetUsersParams {
 }
 
 export const userService = {
-  getUsers: async(params?: GetUsersParams): Promise<UserResponse> => {
+  getUsers: async (params?: GetUsersParams): Promise<UserResponse> => {
     const queryParams = new URLSearchParams();
     if (params?.limit) queryParams.set('limit', params.limit);
     if (params?.cursor) queryParams.set('cursor', params.cursor);
@@ -18,9 +18,8 @@ export const userService = {
     return response.data;
   },
 
-  attendEvent: async(eventId: number): Promise<UserBase> => {
-    const response =
-        await api.patch<UserBase>('users/attend', {attending: eventId});
+  attendEvent: async (eventId: number): Promise<UserBase> => {
+    const response = await api.patch<UserBase>('users/attend', { attending: eventId });
     return response.data;
-  }
+  },
 };

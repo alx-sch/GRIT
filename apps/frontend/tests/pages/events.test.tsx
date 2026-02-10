@@ -1,11 +1,15 @@
+import EventFeed, { eventsLoader } from '@/pages/events/Page';
+import { eventService } from '@/services/eventService';
+import { locationService } from '@/services/locationService';
+import { userService } from '@/services/userService';
+import { EventBase, EventResponse } from '@/types/event';
+import { UserBase } from '@/types/user';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { vi } from 'vitest';
-import EventFeed, { eventsLoader } from '@/pages/events/Page';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { eventService } from '@/services/eventService';
-import { EventBase, EventResponse } from '@/types/event';
-import { locationService } from '@/services/locationService';
+import { vi } from 'vitest';
+
+/* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
 
 // Mock event service
 vi.mock('@/services/eventService', () => ({
@@ -20,6 +24,12 @@ vi.mock('@/services/locationService', () => ({
   },
 }));
 
+vi.mock('@/services/userService', () => ({
+  userService: {
+    attendEvent: vi.fn(),
+  },
+}));
+
 // Mock image utils to avoid MinIO URL issues in tests
 vi.mock('@/lib/image_utils', () => ({
   getEventImageUrl: (event: EventBase) =>
@@ -31,9 +41,36 @@ describe('Event Feed Page', () => {
 
   // Mock users
   const mockUsers = {
-    alice: { id: 1, name: 'Alice', email: 'alice@example.com' },
-    bob: { id: 2, name: 'Bob', email: 'bob@example.com' },
-    cindy: { id: 3, name: 'Cindy', email: 'cindy@example.com' },
+    alice: {
+      id: 1,
+      name: 'Alice',
+      email: 'alice@example.com',
+      password: 'password',
+      events: [],
+      attending: [],
+      location: [],
+      isConfirmed: true,
+    },
+    bob: {
+      id: 2,
+      name: 'Bob',
+      email: 'bob@example.com',
+      password: 'password',
+      events: [],
+      attending: [],
+      location: [],
+      isConfirmed: true,
+    },
+    cindy: {
+      id: 3,
+      name: 'Cindy',
+      email: 'cindy@example.com',
+      password: 'password',
+      events: [],
+      attending: [],
+      location: [],
+      isConfirmed: true,
+    },
   };
 
   // Mock locations
@@ -95,7 +132,7 @@ describe('Event Feed Page', () => {
       imageKey: 'fireplace.jpg',
       author: mockUsers.cindy,
       authorId: 3,
-      attending: [mockUsers.alice],
+      attending: [mockUsers.cindy],
     },
   ];
 
@@ -181,15 +218,6 @@ describe('Event Feed Page', () => {
   });
 
   describe('Location Display', () => {
-    //To do > uncomment it when the locationiD is passed to the events properly
-    //    it('displays location name when event has location', async () => {
-    //      renderEventFeed();
-
-    //      await waitFor(() => {
-    //        expect(screen.getByText(/Berghain/)).toBeInTheDocument();
-    //      });
-    //    });
-
     it('displays TBA when event has no location', async () => {
       renderEventFeed();
 
@@ -405,6 +433,84 @@ describe('Event Feed Page', () => {
       await waitFor(() => {
         expect(router.state.location.search).toBe('');
       });
+    });
+  });
+
+  describe('User click on Going', () => {
+    //Mock the stores
+    const mockCurrentUserStore = vi.hoisted(() => ({
+      useCurrentUserStore: vi.fn(),
+    }));
+
+    beforeEach(() => {
+      vi.mock('@/store/currentUserStore', () => mockCurrentUserStore);
+    });
+
+    it('Redirect to login when user is not logged in', async () => {
+      //Mock logged out state
+      mockCurrentUserStore.useCurrentUserStore.mockImplementation((selector) =>
+        selector({ user: null })
+      );
+      const { router } = renderEventFeed();
+
+      await waitFor(() => {
+        expect(screen.getByText(/Beer-Yoga Session/)).toBeInTheDocument();
+      });
+
+      //Find Going button
+      const goingButton = screen.getAllByRole('button', { name: /going/i });
+      await user.click(goingButton[1]);
+
+      //Should redirect to  login
+      await waitFor(() => {
+        expect(router.state.location.pathname).toBe('/login');
+      });
+    });
+
+    it('marks user as attending when logged in and click Going', async () => {
+      //Mock logged out state
+      mockCurrentUserStore.useCurrentUserStore.mockImplementation((selector) =>
+        selector({ user: mockUsers.alice })
+      );
+
+      vi.mocked(userService.attendEvent).mockResolvedValue({} as UserBase);
+      renderEventFeed();
+
+      await waitFor(() => {
+        expect(screen.getByText(/Beer-Yoga Session/)).toBeInTheDocument();
+      });
+
+      //Find Going button
+      const goingButton = screen.getAllByRole('button', { name: /going/i });
+      await user.click(goingButton[1]);
+
+      //Should call attendEvent
+      await waitFor(() => {
+        expect(userService.attendEvent).toHaveBeenCalledWith(2);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /going ✓/i })).toBeInTheDocument();
+      });
+    });
+
+    it('disable Going button and shows Going ✓ is user already atending', async () => {
+      //Mock logged out state
+      mockCurrentUserStore.useCurrentUserStore.mockImplementation((selector) =>
+        selector({ user: mockUsers.bob })
+      );
+
+      vi.mocked(userService.attendEvent).mockResolvedValue({} as UserBase);
+      renderEventFeed();
+
+      await waitFor(() => {
+        expect(screen.getByText(/MEGA SUPER/)).toBeInTheDocument();
+      });
+
+      //Find Going button
+      const goingCheckButton = screen.getAllByRole('button', { name: /going ✓/i });
+      expect(goingCheckButton.length).toBeGreaterThan(0);
+      expect(goingCheckButton[0]).toBeDisabled();
     });
   });
 });

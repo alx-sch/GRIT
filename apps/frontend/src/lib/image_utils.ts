@@ -1,5 +1,5 @@
-import {env} from '@/config/env';
-import {EventBase} from '@/types/event';
+import { env } from '@/config/env';
+import { EventBase } from '@/types/event';
 
 export function getEventImageUrl(event: EventBase): string {
   if (!event.imageKey) {
@@ -8,7 +8,7 @@ export function getEventImageUrl(event: EventBase): string {
   return `${env.VITE_MINIO_URL}/event-images/${event.imageKey}`;
 }
 
-export function getAvatarImageUrl(avatarFilename: string|undefined): string {
+export function getAvatarImageUrl(avatarFilename: string | undefined): string {
   if (!avatarFilename) return '';
   return `${env.VITE_MINIO_URL}/user-avatars/${avatarFilename}`;
 }
@@ -57,7 +57,6 @@ export function generateImagePlaceholderEvent(event: EventBase) {
   const availableHeight = 300 - verticalPadding * 2;
   const startY = verticalPadding + (availableHeight - blockHeight) / 2;
 
-
   const svg = `
     <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
       <rect width="100%" height="100%" fill="${bgColor}"/>
@@ -70,11 +69,11 @@ export function generateImagePlaceholderEvent(event: EventBase) {
         font-weight="bold"
         fill="white"
       >
-        ${
-      lines
+        ${lines
           .map(
-              (line, idx) => `<tspan x="50%" dy="${
-                  String(idx === 0 ? 0 : lineHeight)}">${line}</tspan>`)
+            (line, idx) =>
+              `<tspan x="50%" dy="${String(idx === 0 ? 0 : lineHeight)}">${line}</tspan>`
+          )
           .join('')}
       </text>
     </svg>

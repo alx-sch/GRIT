@@ -44,16 +44,16 @@ export function EventCard({ event, location }: EventCardProps) {
 
     console.log('user:', currentUser);
     if (!currentUser) {
-      navigate('/login?redirect=' + encodeURIComponent(`/events/${event.id}`));
+      void navigate('/login?redirect=' + encodeURIComponent(`/events/${String(event.id)}`));
       return;
     }
     setIsLoading(true);
     try {
       await userService.attendEvent(event.id);
       setIsAttending(true);
-	  setCountAttending(prev => prev + 1);
+      setCountAttending((prev) => prev + 1);
     } catch (error) {
-      toast.error('Something went wrong:' + error);
+      toast.error('Something went wrong:' + String(error));
     } finally {
       setIsLoading(false);
     }
@@ -81,11 +81,7 @@ export function EventCard({ event, location }: EventCardProps) {
           </CardDescription>
           <div className="flex items-center gap-2 text-base font-normal text-muted-foreground">
             <User className="h-5 w-5 text-primary" strokeWidth={2} />
-            <Text>
-              {countAttending > 0
-                ? countAttending.toLocaleString()
-                : 'Be the first'}
-            </Text>
+            <Text>{countAttending > 0 ? countAttending.toLocaleString() : 'Be the first'}</Text>
           </div>
         </CardContent>
 
@@ -122,7 +118,9 @@ export function EventCard({ event, location }: EventCardProps) {
             <Button
               variant="outline"
               className="flex-1"
-              onClick={handleGoing}
+              onClick={(e) => {
+                void handleGoing(e);
+              }}
               disabled={isLoading || isAttending}
             >
               {isAttending ? 'Going ✓' : 'Going'}

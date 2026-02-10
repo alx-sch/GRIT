@@ -10,6 +10,12 @@ export interface UserBase {
   id: number;
   name: string;
   email: string;
+  password: string;
+  avatarKey?: string;
+  events: Event[];
+  attending: Event[];
+  location: Location[];
+  isConfirmed: boolean;
 }
 
 export interface CurrentUser {
