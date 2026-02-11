@@ -7,6 +7,44 @@ export const EVENT_CONFIG = {
   CONTENT_MAX_LENGTH: 2000,
 };
 
+// Sub-schemas for nested objects in event response
+export const ResEventAuthorSchema = z.object({ id: z.number(), name: z.string() });
+export const ResEventAttendeeSchema = z.object({ id: z.number(), name: z.string() });
+export const ResEventLocationSchema = z.object({
+  id: z.number().int().positive(),
+  authorId: z.number().int().positive(),
+  name: z.string().nullable(),
+  city: z.string().nullable(),
+  country: z.string().nullable(),
+  longitude: z.number(),
+  latitude: z.number(),
+  isPublic: z.boolean(),
+});
+
+export const ResEventBaseSchema = z.object({
+  id: z.number().int().positive(),
+  authorId: z.number().int().positive().nullable(),
+  author: ResEventAuthorSchema.nullable(),
+  content: z.string().nullable(),
+  createdAt: z.date(),
+  endAt: z.date(),
+  imageKey: z.string().nullable(),
+  isPublished: z.boolean(),
+  isPublic: z.boolean(),
+  startAt: z.date(),
+  title: z.string(),
+  location: ResEventLocationSchema.nullable(),
+  attending: z.array(ResEventAttendeeSchema).default([]),
+});
+export type ResEventBase = z.infer<typeof ResEventBaseSchema>;
+
+// Paginated response
+export const ResEventGetPublishedSchema = z.object({
+  data: z.array(ResEventBaseSchema),
+  pagination: z.object({ nextCursor: z.string().nullable(), hasMore: z.boolean() }),
+});
+export type ResEventGetPublished = z.infer<typeof ResEventGetPublishedSchema>;
+
 // Shared event schema for creating an event
 export const CreateEventSchema = z.object({
   isPublic: z.boolean(),

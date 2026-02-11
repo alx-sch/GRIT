@@ -1,53 +1,6 @@
+import { CreateEventSchema, ResEventBaseSchema } from '@grit/schema';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-
-/**
- * SHARED RESPONSE SCHEMAS
- */
-
-// Response schema for the author object that can get sent as a subitem in the
-// event response
-const ResEventAuthorSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-});
-
-// Response schema for the attendee object that can get sent as a subitem in the
-// event response
-const ResEventAttendeeSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-});
-
-// Response schema for the location object that can get sent as a subitem in the
-// event response
-const ResEventLocationSchema = z.object({
-  id: z.number().int().positive(),
-  authorId: z.number().int().positive(),
-  name: z.string().nullable(),
-  city: z.string().nullable(),
-  country: z.string().nullable(),
-  longitude: z.number().min(-180).max(180),
-  latitude: z.number().min(-90).max(90),
-  isPublic: z.boolean(),
-});
-
-// Response schema for the basic information we send regarding events
-export const ResEventBaseSchema = z.object({
-  id: z.number().int().positive(),
-  authorId: z.number().int().positive().nullable(),
-  author: ResEventAuthorSchema.nullable(),
-  content: z.string().nullable(),
-  createdAt: z.date(),
-  endAt: z.date().nullable(),
-  imageKey: z.string().nullable(),
-  isPublished: z.boolean(),
-  isPublic: z.boolean(),
-  startAt: z.date().nullable(),
-  title: z.string(),
-  location: ResEventLocationSchema.nullable(),
-  attending: z.array(ResEventAttendeeSchema).nullable().default([]),
-});
 
 /**
  * REQ / RES SCHEMAS FOR ROUTES
@@ -91,13 +44,6 @@ export const ReqEventGetPublishedSchema = z.strictObject({
   sort: z.enum(['date-asc', 'date-dsc', 'alpha-asc', 'alpha-dsc', 'popularity']).optional(),
 });
 export class ReqEventGetPublishedDto extends createZodDto(ReqEventGetPublishedSchema) {}
-export const ResEventGetPublishedSchema = z.object({
-  data: z.array(ResEventBaseSchema),
-  pagination: z.object({
-    nextCursor: z.string().nullable(),
-    hasMore: z.boolean(),
-  }),
-});
 
 // Patch an event (Update)
 export const ReqEventPatchSchema = z.strictObject({
@@ -113,16 +59,6 @@ export const ReqEventPatchSchema = z.strictObject({
 export class ReqEventPatchDto extends createZodDto(ReqEventPatchSchema) {}
 export const ResEventPatchSchema = ResEventBaseSchema;
 
-// Post a new event draft
-export const ReqEventPostDraftSchema = z.strictObject({
-  content: z.string().optional(),
-  endAt: z.iso.datetime(),
-  isPublic: z.boolean(),
-  startAt: z.iso.datetime(),
-  title: z.string(),
-  imageKey: z.string().optional(),
-  locationId: z.number().int().positive().optional(),
-  isPublished: z.boolean(),
-});
-export class ReqEventPostDraftDto extends createZodDto(ReqEventPostDraftSchema) {}
+export class ReqEventPostDraftDto extends createZodDto(CreateEventSchema) {}
+
 export const ResEventPostDraftSchema = ResEventBaseSchema;

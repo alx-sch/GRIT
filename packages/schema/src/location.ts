@@ -6,6 +6,25 @@ export const LOCATION_CONFIG = {
   NAME_MAX_LENGTH: 64,
 };
 
+export const ResLocationEventSchema = z.object({
+  id: z.number().int().positive(),
+  title: z.string().nullable(),
+});
+
+export const ResLocationBaseSchema = z.object({
+  id: z.number().int().positive(),
+  name: z.string().nullable(),
+  events: z.array(ResLocationEventSchema).nullable().default([]),
+});
+export type ResLocationBase = z.infer<typeof ResLocationBaseSchema>;
+
+// Paginated response
+export const ResLocationGetAllSchema = z.object({
+  data: z.array(ResLocationBaseSchema),
+  pagination: z.object({ nextCursor: z.string().nullable(), hasMore: z.boolean() }),
+});
+export type ResLocationGetAll = z.infer<typeof ResLocationGetAllSchema>;
+
 // Shared location schema for creating a location
 export const CreateLocationSchema = z.object({
   name: z

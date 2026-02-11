@@ -1,27 +1,6 @@
+import { ResUserBaseSchema, ResUserEventsSchema } from '@grit/schema';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-
-/**
- * SHARED RESPONSE SCHEMAS
- */
-
-// Response schema for the event object that can get sent as a subitem in the
-// user response
-export const ResEventUserSchema = z.object({
-  title: z.string(),
-});
-
-export const ResUserEventsSchema = z.array(ResEventUserSchema);
-
-// Response schema for the basic user info
-export const ResUserBaseSchema = z.object({
-  id: z.number().int().positive(),
-  name: z.string().nullable(),
-  email: z.email(),
-  avatarKey: z.string().nullable(),
-  isConfirmed: z.boolean().default(false),
-  attending: z.array(ResEventUserSchema).default([]),
-});
 
 // Response schema for creating new user
 export const ResUserPostSchema = ResUserBaseSchema.extend({
@@ -40,13 +19,6 @@ export const ReqUserConfirmSchema = z.strictObject({
 export const ReqUserGetAllSchema = z.strictObject({
   limit: z.coerce.number().int().positive().max(100).default(20),
   cursor: z.string().optional(),
-});
-export const ResUserGetAllSchema = z.object({
-  data: z.array(ResUserBaseSchema),
-  pagination: z.object({
-    nextCursor: z.string().nullable(),
-    hasMore: z.boolean(),
-  }),
 });
 
 // Post a new user draft
