@@ -47,7 +47,7 @@ export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
 //Sorting Options
 const sortOptions: ComboboxOptions[] = [
   { value: 'date-asc', label: 'Soonest' },
-  { value: 'date-dsc', label: 'Latest' },
+  { value: 'date-dsc', label: 'Furthest' },
   { value: 'alpha-asc', label: 'Name (A-Z)' },
   { value: 'alpha-dsc', label: 'Name (Z-A)' },
   { value: 'popularity', label: 'Most popular' },
