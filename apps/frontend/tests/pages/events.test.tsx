@@ -435,7 +435,7 @@ describe('Event Feed Page', () => {
       });
 
       // Navigate with filters
-      await router.navigate('/events?search=nonexistent&start_from=2027-01-28');
+      await router.navigate('/events?search=nonexistent');
 
       await waitFor(() => {
         expect(router.state.location.search).toContain('search=nonexistent');
