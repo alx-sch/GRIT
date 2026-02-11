@@ -434,12 +434,8 @@ describe('Event Feed Page', () => {
         expect(screen.getByText(/Upcoming events/i)).toBeInTheDocument();
       });
 
-      // Navigate with filters
-      await router.navigate('/events?search=nonexistent');
-
-      await waitFor(() => {
-        expect(router.state.location.search).toContain('search=nonexistent');
-      });
+      const searchInput = screen.getByPlaceholderText('Search events...');
+      await user.type(searchInput, 'nonexistent');
 
       await waitFor(() => {
         expect(screen.getByText(/No events found/i)).toBeInTheDocument();
