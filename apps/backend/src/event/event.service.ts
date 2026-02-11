@@ -57,12 +57,12 @@ export class EventService {
     const cursorFilter = eventCursorFilter(input);
     const finalWhere = { ...where, ...cursorFilter };
     const { limit, sort } = input;
-    const orderByMap: Record<string, object> = {
-      'date-asc': { startAt: 'asc' },
-      'date-dsc': { startAt: 'desc' },
-      'alpha-asc': { title: 'asc' },
-      'alpha-dsc': { title: 'desc' },
-      popularity: { attending: { _count: 'desc' } },
+    const orderByMap: Record<string, object[]> = {
+      'date-asc': [{ startAt: 'asc' }, { id: 'asc' }],
+      'date-dsc': [{ startAt: 'desc' }, { id: 'desc' }],
+      'alpha-asc': [{ title: 'asc' }, { startAt: 'asc' }, { id: 'asc' }],
+      'alpha-dsc': [{ title: 'desc' }, { startAt: 'asc' }, { id: 'asc' }],
+      popularity: [{ attending: { _count: 'desc' } }, { startAt: 'asc' }, { id: 'asc' }],
     };
     const orderBy = orderByMap[sort ?? 'date-asc'];
 

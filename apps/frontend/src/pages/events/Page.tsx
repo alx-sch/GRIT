@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Combobox, ComboboxOptions } from '@/components/ui/combobox';
 import { DatePicker } from '@/components/ui/datepicker';
 import { Input } from '@/components/ui/input';
-import { SortOption, SortSelect } from '@/components/ui/sort-select';
 import { Heading, Text } from '@/components/ui/typography';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
@@ -13,6 +12,7 @@ import { locationService } from '@/services/locationService';
 import { EventResponse } from '@/types/event';
 import { LocationBase } from '@/types/location';
 import { format, parse } from 'date-fns';
+import { ArrowUpDown, MapPinIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { DateRange } from 'react-day-picker';
 import { LoaderFunctionArgs, useSearchParams } from 'react-router-dom';
@@ -20,7 +20,7 @@ import { LoaderFunctionArgs, useSearchParams } from 'react-router-dom';
 export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const search = url.searchParams.get('search') ?? undefined;
-  const startFrom = url.searchParams.get('start_from') ?? undefined;
+  const startFrom = url.searchParams.get('start_from') ?? format(new Date(), 'yyyy-MM-dd');
   const startUntil = url.searchParams.get('start_until') ?? undefined;
   const locationId = url.searchParams.get('location_id') ?? undefined;
   const limit = url.searchParams.get('limit') ?? undefined;
@@ -45,9 +45,9 @@ export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 //Sorting Options
-const sortOption: SortOption[] = [
-  { value: 'date-asc', label: 'Date (Soonest)' },
-  { value: 'date-dsc', label: 'Date (Latest)' },
+const sortOptions: ComboboxOptions[] = [
+  { value: 'date-asc', label: 'Soonest' },
+  { value: 'date-dsc', label: 'Latest' },
   { value: 'alpha-asc', label: 'Name (A-Z)' },
   { value: 'alpha-dsc', label: 'Name (Z-A)' },
   { value: 'popularity', label: 'Most popular' },
@@ -133,7 +133,7 @@ export default function EventFeed() {
   };
 
   //Sorting
-  const [sort, setSort] = useState(searchParams.get('sort') ?? 'date-asc');
+  const [sort, setSort] = useState(searchParams.get('sort') ?? '');
   const handleSortChange = (value: string) => {
     setSort(value);
     searchParams.set('sort', value);
@@ -148,15 +148,15 @@ export default function EventFeed() {
         </Heading>
       </div>
 
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-2">
         <Input
           placeholder="Search events..."
-          className="max-w-sm"
+          className="w-full md:w-sm md:shrink-0"
           value={searchInput}
           onChange={handleSearchChange}
         />
 
-        <div className="flex md:w-auto gap-2 w-full md:justify-end">
+        <div className="flex items-center justify-between md:justify-end gap-1 md:gap-2 md:flex-1 min-w-0">
           <Combobox
             options={locationOptionsCombobox}
             value={selectedLocation ?? undefined}
@@ -164,21 +164,32 @@ export default function EventFeed() {
             placeholder="Location"
             searchPlaceholder="Search"
             emptyMessage="No location found"
-            className="flex-1 min-w-0 md:flex-none text-sm md:text-base max-w-xs truncate"
+            variant="ghost"
+            icon={MapPinIcon}
+            className="w-auto min-w-0 md:min-w-32 md:flex-none text-xs md:text-base max-w-xs truncate font-normal max-w-[33%] md:shrink"
           />
+
+          <div className="w-[1.5px] h-5 bg-border/60 shrink-0 dark:bg-white/20" />
 
           <DatePicker
             selected={selectedDateRange}
             onSelect={handleDateSelect}
             placeholder="Date"
-            className="flex-1 min-w-0 md:flex-none text-sm md:text-base md:px-7 truncate"
+            variant="ghost"
+            className="min-w-0 md:flex-none text-xs md:text-base truncate font-normal max-w-[33%] md:shrink-0"
           ></DatePicker>
 
-          <SortSelect
-            options={sortOption}
+          <div className="w-[1.5px] h-5 bg-border/60 shrink-0 dark:bg-white/20" />
+
+          <Combobox
+            options={sortOptions}
             value={sort}
             onChange={handleSortChange}
-            className="h-12"
+            placeholder="Sort"
+            variant="ghost"
+            icon={ArrowUpDown}
+            showSearch={false}
+            className="w-auto min-w-0 md:flex-none text-xs md:text-base font-normal max-w-[33%] md:shrink-0"
           />
         </div>
       </div>
@@ -211,6 +222,7 @@ export default function EventFeed() {
               variant="destructive"
               onClick={() => {
                 setSearchInput('');
+                setSort('');
                 const newParams = new URLSearchParams();
                 setSearchParams(newParams);
               }}

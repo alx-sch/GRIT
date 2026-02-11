@@ -25,6 +25,8 @@ export interface DatePickerProps {
   endTime?: string;
   onStartTimeChange?: (time: string) => void;
   onEndTimeChange?: (time: string) => void;
+  /** Button variant for the trigger */
+  variant?: 'outline' | 'ghost' | 'secondary' | 'default';
 }
 
 export function DatePicker({
@@ -39,6 +41,7 @@ export function DatePicker({
   endTime = '12:00',
   onStartTimeChange,
   onEndTimeChange,
+  variant = 'outline',
 }: DatePickerProps) {
   const [open, setOpen] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -112,8 +115,12 @@ export function DatePicker({
 
   const trigger = (
     <Button
-      variant="outline"
-      className={cn('border-2 border-border rounded-none h-12 px max-w-full', className)}
+      variant={variant}
+      className={cn(
+        'h-12 max-w-full',
+        variant === 'ghost' ? '!px-2' : 'border-2 border-border rounded-none',
+        className
+      )}
     >
       {selected?.from ? (
         <span className="truncate">{formatDateDisplay()}</span>
