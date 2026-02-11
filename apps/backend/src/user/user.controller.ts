@@ -1,4 +1,3 @@
-import { ResUserAttendSchema, ReqUserAttendDto } from './user.schema';
 import {
   Body,
   Query,
@@ -21,6 +20,8 @@ import {
   ResUserEventsDto,
   ReqUserGetAllDto,
   ResUserGetAllSchema,
+  ResUserPatchSchema,
+  ReqUserPatchDto,
 } from '@/user/user.schema';
 import { UserService } from '@/user/user.service';
 import { ZodSerializerDto } from 'nestjs-zod';
@@ -47,12 +48,12 @@ export class UserController {
   }
 
   // User attend event
-  @Patch('attend')
+  @Patch('me')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @ZodSerializerDto(ResUserAttendSchema)
-  userAttend(@Body() data: ReqUserAttendDto, @GetUser('id') userId: number) {
-    return this.userService.userAttend(userId, data);
+  @ZodSerializerDto(ResUserPatchSchema)
+  userPatch(@Body() data: ReqUserPatchDto, @GetUser('id') userId: number) {
+    return this.userService.userPatch(userId, data);
   }
 
   // ADD IMAGE UPLOAD ROUTINE

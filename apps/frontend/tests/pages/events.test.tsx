@@ -514,7 +514,7 @@ describe('Event Feed Page', () => {
       });
     });
 
-    it('disable Going button and shows Going ✓ is user already atending', async () => {
+    it('Shows Going ✓ is user already attending', async () => {
       //Mock logged out state
       mockCurrentUserStore.useCurrentUserStore.mockImplementation((selector) =>
         selector({ user: mockUsers.bob })
@@ -530,7 +530,6 @@ describe('Event Feed Page', () => {
       //Find Going button
       const goingCheckButton = screen.getAllByRole('button', { name: /going ✓/i });
       expect(goingCheckButton.length).toBeGreaterThan(0);
-      expect(goingCheckButton[0]).toBeDisabled();
     });
   });
 });

@@ -19,7 +19,14 @@ export const userService = {
   },
 
   attendEvent: async (eventId: number): Promise<UserBase> => {
-    const response = await api.patch<UserBase>('users/attend', { attending: eventId });
+    const response = await api.patch<UserBase>('users/me', { attending: { connect: [eventId] } });
+    return response.data;
+  },
+
+  unattendEvent: async (eventId: number): Promise<UserBase> => {
+    const response = await api.patch<UserBase>('users/me', {
+      attending: { disconnect: [eventId] },
+    });
     return response.data;
   },
 };

@@ -5,7 +5,8 @@ import { z } from 'zod';
  * SHARED RESPONSE SCHEMAS
  */
 
-// Response schema for the event object that can get sent as a subitem in the user response
+// Response schema for the event object that can get sent as a subitem in the
+// user response
 export const ResEventUserSchema = z.object({
   title: z.string(),
 });
@@ -56,12 +57,19 @@ export const ReqUserPostSchema = z.object({
   avatarKey: z.string().optional(),
 });
 
-// Patch a user (to attend event)
-export const ReqUserAttendSchema = z.strictObject({
-  attending: z.number().int().positive(),
+// Patch a user (password and email left out - need dedicated route for
+// verifications)
+export const ReqUserPatchSchema = z.strictObject({
+  name: z.string().optional(),
+  attending: z
+    .strictObject({
+      connect: z.array(z.number().int().positive()).optional(),
+      disconnect: z.array(z.number().int().positive()).optional(),
+    })
+    .optional(),
 });
-export class ReqUserAttendDto extends createZodDto(ReqUserAttendSchema) {}
-export const ResUserAttendSchema = ResUserBaseSchema;
+export class ReqUserPatchDto extends createZodDto(ReqUserPatchSchema) {}
+export const ResUserPatchSchema = ResUserBaseSchema;
 
 // Get an individual user by id
 export const ReqUserGetByIdSchema = z.strictObject({

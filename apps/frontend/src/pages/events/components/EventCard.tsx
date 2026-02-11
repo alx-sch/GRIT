@@ -48,14 +48,28 @@ export function EventCard({ event, location }: EventCardProps) {
       return;
     }
     setIsLoading(true);
-    try {
-      await userService.attendEvent(event.id);
-      setIsAttending(true);
-      setCountAttending((prev) => prev + 1);
-    } catch (error) {
-      toast.error('Something went wrong:' + String(error));
-    } finally {
-      setIsLoading(false);
+    if (isAttending) {
+      try {
+        await userService.unattendEvent(event.id);
+        setIsAttending(false);
+        setCountAttending((prev) => prev - 1);
+        toast.info('You are no longer attending "' + event.title + '".');
+      } catch (error) {
+        toast.error('Something went wrong:' + String(error));
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      try {
+        await userService.attendEvent(event.id);
+        setIsAttending(true);
+        setCountAttending((prev) => prev + 1);
+        toast.info('You’re going to "' + event.title + '".');
+      } catch (error) {
+        toast.error('Something went wrong:' + String(error));
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -121,7 +135,7 @@ export function EventCard({ event, location }: EventCardProps) {
               onClick={(e) => {
                 void handleGoing(e);
               }}
-              disabled={isLoading || isAttending}
+              disabled={isLoading}
             >
               {isAttending ? 'Going ✓' : 'Going'}
             </Button>
