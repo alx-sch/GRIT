@@ -165,13 +165,6 @@ export default function Design() {
                 ></Combobox>
               </CardContent>
             </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Select </CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-4"></CardContent>
-            </Card>
           </div>
 
           {/* Inputs */}

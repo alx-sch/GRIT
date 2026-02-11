@@ -13,9 +13,18 @@ export const ResLocationEventSchema = z.object({
 
 export const ResLocationBaseSchema = z.object({
   id: z.number().int().positive(),
+  authorId: z.number().int().positive(),
   name: z.string().nullable(),
-  events: z.array(ResLocationEventSchema).nullable().default([]),
+  city: z.string().nullable().optional(),
+  country: z.string().nullable().optional(),
+  longitude: z.number(),
+  latitude: z.number(),
+  isPublic: z.boolean(),
+  address: z.string().nullable().optional(),
+  postalCode: z.string().nullable().optional(),
+  events: z.array(ResLocationEventSchema).default([]),
 });
+
 export type ResLocationBase = z.infer<typeof ResLocationBaseSchema>;
 
 // Paginated response

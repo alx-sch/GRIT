@@ -93,7 +93,7 @@ describe('Event Feed Page', () => {
   const mockEvents: EventResponse['data'] = [
     {
       id: 1,
-      createdAt: Date.parse('2026-03-01T10:00:00Z'),
+      createdAt: new Date().toISOString(),
       content: 'A night of unforgettable techno beats.',
       endAt: '2026-06-02T10:00:00Z',
       isPublic: true,
@@ -104,11 +104,11 @@ describe('Event Feed Page', () => {
       author: mockUsers.alice,
       authorId: 1,
       attending: [mockUsers.bob, mockUsers.cindy],
-      locationId: 1,
+      location: mockLocations.gritHq,
     },
     {
       id: 2,
-      createdAt: Date.parse('2026-01-01T10:00:00Z'),
+      createdAt: new Date().toISOString(),
       content: 'A session of beer-yoga at Lotus.',
       endAt: '2026-06-03T12:00:00Z',
       isPublic: true,
@@ -122,7 +122,7 @@ describe('Event Feed Page', () => {
     },
     {
       id: 3,
-      createdAt: Date.parse('2026-01-10T10:00:00Z'),
+      createdAt: new Date().toISOString(),
       content: 'Come to my awesome event!',
       endAt: '2026-06-15T12:00:00Z',
       isPublic: false,
@@ -163,7 +163,7 @@ describe('Event Feed Page', () => {
       //Filter by location
       if (params?.locationId) {
         const locationId = parseInt(params.locationId, 10);
-        filtered = filtered.filter((event) => event.locationId === locationId);
+        filtered = filtered.filter((event) => event.location?.id === locationId);
       }
 
       return Promise.resolve({

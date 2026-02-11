@@ -15,24 +15,11 @@ vi.mock('@/services/locationService', () => ({
 describe('Location Form', () => {
   const user = userEvent.setup();
 
-  // Mock users
-  const mockUser = {
-    id: 1,
-    name: 'Alice',
-    email: 'alice@example.com',
-    password: 'password',
-    events: [],
-    attending: [],
-    location: [],
-    isConfirmed: true,
-  };
-
   // Mock created location response
   const mockCreatedLocation: LocationBase = {
     id: 1,
     name: 'Test Location',
     isPublic: true,
-    author: mockUser,
     authorId: 1,
     longitude: 52,
     latitude: 13,

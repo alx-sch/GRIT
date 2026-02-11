@@ -40,11 +40,12 @@ describe('Event Creation Page', () => {
   const mockLocations: LocationBase[] = [
     {
       id: 1,
-      author: mockUser,
       authorId: 1,
       name: 'Berghain',
       city: 'Berlin',
       country: 'Germany',
+      address: 'Fake Street',
+      postalCode: '10245',
       longitude: 13.4,
       latitude: 52.5,
       isPublic: true,
@@ -52,13 +53,14 @@ describe('Event Creation Page', () => {
     },
     {
       id: 2,
-      author: mockUser,
       authorId: 1,
       name: 'Tresor',
       city: 'Berlin',
       country: 'Germany',
       longitude: 13.42,
       latitude: 52.51,
+      address: 'Address',
+      postalCode: '10239',
       isPublic: true,
       events: [],
     },
@@ -75,7 +77,7 @@ describe('Event Creation Page', () => {
     isPublished: true,
     author: mockUser,
     authorId: 1,
-    createdAt: Date.now(),
+    createdAt: new Date().toISOString(),
     imageKey: '',
     attending: [],
   };
