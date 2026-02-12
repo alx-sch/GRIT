@@ -1,15 +1,13 @@
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Text } from '@/components/ui/typography';
 import { useDebounce } from '@/hooks/useDebounce';
 import { locationService } from '@/services/locationService';
 import { LocationBase } from '@/types/location';
 import { CreateLocationInput, CreateLocationSchema } from '@grit/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { isAxiosError } from 'axios';
-import { AlertCircleIcon, Search } from 'lucide-react';
+import { AlertCircleIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { Control, Controller, SubmitHandler, useForm, useWatch } from 'react-hook-form';
 import { APIProvider } from '@vis.gl/react-google-maps';
@@ -35,6 +33,8 @@ interface LocationFormProps {
 }
 
 export default function LocationForm({ onSuccess, onCancel }: LocationFormProps) {
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API as string;
+
   const {
     register,
     handleSubmit,
@@ -141,7 +141,7 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
         </div>
 
         {/* Map component */}
-        <APIProvider apiKey={import.meta.env['VITE_GOOGLE_MAPS_API']}>
+        <APIProvider apiKey={apiKey}>
           <GMap setValue={setValue} />
         </APIProvider>
 

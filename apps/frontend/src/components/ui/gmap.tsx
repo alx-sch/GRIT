@@ -7,7 +7,7 @@ import {
 } from '@vis.gl/react-google-maps';
 import { useRef, useEffect, useState } from 'react';
 import { type UseFormSetValue } from 'react-hook-form';
-import { AlertDescription, AlertTitle } from './alert';
+import { AlertDescription } from './alert';
 import { InfoIcon } from 'lucide-react';
 import { Button } from './button';
 
@@ -15,31 +15,11 @@ import { Button } from './button';
  * TYPES
  */
 
-type AddressComponent = {
-  longText: string;
-  shortText: string;
-  types: string[];
-};
-
-type PlacePredictionLike = {
-  toPlace(): {
-    fetchFields(options: { fields: string[] }): Promise<void>;
-    toJSON(): unknown;
-
-    location?: {
-      lat(): number;
-      lng(): number;
-    };
-    formattedAddress?: string;
-    addressComponents?: AddressComponent[];
-  };
-};
-
-type GmpSelectPayload = {
-  placePrediction: PlacePredictionLike;
-};
-
 type LatLng = { lat: number; lng: number } | null;
+
+type GmpSelectEvent = Event & {
+  placePrediction: google.maps.places.PlacePrediction;
+};
 
 /**
  * HELPER FUNCTIONS
@@ -57,13 +37,13 @@ type LatLng = { lat: number; lng: number } | null;
  * For faster lookup we create a map helper which returns a prestructured object
  */
 
-function extractAddress(components: AddressComponent[]) {
+function extractAddress(components: google.maps.places.AddressComponent[]) {
   const map = new Map<string, string>();
 
   for (const c of components) {
     for (const type of c.types) {
       if (!map.has(type)) {
-        map.set(type, c.longText);
+        map.set(type, c.longText ?? '');
       }
     }
   }
@@ -89,66 +69,74 @@ export const GMap = ({ setValue }: { setValue: UseFormSetValue<CreateLocationInp
   const [showMarkerMovedNotive, setShowMarkerMovedNotice] = useState(false);
   const geocodingLibrary = useMapsLibrary('geocoding');
 
-  const recalculate = async () => {
-    if (!geocodingLibrary || !markerPos) return;
+  const recalculate = () => {
+    void (async () => {
+      if (!geocodingLibrary || !markerPos) return;
 
-    const geocoder = new geocodingLibrary.Geocoder();
+      const geocoder = new geocodingLibrary.Geocoder();
 
-    const response = await geocoder.geocode({
-      location: markerPos,
-    });
+      const response = await geocoder.geocode({
+        location: markerPos,
+      });
 
-    const result = response.results?.[0];
-    if (!result?.address_components) return;
+      const result = response.results?.[0];
+      if (!result?.address_components) return;
 
-    const addressData = extractAddress(
-      result.address_components.map((c: any) => ({
-        longText: c.long_name,
-        shortText: c.short_name,
-        types: c.types,
-      }))
-    );
+      const addressData = extractAddress(
+        result.address_components.map((c: google.maps.GeocoderAddressComponent) => ({
+          longText: c.long_name,
+          shortText: c.short_name,
+          types: c.types,
+        }))
+      );
 
-    setValue('address', addressData.street + ' ' + addressData.streetNumber);
-    setValue('postalCode', addressData.zip);
-    setValue('city', addressData.city);
-    setValue('country', addressData.country);
+      setValue('address', addressData.street + ' ' + addressData.streetNumber);
+      setValue('postalCode', addressData.zip);
+      setValue('city', addressData.city);
+      setValue('country', addressData.country);
 
-    setShowMarkerMovedNotice(false);
+      setShowMarkerMovedNotice(false);
+    })();
   };
 
   useEffect(() => {
-    if (!placesLibrary || !containerRef.current) return;
+    if (!placesLibrary || !containerRef.current || !map) return;
 
-    const autocomplete = new placesLibrary.PlaceAutocompleteElement();
-    autocomplete.placeholder = 'Search for a location or address';
+    const autocomplete = new google.maps.places.PlaceAutocompleteElement({});
+    autocomplete.setAttribute('placeholder', 'Search for a location or address');
     containerRef.current.appendChild(autocomplete);
 
     // Fires on search enter
-    autocomplete.addEventListener('gmp-select', async ({ placePrediction }: GmpSelectPayload) => {
-      const place = placePrediction.toPlace();
+    autocomplete.addEventListener('gmp-select', (event) => {
+      void (async () => {
+        const placePrediction = (event as GmpSelectEvent).placePrediction;
 
-      await place.fetchFields({
-        fields: ['displayName', 'formattedAddress', 'location', 'addressComponents'],
-      });
+        if (!placePrediction) return;
 
-      if (!place.location) return;
+        const place = placePrediction.toPlace();
 
-      const lat = place.location.lat();
-      const lng = place.location.lng();
+        await place.fetchFields({
+          fields: ['displayName', 'formattedAddress', 'location', 'addressComponents'],
+        });
 
-      map.panTo({ lat, lng });
-      map.setZoom(15);
-      setMarkerPos({ lat, lng });
-      setValue('latitude', lat);
-      setValue('longitude', lng);
-      if (place.addressComponents) {
-        const addressData = extractAddress(place.addressComponents);
-        setValue('address', addressData.street + ' ' + addressData.streetNumber);
-        setValue('postalCode', addressData.zip);
-        setValue('city', addressData.city);
-        setValue('country', addressData.country);
-      }
+        if (!place.location) return;
+
+        const lat = place.location.lat();
+        const lng = place.location.lng();
+
+        map.panTo({ lat, lng });
+        map.setZoom(15);
+        setMarkerPos({ lat, lng });
+        setValue('latitude', lat);
+        setValue('longitude', lng);
+        if (place.addressComponents) {
+          const addressData = extractAddress(place.addressComponents);
+          setValue('address', addressData.street + ' ' + addressData.streetNumber);
+          setValue('postalCode', addressData.zip);
+          setValue('city', addressData.city);
+          setValue('country', addressData.country);
+        }
+      })();
     });
 
     return () => {
