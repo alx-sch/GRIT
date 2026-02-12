@@ -62,6 +62,9 @@ export const CreateEventSchema = z.object({
   startAt: z.iso.datetime(),
   endAt: z.iso.datetime(),
   imageKey: z.string().optional(),
-  locationId: z.number().int().positive().optional(),
+  locationId: z.number().int().positive().nullable().optional(),
 });
 export type CreateEventInput = z.infer<typeof CreateEventSchema>;
+
+export const PatchEventSchema = CreateEventSchema.partial();
+export type PatchEventInput = z.infer<typeof PatchEventSchema>;

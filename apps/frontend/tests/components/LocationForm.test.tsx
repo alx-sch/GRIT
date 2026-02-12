@@ -1,4 +1,4 @@
-import LocationForm from '@/pages/create/event/components/LocationForm';
+import LocationForm from '@/features/event/LocationForm';
 import { locationService } from '@/services/locationService';
 import { LocationBase } from '@/types/location';
 import { render, screen, waitFor } from '@testing-library/react';

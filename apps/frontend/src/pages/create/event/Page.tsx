@@ -3,7 +3,7 @@ import { Heading } from '@/components/ui/typography';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { locationService } from '@/services/locationService';
 import { LocationBase } from '@/types/location';
-import EventForm from './components/EventForm';
+import EventForm from '@/features/event/EventForm';
 
 export const eventCreationLoader = async () => {
   const response = await locationService.getLocations();

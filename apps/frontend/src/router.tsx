@@ -1,19 +1,18 @@
-import Home from '@/pages/home/Page';
-import Users, { usersLoader } from '@/pages/users/Page';
-import { eventsLoader } from '@/pages/events/Page';
+import { DefaultLayout } from '@/components/layout/DefaultLayout';
+import { eventCreationLoader } from '@/pages/create/event/Page';
 import Design from '@/pages/design/Page';
 import ErrorPage from '@/pages/error/Page';
-import EventFeed from '@/pages/events/Page';
-import { createBrowserRouter } from 'react-router-dom';
-import { DefaultLayout } from '@/components/layout/DefaultLayout';
-import { eventLoader } from '@/pages/event/Page';
-import { Event } from '@/pages/event/Page';
-import { eventCreationLoader } from '@/pages/create/event/Page';
+import { Event, eventLoader } from '@/pages/event/Page';
+import EventFeed, { eventsLoader } from '@/pages/events/Page';
+import Home from '@/pages/home/Page';
 import { LoginPage, loginPageAction, loginPageLoader } from '@/pages/login/Page';
-import type { NavRoute } from './types/navroute';
-import { LogoutPage, logoutPageLoader } from './pages/logout/Page';
+import Users, { usersLoader } from '@/pages/users/Page';
+import { createBrowserRouter } from 'react-router-dom';
 import { ProtectedLayout, protectedLayoutLoader } from './components/layout/ProtectedLayout';
 import CreateEventPage from './pages/create/event/Page';
+import EditEventPage, { editEventLoader } from './pages/event/edit/Page';
+import { LogoutPage, logoutPageLoader } from './pages/logout/Page';
+import type { NavRoute } from './types/navroute';
 
 // NOTE: let's define single source of truth for our routes here
 export const baseNavConfig: NavRoute[] = [
@@ -55,6 +54,18 @@ export const router = createBrowserRouter([
         path: 'events/:id',
         Component: Event,
         loader: eventLoader,
+      },
+      {
+        path: 'events/:id/edit',
+        Component: ProtectedLayout,
+        loader: protectedLayoutLoader,
+        children: [
+          {
+            path: '',
+            Component: EditEventPage,
+            loader: editEventLoader,
+          },
+        ],
       },
       {
         path: 'login',

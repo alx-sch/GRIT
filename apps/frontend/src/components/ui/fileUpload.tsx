@@ -39,8 +39,9 @@ export function FileUpload({
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isCleared, setIsCleared] = useState(false);
 
-  const displayImage = preview ?? value;
+  const displayImage = isCleared ? null : (preview ?? value);
   const isUploading = progress > 0 && progress < 100;
 
   const aspectClass = {
@@ -56,6 +57,7 @@ export function FileUpload({
       setFile(selected);
       setPreview(URL.createObjectURL(selected));
       onChange(selected);
+      setIsCleared(false);
     }
   };
 
@@ -74,6 +76,7 @@ export function FileUpload({
     setPreview(null);
     setError(null);
     onChange(null);
+    setIsCleared(true);
   };
 
   return (

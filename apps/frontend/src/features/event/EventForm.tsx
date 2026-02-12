@@ -6,10 +6,12 @@ import { FileUpload } from '@/components/ui/fileUpload';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
+import LocationForm from '@/features/event/LocationForm';
 import { useDebounce } from '@/hooks/useDebounce';
-import LocationForm from '@/pages/create/event/components/LocationForm';
+import { getEventImageUrl } from '@/lib/image_utils';
 import { EventFormSchema, type EventFormFields } from '@/schema/event';
 import { eventService } from '@/services/eventService';
+import { EventBase } from '@/types/event';
 import { LocationBase } from '@/types/location';
 import { CreateEventSchema } from '@grit/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -35,10 +37,12 @@ function DraftSaver({ control }: { control: Control<EventFormFields> }) {
 }
 
 interface EventFormProps {
+  initialData?: EventBase;
   locations: LocationBase[];
 }
 
-export default function EventForm({ locations }: EventFormProps) {
+export default function EventForm({ initialData, locations }: EventFormProps) {
+  const isEditMode = !!initialData;
   const navigate = useNavigate();
 
   const {
@@ -51,16 +55,27 @@ export default function EventForm({ locations }: EventFormProps) {
     formState: { errors, isSubmitting, submitCount },
   } = useForm<EventFormFields>({
     resolver: zodResolver(EventFormSchema),
-    defaultValues: {
-      isPublic: false,
-      isPublished: false,
-      title: '',
-      content: '',
-      startAt: undefined,
-      endAt: undefined,
-      locationId: undefined,
-      imageKey: undefined,
-    },
+    defaultValues: initialData
+      ? {
+          isPublic: initialData.isPublic,
+          isPublished: initialData.isPublished,
+          title: initialData.title,
+          content: initialData.content ?? '',
+          startAt: new Date(initialData.startAt),
+          endAt: new Date(initialData.endAt),
+          locationId: initialData.location ? String(initialData.location.id) : undefined,
+          imageKey: initialData.imageKey ?? undefined,
+        }
+      : {
+          isPublic: false,
+          isPublished: false,
+          title: '',
+          content: '',
+          startAt: undefined,
+          endAt: undefined,
+          locationId: undefined,
+          imageKey: undefined,
+        },
   });
 
   //Locations set-up
@@ -82,6 +97,7 @@ export default function EventForm({ locations }: EventFormProps) {
 
   //Restore draft if exists
   useEffect(() => {
+    if (isEditMode) return;
     const saved = localStorage.getItem(DRAFT_KEY);
     if (saved) {
       const draft = JSON.parse(saved) as Record<string, unknown>;
@@ -104,7 +120,7 @@ export default function EventForm({ locations }: EventFormProps) {
         startAt: data.startAt.toISOString(),
         endAt: data.endAt.toISOString(),
         content: data.content ?? undefined,
-        locationId: data.locationId ? Number(data.locationId) : undefined,
+        locationId: data.locationId ? Number(data.locationId) : isEditMode ? null : undefined,
       };
       //Validating against shared schema
       const parsed = CreateEventSchema.safeParse(payload);
@@ -113,7 +129,10 @@ export default function EventForm({ locations }: EventFormProps) {
         return;
       }
 
-      const result = await eventService.postEvent(payload);
+      const result = isEditMode
+        ? await eventService.patchEvent(String(initialData.id), payload)
+        : await eventService.postEvent(payload);
+
       if (imageFile) {
         try {
           await eventService.uploadEventImage(result.id, imageFile, setUploadProgress);
@@ -219,7 +238,7 @@ export default function EventForm({ locations }: EventFormProps) {
   return (
     <>
       <form className="flex flex-col gap-8">
-        <DraftSaver control={control} />
+        {!isEditMode && <DraftSaver control={control} />}
         {/*Visibility*/}
         <div className="flex flex-col gap-4">
           <Controller
@@ -388,6 +407,7 @@ export default function EventForm({ locations }: EventFormProps) {
               progress={uploadProgress}
               aspectRatio="square"
               onError={setImageError}
+              value={initialData?.imageKey ? getEventImageUrl(initialData) : null}
             />
             {imageError && (
               <Alert variant="destructive">

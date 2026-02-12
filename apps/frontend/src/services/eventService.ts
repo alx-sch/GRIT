@@ -1,6 +1,6 @@
 import api from '@/lib/api';
 import type { EventBase, EventResponse } from '@/types/event';
-import { CreateEventInput } from '@grit/schema';
+import { CreateEventInput, PatchEventInput } from '@grit/schema';
 
 interface GetEventsParams {
   search?: string;
@@ -37,6 +37,11 @@ export const eventService = {
 
   postEvent: async (data: CreateEventInput): Promise<EventBase> => {
     const response = await api.post<EventBase>('/events', data);
+    return response.data;
+  },
+
+  patchEvent: async (id: string, data: PatchEventInput): Promise<EventBase> => {
+    const response = await api.patch<EventBase>(`/events/${id}`, data);
     return response.data;
   },
 
