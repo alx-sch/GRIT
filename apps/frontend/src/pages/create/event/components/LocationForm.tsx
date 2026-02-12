@@ -12,6 +12,8 @@ import { isAxiosError } from 'axios';
 import { AlertCircleIcon, Search } from 'lucide-react';
 import { useEffect } from 'react';
 import { Control, Controller, SubmitHandler, useForm, useWatch } from 'react-hook-form';
+import { APIProvider } from '@vis.gl/react-google-maps';
+import { GMap } from '@/components/ui/gmap';
 
 //Key for local Storage
 const DRAFT_KEY = 'location-draft';
@@ -32,7 +34,6 @@ interface LocationFormProps {
   onCancel: () => void;
 }
 
-//TODO: Remove default coordinate value (lng/lat) once Google maps is integrated
 export default function LocationForm({ onSuccess, onCancel }: LocationFormProps) {
   const {
     register,
@@ -47,8 +48,8 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
       name: '',
       city: '',
       country: '',
-      latitude: 52.45,
-      longitude: 13.34,
+      latitude: undefined,
+      longitude: undefined,
       isPublic: undefined,
       address: '',
       postalCode: '',
@@ -117,10 +118,10 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
       >
         <DraftSaver control={control} />
         {/* Hidden Inputs: latitude and longitude */}
-        <Input type="hidden" {...register('latitude')} />
-        <Input type="hidden" {...register('longitude')} />
+        <Input {...register('latitude')} />
+        <Input {...register('longitude')} />
         {/* Name */}
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 mb-2">
           <label htmlFor="name" className="font-heading">
             Name of the location
           </label>
@@ -140,19 +141,10 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
         </div>
 
         {/* Map component */}
-        <Card className="h-80 min-h-70 flex flex-col">
-          <CardContent className="flex flex-col h-full p-4 gap-4">
-            {/* Search input */}
+        <APIProvider apiKey={import.meta.env['VITE_GOOGLE_MAPS_API']}>
+          <GMap setValue={setValue} />
+        </APIProvider>
 
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input type="text" placeholder="Search your location address" className="pl-9" />
-            </div>
-            <div className="flex flex-1 text-center justify-center">
-              <Text>***PLACEHOLDER FOR GOOGLE MAPS COMPONENT***</Text>
-            </div>
-          </CardContent>
-        </Card>
         {/* Address/PostCode */}
         <div className="flex flex-row gap-6">
           <div className="flex flex-col flex-1 gap-2">
