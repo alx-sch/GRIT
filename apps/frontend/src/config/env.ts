@@ -10,6 +10,7 @@ const frontendEnvSchema = sharedPortsSchema
     APP_NAME: z.string().default('GRIT'),
     VITE_API_BASE_URL: z.string().optional(),
     VITE_MINIO_URL: z.string().optional(),
+    VITE_GOOGLE_MAPS_API: z.string(),
   })
   .transform((validatedData) => ({
     ...validatedData,
@@ -35,6 +36,7 @@ const envValidation = frontendEnvSchema.safeParse({
   VITE_APP_NAME: metaEnv.VITE_APP_NAME ?? (isTest ? 'GRIT-TEST' : undefined),
   VITE_API_BASE_URL: metaEnv.VITE_API_BASE_URL,
   VITE_MINIO_URL: metaEnv.VITE_MINIO_URL,
+  VITE_GOOGLE_MAPS_API: metaEnv.VITE_GOOGLE_MAPS_API,
 });
 
 if (!envValidation.success) {

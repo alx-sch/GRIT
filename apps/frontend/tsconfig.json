@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "composite": true,
-    "types": ["vitest/globals", "node", "vite/client"],
+    "types": ["vitest/globals", "node", "vite/client", "google.maps"],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "noEmit": true,
