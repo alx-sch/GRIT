@@ -1,7 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { ResUserBaseSchema } from '@/user/user.schema';
-import { RegisterSchema, LoginSchema } from '@grit/schema';
+import { RegisterSchema, LoginSchema, ResUserBaseSchema } from '@grit/schema';
 
 // --- Registration ---
 export class ReqRegisterDto extends createZodDto(RegisterSchema) {}

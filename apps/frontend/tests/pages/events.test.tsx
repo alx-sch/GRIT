@@ -1,11 +1,15 @@
+import EventFeed, { eventsLoader } from '@/pages/events/Page';
+import { eventService } from '@/services/eventService';
+import { locationService } from '@/services/locationService';
+import { userService } from '@/services/userService';
+import { EventBase, EventResponse } from '@/types/event';
+import { UserBase } from '@/types/user';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { vi } from 'vitest';
-import EventFeed, { eventsLoader } from '@/pages/events/Page';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { eventService } from '@/services/eventService';
-import { EventBase, EventResponse } from '@/types/event';
-import { locationService } from '@/services/locationService';
+import { vi } from 'vitest';
+
+/* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
 
 // Mock event service
 vi.mock('@/services/eventService', () => ({
@@ -20,6 +24,12 @@ vi.mock('@/services/locationService', () => ({
   },
 }));
 
+vi.mock('@/services/userService', () => ({
+  userService: {
+    attendEvent: vi.fn(),
+  },
+}));
+
 // Mock image utils to avoid MinIO URL issues in tests
 vi.mock('@/lib/image_utils', () => ({
   getEventImageUrl: (event: EventBase) =>
@@ -31,9 +41,36 @@ describe('Event Feed Page', () => {
 
   // Mock users
   const mockUsers = {
-    alice: { id: 1, name: 'Alice', email: 'alice@example.com' },
-    bob: { id: 2, name: 'Bob', email: 'bob@example.com' },
-    cindy: { id: 3, name: 'Cindy', email: 'cindy@example.com' },
+    alice: {
+      id: 1,
+      name: 'Alice',
+      email: 'alice@example.com',
+      password: 'password',
+      events: [],
+      attending: [],
+      location: [],
+      isConfirmed: true,
+    },
+    bob: {
+      id: 2,
+      name: 'Bob',
+      email: 'bob@example.com',
+      password: 'password',
+      events: [],
+      attending: [],
+      location: [],
+      isConfirmed: true,
+    },
+    cindy: {
+      id: 3,
+      name: 'Cindy',
+      email: 'cindy@example.com',
+      password: 'password',
+      events: [],
+      attending: [],
+      location: [],
+      isConfirmed: true,
+    },
   };
 
   // Mock locations
@@ -56,27 +93,27 @@ describe('Event Feed Page', () => {
   const mockEvents: EventResponse['data'] = [
     {
       id: 1,
-      createdAt: Date.parse('2026-03-01T10:00:00Z'),
+      createdAt: new Date().toISOString(),
       content: 'A night of unforgettable techno beats.',
-      endAt: '2026-03-02T10:00:00Z',
+      endAt: '2026-06-02T10:00:00Z',
       isPublic: true,
       isPublished: true,
-      startAt: '2026-03-02T10:00:00Z',
+      startAt: '2026-06-02T10:00:00Z',
       title: 'MEGA SUPER DUPER COOL PARTY',
       imageKey: 'party-image.jpg',
       author: mockUsers.alice,
       authorId: 1,
       attending: [mockUsers.bob, mockUsers.cindy],
-      locationId: 1,
+      location: mockLocations.gritHq,
     },
     {
       id: 2,
-      createdAt: Date.parse('2026-01-01T10:00:00Z'),
+      createdAt: new Date().toISOString(),
       content: 'A session of beer-yoga at Lotus.',
-      endAt: '2026-01-03T12:00:00Z',
+      endAt: '2026-06-03T12:00:00Z',
       isPublic: true,
       isPublished: true,
-      startAt: '2026-01-03T10:00:00Z',
+      startAt: '2026-06-03T10:00:00Z',
       title: 'Beer-Yoga Session',
       imageKey: '',
       author: mockUsers.bob,
@@ -85,17 +122,17 @@ describe('Event Feed Page', () => {
     },
     {
       id: 3,
-      createdAt: Date.parse('2026-01-10T10:00:00Z'),
+      createdAt: new Date().toISOString(),
       content: 'Come to my awesome event!',
-      endAt: '2026-01-15T12:00:00Z',
+      endAt: '2026-06-15T12:00:00Z',
       isPublic: false,
       isPublished: true,
-      startAt: '2026-01-15T10:00:00Z',
+      startAt: '2026-06-15T10:00:00Z',
       title: 'Fireplace Gathering',
       imageKey: 'fireplace.jpg',
       author: mockUsers.cindy,
       authorId: 3,
-      attending: [mockUsers.alice],
+      attending: [mockUsers.cindy],
     },
   ];
 
@@ -126,7 +163,7 @@ describe('Event Feed Page', () => {
       //Filter by location
       if (params?.locationId) {
         const locationId = parseInt(params.locationId, 10);
-        filtered = filtered.filter((event) => event.locationId === locationId);
+        filtered = filtered.filter((event) => event.location?.id === locationId);
       }
 
       return Promise.resolve({
@@ -181,15 +218,6 @@ describe('Event Feed Page', () => {
   });
 
   describe('Location Display', () => {
-    //To do > uncomment it when the locationiD is passed to the events properly
-    //    it('displays location name when event has location', async () => {
-    //      renderEventFeed();
-
-    //      await waitFor(() => {
-    //        expect(screen.getByText(/Berghain/)).toBeInTheDocument();
-    //      });
-    //    });
-
     it('displays TBA when event has no location', async () => {
       renderEventFeed();
 
@@ -220,9 +248,13 @@ describe('Event Feed Page', () => {
       await waitFor(() => {
         expect(eventService.getEvents).toHaveBeenCalledWith({
           search: undefined,
-          startFrom: undefined,
+          startFrom: new Date().toISOString().split('T')[0], // Should default to today's date
           startUntil: undefined,
           locationId: '1',
+          authorId: undefined,
+          cursor: undefined,
+          limit: undefined,
+          sort: 'date-asc',
         });
       });
     });
@@ -291,9 +323,13 @@ describe('Event Feed Page', () => {
       // Verify initial call (no search param)
       expect(eventService.getEvents).toHaveBeenCalledWith({
         search: undefined,
-        startFrom: undefined,
+        startFrom: new Date().toISOString().split('T')[0],
         startUntil: undefined,
         locationId: undefined,
+        authorId: undefined,
+        cursor: undefined,
+        limit: undefined,
+        sort: 'date-asc',
       });
 
       // Type in Search
@@ -308,9 +344,13 @@ describe('Event Feed Page', () => {
       // Verify service was called with search param
       expect(eventService.getEvents).toHaveBeenCalledWith({
         search: 'beer',
-        startFrom: undefined,
+        startFrom: new Date().toISOString().split('T')[0],
         startUntil: undefined,
         locationId: undefined,
+        authorId: undefined,
+        cursor: undefined,
+        limit: undefined,
+        sort: 'date-asc',
       });
     });
 
@@ -338,42 +378,50 @@ describe('Event Feed Page', () => {
       // Verify initial call (no search param)
       expect(eventService.getEvents).toHaveBeenCalledWith({
         search: undefined,
-        startFrom: undefined,
+        startFrom: new Date().toISOString().split('T')[0],
         startUntil: undefined,
         locationId: undefined,
+        authorId: undefined,
+        cursor: undefined,
+        limit: undefined,
+        sort: 'date-asc',
       });
 
       // Clear the initial call
       vi.clearAllMocks();
 
       // Navigate to URL with date params
-      await router.navigate('/events?start_from=2026-01-15&start_until=2026-01-20');
+      await router.navigate('/events?start_from=2026-06-15&start_until=2026-06-20');
 
       // Wait for navigation to complete
       await waitFor(() => {
-        expect(router.state.location.search).toBe('?start_from=2026-01-15&start_until=2026-01-20');
+        expect(router.state.location.search).toBe('?start_from=2026-06-15&start_until=2026-06-20');
       });
 
       // Verify service was called with new params
       expect(eventService.getEvents).toHaveBeenCalledWith({
         search: undefined,
-        startFrom: '2026-01-15',
-        startUntil: '2026-01-20',
+        startFrom: '2026-06-15',
+        startUntil: '2026-06-20',
         locationId: undefined,
+        authorId: undefined,
+        cursor: undefined,
+        limit: undefined,
+        sort: 'date-asc',
       });
     });
 
     it('displays selected date range from URL params', async () => {
       const router = createMemoryRouter(
         [{ path: '/events', Component: EventFeed, loader: eventsLoader }],
-        { initialEntries: ['/events?start_from=2026-01-15&start_until=2026-01-20'] }
+        { initialEntries: ['/events?start_from=2026-06-15&start_until=2026-06-20'] }
       );
 
       render(<RouterProvider router={router} />);
 
       // Look for the formatted date text in the date picker button
       await waitFor(() => {
-        expect(screen.getByText(/Jan 15.*Jan 20/i)).toBeInTheDocument();
+        expect(screen.getByText(/Jun 15.*Jun 20/i)).toBeInTheDocument();
       });
     });
   });
@@ -386,12 +434,8 @@ describe('Event Feed Page', () => {
         expect(screen.getByText(/Upcoming events/i)).toBeInTheDocument();
       });
 
-      // Navigate with filters
-      await router.navigate('/events?search=nonexistent&start_from=2027-01-28');
-
-      await waitFor(() => {
-        expect(router.state.location.search).toContain('search=nonexistent');
-      });
+      const searchInput = screen.getByPlaceholderText('Search events...');
+      await user.type(searchInput, 'nonexistent');
 
       await waitFor(() => {
         expect(screen.getByText(/No events found/i)).toBeInTheDocument();
@@ -405,6 +449,83 @@ describe('Event Feed Page', () => {
       await waitFor(() => {
         expect(router.state.location.search).toBe('');
       });
+    });
+  });
+
+  describe('User click on Going', () => {
+    //Mock the stores
+    const mockCurrentUserStore = vi.hoisted(() => ({
+      useCurrentUserStore: vi.fn(),
+    }));
+
+    beforeEach(() => {
+      vi.mock('@/store/currentUserStore', () => mockCurrentUserStore);
+    });
+
+    it('Redirect to login when user is not logged in', async () => {
+      //Mock logged out state
+      mockCurrentUserStore.useCurrentUserStore.mockImplementation((selector) =>
+        selector({ user: null })
+      );
+      const { router } = renderEventFeed();
+
+      await waitFor(() => {
+        expect(screen.getByText(/Beer-Yoga Session/)).toBeInTheDocument();
+      });
+
+      //Find Going button
+      const goingButton = screen.getAllByRole('button', { name: /going/i });
+      await user.click(goingButton[1]);
+
+      //Should redirect to  login
+      await waitFor(() => {
+        expect(router.state.location.pathname).toBe('/login');
+      });
+    });
+
+    it('marks user as attending when logged in and click Going', async () => {
+      //Mock logged out state
+      mockCurrentUserStore.useCurrentUserStore.mockImplementation((selector) =>
+        selector({ user: mockUsers.alice })
+      );
+
+      vi.mocked(userService.attendEvent).mockResolvedValue({} as UserBase);
+      renderEventFeed();
+
+      await waitFor(() => {
+        expect(screen.getByText(/Beer-Yoga Session/)).toBeInTheDocument();
+      });
+
+      //Find Going button
+      const goingButton = screen.getAllByRole('button', { name: /going/i });
+      await user.click(goingButton[1]);
+
+      //Should call attendEvent
+      await waitFor(() => {
+        expect(userService.attendEvent).toHaveBeenCalledWith(2);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /going ✓/i })).toBeInTheDocument();
+      });
+    });
+
+    it('Shows Going ✓ is user already attending', async () => {
+      //Mock logged out state
+      mockCurrentUserStore.useCurrentUserStore.mockImplementation((selector) =>
+        selector({ user: mockUsers.bob })
+      );
+
+      vi.mocked(userService.attendEvent).mockResolvedValue({} as UserBase);
+      renderEventFeed();
+
+      await waitFor(() => {
+        expect(screen.getByText(/MEGA SUPER/)).toBeInTheDocument();
+      });
+
+      //Find Going button
+      const goingCheckButton = screen.getAllByRole('button', { name: /going ✓/i });
+      expect(goingCheckButton.length).toBeGreaterThan(0);
     });
   });
 });

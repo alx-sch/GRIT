@@ -9,11 +9,16 @@ import {
 } from '@/components/ui/card';
 import { Text } from '@/components/ui/typography';
 import { getEventImageUrl } from '@/lib/image_utils';
+import { userService } from '@/services/userService';
+import { useCurrentUserStore } from '@/store/currentUserStore';
 import { EventBase } from '@/types/event';
 import { LocationBase } from '@/types/location';
+import type { CurrentUser } from '@/types/user';
 import { format } from 'date-fns';
 import { User } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface EventCardProps {
   event: EventBase;
@@ -21,6 +26,53 @@ interface EventCardProps {
 }
 
 export function EventCard({ event, location }: EventCardProps) {
+  const [isAttending, setIsAttending] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const currentUser: CurrentUser | null = useCurrentUserStore((s) => s.user);
+  const navigate = useNavigate();
+  const [countAttending, setCountAttending] = useState(event.attending.length);
+
+  //Check if user is attending
+  useEffect(() => {
+    if (currentUser) {
+      setIsAttending(event.attending.some((el) => el.id === currentUser.id));
+    }
+  }, [event.attending, currentUser]);
+
+  const handleGoing = async (e: React.MouseEvent) => {
+    e.preventDefault(); //Prevent Link navigation
+
+    console.log('user:', currentUser);
+    if (!currentUser) {
+      void navigate('/login?redirect=' + encodeURIComponent(`/events/${String(event.id)}`));
+      return;
+    }
+    setIsLoading(true);
+    if (isAttending) {
+      try {
+        await userService.unattendEvent(event.id);
+        setIsAttending(false);
+        setCountAttending((prev) => prev - 1);
+        toast.info('You are no longer attending "' + event.title + '".');
+      } catch (error) {
+        toast.error('Something went wrong:' + String(error));
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      try {
+        await userService.attendEvent(event.id);
+        setIsAttending(true);
+        setCountAttending((prev) => prev + 1);
+        toast.info('You’re going to "' + event.title + '".');
+      } catch (error) {
+        toast.error('Something went wrong:' + String(error));
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
   return (
     <Link to={event.id.toString()}>
       <Card className="w-full h-full flex flex-col rounded border-3 mx-auto hover:-translate-y-1 transition-transform duration-200 max-w-100">
@@ -43,11 +95,7 @@ export function EventCard({ event, location }: EventCardProps) {
           </CardDescription>
           <div className="flex items-center gap-2 text-base font-normal text-muted-foreground">
             <User className="h-5 w-5 text-primary" strokeWidth={2} />
-            <Text>
-              {event.attending.length > 0
-                ? event.attending.length.toLocaleString()
-                : 'Be the first'}
-            </Text>
+            <Text>{countAttending > 0 ? countAttending.toLocaleString() : 'Be the first'}</Text>
           </div>
         </CardContent>
 
@@ -81,8 +129,15 @@ export function EventCard({ event, location }: EventCardProps) {
             <Button variant="default" className="flex-1">
               Invite
             </Button>
-            <Button variant="outline" className="flex-1 onClick=">
-              Going
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={(e) => {
+                void handleGoing(e);
+              }}
+              disabled={isLoading}
+            >
+              {isAttending ? 'Going ✓' : 'Going'}
             </Button>
           </div>
         </CardFooter>

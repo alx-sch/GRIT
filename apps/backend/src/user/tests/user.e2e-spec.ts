@@ -187,27 +187,43 @@ describe('User E2E', () => {
   });
 
   // User attend event
-  describe('PATCH /users/attend', () => {
+  describe('PATCH /users/me', () => {
     it('return 200 (user1 attends event successfully)', async () => {
       await request(app.getHttpServer())
-        .patch('/users/attend')
-        .send({ attending: event.id })
+        .patch('/users/me')
+        .send({ attending: { connect: [event.id] } })
+        .set('Authorization', `Bearer ${token1}`)
+        .expect(200);
+    });
+
+    it('return 200 (user1 unattends event successfully)', async () => {
+      await request(app.getHttpServer())
+        .patch('/users/me')
+        .send({ attending: { disconnect: [event.id] } })
+        .set('Authorization', `Bearer ${token1}`)
+        .expect(200);
+    });
+
+    it('return 200 (user1 reattends event successfully)', async () => {
+      await request(app.getHttpServer())
+        .patch('/users/me')
+        .send({ attending: { connect: [event.id] } })
         .set('Authorization', `Bearer ${token1}`)
         .expect(200);
     });
 
     it('return 401 unauthorized access (no valid accesstoken)', async () => {
       await request(app.getHttpServer())
-        .patch('/users/attend')
-        .send({ attending: event.id })
+        .patch('/users/me')
+        .send({ attending: { connect: [event.id] } })
         .set('Authorization', `Bearer ${token2}`)
         .expect(401);
     });
 
     it('return 400 event not found', async () => {
       const res = await request(app.getHttpServer())
-        .patch('/users/attend')
-        .send({ attending: 200 })
+        .patch('/users/me')
+        .send({ attending: { connect: [200] } })
         .set('Authorization', `Bearer ${token1}`)
         .expect(404);
       expect(res.body).toStrictEqual({

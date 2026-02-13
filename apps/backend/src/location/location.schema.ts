@@ -1,21 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-
-/**
- * SHARED RESPONSE SCHEMAS
- */
-
-const ResLocationEventIdSchema = z.object({
-  id: z.number().int().positive(),
-  title: z.string().nullable(),
-});
-
-// Response schema for the basic location info
-export const ResLocationBaseSchema = z.object({
-  id: z.number().int().positive(),
-  name: z.string().nullable(),
-  events: z.array(ResLocationEventIdSchema).nullable().default([]),
-});
+import { ResLocationBaseSchema, CreateLocationSchema } from '@grit/schema';
 
 /**
  * REQ / RES SCHEMAS FOR ROUTES
@@ -35,18 +20,7 @@ export const ResLocationGetAllSchema = z.object({
   }),
 });
 
-// Post a new location draft
-export const ReqLocationPostSchema = z.strictObject({
-  name: z.string(),
-  city: z.string().optional(),
-  country: z.string().optional(),
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
-  isPublic: z.boolean().optional().default(false),
-  address: z.string().optional(),
-  postalCode: z.string().optional(),
-});
-export class ReqLocationPostDto extends createZodDto(ReqLocationPostSchema) {}
+export class ReqLocationPostDto extends createZodDto(CreateLocationSchema) {}
 export const ResLocationPostSchema = z.object({}).loose(); // return everything
 
 // Delete an event

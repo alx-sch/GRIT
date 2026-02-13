@@ -26,13 +26,12 @@ import {
   ReqEventGetPublishedDto,
   ReqEventPatchDto,
   ReqEventPostDraftDto,
-  ResEventBaseSchema,
   ResEventDeleteSchema,
   ResEventGetByIdSchema,
-  ResEventGetPublishedSchema,
   ResEventPatchSchema,
   ResEventPostDraftSchema,
 } from './event.schema';
+import { ResEventGetPublishedSchema, ResEventBaseSchema } from '@grit/schema';
 import { EventService } from './event.service';
 
 @Controller('events')

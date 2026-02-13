@@ -56,16 +56,24 @@ export class EventService {
     const where: Prisma.EventWhereInput = eventSearchFilter(input);
     const cursorFilter = eventCursorFilter(input);
     const finalWhere = { ...where, ...cursorFilter };
-    const { limit } = input;
+    const { limit, sort } = input;
+    const orderByMap: Record<string, object[]> = {
+      'date-asc': [{ startAt: 'asc' }, { id: 'asc' }],
+      'date-dsc': [{ startAt: 'desc' }, { id: 'desc' }],
+      'alpha-asc': [{ title: 'asc' }, { startAt: 'asc' }, { id: 'asc' }],
+      'alpha-dsc': [{ title: 'desc' }, { startAt: 'asc' }, { id: 'asc' }],
+      popularity: [{ attending: { _count: 'desc' } }, { startAt: 'asc' }, { id: 'asc' }],
+    };
+    const orderBy = orderByMap[sort ?? 'date-asc'];
 
     const events = await this.prisma.event.findMany({
+      orderBy,
       where: finalWhere,
       include: {
         author: true,
         location: true,
         attending: true,
       },
-      orderBy: [{ startAt: 'asc' }, { id: 'asc' }],
       take: limit + 1,
     });
 

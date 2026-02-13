@@ -25,17 +25,27 @@ describe('Event Creation Page', () => {
   const user = userEvent.setup();
 
   // Mock users
-  const mockUser = { id: 1, name: 'Alice', email: 'alice@example.com' };
+  const mockUser = {
+    id: 1,
+    name: 'Alice',
+    email: 'alice@example.com',
+    password: 'password',
+    events: [],
+    attending: [],
+    location: [],
+    isConfirmed: true,
+  };
 
   // Mock locations
   const mockLocations: LocationBase[] = [
     {
       id: 1,
-      author: mockUser,
       authorId: 1,
       name: 'Berghain',
       city: 'Berlin',
       country: 'Germany',
+      address: 'Fake Street',
+      postalCode: '10245',
       longitude: 13.4,
       latitude: 52.5,
       isPublic: true,
@@ -43,13 +53,14 @@ describe('Event Creation Page', () => {
     },
     {
       id: 2,
-      author: mockUser,
       authorId: 1,
       name: 'Tresor',
       city: 'Berlin',
       country: 'Germany',
       longitude: 13.42,
       latitude: 52.51,
+      address: 'Address',
+      postalCode: '10239',
       isPublic: true,
       events: [],
     },
@@ -60,13 +71,13 @@ describe('Event Creation Page', () => {
     id: 1,
     title: 'Test Event',
     content: 'Test description',
-    startAt: '2026-03-15T12:00:00.000Z',
-    endAt: '2026-03-16T12:00:00.000Z',
+    startAt: '2026-06-15T12:00:00.000Z',
+    endAt: '2026-06-16T12:00:00.000Z',
     isPublic: true,
     isPublished: true,
     author: mockUser,
     authorId: 1,
-    createdAt: Date.now(),
+    createdAt: new Date().toISOString(),
     imageKey: '',
     attending: [],
   };

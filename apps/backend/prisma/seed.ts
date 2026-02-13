@@ -220,8 +220,8 @@ async function main() {
       content: 'Celebrating the first release of our app!',
       isPublic: true,
       isPublished: true,
-      startAt: new Date('2026-02-01T18:00:00Z'),
-      endAt: new Date('2026-02-01T22:00:00Z'),
+      startAt: new Date('2026-04-01T18:00:00Z'),
+      endAt: new Date('2026-04-01T22:00:00Z'),
       image: 'grit-launch.jpg', // local filename in seed-assets
     },
     {
@@ -230,8 +230,8 @@ async function main() {
       content: 'Discussing SECRETS!',
       isPublic: false,
       isPublished: false,
-      startAt: new Date('2026-02-15T10:00:00Z'),
-      endAt: new Date('2026-02-15T12:00:00Z'),
+      startAt: new Date('2026-02-28T10:00:00Z'),
+      endAt: new Date('2026-02-28T12:00:00Z'),
       image: null as string | null,
     },
     {

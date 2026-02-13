@@ -27,7 +27,9 @@ export default function Users() {
 
   const filteredUsers = useMemo(() => {
     if (!searchTerm) return users.data;
-    return users.data.filter((user) => user.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    return users.data.filter((user) =>
+      (user.name ?? '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
   }, [users, searchTerm]);
 
   return (
@@ -49,26 +51,30 @@ export default function Users() {
 
         {filteredUsers.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredUsers.map((user) => (
-              <Card
-                key={user.id}
-                className="hover:-translate-y-1 transition-transform duration-200"
-              >
-                <CardHeader className="flex flex-row items-center gap-4 space-y-0 p-4">
-                  <Avatar className="h-12 w-12 border-2 border-black">
-                    <AvatarImage seed={user.name} />
-                    <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                  </Avatar>
+            {filteredUsers.map((user) => {
+              const name = user.name ?? 'Unknown user';
+              const initials = name.trim().slice(0, 2).toUpperCase();
+              return (
+                <Card
+                  key={user.id}
+                  className="hover:-translate-y-1 transition-transform duration-200"
+                >
+                  <CardHeader className="flex flex-row items-center gap-4 space-y-0 p-4">
+                    <Avatar className="h-12 w-12 border-2 border-black">
+                      <AvatarImage seed={name} />
+                      <AvatarFallback>{initials}</AvatarFallback>
+                    </Avatar>
 
-                  <div className="overflow-hidden">
-                    <CardTitle className="text-base truncate">{user.name}</CardTitle>
-                    <CardDescription className="truncate" title={user.email}>
-                      {user.email}
-                    </CardDescription>
-                  </div>
-                </CardHeader>
-              </Card>
-            ))}
+                    <div className="overflow-hidden">
+                      <CardTitle className="text-base truncate">{name}</CardTitle>
+                      <CardDescription className="truncate" title={user.email}>
+                        {user.email}
+                      </CardDescription>
+                    </div>
+                  </CardHeader>
+                </Card>
+              );
+            })}
           </div>
         ) : (
           <div className="py-12 text-center border-2 border-dashed border-muted-foreground/20">

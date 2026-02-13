@@ -1,24 +1,24 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
-import { EventService } from '@/event/event.service';
-import {
-  ReqUserPostDto,
-  ResUserPostDto,
-  ResUserBaseDto,
-  ReqUserAttendDto,
-  ReqUserGetAllDto,
-} from '@/user/user.schema';
-import { StorageService } from '@/storage/storage.service';
-import * as bcrypt from 'bcrypt';
-import { userEncodeCursor, userCursorFilter } from './user.utils';
-import { randomBytes } from 'crypto';
 import { MailService } from '@/mail/mail.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { StorageService } from '@/storage/storage.service';
+import {
+  ReqUserGetAllDto,
+  ReqUserPatchDto,
+  ReqUserPostDto,
+  ResUserBaseDto,
+  ResUserPostDto,
+} from '@/user/user.schema';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
+import { randomBytes } from 'crypto';
+
+import { userCursorFilter, userEncodeCursor } from './user.utils';
 
 @Injectable()
 export class UserService {
   constructor(
     private prisma: PrismaService,
-    private eventService: EventService,
     private storage: StorageService,
     private mailService: MailService
   ) {}
@@ -186,29 +186,39 @@ export class UserService {
     }
   }
 
-  async userAttend(id: number, data: ReqUserAttendDto) {
-    const user = await this.prisma.user.findUnique({ where: { id: id } });
-    if (!user) throw new NotFoundException(`User with id ${String(id)} not found`);
+  async userPatch(userId: number, data: ReqUserPatchDto) {
+    const newData: Prisma.UserUpdateInput = {};
+    if (data.name !== undefined) newData.name = data.name;
+    if (data.attending !== undefined) {
+      const attendingUpdate: Prisma.EventUpdateManyWithoutAttendingNestedInput = {};
 
-    const event = await this.eventService.eventExists(data.attending);
-    if (!event) {
-      throw new NotFoundException(`Event with id ${String(data.attending)} not found`);
+      if (data.attending.connect?.length) {
+        // Validate event exists
+        for (const eventId of data.attending.connect) {
+          const exists = await this.prisma.event.findUnique({
+            where: { id: eventId },
+            select: { id: true },
+          });
+          if (!exists) {
+            throw new NotFoundException(`Event with id ${String(eventId)} not found`);
+          }
+        }
+        attendingUpdate.connect = data.attending.connect.map((id) => ({ id }));
+      }
+      if (data.attending.disconnect?.length) {
+        attendingUpdate.disconnect = data.attending.disconnect.map((id) => ({ id }));
+      }
+      newData.attending = attendingUpdate;
     }
 
-    const attendingIds: number[] = Array.isArray(data.attending)
-      ? data.attending
-      : [data.attending];
+    if (Object.keys(newData).length === 0) {
+      throw new BadRequestException('No fields to update');
+    }
 
     return this.prisma.user.update({
-      where: { id },
-      data: {
-        attending: {
-          connect: attendingIds.map((id) => ({ id })),
-        },
-      },
-      include: {
-        attending: true,
-      },
+      where: { id: userId },
+      data: newData,
+      include: { attending: true },
     });
   }
 }

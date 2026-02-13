@@ -10,6 +10,7 @@ interface GetEventsParams {
   authorId?: string;
   cursor?: string;
   locationId?: string;
+  sort?: string;
 }
 
 export const eventService = {
@@ -22,6 +23,7 @@ export const eventService = {
     if (params?.authorId) queryParams.set('authorId', params.authorId);
     if (params?.cursor) queryParams.set('cursor', params.cursor);
     if (params?.locationId) queryParams.set('location_id', params.locationId);
+    if (params?.sort) queryParams.set('sort', params.sort);
     const queryString = queryParams.toString();
     const url = queryString ? `events?${queryString}` : '/events';
     const response = await api.get<EventResponse>(url);
