@@ -41,6 +41,7 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
     setValue,
     control,
     setError,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<CreateLocationInput>({
     resolver: zodResolver(CreateLocationSchema),
@@ -56,19 +57,17 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
     },
   });
 
+  const latitude = useWatch({ control, name: 'latitude' });
+  const longitude = useWatch({ control, name: 'longitude' });
+
   //Restore draft if exists
   useEffect(() => {
     const saved = localStorage.getItem(DRAFT_KEY);
     if (saved) {
-      const draft = JSON.parse(saved) as Record<string, unknown>;
-      for (const [key, value] of Object.entries(draft)) {
-        setValue(
-          key as keyof CreateLocationInput,
-          value as CreateLocationInput[keyof CreateLocationInput]
-        );
-      }
+      const draft = JSON.parse(saved) as CreateLocationInput;
+      reset(draft);
     }
-  }, [setValue]);
+  }, [reset]);
 
   const onSubmit: SubmitHandler<CreateLocationInput> = async (data) => {
     if (!data.longitude || !data.latitude) {
@@ -142,7 +141,7 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
 
         {/* Map component */}
         <APIProvider apiKey={apiKey}>
-          <GMap setValue={setValue} />
+          <GMap setValue={setValue} lng={longitude} lat={latitude} />
         </APIProvider>
 
         {/* Address/PostCode */}

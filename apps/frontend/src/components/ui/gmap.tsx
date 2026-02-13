@@ -61,7 +61,15 @@ function extractAddress(components: google.maps.places.AddressComponent[]) {
  * MAIN CODE
  */
 
-export const GMap = ({ setValue }: { setValue: UseFormSetValue<CreateLocationInput> }) => {
+export const GMap = ({
+  setValue,
+  lng,
+  lat,
+}: {
+  setValue: UseFormSetValue<CreateLocationInput>;
+  lng: number;
+  lat: number;
+}) => {
   const map = useMap();
   const placesLibrary = useMapsLibrary('places');
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -69,6 +77,22 @@ export const GMap = ({ setValue }: { setValue: UseFormSetValue<CreateLocationInp
   const [showMarkerMovedNotive, setShowMarkerMovedNotice] = useState(false);
   const geocodingLibrary = useMapsLibrary('geocoding');
 
+  // Restore data from local storage
+  useEffect(() => {
+    if (!map) return;
+    if (lat == null || lng == null) return;
+
+    const pos = { lat, lng };
+
+    map.panTo(pos);
+    map.setZoom(15);
+    // Linting bullshit callback solution
+    setTimeout(() => {
+      setMarkerPos(pos);
+    }, 0);
+  }, [map, lat, lng]);
+
+  // Recalculate when the pin is moved and user wants to get new address
   const recalculate = () => {
     void (async () => {
       if (!geocodingLibrary || !markerPos) return;
@@ -99,6 +123,7 @@ export const GMap = ({ setValue }: { setValue: UseFormSetValue<CreateLocationInp
     })();
   };
 
+  // Search bar behavior
   useEffect(() => {
     if (!placesLibrary || !containerRef.current || !map) return;
 
