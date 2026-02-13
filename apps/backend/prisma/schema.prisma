@@ -25,7 +25,7 @@ model User {
   confirmationToken String?     @unique
 
   chatMessages      ChatMessage[]
-
+  memberships       ConversationParticipant[]
 }
 
 // Location has a creator
@@ -67,18 +67,47 @@ model Event {
   locationId    Int?
   location      Location? @relation(fields: [locationId], references: [id])
 
-  chatMessages  ChatMessage[]
+  conversations Conversation[]
+}
+
+enum ConversationType {
+  EVENT
+  GROUP
+}
+
+model Conversation {
+  id            String              @id @default(uuid())
+  type          ConversationType
+  eventId       Int?                @unique
+  createdAt     DateTime            @default(now())
+
+  participants  ConversationParticipant[]
+  messages      ChatMessage[]
+
+  event         Event?              @relation(fields: [eventId], references: [id])
+}
+
+// Explicit join table
+model ConversationParticipant {
+  conversationId String
+  userId         Int
+
+  conversation   Conversation   @relation(fields: [conversationId], references: [id], onDelete: Cascade) // On delete cascade = Delete join entry when conversation is deleted
+  user           User           @relation(fields: [userId], references: [id])
+
+  @@id([conversationId, userId])
+  @@index([userId])
 }
 
 model ChatMessage {
-  id        String   @id
-  eventId   Int
-  authorId  Int
-  text      String
-  createdAt DateTime @default(now())
+  id             String       @id
+  conversationId String
+  authorId       Int
+  text           String
+  createdAt      DateTime     @default(now())
 
-  author    User     @relation(fields: [authorId], references: [id])
-  event     Event    @relation(fields: [eventId], references: [id])
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  author         User         @relation(fields: [authorId], references: [id])
 
-  @@index([eventId, createdAt, id])
+  @@index([conversationId, createdAt, id])
 }
