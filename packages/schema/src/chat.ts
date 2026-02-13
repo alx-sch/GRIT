@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { uuid, z } from 'zod';
 
 // Connection request from Client
 export const ReqSocketAuthSchema = z.object({
@@ -24,7 +24,14 @@ export const ResChatMessageSchema = z.object({
 });
 export type ResChatMessage = z.infer<typeof ResChatMessageSchema>;
 
+export enum JoinType {
+  EVENT,
+  GROUP,
+}
+
 // Chat Join request sent from client
 export const ReqChatJoinSchema = z.object({
+  joinType: z.enum(JoinType),
+  conversation: z.uuid(),
   eventId: z.number().int().positive(),
 });

@@ -11,15 +11,16 @@ import { UserService } from '@/user/user.service';
 import { ChatService } from '@/chat/chat.service';
 import { randomUUID } from 'crypto';
 import { ReqChatMessagePostDto, ReqChatJoinSchemaDto } from '@/chat/chat.schema';
-import { ResChatMessageSchema, ReqSocketAuthSchema } from '@grit/schema';
+import { ResChatMessageSchema, ReqSocketAuthSchema, JoinType } from '@grit/schema';
 import 'socket.io';
 import type { DefaultEventsMap } from 'socket.io';
+import { ConversationService } from '@/conversation/conversation.service';
 
 interface SocketData {
   userId: number;
   userName: string;
   userAvatarKey?: string;
-  eventId?: number;
+  conversationId?: string;
 }
 
 export type AppSocket = Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>;
@@ -35,7 +36,8 @@ export class ChatGateway {
   constructor(
     private readonly authService: AuthService,
     private readonly chatService: ChatService,
-    private readonly userService: UserService
+    private readonly userService: UserService,
+    private readonly conversation: ConversationService
   ) {}
 
   // afterInit runs ONCE when the gateway is initialized. We can install middleware in here.
@@ -75,83 +77,94 @@ export class ChatGateway {
     @MessageBody() body: ReqChatJoinSchemaDto,
     @ConnectedSocket() client: AppSocket
   ) {
-    // Check if the client is allowed to join the chat room
-    const userIsAttendingEvent = await this.userService.userIsAttendingEvent(
-      client.data.userId,
-      body.eventId
-    );
-    if (!userIsAttendingEvent) {
-      client.disconnect();
-      return 0;
-    }
-    await client.join(`event:${String(body.eventId)}`);
-    // We lock down which room (eventId) this socket belongs to
-    client.data.eventId = body.eventId;
+    console.log('Join message received for ', body.joinType);
 
-    // Get message history to prefill chat
-    const rows = await this.chatService.loadMessages(body.eventId);
-    const messages = rows.reverse().map((row) => ResChatMessageSchema.parse(row));
-    // Serialization in Websocket context
-    const history = messages.map((message) => ResChatMessageSchema.parse(message));
-    client.emit('history', history);
+    // If this is a join request for an event we might first need to create the conversation
+    if (body.joinType === JoinType.EVENT) {
+      const res = await this.conversation.getOrCreateEventConversation(body.eventId);
+
+      // Check if the client is allowed to join the chat room
+      const userIsAttendingEvent = await this.userService.userIsAttendingEvent(
+        client.data.userId,
+        body.eventId
+      );
+      if (!userIsAttendingEvent) {
+        client.disconnect();
+        return 0;
+      }
+
+      // Join the conversation (room) that belongs to the event
+      await client.join(`conversation:${res.id}`);
+
+      // We lock down which conversation (room) this socket belongs to
+      client.data.conversationId = res.id;
+
+      // Get message history to prefill chat
+      const rows = await this.chatService.loadMessages(res.id);
+      // Serialization in Websocket context
+      const history = rows.reverse().map((row) => ResChatMessageSchema.parse(row));
+      client.emit('history', history);
+    } else {
+      console.log('No event provided');
+    }
   }
 
-  @SubscribeMessage('message')
-  async handleMessage(
-    @MessageBody() body: ReqChatMessagePostDto,
-    @ConnectedSocket() client: AppSocket
-  ) {
-    const eventId = client.data.eventId;
-    // Client must have joined an event room
-    if (!eventId) {
-      client.disconnect();
-      return null;
-    }
-    const id = randomUUID();
+  // @SubscribeMessage('message')
+  // async handleMessage(
+  //   @MessageBody() body: ReqChatMessagePostDto,
+  //   @ConnectedSocket() client: AppSocket
+  // ) {
+  //   const eventId = client.data.eventId;
+  //   // Client must have joined an event room
+  //   if (!eventId) {
+  //     client.disconnect();
+  //     return null;
+  //   }
+  //   const id = randomUUID();
 
-    // Emit immediately (realtime first)
-    const res = {
-      id,
-      eventId,
-      text: body.text,
-      author: {
-        id: client.data.userId,
-        name: client.data.userName,
-        avatarKey: client.data.userAvatarKey,
-      },
-      createdAt: new Date(),
-    };
-    const message = ResChatMessageSchema.parse(res);
-    this.server.to(`event:${String(eventId)}`).emit('message', message);
+  //   // Emit immediately (realtime first)
+  //   const res = {
+  //     id,
+  //     eventId,
+  //     text: body.text,
+  //     author: {
+  //       id: client.data.userId,
+  //       name: client.data.userName,
+  //       avatarKey: client.data.userAvatarKey,
+  //     },
+  //     createdAt: new Date(),
+  //   };
+  //   const message = ResChatMessageSchema.parse(res);
+  //   this.server.to(`event:${String(eventId)}`).emit('message', message);
 
-    // Persist asynchronously (durability second)
-    await this.chatService.saveMessage({
-      id,
-      eventId,
-      authorId: client.data.userId,
-      text: body.text,
-    });
-  }
+  //   // Persist asynchronously (durability second)
+  //   await this.chatService.saveMessage({
+  //     id,
+  //     eventId,
+  //     authorId: client.data.userId,
+  //     text: body.text,
+  //   });
+  // }
 
-  @SubscribeMessage('load_more')
-  async handleLoadMore(
-    @MessageBody() body: { cursorSentAt: string; cursorId: string },
-    @ConnectedSocket() client: AppSocket
-  ) {
-    const eventId = client.data.eventId;
-    if (!eventId) return null;
+  // @SubscribeMessage('load_more')
+  // async handleLoadMore(
+  //   @MessageBody() body: { cursorSentAt: string; cursorId: string },
+  //   @ConnectedSocket() client: AppSocket
+  // ) {
+  //   const eventId = client.data.eventId;
+  //   if (!eventId) return null;
 
-    const rows = await this.chatService.loadMessages(eventId, 2, {
-      createdAt: new Date(body.cursorSentAt),
-      id: body.cursorId,
-    });
+  //   const rows = await this.chatService.loadMessages(eventId, 2, {
+  //     createdAt: new Date(body.cursorSentAt),
+  //     id: body.cursorId,
+  //   });
 
-    if (rows.length === 0) {
-      client.emit('history_end');
-      return;
-    }
+  //   if (rows.length === 0) {
+  //     client.emit('history_end');
+  //     return;
+  //   }
 
-    const messages = rows.reverse().map((row) => ResChatMessageSchema.parse(row));
-    client.emit('history', messages);
-  }
+  //   const messages = rows.reverse().map((row) => ResChatMessageSchema.parse(row));
+  //   client.emit('history', messages);
+  // }
 }

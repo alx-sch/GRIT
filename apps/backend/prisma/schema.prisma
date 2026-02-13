@@ -67,7 +67,7 @@ model Event {
   locationId    Int?
   location      Location? @relation(fields: [locationId], references: [id])
 
-  conversations Conversation[]
+  conversations Conversation?
 }
 
 enum ConversationType {
@@ -78,16 +78,16 @@ enum ConversationType {
 model Conversation {
   id            String              @id @default(uuid())
   type          ConversationType
-  eventId       Int?                @unique
+  eventId       Int                 @unique
   createdAt     DateTime            @default(now())
 
   participants  ConversationParticipant[]
   messages      ChatMessage[]
 
-  event         Event?              @relation(fields: [eventId], references: [id])
+  event         Event              @relation(fields: [eventId], references: [id])
 }
 
-// Explicit join table
+// Explicit join table to track which user is part of which conversation. Only used for none-event chats!
 model ConversationParticipant {
   conversationId String
   userId         Int
