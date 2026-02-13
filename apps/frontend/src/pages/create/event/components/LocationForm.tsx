@@ -105,20 +105,20 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
     <>
       <form
         onSubmit={(e) => {
-          void handleSubmit(
-            onSubmit /*(validationErrors) => {
+          void handleSubmit(onSubmit, (validationErrors) => {
             if (validationErrors.latitude || validationErrors.longitude) {
-              setError('root', { message: 'Please select a location on the map' });
+              setError('root', { message: 'Please search for a location on the map' });
             }
-          }*/
-          )(e);
+          })(e);
         }}
         className="flex flex-col gap-4 h-full overflow-y-auto flex-1 px-1 pb-1 pr-3"
       >
         <DraftSaver control={control} />
+
         {/* Hidden Inputs: latitude and longitude */}
-        <Input {...register('latitude')} />
-        <Input {...register('longitude')} />
+        <Input id="latitude" {...register('latitude', { valueAsNumber: true })} />
+        <Input id="longitude" {...register('longitude', { valueAsNumber: true })} />
+
         {/* Name */}
         <div className="flex flex-col gap-2 mb-2">
           <label htmlFor="name" className="font-heading">
@@ -140,6 +140,7 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
         </div>
 
         {/* Map component */}
+        <label className="font-heading">Set a location pin</label>
         <APIProvider apiKey={apiKey}>
           <GMap setValue={setValue} lng={longitude} lat={latitude} />
         </APIProvider>
@@ -148,13 +149,13 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
         <div className="flex flex-row gap-6">
           <div className="flex flex-col flex-1 gap-2">
             <label htmlFor="address" className="font-heading">
-              Address
+              Address or Location
             </label>
             <Input
               id="address"
               type="text"
               {...register('address')}
-              placeholder='e.g "Harzer Straße 42"'
+              placeholder='e.g "Alexanderplatz"'
             />
           </div>
         </div>

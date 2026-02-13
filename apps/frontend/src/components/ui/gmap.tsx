@@ -80,8 +80,7 @@ export const GMap = ({
   // Restore data from local storage
   useEffect(() => {
     if (!map) return;
-    if (lat == null || lng == null) return;
-
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
     const pos = { lat, lng };
 
     map.panTo(pos);
