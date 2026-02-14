@@ -24,6 +24,7 @@ export class ConversationService {
 
   async conversationGetOrCreateForEvent(eventId: number, userId: number) {
     // Bail early if the user is not attending the event
+    console.log('Check for event');
     const eventData = await this.prisma.event.findFirst({
       where: {
         id: eventId,
@@ -35,36 +36,44 @@ export class ConversationService {
       },
     });
     if (!eventData) throw new ForbiddenException('You are not attending this event');
-    // Check if the event conversation was already created and return it in case
-    const existingConv = await this.prisma.conversation.findUnique({
-      where: { eventId },
-    });
-    if (existingConv) return existingConv;
-    // Otherwise create the EVENT conversation
-    const event = await this.prisma.event.findUnique({
-      where: { id: eventId },
-      select: { authorId: true },
-    });
-    if (!event) throw new Error('Event not found, cannot create conversation');
-    return this.prisma.conversation.upsert({
+
+    // Ensure the conversation for the event exists
+    const conversation = await this.prisma.conversation.upsert({
       where: { eventId },
       update: {},
       create: {
         type: ConversationType.EVENT,
-        createdBy: event.authorId,
-        eventId: eventId,
+        createdBy: eventData.authorId,
+        eventId,
       },
     });
+
+    // Ensure current user is participant
+    await this.prisma.conversationParticipant.upsert({
+      where: {
+        conversationId_userId: {
+          conversationId: conversation.id,
+          userId,
+        },
+      },
+      update: {},
+      create: {
+        conversationId: conversation.id,
+        userId,
+      },
+    });
+
+    return conversation;
   }
 
   async conversationGetOrCreateForDirect(directId: number, userId: number) {
     // Bail early if the user wants to chat with himself.
-    if (directId === userId) throw new Error('Chat with yourself');
+    if (directId === userId) throw new ForbiddenException('You cannot chat with yourself');
 
     // Check if we already have a conversation with just these two and return it in case
     const existing = await this.prisma.conversation.findFirst({
       where: {
-        type: 'DIRECT',
+        type: ConversationType.DIRECT,
         AND: [
           { participants: { some: { userId: directId } } },
           { participants: { some: { userId: userId } } },

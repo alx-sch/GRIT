@@ -191,7 +191,6 @@ export class UserService {
     if (data.name !== undefined) newData.name = data.name;
     if (data.attending !== undefined) {
       const attendingUpdate: Prisma.EventUpdateManyWithoutAttendingNestedInput = {};
-
       if (data.attending.connect?.length) {
         // Validate event exists
         for (const eventId of data.attending.connect) {
@@ -203,9 +202,11 @@ export class UserService {
             throw new NotFoundException(`Event with id ${String(eventId)} not found`);
           }
         }
+        console.log('Add attendance');
         attendingUpdate.connect = data.attending.connect.map((id) => ({ id }));
       }
       if (data.attending.disconnect?.length) {
+        console.log('Remove attendance');
         attendingUpdate.disconnect = data.attending.disconnect.map((id) => ({ id }));
       }
       newData.attending = attendingUpdate;

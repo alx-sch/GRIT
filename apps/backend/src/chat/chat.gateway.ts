@@ -5,6 +5,7 @@ import {
   SubscribeMessage,
   WebSocketServer,
   WebSocketGateway,
+  WsException,
 } from '@nestjs/websockets';
 import { Server, Socket, type DefaultEventsMap } from 'socket.io';
 import { UserService } from '@/user/user.service';
@@ -15,6 +16,7 @@ import { ResChatMessageSchema, ReqSocketAuthSchema, ReqChatJoinSchema } from '@g
 import { ConversationService } from '@/conversation/conversation.service';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { ArgumentsHost, Catch, UseFilters, UsePipes, WsExceptionFilter } from '@nestjs/common';
+import { PrismaService } from '@/prisma/prisma.service';
 
 interface SocketData {
   userId: number;
@@ -30,7 +32,8 @@ export type AppServer = Server<DefaultEventsMap, DefaultEventsMap, DefaultEvents
 @Catch()
 export class AllWsExceptionsFilter implements WsExceptionFilter {
   catch(exception: any, host: ArgumentsHost) {
-    console.error('WS Exception:', exception);
+    // Comment in the line below to see the errors in the backends console
+    // console.error('WS Exception:', exception);
 
     const client = host.switchToWs().getClient();
     client.emit('error', {
@@ -52,7 +55,8 @@ export class ChatGateway {
     private readonly authService: AuthService,
     private readonly chatService: ChatService,
     private readonly userService: UserService,
-    private readonly conversation: ConversationService
+    private readonly conversation: ConversationService,
+    private readonly prisma: PrismaService
   ) {}
 
   // afterInit runs ONCE when the gateway is initialized. We can install middleware in here.
@@ -90,8 +94,22 @@ export class ChatGateway {
   @SubscribeMessage('join')
   async handleJoin(@MessageBody() body: ReqChatJoinDto, @ConnectedSocket() client: AppSocket) {
     console.log('Join message received for ', body);
-    // TODO Check AGAIN if the client is allowed to join the chat room
-    await client.join(body.id);
+
+    // Check if the current user is allowed to join the room for the conversation id
+    const conversation = await this.prisma.conversation.findFirst({
+      where: {
+        id: body.id,
+        participants: {
+          some: {
+            userId: client.data.userId,
+          },
+        },
+      },
+    });
+    console.log(conversation);
+    if (!conversation) throw new WsException('You are not allowed to view this conversation');
+    else await client.join(body.id);
+
     // We lock down which conversation this socket belongs to
     client.data.conversationId = body.id;
     // Get message history to prefill chat

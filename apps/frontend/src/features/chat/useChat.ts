@@ -8,6 +8,7 @@ export function useChat(conversationId: string) {
   const [messages, setMessages] = useState<ResChatMessage[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const token = useAuthStore((s) => s.token);
+  const [errorMessage, setErrorMessage] = useState(undefined);
 
   useEffect(() => {
     // TODO Hardcoded the url for now because of issues with env vars loading
@@ -31,6 +32,11 @@ export function useChat(conversationId: string) {
 
     socket.on('history', (msgs: ResChatMessage[]) => {
       setMessages((prev) => [...msgs, ...prev]);
+    });
+
+    socket.on('error', (err) => {
+      setMessages(() => []);
+      setErrorMessage(err.message ?? 'Error');
     });
 
     socket.on('history_end', () => {
@@ -57,5 +63,5 @@ export function useChat(conversationId: string) {
     });
   };
 
-  return { messages, sendMessage, loadMore, hasMore };
+  return { messages, sendMessage, loadMore, hasMore, errorMessage };
 }

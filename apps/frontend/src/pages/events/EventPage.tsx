@@ -29,6 +29,7 @@ export const EventPage = () => {
           eventId: event.id,
         });
         setConversationId(convo.id);
+        console.log(convo.id);
       } catch (err: any) {
         // On error we do nothing since this means the user is not attending
         return;

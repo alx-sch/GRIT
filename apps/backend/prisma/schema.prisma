@@ -120,7 +120,7 @@ model Conversation {
   updatedAt     DateTime            @updatedAt
 }
 
-// Explicit join table to track which user is part of which conversation. Only used for none-event chats!
+// Explicit join table to track which user is part of which conversation.
 model ConversationParticipant {
   conversationId String
   userId         Int

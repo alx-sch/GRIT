@@ -14,6 +14,7 @@ export const UserCard = ({ user }: { user: ResUserPublic }) => {
     try {
       const res = await conversationService.getConversation({ type: 'DIRECT', directId: user.id });
       console.log(res);
+      navigate(`/chat/${res.id}`);
     } catch (err) {
       console.error(err);
     }
