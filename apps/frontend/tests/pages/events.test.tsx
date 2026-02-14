@@ -1,4 +1,4 @@
-import EventFeed, { eventsLoader } from '@/pages/events/Page';
+import EventFeed, { eventsLoader } from '@/pages/events/EventFeedPage';
 import { eventService } from '@/services/eventService';
 import { locationService } from '@/services/locationService';
 import { userService } from '@/services/userService';

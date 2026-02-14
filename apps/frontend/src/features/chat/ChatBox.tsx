@@ -5,9 +5,10 @@ import { EventBase } from '@/types/event';
 import { useChat } from '@/features/chat/useChat';
 import { ChatBubble } from '@/features/chat/ChatBubble';
 import { useCurrentUserStore } from '@/store/currentUserStore';
+import { JoinType } from '@grit/schema';
 
-export const Chat = ({ event }: { event: EventBase }) => {
-  const { messages, sendMessage, loadMore, hasMore } = useChat(event.id);
+export const ChatBox = ({ conversationId }: { conversationId: string }) => {
+  const { messages, sendMessage, loadMore, hasMore } = useChat(conversationId);
   const [input, setInput] = useState('');
   const [isNearBottom, setIsNearBottom] = useState(true);
   const [hasNewMessages, setHasNewMessages] = useState(false);

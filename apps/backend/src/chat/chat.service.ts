@@ -10,18 +10,18 @@ export class ChatService {
     private readonly conversation: ConversationService
   ) {}
 
-  // async saveMessage(message: IntChatMessageDto) {
-  //   return this.prisma.chatMessage.upsert({
-  //     where: { id: message.id },
-  //     create: {
-  //       id: message.id,
-  //       eventId: message.eventId,
-  //       authorId: message.authorId,
-  //       text: message.text,
-  //     },
-  //     update: {},
-  //   });
-  // }
+  async saveMessage(message: IntChatMessageDto) {
+    return this.prisma.chatMessage.upsert({
+      where: { id: message.id },
+      create: {
+        id: message.id,
+        conversationId: message.conversationId,
+        authorId: message.authorId,
+        text: message.text,
+      },
+      update: {},
+    });
+  }
 
   async loadMessages(conversationId: string, limit = 10, cursor?: { createdAt: Date; id: string }) {
     return this.prisma.chatMessage.findMany({

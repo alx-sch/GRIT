@@ -6,85 +6,118 @@ datasource db {
   provider = "postgresql"
 }
 
-// User can host events
-// User can attend events
-// User can add locations
 model User {
+  // Primary Key
   id                Int         @id @default(autoincrement())
-  createdAt         DateTime    @default(now())
+
+  // Core Data
   email             String      @unique
   password          String
   name              String?
   avatarKey         String?
-
-  events            Event[]     @relation("EventAuthor")
-  attending         Event[]     @relation("EventAttendees")
-  location          Location[]
-
-  isConfirmed       Boolean     @default(false)
   confirmationToken String?     @unique
 
+  // Status Flags
+  isConfirmed       Boolean     @default(false)
+
+  // Relations
+  events            Event[]     @relation("EventAuthor")
+  attending         Event[]     @relation("EventAttendees")
+  locations         Location[]
   chatMessages      ChatMessage[]
-  memberships       ConversationParticipant[]
+  convMemberships   ConversationParticipant[]
+  convCreated       Conversation[]
+
+  // Time Stamps
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime     @updatedAt
 }
 
-// Location has a creator
-// Location can have events
 model Location {
+  // Primary Key
   id          Int         @id @default(autoincrement())
-  author      User        @relation(fields: [authorId], references: [id])
-  authorId    Int
+
+  // Core data
   name        String
+  address	    String?
   city        String?
   country     String?
   postalCode  String?
   longitude   Float
   latitude    Float
+
+  // Status Flags
   isPublic    Boolean     @default(false)
-  address	    String?
+
+  // Foreign Keys
+  authorId    Int
+
+  // Relations
+  author      User        @relation(fields: [authorId], references: [id])
   events      Event[]
+
+  // Time Stamps
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }
 
-// Event must have a creator
-// Event can have attending users
-// Event can have a location
 model Event {
+  // Primary key
   id            Int       @id @default(autoincrement())
-  createdAt     DateTime  @default(now())
+
+  // Core data
   content       String?
   endAt         DateTime
-  isPublic      Boolean   @default(true)
-  isPublished   Boolean   @default(false)
+  imageKey      String?
   startAt       DateTime
   title         String
-  imageKey      String?
 
-  author        User      @relation("EventAuthor", fields: [authorId], references: [id])
+  // Status flags
+  isPublished   Boolean   @default(false)
+  isPublic      Boolean   @default(true)
+
+  // Foreign keys
   authorId      Int
-
-  attending     User[]    @relation("EventAttendees")
-
   locationId    Int?
-  location      Location? @relation(fields: [locationId], references: [id])
 
+  // Relations
+  attending     User[]    @relation("EventAttendees")
+  author        User      @relation("EventAuthor", fields: [authorId], references: [id])
+  location      Location? @relation(fields: [locationId], references: [id])
   conversations Conversation?
+
+  // Time Stamps
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 enum ConversationType {
+  DIRECT
   EVENT
   GROUP
 }
 
 model Conversation {
+  // Primary Key
   id            String              @id @default(uuid())
+
+  // Core Data
   type          ConversationType
-  eventId       Int                 @unique
-  createdAt     DateTime            @default(now())
+  title         String?
 
-  participants  ConversationParticipant[]
+  // Foregin Keys
+  createdBy     Int
+  eventId       Int?                @unique
+
+  // Reations
+  creator       User                @relation(fields: [createdBy], references: [id])
   messages      ChatMessage[]
+  event         Event?              @relation(fields: [eventId], references: [id])
+  participants  ConversationParticipant[]
 
-  event         Event              @relation(fields: [eventId], references: [id])
+  // Time Stamps
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
 }
 
 // Explicit join table to track which user is part of which conversation. Only used for none-event chats!
@@ -100,14 +133,22 @@ model ConversationParticipant {
 }
 
 model ChatMessage {
+  // Primary Key
   id             String       @id
-  conversationId String
-  authorId       Int
-  text           String
-  createdAt      DateTime     @default(now())
 
+  // Core Data
+  conversationId String
+  text           String
+
+  // Foreign Keys
+  authorId       Int
+
+  // Relations
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   author         User         @relation(fields: [authorId], references: [id])
+
+  // Time Stamps
+  createdAt      DateTime     @default(now())
 
   @@index([conversationId, createdAt, id])
 }

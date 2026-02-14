@@ -1,9 +1,9 @@
 import { io, type Socket } from 'socket.io-client';
 import { useEffect, useRef, useState } from 'react';
-import type { ResChatMessage } from '@grit/schema';
+import { type ResChatMessage } from '@grit/schema';
 import { useAuthStore } from '@/store/authStore';
 
-export function useChat(eventId: number) {
+export function useChat(conversationId: string) {
   const socketRef = useRef<Socket | null>(null);
   const [messages, setMessages] = useState<ResChatMessage[]>([]);
   const [hasMore, setHasMore] = useState(true);
@@ -21,7 +21,8 @@ export function useChat(eventId: number) {
     socketRef.current = socket;
 
     socket.on('connect', () => {
-      socket.emit('join', { eventId });
+      console.log('connected sending join message for: ', conversationId);
+      socket.emit('join', { id: conversationId });
     });
 
     socket.on('message', (msg: ResChatMessage) => {
@@ -39,7 +40,7 @@ export function useChat(eventId: number) {
     return () => {
       socket.disconnect();
     };
-  }, [eventId]);
+  }, [conversationId]);
 
   const sendMessage = (text: string) => {
     if (!text.trim()) return;

@@ -6,15 +6,15 @@ import {
   WebSocketServer,
   WebSocketGateway,
 } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
+import { Server, Socket, type DefaultEventsMap } from 'socket.io';
 import { UserService } from '@/user/user.service';
 import { ChatService } from '@/chat/chat.service';
 import { randomUUID } from 'crypto';
-import { ReqChatMessagePostDto, ReqChatJoinSchemaDto } from '@/chat/chat.schema';
-import { ResChatMessageSchema, ReqSocketAuthSchema, JoinType } from '@grit/schema';
-import 'socket.io';
-import type { DefaultEventsMap } from 'socket.io';
+import { ReqChatMessagePostDto, ReqChatJoinDto } from '@/chat/chat.schema';
+import { ResChatMessageSchema, ReqSocketAuthSchema, ReqChatJoinSchema } from '@grit/schema';
 import { ConversationService } from '@/conversation/conversation.service';
+import { ZodValidationPipe } from 'nestjs-zod';
+import { ArgumentsHost, Catch, UseFilters, UsePipes, WsExceptionFilter } from '@nestjs/common';
 
 interface SocketData {
   userId: number;
@@ -26,7 +26,22 @@ interface SocketData {
 export type AppSocket = Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>;
 export type AppServer = Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>;
 
+// Custom filter to print Zod validation errors in Websocket context. Otherwise these fail silently.
+@Catch()
+export class AllWsExceptionsFilter implements WsExceptionFilter {
+  catch(exception: any, host: ArgumentsHost) {
+    console.error('WS Exception:', exception);
+
+    const client = host.switchToWs().getClient();
+    client.emit('error', {
+      message: exception.message ?? 'Validation failed',
+    });
+  }
+}
+
 // The WebsocketGateway creates the socket similar to `const io = new Server();` and listens to it with .listen internally
+@UsePipes(new ZodValidationPipe()) // Need to add zod validation pipe to Websocket Gateway manually since otherwise not applied from global setup
+@UseFilters(new AllWsExceptionsFilter())
 @WebSocketGateway()
 export class ChatGateway {
   // With the WebSocketServer decorator we get an instance of the server. This is the same as the io object from raw Socket.IO.
@@ -73,78 +88,55 @@ export class ChatGateway {
   }
 
   @SubscribeMessage('join')
-  async handleJoin(
-    @MessageBody() body: ReqChatJoinSchemaDto,
-    @ConnectedSocket() client: AppSocket
-  ) {
-    console.log('Join message received for ', body.joinType);
-
-    // If this is a join request for an event we might first need to create the conversation
-    if (body.joinType === JoinType.EVENT) {
-      const res = await this.conversation.getOrCreateEventConversation(body.eventId);
-
-      // Check if the client is allowed to join the chat room
-      const userIsAttendingEvent = await this.userService.userIsAttendingEvent(
-        client.data.userId,
-        body.eventId
-      );
-      if (!userIsAttendingEvent) {
-        client.disconnect();
-        return 0;
-      }
-
-      // Join the conversation (room) that belongs to the event
-      await client.join(`conversation:${res.id}`);
-
-      // We lock down which conversation (room) this socket belongs to
-      client.data.conversationId = res.id;
-
-      // Get message history to prefill chat
-      const rows = await this.chatService.loadMessages(res.id);
-      // Serialization in Websocket context
-      const history = rows.reverse().map((row) => ResChatMessageSchema.parse(row));
-      client.emit('history', history);
-    } else {
-      console.log('No event provided');
-    }
+  async handleJoin(@MessageBody() body: ReqChatJoinDto, @ConnectedSocket() client: AppSocket) {
+    console.log('Join message received for ', body);
+    // TODO Check AGAIN if the client is allowed to join the chat room
+    await client.join(body.id);
+    // We lock down which conversation this socket belongs to
+    client.data.conversationId = body.id;
+    // Get message history to prefill chat
+    const rows = await this.chatService.loadMessages(body.id);
+    // Serialization in Websocket context
+    const history = rows.reverse().map((row) => ResChatMessageSchema.parse(row));
+    client.emit('history', history);
   }
 
-  // @SubscribeMessage('message')
-  // async handleMessage(
-  //   @MessageBody() body: ReqChatMessagePostDto,
-  //   @ConnectedSocket() client: AppSocket
-  // ) {
-  //   const eventId = client.data.eventId;
-  //   // Client must have joined an event room
-  //   if (!eventId) {
-  //     client.disconnect();
-  //     return null;
-  //   }
-  //   const id = randomUUID();
+  @SubscribeMessage('message')
+  async handleMessage(
+    @MessageBody() body: ReqChatMessagePostDto,
+    @ConnectedSocket() client: AppSocket
+  ) {
+    const conversationId = client.data.conversationId;
+    // Client must have joined an event room
+    if (!conversationId) {
+      client.disconnect();
+      return null;
+    }
+    const id = randomUUID();
 
-  //   // Emit immediately (realtime first)
-  //   const res = {
-  //     id,
-  //     eventId,
-  //     text: body.text,
-  //     author: {
-  //       id: client.data.userId,
-  //       name: client.data.userName,
-  //       avatarKey: client.data.userAvatarKey,
-  //     },
-  //     createdAt: new Date(),
-  //   };
-  //   const message = ResChatMessageSchema.parse(res);
-  //   this.server.to(`event:${String(eventId)}`).emit('message', message);
+    // Emit immediately (realtime first)
+    const res = {
+      id,
+      conversationId,
+      text: body.text,
+      author: {
+        id: client.data.userId,
+        name: client.data.userName,
+        avatarKey: client.data.userAvatarKey,
+      },
+      createdAt: new Date(),
+    };
+    const message = ResChatMessageSchema.parse(res);
+    this.server.to(conversationId).emit('message', message);
 
-  //   // Persist asynchronously (durability second)
-  //   await this.chatService.saveMessage({
-  //     id,
-  //     eventId,
-  //     authorId: client.data.userId,
-  //     text: body.text,
-  //   });
-  // }
+    // Persist asynchronously (durability second)
+    await this.chatService.saveMessage({
+      id,
+      conversationId,
+      authorId: client.data.userId,
+      text: body.text,
+    });
+  }
 
   // @SubscribeMessage('load_more')
   // async handleLoadMore(
