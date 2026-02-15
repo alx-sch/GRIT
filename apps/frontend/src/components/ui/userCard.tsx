@@ -6,6 +6,7 @@ import { MessageCircleMore } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { conversationService } from '@/services/conversationService';
 import { type ConversationRes } from '@grit/schema';
+import { useCurrentUserStore } from '@/store/currentUserStore';
 
 export const UserCard = ({ user }: { user: ResUserPublic }) => {
   const name = user.name ?? 'Unknown user';
@@ -14,6 +15,7 @@ export const UserCard = ({ user }: { user: ResUserPublic }) => {
   function startChat() {
     void startChatAsync();
   }
+  const currentUser = useCurrentUserStore((s) => s.user);
 
   async function startChatAsync() {
     try {
@@ -39,7 +41,9 @@ export const UserCard = ({ user }: { user: ResUserPublic }) => {
             <div className="overflow-hidden">
               <CardTitle className="text-base truncate">{name}</CardTitle>
             </div>
-            <MessageCircleMore className="cursor-pointer" onClick={startChat} />
+            {currentUser && currentUser?.id !== user.id && (
+              <MessageCircleMore className="cursor-pointer" onClick={startChat} />
+            )}
           </div>
         </CardHeader>
       </Card>
