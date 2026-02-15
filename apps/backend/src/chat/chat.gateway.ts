@@ -17,6 +17,7 @@ import { ConversationService } from '@/conversation/conversation.service';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { ArgumentsHost, Catch, UseFilters, UsePipes, WsExceptionFilter } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
+import { env } from 'process';
 
 interface SocketData {
   userId: number;
@@ -50,7 +51,12 @@ export class AllWsExceptionsFilter implements WsExceptionFilter {
 // The WebsocketGateway creates the socket similar to `const io = new Server();` and listens to it with .listen internally
 @UsePipes(new ZodValidationPipe()) // Need to add zod validation pipe to Websocket Gateway manually since otherwise not applied from global setup
 @UseFilters(new AllWsExceptionsFilter())
-@WebSocketGateway()
+@WebSocketGateway({
+  cors: {
+    origin: [`http://localhost:${env.FE_PORT || 5173}`],
+    credentials: true,
+  },
+})
 export class ChatGateway {
   // With the WebSocketServer decorator we get an instance of the server. This is the same as the io object from raw Socket.IO.
   @WebSocketServer()

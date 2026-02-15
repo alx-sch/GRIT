@@ -11,9 +11,8 @@ export function useChat(conversationId: string) {
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    // TODO Hardcoded the url for now because of issues with env vars loading
-    const socket = io(`http://localhost:3000`, {
-      transports: ['websocket'],
+    const BE_PORT = import.meta.env.BE_PORT;
+    const socket = io(`http://localhost:${BE_PORT}`, {
       auth: {
         token,
       },
