@@ -8,6 +8,7 @@ import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { MailService } from '@/mail/mail.service';
 import { cleanDb } from '@/tests/utils/cleanDb';
+import { StorageService } from '@/storage/storage.service';
 
 /**
  * ========================================
@@ -46,6 +47,12 @@ describe('User E2E', () => {
       .overrideProvider(MailService)
       .useValue({
         sendConfirmationEmail: jest.fn().mockResolvedValue(undefined),
+      })
+      .overrideProvider(StorageService)
+      .useValue({
+        onModuleInit: jest.fn().mockResolvedValue(undefined),
+        ensureBucket: jest.fn().mockResolvedValue(undefined),
+        uploadBuffer: jest.fn().mockResolvedValue('mock-key'),
       })
       .compile();
 
