@@ -10,61 +10,62 @@ export class ConversationService {
   async conversationGetOrCreate(
     data: {
       type: string;
-      eventId: number;
       directId: number;
       groupIds: number[];
     },
     userId: number
   ) {
-    if (data.type === 'EVENT') return this.conversationGetOrCreateForEvent(data.eventId, userId);
+    // Event conversations are created automatically during event creation
     if (data.type === 'DIRECT') return this.conversationGetOrCreateForDirect(data.directId, userId);
     if (data.type === 'GROUP') return this.conversationGetOrCreateForGroup(data.groupIds, userId);
     throw new Error('Data problem');
   }
 
-  async conversationGetOrCreateForEvent(eventId: number, userId: number) {
-    // Bail early if the user is not attending the event
-    console.log('Check for event');
-    const eventData = await this.prisma.event.findFirst({
-      where: {
-        id: eventId,
-        attending: {
-          some: {
-            id: userId,
-          },
-        },
-      },
-    });
-    if (!eventData) throw new ForbiddenException('You are not attending this event');
+  // NOT USED ANYMORE
 
-    // Ensure the conversation for the event exists
-    const conversation = await this.prisma.conversation.upsert({
-      where: { eventId },
-      update: {},
-      create: {
-        type: ConversationType.EVENT,
-        createdBy: eventData.authorId,
-        eventId,
-      },
-    });
+  // async conversationGetOrCreateForEvent(eventId: number, userId: number) {
+  //   // Bail early if the user is not attending the event
+  //   console.log('Check for event');
+  //   const eventData = await this.prisma.event.findFirst({
+  //     where: {
+  //       id: eventId,
+  //       attending: {
+  //         some: {
+  //           id: userId,
+  //         },
+  //       },
+  //     },
+  //   });
+  //   if (!eventData) throw new ForbiddenException('You are not attending this event');
 
-    // Ensure current user is participant
-    await this.prisma.conversationParticipant.upsert({
-      where: {
-        conversationId_userId: {
-          conversationId: conversation.id,
-          userId,
-        },
-      },
-      update: {},
-      create: {
-        conversationId: conversation.id,
-        userId,
-      },
-    });
+  //   // Ensure the conversation for the event exists
+  //   const conversation = await this.prisma.conversation.upsert({
+  //     where: { eventId },
+  //     update: {},
+  //     create: {
+  //       type: ConversationType.EVENT,
+  //       createdBy: eventData.authorId,
+  //       eventId,
+  //     },
+  //   });
 
-    return conversation;
-  }
+  //   // Ensure current user is participant
+  //   await this.prisma.conversationParticipant.upsert({
+  //     where: {
+  //       conversationId_userId: {
+  //         conversationId: conversation.id,
+  //         userId,
+  //       },
+  //     },
+  //     update: {},
+  //     create: {
+  //       conversationId: conversation.id,
+  //       userId,
+  //     },
+  //   });
+
+  //   return conversation;
+  // }
 
   async conversationGetOrCreateForDirect(directId: number, userId: number) {
     // Bail early if the user wants to chat with himself.

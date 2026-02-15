@@ -6,6 +6,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { cleanDb } from '@/tests/utils/cleanDb';
 
 /**
  * ========================================
@@ -49,8 +50,7 @@ describe('Events E2E', () => {
 
   // Happens before each test (deletes and reseeds database).
   beforeEach(async () => {
-    await prisma.event.deleteMany();
-    await prisma.user.deleteMany();
+    await cleanDb(prisma);
 
     user = await prisma.user.create({
       data: {

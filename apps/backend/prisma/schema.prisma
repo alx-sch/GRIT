@@ -22,11 +22,11 @@ model User {
 
   // Relations
   events            Event[]     @relation("EventAuthor")
-  attending         Event[]     @relation("EventAttendees")
   locations         Location[]
   chatMessages      ChatMessage[]
   convMemberships   ConversationParticipant[]
   convCreated       Conversation[]
+  attending         EventAttendee[]
 
   // Time Stamps
   createdAt         DateTime    @default(now())
@@ -81,10 +81,10 @@ model Event {
   locationId    Int?
 
   // Relations
-  attending     User[]    @relation("EventAttendees")
   author        User      @relation("EventAuthor", fields: [authorId], references: [id])
   location      Location? @relation(fields: [locationId], references: [id])
-  conversations Conversation?
+  conversation  Conversation?
+  attendees     EventAttendee[]
 
   // Time Stamps
   createdAt     DateTime  @default(now())
@@ -129,6 +129,18 @@ model ConversationParticipant {
   user           User           @relation(fields: [userId], references: [id])
 
   @@id([conversationId, userId])
+  @@index([userId])
+}
+
+// Expicit join table to track event attendance
+model EventAttendee {
+  eventId         Int
+  userId          Int
+
+  event           Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, userId])
   @@index([userId])
 }
 

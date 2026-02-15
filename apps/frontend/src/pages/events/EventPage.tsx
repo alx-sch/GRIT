@@ -15,28 +15,29 @@ export const eventLoader = async ({ params }: LoaderFunctionArgs) => {
 
 export const EventPage = () => {
   const event = useLoaderData<typeof eventLoader>();
+  console.log(event);
 
   // Load Conversation for chat
   const user = useCurrentUserStore((s) => s.user);
   const [conversationId, setConversationId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!user) return;
-    async function loadConversation() {
-      try {
-        const convo = await conversationService.getConversation({
-          type: 'EVENT',
-          eventId: event.id,
-        });
-        setConversationId(convo.id);
-        console.log(convo.id);
-      } catch (err: any) {
-        // On error we do nothing since this means the user is not attending
-        return;
-      }
-    }
-    loadConversation();
-  }, [user, event.id]);
+  // useEffect(() => {
+  //   if (!user) return;
+  //   async function loadConversation() {
+  //     try {
+  //       const convo = await conversationService.getConversation({
+  //         type: 'EVENT',
+  //         eventId: event.id,
+  //       });
+  //       setConversationId(convo.id);
+  //       console.log(convo.id);
+  //     } catch (err: any) {
+  //       // On error we do nothing since this means the user is not attending
+  //       return;
+  //     }
+  //   }
+  //   loadConversation();
+  // }, [user, event.id]);
 
   return (
     <>

@@ -70,9 +70,9 @@ export class UserService {
   async userGetEvents(userId: number) {
     return this.prisma.event.findMany({
       where: {
-        attending: {
+        attendees: {
           some: {
-            id: userId,
+            userId: userId,
           },
         },
       },
@@ -80,18 +80,16 @@ export class UserService {
   }
 
   async userIsAttendingEvent(userId: number, eventId: number): Promise<boolean> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        attending: {
-          where: { id: eventId },
-          select: { id: true },
+    const attendance = await this.prisma.eventAttendee.findUnique({
+      where: {
+        eventId_userId: {
+          eventId,
+          userId,
         },
       },
     });
 
-    if (!user) return false;
-    return user.attending.length === 1;
+    return !!attendance;
   }
 
   async userPost(data: ReqUserPostDto): Promise<ResUserPostDto> {
@@ -164,7 +162,13 @@ export class UserService {
       const updatedUser = await this.prisma.user.update({
         where: { id: userId },
         data: { avatarKey: newBucketKey },
-        include: { attending: true },
+        include: {
+          attending: {
+            include: {
+              event: true,
+            },
+          },
+        },
       });
 
       // Cleanup: If there was an old avatar, delete it from MinIO
@@ -175,7 +179,10 @@ export class UserService {
           console.error(`Failed to cleanup old avatar: ${currentUser.avatarKey}`, error);
         }
       }
-      return updatedUser;
+      return {
+        ...updatedUser,
+        attending: updatedUser.attending.map((a) => a.event),
+      };
     } catch (error) {
       // ROLLBACKL: If file uploaded, but DP update failed, delete orphaned file
       if (newBucketKey) {
@@ -189,37 +196,115 @@ export class UserService {
   async userPatch(userId: number, data: ReqUserPatchDto) {
     const newData: Prisma.UserUpdateInput = {};
     if (data.name !== undefined) newData.name = data.name;
-    if (data.attending !== undefined) {
-      const attendingUpdate: Prisma.EventUpdateManyWithoutAttendingNestedInput = {};
+
+    if (data.attending) {
+      /**
+       * Define operations we want to execute. These are types from the prisma client. The shape of the operations
+       * include connect and delete keys which will be executed as commands
+       */
+      const attendingOps: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput = {};
+      const membershipOps: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput = {};
+
+      // If data attending has information for connecting (attending). Naming is historical, we actually create now.
       if (data.attending.connect?.length) {
-        // Validate event exists
-        for (const eventId of data.attending.connect) {
-          const exists = await this.prisma.event.findUnique({
-            where: { id: eventId },
-            select: { id: true },
-          });
-          if (!exists) {
-            throw new NotFoundException(`Event with id ${String(eventId)} not found`);
+        // Get event data
+        const events = await this.prisma.event.findMany({
+          where: { id: { in: data.attending.connect } },
+          select: {
+            id: true,
+            conversation: { select: { id: true } },
+          },
+        });
+
+        // Making sure that events and their conversation data exists
+        if (events.length !== data.attending.connect.length) {
+          throw new NotFoundException('One or more events not found');
+        }
+
+        for (const event of events) {
+          if (!event.conversation) {
+            throw new Error(`Event ${event.id} has no conversation`);
           }
         }
-        console.log('Add attendance');
-        attendingUpdate.connect = data.attending.connect.map((id) => ({ id }));
+
+        // Storing the changes in the operation objects
+        attendingOps.create = events.map((e) => ({
+          eventId: e.id,
+        }));
+
+        membershipOps.create = events.map((e) => ({
+          conversationId: e.conversation!.id,
+        }));
       }
+
+      // If data attending has information for disconnecting (de-attending). Naming is historical, we actually create now.
       if (data.attending.disconnect?.length) {
-        console.log('Remove attendance');
-        attendingUpdate.disconnect = data.attending.disconnect.map((id) => ({ id }));
+        const events = await this.prisma.event.findMany({
+          where: { id: { in: data.attending.disconnect } },
+          select: {
+            id: true,
+            conversation: { select: { id: true } },
+          },
+        });
+
+        // Making sure that events and their conversation data exists
+        if (events.length !== data.attending.disconnect.length) {
+          throw new NotFoundException('One or more events not found');
+        }
+
+        for (const event of events) {
+          if (!event.conversation) {
+            throw new Error(`Event ${event.id} has no conversation`);
+          }
+        }
+
+        // Storing the changes in the operation objects
+        attendingOps.deleteMany = data.attending.disconnect.map((eventId) => ({
+          eventId,
+          userId,
+        }));
+
+        membershipOps.deleteMany = events.map((e) => ({
+          conversationId: e.conversation!.id,
+          userId,
+        }));
       }
-      newData.attending = attendingUpdate;
+
+      if (Object.keys(attendingOps).length) {
+        newData.attending = attendingOps;
+      }
+
+      if (Object.keys(membershipOps).length) {
+        newData.convMemberships = membershipOps;
+      }
     }
 
     if (Object.keys(newData).length === 0) {
       throw new BadRequestException('No fields to update');
     }
 
-    return this.prisma.user.update({
+    const user_raw = await this.prisma.user.update({
       where: { id: userId },
       data: newData,
-      include: { attending: true },
+      include: {
+        attending: {
+          select: {
+            event: {
+              select: {
+                title: true,
+              },
+            },
+          },
+        },
+      },
     });
+
+    const user = {
+      ...user_raw,
+      attending: user_raw.attending.map((a) => ({
+        title: a.event.title,
+      })),
+    };
+    return user;
   }
 }

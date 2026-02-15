@@ -1,5 +1,6 @@
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/prisma/prisma.service';
+import { cleanDb } from '@/tests/utils/cleanDb';
 import { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
@@ -51,9 +52,7 @@ describe('Location E2E', () => {
 
   // Happens before each test (deletes and reseeds database).
   beforeEach(async () => {
-    await prisma.event.deleteMany();
-    await prisma.location.deleteMany();
-    await prisma.user.deleteMany();
+    await cleanDb(prisma);
 
     user = await prisma.user.create({
       data: {
