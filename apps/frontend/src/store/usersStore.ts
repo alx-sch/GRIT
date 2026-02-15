@@ -1,10 +1,10 @@
 import { create } from 'zustand';
 import { userService } from '@/services/userService';
-import { UserBase } from '@/types/user';
 import axios from 'axios';
+import { ResUserPublic } from '@grit/schema';
 
 interface UsersState {
-  users: UserBase[];
+  users: ResUserPublic[];
   loading: boolean;
   error: string | null;
   fetchUsers: () => Promise<void>;

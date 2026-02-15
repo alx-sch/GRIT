@@ -38,7 +38,7 @@ export class UserService {
 
     const hasMore = users.length > limit;
     const slicedData = hasMore ? users.slice(0, limit) : users;
-
+    console.log('wants to return ', slicedData);
     return {
       data: slicedData,
       pagination: {
