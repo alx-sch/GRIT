@@ -12,7 +12,7 @@ import { UserService } from '@/user/user.service';
 import { ChatService } from '@/chat/chat.service';
 import { randomUUID } from 'crypto';
 import { ReqChatMessagePostDto, ReqChatJoinDto } from '@/chat/chat.schema';
-import { ResChatMessageSchema, ReqSocketAuthSchema, ReqChatJoinSchema } from '@grit/schema';
+import { ResChatMessageSchema, ReqSocketAuthSchema } from '@grit/schema';
 import { ConversationService } from '@/conversation/conversation.service';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { ArgumentsHost, Catch, UseFilters, UsePipes, WsExceptionFilter } from '@nestjs/common';
@@ -31,14 +31,19 @@ export type AppServer = Server<DefaultEventsMap, DefaultEventsMap, DefaultEvents
 // Custom filter to print Zod validation errors in Websocket context. Otherwise these fail silently.
 @Catch()
 export class AllWsExceptionsFilter implements WsExceptionFilter {
-  catch(exception: any, host: ArgumentsHost) {
-    // Comment in the line below to see the errors in the backends console
-    // console.error('WS Exception:', exception);
+  catch(exception: unknown, host: ArgumentsHost) {
+    const client = host.switchToWs().getClient<AppSocket>();
 
-    const client = host.switchToWs().getClient();
-    client.emit('error', {
-      message: exception.message ?? 'Validation failed',
-    });
+    let message = 'Validation failed';
+
+    if (exception instanceof WsException) {
+      const error = exception.getError();
+      message = typeof error === 'string' ? error : JSON.stringify(error);
+    } else if (exception instanceof Error) {
+      message = exception.message;
+    }
+
+    client.emit('error', { message });
   }
 }
 
@@ -93,8 +98,6 @@ export class ChatGateway {
 
   @SubscribeMessage('join')
   async handleJoin(@MessageBody() body: ReqChatJoinDto, @ConnectedSocket() client: AppSocket) {
-    console.log('Join message received for ', body);
-
     // Check if the current user is allowed to join the room for the conversation id
     const conversation = await this.prisma.conversation.findFirst({
       where: {
@@ -106,7 +109,6 @@ export class ChatGateway {
         },
       },
     });
-    console.log(conversation);
     if (!conversation) throw new WsException('You are not allowed to view this conversation');
     else await client.join(body.id);
 
@@ -156,25 +158,25 @@ export class ChatGateway {
     });
   }
 
-  // @SubscribeMessage('load_more')
-  // async handleLoadMore(
-  //   @MessageBody() body: { cursorSentAt: string; cursorId: string },
-  //   @ConnectedSocket() client: AppSocket
-  // ) {
-  //   const eventId = client.data.eventId;
-  //   if (!eventId) return null;
+  @SubscribeMessage('load_more')
+  async handleLoadMore(
+    @MessageBody() body: { cursorSentAt: string; cursorId: string },
+    @ConnectedSocket() client: AppSocket
+  ) {
+    const conversationId = client.data.conversationId;
+    if (!conversationId) return null;
 
-  //   const rows = await this.chatService.loadMessages(eventId, 2, {
-  //     createdAt: new Date(body.cursorSentAt),
-  //     id: body.cursorId,
-  //   });
+    const rows = await this.chatService.loadMessages(conversationId, 5, {
+      createdAt: new Date(body.cursorSentAt),
+      id: body.cursorId,
+    });
 
-  //   if (rows.length === 0) {
-  //     client.emit('history_end');
-  //     return;
-  //   }
+    if (rows.length === 0) {
+      client.emit('history_end');
+      return;
+    }
 
-  //   const messages = rows.reverse().map((row) => ResChatMessageSchema.parse(row));
-  //   client.emit('history', messages);
-  // }
+    const messages = rows.reverse().map((row) => ResChatMessageSchema.parse(row));
+    client.emit('history', messages);
+  }
 }

@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { EventBase } from '@/types/event';
 import { useChat } from '@/features/chat/useChat';
 import { ChatBubble } from '@/features/chat/ChatBubble';
 import { useCurrentUserStore } from '@/store/currentUserStore';

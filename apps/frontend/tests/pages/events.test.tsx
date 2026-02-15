@@ -103,7 +103,7 @@ describe('Event Feed Page', () => {
       imageKey: 'party-image.jpg',
       author: mockUsers.alice,
       authorId: 1,
-      attending: [mockUsers.bob, mockUsers.cindy],
+      attendees: [mockUsers.bob, mockUsers.cindy],
       location: mockLocations.gritHq,
     },
     {
@@ -118,7 +118,7 @@ describe('Event Feed Page', () => {
       imageKey: '',
       author: mockUsers.bob,
       authorId: 2,
-      attending: [],
+      attendees: [],
     },
     {
       id: 3,
@@ -132,7 +132,7 @@ describe('Event Feed Page', () => {
       imageKey: 'fireplace.jpg',
       author: mockUsers.cindy,
       authorId: 3,
-      attending: [mockUsers.cindy],
+      attendees: [mockUsers.cindy],
     },
   ];
 

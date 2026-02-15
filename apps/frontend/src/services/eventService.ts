@@ -27,7 +27,6 @@ export const eventService = {
     const queryString = queryParams.toString();
     const url = queryString ? `events?${queryString}` : '/events';
     const response = await api.get<EventResponse>(url);
-    console.log('res data', response.data);
     return response.data;
   },
 

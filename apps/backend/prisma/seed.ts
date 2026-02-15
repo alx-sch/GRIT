@@ -7,7 +7,7 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, User } from '@prisma/client';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
@@ -273,7 +273,7 @@ async function main() {
 
     if (!existingEvent) {
       // Extract image from event data (not a DB field)
-      const { image, ...eventData } = e;
+      const { image } = e;
 
       const event = await prisma.event.create({
         data: {
@@ -322,7 +322,7 @@ async function main() {
   // ATTENDANCE SEEDING //
   ////////////////////////
 
-  console.log('--- Seeding Atendance ---');
+  console.log('--- Seeding Attendance ---');
 
   const aliceFromDb = await prisma.user.findUnique({ where: { email: 'alice@example.com' } });
   const bobFromDb = await prisma.user.findUnique({ where: { email: 'bob@example.com' } });
@@ -339,11 +339,27 @@ async function main() {
 
   if (!conversation) throw new Error('Event conversation missing');
 
+  // Seed Attendance
+
+  await prisma.eventAttendee.createMany({
+    data: attendees
+      .filter((attendee): attendee is User => attendee !== null)
+      .map((attendee) => ({
+        eventId: party.id,
+        userId: attendee.id,
+      })),
+    skipDuplicates: true,
+  });
+
+  // Additionally seed conversation participation for the same users
+
   await prisma.conversationParticipant.createMany({
-    data: attendees.filter(Boolean).map((attendee) => ({
-      conversationId: conversation.id,
-      userId: attendee!.id,
-    })),
+    data: attendees
+      .filter((attendee): attendee is User => attendee !== null)
+      .map((attendee) => ({
+        conversationId: conversation.id,
+        userId: attendee.id,
+      })),
     skipDuplicates: true,
   });
 

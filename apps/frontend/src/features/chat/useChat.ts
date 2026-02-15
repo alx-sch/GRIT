@@ -8,7 +8,7 @@ export function useChat(conversationId: string) {
   const [messages, setMessages] = useState<ResChatMessage[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const token = useAuthStore((s) => s.token);
-  const [errorMessage, setErrorMessage] = useState(undefined);
+  const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     // TODO Hardcoded the url for now because of issues with env vars loading
@@ -22,7 +22,6 @@ export function useChat(conversationId: string) {
     socketRef.current = socket;
 
     socket.on('connect', () => {
-      console.log('connected sending join message for: ', conversationId);
       socket.emit('join', { id: conversationId });
     });
 
@@ -34,7 +33,7 @@ export function useChat(conversationId: string) {
       setMessages((prev) => [...msgs, ...prev]);
     });
 
-    socket.on('error', (err) => {
+    socket.on('error', (err: { message: string }) => {
       setMessages(() => []);
       setErrorMessage(err.message ?? 'Error');
     });

@@ -223,7 +223,7 @@ export class UserService {
 
         for (const event of events) {
           if (!event.conversation) {
-            throw new Error(`Event ${event.id} has no conversation`);
+            throw new Error(`Event ${String(event.id)} has no conversation`);
           }
         }
 
@@ -232,8 +232,22 @@ export class UserService {
           eventId: e.id,
         }));
 
-        membershipOps.create = events.map((e) => ({
-          conversationId: e.conversation!.id,
+        /***
+         * connectOrCreate: If for some reason the user is not yet participating on the event but is already part of the conversation we connect.
+         * Otherwise we create.
+         */
+        membershipOps.connectOrCreate = events.map((e) => ({
+          where: {
+            conversationId_userId: {
+              // @ts-expect-error we validated above that conversation exists.
+              conversationId: e.conversation.id,
+              userId,
+            },
+          },
+          create: {
+            // @ts-expect-error we validated above that conversation exists.
+            conversationId: e.conversation.id,
+          },
         }));
       }
 
@@ -254,7 +268,7 @@ export class UserService {
 
         for (const event of events) {
           if (!event.conversation) {
-            throw new Error(`Event ${event.id} has no conversation`);
+            throw new Error(`Event ${String(event.id)} has no conversation`);
           }
         }
 
@@ -265,7 +279,8 @@ export class UserService {
         }));
 
         membershipOps.deleteMany = events.map((e) => ({
-          conversationId: e.conversation!.id,
+          // @ts-expect-error we validated above that conversation exists.
+          conversationId: e.conversation.id,
           userId,
         }));
       }

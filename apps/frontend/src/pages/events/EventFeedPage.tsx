@@ -41,7 +41,6 @@ export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
     }),
     locationService.getLocations(),
   ]);
-  console.log(events);
   return { events, locations: locationsResponse.data };
 };
 

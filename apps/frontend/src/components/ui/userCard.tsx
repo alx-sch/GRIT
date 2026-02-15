@@ -1,20 +1,28 @@
-import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ResUserPublic } from '@grit/schema';
 import { getAvatarImageUrl } from '@/lib/image_utils';
 import { MessageCircleMore } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { conversationService } from '@/services/conversationService';
+import { type ConversationRes } from '@grit/schema';
 
 export const UserCard = ({ user }: { user: ResUserPublic }) => {
   const name = user.name ?? 'Unknown user';
   const initials = name.trim().slice(0, 2).toUpperCase();
   const navigate = useNavigate();
-  async function startChat() {
+  function startChat() {
+    void startChatAsync();
+  }
+
+  async function startChatAsync() {
     try {
-      const res = await conversationService.getConversation({ type: 'DIRECT', directId: user.id });
-      console.log(res);
-      navigate(`/chat/${res.id}`);
+      const res: ConversationRes = await conversationService.getConversation({
+        type: 'DIRECT',
+        directId: user.id,
+      });
+
+      void navigate(`/chat/${res.id}`);
     } catch (err) {
       console.error(err);
     }

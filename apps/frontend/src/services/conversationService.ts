@@ -1,4 +1,5 @@
 import api from '@/lib/api';
+import { type ConversationRes } from '@grit/schema';
 
 interface GetConversationParam {
   type: string;
@@ -8,8 +9,8 @@ interface GetConversationParam {
 }
 
 export const conversationService = {
-  getConversation: async (data: GetConversationParam) => {
-    const conversation = await api.post('/conversation', data);
+  getConversation: async (data: GetConversationParam): Promise<ConversationRes> => {
+    const conversation = await api.post<ConversationRes>('/conversation', data);
     return conversation.data;
   },
 };
