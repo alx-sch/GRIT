@@ -1,16 +1,18 @@
 import api from '@/lib/api';
-import { type ConversationRes } from '@grit/schema';
-
-interface GetConversationParam {
-  type: string;
-  eventId?: number;
-  directId?: number;
-  groupIds?: number[];
-}
+import type {
+  ConversationBase,
+  ReqConversationCreate,
+  ResConversationOverview,
+} from '@grit/schema';
 
 export const conversationService = {
-  getConversation: async (data: GetConversationParam): Promise<ConversationRes> => {
-    const conversation = await api.post<ConversationRes>('/conversation', data);
+  getConversation: async (data: ReqConversationCreate): Promise<ConversationBase> => {
+    const conversation = await api.post<ConversationBase>('/conversation', data);
     return conversation.data;
+  },
+
+  getMany: async (): Promise<ResConversationOverview> => {
+    const conversations = await api.get<ResConversationOverview>('/conversation');
+    return conversations.data;
   },
 };

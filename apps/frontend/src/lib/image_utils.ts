@@ -8,6 +8,10 @@ export function getEventImageUrl(event: EventBase): string {
   return `${env.MINIO_URL}/event-images/${event.imageKey}`;
 }
 
+export function getEventImageUrlByKey(evenImageFilenam: string) {
+  return `${env.MINIO_URL}/event-images/${evenImageFilenam}`;
+}
+
 export function getAvatarImageUrl(avatarFilename: string | undefined): string {
   if (!avatarFilename) return '';
   return `${env.MINIO_URL}/user-avatars/${avatarFilename}`;

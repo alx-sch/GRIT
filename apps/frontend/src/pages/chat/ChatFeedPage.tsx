@@ -1,3 +1,3 @@
 export const ChatFeedPage = () => {
-  return <>Chat Overview</>;
+  return <>"Start"</>;
 };

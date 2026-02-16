@@ -1,25 +1,26 @@
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ResUserPublic } from '@grit/schema';
+import { ResConversationSingleId, ResUserPublic } from '@grit/schema';
 import { getAvatarImageUrl } from '@/lib/image_utils';
 import { MessageCircleMore } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { conversationService } from '@/services/conversationService';
-import { type ConversationRes } from '@grit/schema';
+import { type ConversationBase } from '@grit/schema';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 
 export const UserCard = ({ user }: { user: ResUserPublic }) => {
   const name = user.name ?? 'Unknown user';
   const initials = name.trim().slice(0, 2).toUpperCase();
   const navigate = useNavigate();
+  const currentUser = useCurrentUserStore((s) => s.user);
+
+  // To make fucking linting happy
   function startChat() {
     void startChatAsync();
   }
-  const currentUser = useCurrentUserStore((s) => s.user);
-
   async function startChatAsync() {
     try {
-      const res: ConversationRes = await conversationService.getConversation({
+      const res: ResConversationSingleId = await conversationService.getConversation({
         type: 'DIRECT',
         directId: user.id,
       });

@@ -6,7 +6,7 @@ export function ChatPage() {
   if (!id) return <div>Chat id missing</div>;
   return (
     <div>
-      <ChatBox conversationId={id} />
+      <ChatBox key={id} conversationId={id} />
     </div>
   );
 }

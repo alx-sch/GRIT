@@ -12,14 +12,14 @@ export const ChatBubble = ({ message }: { message: ResChatMessage }) => {
   return (
     <>
       <div className={`${align} flex my-4`}>
-        <div className={`border border-input p-2 max-w-4/5 flex`}>
+        <div className={`border border-input p-2 px-3 max-w-9/10 md:max-w-4/5 lg:max-w-3/5 flex`}>
           {!isFromCurrentUser && (
             <Avatar className="mr-2 w-6 h-6">
               <AvatarImage src={getAvatarImageUrl(message.author.avatarKey ?? undefined)} />
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
           )}
-          <div>
+          <div className="text-sm">
             {!isFromCurrentUser && (
               <div className="font-bold uppercase text-xs">{message.author.name}</div>
             )}

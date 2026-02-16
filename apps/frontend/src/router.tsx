@@ -16,6 +16,7 @@ import { ProtectedLayout, protectedLayoutLoader } from '@/components/layout/Prot
 import CreateEventPage from '@/pages/create/event/Page';
 import { ChatPage } from '@/pages/chat/ChatPage';
 import { ChatFeedPage } from '@/pages/chat/ChatFeedPage';
+import { ChatFeedLayout, ChatFeedLoader } from '@/features/chat/ChatFeedLayout';
 
 // NOTE: let's define single source of truth for our routes here
 export const baseNavConfig: NavRoute[] = [
@@ -39,6 +40,8 @@ export const router = createBrowserRouter([
       {
         path: 'chat',
         handle: { title: 'Chat' },
+        Component: ChatFeedLayout,
+        loader: ChatFeedLoader,
         children: [
           {
             index: true,

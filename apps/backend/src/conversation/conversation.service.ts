@@ -2,21 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ConversationType } from '@prisma/client';
 import { ForbiddenException } from '@nestjs/common';
+import { ReqConversationCreate } from '@grit/schema';
 
 @Injectable()
 export class ConversationService {
   constructor(private prisma: PrismaService) {}
 
-  async conversationGetOrCreate(
-    data: {
-      type: string;
-      directId: number;
-      groupIds: number[];
-    },
-    userId: number
-  ) {
-    // Note that event conversations are created automatically during event creation and are passed in the event object to fe
-    if (data.type === 'DIRECT') return this.conversationGetOrCreateForDirect(data.directId, userId);
+  // Note that event conversations are created automatically during event creation and are passed in the event object to fe
+  async conversationGetOrCreate(data: ReqConversationCreate, userId: number) {
+    if (data.type === 'DIRECT' && data.directId)
+      return this.conversationGetOrCreateForDirect(data.directId, userId);
     // if (data.type === 'GROUP') return this.conversationGetOrCreateForGroup(data.groupIds, userId);
     throw new Error('Data problem');
   }
@@ -34,7 +29,7 @@ export class ConversationService {
           { participants: { some: { userId: userId } } },
         ],
       },
-      include: { participants: true },
+      select: { id: true, participants: true },
     });
     if (existing && existing.participants.length === 2) return existing;
 
@@ -49,8 +44,66 @@ export class ConversationService {
       },
       include: { participants: true },
     });
+    console.log(newConversation);
     return newConversation;
   }
 
   // async conversationGetOrCreateForGroup(groupIds: number[], userId: number) {}
+
+  async conversationGetMany(userId: number) {
+    const conversations = await this.prisma.conversation.findMany({
+      where: {
+        participants: {
+          some: {
+            userId,
+          },
+        },
+      },
+      select: {
+        id: true,
+        type: true,
+        title: true,
+        updatedAt: true,
+        participants: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                avatarKey: true,
+                name: true,
+              },
+            },
+          },
+        },
+        event: {
+          select: {
+            startAt: true,
+            id: true,
+            imageKey: true,
+            title: true,
+          },
+        },
+        messages: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: {
+            id: true,
+            text: true,
+            createdAt: true,
+            author: {
+              select: {
+                id: true,
+                name: true,
+                avatarKey: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    });
+    return conversations;
+  }
 }
