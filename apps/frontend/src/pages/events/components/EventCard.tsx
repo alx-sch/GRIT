@@ -42,7 +42,6 @@ export function EventCard({ event, location }: EventCardProps) {
   const handleGoing = async (e: React.MouseEvent) => {
     e.preventDefault(); //Prevent Link navigation
 
-    console.log('user:', currentUser);
     if (!currentUser) {
       void navigate('/login?redirect=' + encodeURIComponent(`/events/${String(event.id)}`));
       return;

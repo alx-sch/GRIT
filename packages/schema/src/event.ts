@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import {z} from 'zod';
 
 // Shared Event Rules
 export const EVENT_CONFIG = {
@@ -8,14 +8,18 @@ export const EVENT_CONFIG = {
 };
 
 // Sub-schemas for nested objects in event response
-export const ResEventAuthorSchema = z.object({ id: z.number(), name: z.string() });
-export const ResEventAttendeeSchema = z.object({ id: z.number(), name: z.string() });
+export const ResEventAuthorSchema =
+    z.object({id: z.number(), name: z.string()});
+export const ResEventAttendeeSchema =
+    z.object({id: z.number(), name: z.string()});
 export const ResEventLocationSchema = z.object({
   id: z.number().int().positive(),
   authorId: z.number().int().positive(),
   name: z.string().nullable(),
   city: z.string().nullable().optional(),
   country: z.string().nullable().optional(),
+  address: z.string().nullable().optional(),
+  postalCode: z.string().nullable().optional(),
   longitude: z.number(),
   latitude: z.number(),
   isPublic: z.boolean(),
@@ -41,7 +45,8 @@ export type ResEventBase = z.infer<typeof ResEventBaseSchema>;
 // Paginated response
 export const ResEventGetPublishedSchema = z.object({
   data: z.array(ResEventBaseSchema),
-  pagination: z.object({ nextCursor: z.string().nullable(), hasMore: z.boolean() }),
+  pagination:
+      z.object({nextCursor: z.string().nullable(), hasMore: z.boolean()}),
 });
 export type ResEventGetPublished = z.infer<typeof ResEventGetPublishedSchema>;
 
@@ -49,15 +54,13 @@ export type ResEventGetPublished = z.infer<typeof ResEventGetPublishedSchema>;
 export const CreateEventSchema = z.object({
   isPublic: z.boolean(),
   isPublished: z.boolean(),
-  title: z
-    .string()
-    .min(EVENT_CONFIG.TITLE_MIN_LENGTH, 'Name is required')
-    .max(
-      EVENT_CONFIG.TITLE_MAX_LENGTH,
-      `Name must be at most ${EVENT_CONFIG.TITLE_MAX_LENGTH} characters
-  long`
-    )
-    .trim(),
+  title:
+      z.string()
+          .min(EVENT_CONFIG.TITLE_MIN_LENGTH, 'Name is required')
+          .max(
+              EVENT_CONFIG.TITLE_MAX_LENGTH,
+              `Name must be at most ${EVENT_CONFIG.TITLE_MAX_LENGTH} characters
+  long`).trim(),
   content: z.string().max(EVENT_CONFIG.CONTENT_MAX_LENGTH).optional(),
   startAt: z.iso.datetime(),
   endAt: z.iso.datetime(),
