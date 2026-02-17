@@ -26,6 +26,7 @@ export const ResEventBaseSchema = z.object({
   authorId: z.number().int().positive().nullable(),
   author: ResEventAuthorSchema.nullable().optional(),
   content: z.string().nullable().optional(),
+  conversation: z.object({ id: z.uuid() }).nullable().optional(),
   createdAt: z.date(),
   endAt: z.date(),
   imageKey: z.string().nullable().optional(),
@@ -34,7 +35,7 @@ export const ResEventBaseSchema = z.object({
   startAt: z.date(),
   title: z.string(),
   location: ResEventLocationSchema.nullable().optional(),
-  attending: z.array(ResEventAttendeeSchema).default([]),
+  attendees: z.array(ResEventAttendeeSchema).default([]),
 });
 export type ResEventBase = z.infer<typeof ResEventBaseSchema>;
 

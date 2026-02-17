@@ -14,9 +14,16 @@ export const ResUserBaseSchema = z.object({
 });
 export type ResUserBase = z.infer<typeof ResUserBaseSchema>;
 
+export const ResUserPublicSchema = z.object({
+  id: z.number().int().positive(),
+  name: z.string().nullable(),
+  avatarKey: z.string().nullable().optional(),
+});
+export type ResUserPublic = z.infer<typeof ResUserPublicSchema>;
+
 // Paginated response
 export const ResUserGetAllSchema = z.object({
-  data: z.array(ResUserBaseSchema),
+  data: z.array(ResUserPublicSchema),
   pagination: z.object({ nextCursor: z.string().nullable(), hasMore: z.boolean() }),
 });
 export type ResUserGetAll = z.infer<typeof ResUserGetAllSchema>;

@@ -79,7 +79,7 @@ describe('Event Creation Page', () => {
     authorId: 1,
     createdAt: new Date().toISOString(),
     imageKey: '',
-    attending: [],
+    attendees: [],
   };
 
   beforeEach(() => {

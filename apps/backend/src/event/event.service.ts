@@ -8,16 +8,21 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-
-import { ReqEventGetPublishedDto, ReqEventPatchDto, ReqEventPostDraftDto } from './event.schema';
+import { ConversationType, Prisma } from '@prisma/client';
+import {
+  ReqEventGetPublishedDto,
+  ReqEventPatchDto,
+  ReqEventPostDraftDto,
+} from '@/event/event.schema';
+import { ConversationService } from '@/conversation/conversation.service';
 
 @Injectable()
 export class EventService {
   constructor(
     private prisma: PrismaService,
     private locationService: LocationService,
-    private storage: StorageService
+    private storage: StorageService,
+    private readonly conversation: ConversationService
   ) {}
 
   async eventDelete(id: number, userId: number) {
@@ -66,16 +71,30 @@ export class EventService {
     };
     const orderBy = orderByMap[sort ?? 'date-asc'];
 
-    const events = await this.prisma.event.findMany({
+    const events_raw = await this.prisma.event.findMany({
       orderBy,
       where: finalWhere,
       include: {
         author: true,
         location: true,
-        attending: true,
+        attendees: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
       take: limit + 1,
     });
+
+    const events = events_raw.map((event) => ({
+      ...event,
+      attendees: event.attendees.map((a) => a.user),
+    }));
 
     const hasMore = events.length > limit;
     const slicedData = hasMore ? events.slice(0, limit) : events;
@@ -95,17 +114,33 @@ export class EventService {
   }
 
   async eventGetById(id: number) {
-    const event = await this.prisma.event.findUnique({
+    const event_raw = await this.prisma.event.findUnique({
       where: { id },
       include: {
         author: true,
         location: true,
-        attending: true,
+        attendees: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+        conversation: {
+          select: { id: true },
+        },
       },
     });
-    if (!event) {
+    if (!event_raw) {
       throw new NotFoundException(`Event with id ${id.toString()} not found`);
     }
+    const event = {
+      ...event_raw,
+      attendees: event_raw.attendees.map((a) => a.user),
+    };
     return event;
   }
 
@@ -168,7 +203,15 @@ export class EventService {
       const updatedEvent = await this.prisma.event.update({
         where: { id: eventId },
         data: { imageKey: newBucketKey },
-        include: { author: true, location: true, attending: true },
+        include: {
+          author: true,
+          location: true,
+          attendees: {
+            include: {
+              user: true,
+            },
+          },
+        },
       });
 
       // Cleanup - delete old image from miniIO if exists
@@ -203,12 +246,20 @@ export class EventService {
     return this.prisma.event.update({
       where: { id: eventId },
       data: { imageKey: null },
-      include: { author: true, location: true, attending: true },
+      include: {
+        author: true,
+        location: true,
+        attendees: {
+          include: {
+            user: true,
+          },
+        },
+      },
     });
   }
 
   async eventPostDraft(data: ReqEventPostDraftDto & { authorId: number }) {
-    return await this.prisma.event.create({
+    const createdEvent = await this.prisma.event.create({
       data: {
         title: data.title,
         content: data.content,
@@ -217,9 +268,22 @@ export class EventService {
         isPublic: data.isPublic,
         isPublished: data.isPublished,
         imageKey: data.imageKey,
-        attending: { connect: { id: data.authorId } },
+        attendees: {
+          create: {
+            userId: data.authorId,
+          },
+        },
         author: {
           connect: { id: data.authorId },
+        },
+        conversation: {
+          create: {
+            type: ConversationType.EVENT,
+            createdBy: data.authorId,
+            participants: {
+              create: [{ userId: data.authorId }],
+            },
+          },
         },
         ...(data.locationId
           ? {
@@ -234,6 +298,7 @@ export class EventService {
         location: true,
       },
     });
+    return createdEvent;
   }
 
   async eventExists(id: number) {

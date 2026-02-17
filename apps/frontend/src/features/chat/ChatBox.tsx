@@ -1,13 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { EventBase } from '@/types/event';
 import { useChat } from '@/features/chat/useChat';
 import { ChatBubble } from '@/features/chat/ChatBubble';
 import { useCurrentUserStore } from '@/store/currentUserStore';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircleIcon } from 'lucide-react';
 
-export const Chat = ({ event }: { event: EventBase }) => {
-  const { messages, sendMessage, loadMore, hasMore } = useChat(event.id);
+export const ChatBox = ({ conversationId }: { conversationId: string }) => {
+  const { messages, sendMessage, loadMore, hasMore, errorMessage } = useChat(conversationId);
   const [input, setInput] = useState('');
   const [isNearBottom, setIsNearBottom] = useState(true);
   const [hasNewMessages, setHasNewMessages] = useState(false);
@@ -111,6 +112,15 @@ export const Chat = ({ event }: { event: EventBase }) => {
     };
   }, [messages, hasMore]);
 
+  if (errorMessage) {
+    return (
+      <Alert variant={'destructive'}>
+        <AlertCircleIcon />
+        <AlertTitle>Error!</AlertTitle>
+        <AlertDescription>{errorMessage}</AlertDescription>
+      </Alert>
+    );
+  }
   return (
     <>
       <div className="relative">

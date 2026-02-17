@@ -5,6 +5,7 @@ import { NotFoundException, UnauthorizedException, BadRequestException } from '@
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { EventService } from '../event.service';
+import { ConversationService } from '@/conversation/conversation.service';
 
 describe('Event / Service / Unit Tests', () => {
   const prismaServiceMock = {
@@ -19,6 +20,10 @@ describe('Event / Service / Unit Tests', () => {
     deleteFile: jest.fn(),
   };
 
+  const conversationServiceMock = {
+    getOrCreateEventConversation: jest.fn(),
+  };
+
   let testEventService: EventService;
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -27,6 +32,7 @@ describe('Event / Service / Unit Tests', () => {
       providers: [
         EventService,
         LocationService,
+        { provide: ConversationService, useValue: conversationServiceMock },
         { provide: PrismaService, useValue: prismaServiceMock },
         { provide: StorageService, useValue: storageServiceMock },
       ],

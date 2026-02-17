@@ -28,7 +28,10 @@ import { getAvatarImageUrl } from '@/lib/image_utils';
 export function Navbar() {
   const navConfig: NavRoute[] = [...baseNavConfig];
   const isLoggedIn = useAuthStore((s) => !!s.token);
-  const currentUserAvatar = useCurrentUserStore((s) => s.user?.avatarKey);
+  const user = useCurrentUserStore((s) => s.user);
+  const currentUserAvatar = user?.avatarKey;
+  const currentUserName = user?.name;
+  const initials = currentUserName?.trim().slice(0, 2).toUpperCase();
 
   navConfig.push(
     isLoggedIn ? { path: '/logout', label: 'Logout' } : { path: '/login', label: 'Login' }
@@ -76,7 +79,7 @@ export function Navbar() {
         {isLoggedIn && (
           <Avatar>
             <AvatarImage src={getAvatarImageUrl(currentUserAvatar)} seed="test" />
-            <AvatarFallback>CN</AvatarFallback>
+            <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
         )}
         <Button
