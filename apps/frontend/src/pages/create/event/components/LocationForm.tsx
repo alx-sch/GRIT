@@ -116,8 +116,8 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
         <DraftSaver control={control} />
 
         {/* Hidden Inputs: latitude and longitude */}
-        <Input id="latitude" {...register('latitude', { valueAsNumber: true })} />
-        <Input id="longitude" {...register('longitude', { valueAsNumber: true })} />
+        <Input type="hidden" id="latitude" {...register('latitude', { valueAsNumber: true })} />
+        <Input type="hidden" id="longitude" {...register('longitude', { valueAsNumber: true })} />
 
         {/* Name */}
         <div className="flex flex-col gap-2 mb-2">
