@@ -1,24 +1,24 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
-import { EventService } from '@/event/event.service';
-import {
-  ReqUserPostDto,
-  ResUserPostDto,
-  ResUserBaseDto,
-  ReqUserAttendDto,
-  ReqUserGetAllDto,
-} from '@/user/user.schema';
-import { StorageService } from '@/storage/storage.service';
-import * as bcrypt from 'bcrypt';
-import { userEncodeCursor, userCursorFilter } from './user.utils';
-import { randomBytes } from 'crypto';
 import { MailService } from '@/mail/mail.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { StorageService } from '@/storage/storage.service';
+import {
+  ReqUserGetAllDto,
+  ReqUserPatchDto,
+  ReqUserPostDto,
+  ResUserBaseDto,
+  ResUserPostDto,
+} from '@/user/user.schema';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
+import { randomBytes } from 'crypto';
+
+import { userCursorFilter, userEncodeCursor } from './user.utils';
 
 @Injectable()
 export class UserService {
   constructor(
     private prisma: PrismaService,
-    private eventService: EventService,
     private storage: StorageService,
     private mailService: MailService
   ) {}
@@ -38,7 +38,6 @@ export class UserService {
 
     const hasMore = users.length > limit;
     const slicedData = hasMore ? users.slice(0, limit) : users;
-
     return {
       data: slicedData,
       pagination: {
@@ -70,9 +69,9 @@ export class UserService {
   async userGetEvents(userId: number) {
     return this.prisma.event.findMany({
       where: {
-        attending: {
+        attendees: {
           some: {
-            id: userId,
+            userId: userId,
           },
         },
       },
@@ -80,18 +79,16 @@ export class UserService {
   }
 
   async userIsAttendingEvent(userId: number, eventId: number): Promise<boolean> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        attending: {
-          where: { id: eventId },
-          select: { id: true },
+    const attendance = await this.prisma.eventAttendee.findUnique({
+      where: {
+        eventId_userId: {
+          eventId,
+          userId,
         },
       },
     });
 
-    if (!user) return false;
-    return user.attending.length === 1;
+    return !!attendance;
   }
 
   async userPost(data: ReqUserPostDto): Promise<ResUserPostDto> {
@@ -164,7 +161,13 @@ export class UserService {
       const updatedUser = await this.prisma.user.update({
         where: { id: userId },
         data: { avatarKey: newBucketKey },
-        include: { attending: true },
+        include: {
+          attending: {
+            include: {
+              event: true,
+            },
+          },
+        },
       });
 
       // Cleanup: If there was an old avatar, delete it from MinIO
@@ -175,7 +178,10 @@ export class UserService {
           console.error(`Failed to cleanup old avatar: ${currentUser.avatarKey}`, error);
         }
       }
-      return updatedUser;
+      return {
+        ...updatedUser,
+        attending: updatedUser.attending.map((a) => a.event),
+      };
     } catch (error) {
       // ROLLBACKL: If file uploaded, but DP update failed, delete orphaned file
       if (newBucketKey) {
@@ -186,29 +192,133 @@ export class UserService {
     }
   }
 
-  async userAttend(id: number, data: ReqUserAttendDto) {
-    const user = await this.prisma.user.findUnique({ where: { id: id } });
-    if (!user) throw new NotFoundException(`User with id ${String(id)} not found`);
+  async userPatch(userId: number, data: ReqUserPatchDto) {
+    const newData: Prisma.UserUpdateInput = {};
+    if (data.name !== undefined) newData.name = data.name;
 
-    const event = await this.eventService.eventExists(data.attending);
-    if (!event) {
-      throw new NotFoundException(`Event with id ${String(data.attending)} not found`);
+    if (data.attending) {
+      /**
+       * Define operations we want to execute. These are types from the prisma client. The shape of the operations
+       * include connect and delete keys which will be executed as commands
+       */
+      const attendingOps: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput = {};
+      const membershipOps: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput = {};
+
+      // If data attending has information for connecting (attending). Naming is historical, we actually create now.
+      if (data.attending.connect?.length) {
+        // Get event data
+        const events = await this.prisma.event.findMany({
+          where: { id: { in: data.attending.connect } },
+          select: {
+            id: true,
+            conversation: { select: { id: true } },
+          },
+        });
+
+        // Making sure that events and their conversation data exists
+        if (events.length !== data.attending.connect.length) {
+          throw new NotFoundException('One or more events not found');
+        }
+
+        for (const event of events) {
+          if (!event.conversation) {
+            throw new Error(`Event ${String(event.id)} has no conversation`);
+          }
+        }
+
+        // Storing the changes in the operation objects
+        attendingOps.create = events.map((e) => ({
+          eventId: e.id,
+        }));
+
+        /***
+         * connectOrCreate: If for some reason the user is not yet participating on the event but is already part of the conversation we connect.
+         * Otherwise we create.
+         */
+        membershipOps.connectOrCreate = events.map((e) => ({
+          where: {
+            conversationId_userId: {
+              // @ts-expect-error we validated above that conversation exists.
+              conversationId: e.conversation.id,
+              userId,
+            },
+          },
+          create: {
+            // @ts-expect-error we validated above that conversation exists.
+            conversationId: e.conversation.id,
+          },
+        }));
+      }
+
+      // If data attending has information for disconnecting (de-attending). Naming is historical, we actually create now.
+      if (data.attending.disconnect?.length) {
+        const events = await this.prisma.event.findMany({
+          where: { id: { in: data.attending.disconnect } },
+          select: {
+            id: true,
+            conversation: { select: { id: true } },
+          },
+        });
+
+        // Making sure that events and their conversation data exists
+        if (events.length !== data.attending.disconnect.length) {
+          throw new NotFoundException('One or more events not found');
+        }
+
+        for (const event of events) {
+          if (!event.conversation) {
+            throw new Error(`Event ${String(event.id)} has no conversation`);
+          }
+        }
+
+        // Storing the changes in the operation objects
+        attendingOps.deleteMany = data.attending.disconnect.map((eventId) => ({
+          eventId,
+          userId,
+        }));
+
+        membershipOps.deleteMany = events.map((e) => ({
+          // @ts-expect-error we validated above that conversation exists.
+          conversationId: e.conversation.id,
+          userId,
+        }));
+      }
+
+      if (Object.keys(attendingOps).length) {
+        newData.attending = attendingOps;
+      }
+
+      if (Object.keys(membershipOps).length) {
+        newData.convMemberships = membershipOps;
+      }
     }
 
-    const attendingIds: number[] = Array.isArray(data.attending)
-      ? data.attending
-      : [data.attending];
+    if (Object.keys(newData).length === 0) {
+      throw new BadRequestException('No fields to update');
+    }
 
-    return this.prisma.user.update({
-      where: { id },
-      data: {
+    const user_raw = await this.prisma.user.update({
+      where: { id: userId },
+      data: newData,
+      include: {
         attending: {
-          connect: attendingIds.map((id) => ({ id })),
+          select: {
+            event: {
+              select: {
+                title: true,
+              },
+            },
+          },
         },
       },
-      include: {
-        attending: true,
-      },
     });
+
+    const user = {
+      ...user_raw,
+      attending: user_raw.attending.map((a) => ({
+        title: a.event.title,
+      })),
+    };
+    return user;
   }
 }

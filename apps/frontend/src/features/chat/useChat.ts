@@ -1,18 +1,18 @@
 import { io, type Socket } from 'socket.io-client';
 import { useEffect, useRef, useState } from 'react';
-import type { ResChatMessage } from '@grit/schema';
+import { type ResChatMessage } from '@grit/schema';
 import { useAuthStore } from '@/store/authStore';
 
-export function useChat(eventId: number) {
+export function useChat(conversationId: string) {
   const socketRef = useRef<Socket | null>(null);
   const [messages, setMessages] = useState<ResChatMessage[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const token = useAuthStore((s) => s.token);
+  const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    // TODO Hardcoded the url for now because of issues with env vars loading
-    const socket = io(`http://localhost:3000`, {
-      transports: ['websocket'],
+    const socket = io({
+      path: '/api/socket.io',
       auth: {
         token,
       },
@@ -21,7 +21,7 @@ export function useChat(eventId: number) {
     socketRef.current = socket;
 
     socket.on('connect', () => {
-      socket.emit('join', { eventId });
+      socket.emit('join', { id: conversationId });
     });
 
     socket.on('message', (msg: ResChatMessage) => {
@@ -32,6 +32,11 @@ export function useChat(eventId: number) {
       setMessages((prev) => [...msgs, ...prev]);
     });
 
+    socket.on('error', (err: { message: string }) => {
+      setMessages(() => []);
+      setErrorMessage(err.message ?? 'Error');
+    });
+
     socket.on('history_end', () => {
       setHasMore(false);
     });
@@ -39,7 +44,7 @@ export function useChat(eventId: number) {
     return () => {
       socket.disconnect();
     };
-  }, [eventId]);
+  }, [conversationId]);
 
   const sendMessage = (text: string) => {
     if (!text.trim()) return;
@@ -56,5 +61,5 @@ export function useChat(eventId: number) {
     });
   };
 
-  return { messages, sendMessage, loadMore, hasMore };
+  return { messages, sendMessage, loadMore, hasMore, errorMessage };
 }

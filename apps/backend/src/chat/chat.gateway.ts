@@ -5,28 +5,58 @@ import {
   SubscribeMessage,
   WebSocketServer,
   WebSocketGateway,
+  WsException,
 } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
+import { Server, Socket, type DefaultEventsMap } from 'socket.io';
 import { UserService } from '@/user/user.service';
 import { ChatService } from '@/chat/chat.service';
 import { randomUUID } from 'crypto';
-import { ReqChatMessagePostDto, ReqChatJoinSchemaDto } from '@/chat/chat.schema';
+import { ReqChatMessagePostDto, ReqChatJoinDto } from '@/chat/chat.schema';
 import { ResChatMessageSchema, ReqSocketAuthSchema } from '@grit/schema';
-import 'socket.io';
-import type { DefaultEventsMap } from 'socket.io';
+import { ConversationService } from '@/conversation/conversation.service';
+import { ZodValidationPipe } from 'nestjs-zod';
+import { ArgumentsHost, Catch, UseFilters, UsePipes, WsExceptionFilter } from '@nestjs/common';
+import { PrismaService } from '@/prisma/prisma.service';
+import { env } from 'process';
 
 interface SocketData {
   userId: number;
   userName: string;
   userAvatarKey?: string;
-  eventId?: number;
+  conversationId?: string;
 }
 
 export type AppSocket = Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>;
 export type AppServer = Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>;
 
+// Custom filter to print Zod validation errors in Websocket context. Otherwise these fail silently.
+@Catch()
+export class AllWsExceptionsFilter implements WsExceptionFilter {
+  catch(exception: unknown, host: ArgumentsHost) {
+    const client = host.switchToWs().getClient<AppSocket>();
+
+    let message = 'Validation failed';
+
+    if (exception instanceof WsException) {
+      const error = exception.getError();
+      message = typeof error === 'string' ? error : JSON.stringify(error);
+    } else if (exception instanceof Error) {
+      message = exception.message;
+    }
+
+    client.emit('error', { message });
+  }
+}
+
 // The WebsocketGateway creates the socket similar to `const io = new Server();` and listens to it with .listen internally
-@WebSocketGateway()
+@UsePipes(new ZodValidationPipe()) // Need to add zod validation pipe to Websocket Gateway manually since otherwise not applied from global setup
+@UseFilters(new AllWsExceptionsFilter())
+@WebSocketGateway({
+  cors: {
+    origin: [`http://localhost:${env.FE_PORT ?? '5173'}`],
+    credentials: true,
+  },
+})
 export class ChatGateway {
   // With the WebSocketServer decorator we get an instance of the server. This is the same as the io object from raw Socket.IO.
   @WebSocketServer()
@@ -35,7 +65,9 @@ export class ChatGateway {
   constructor(
     private readonly authService: AuthService,
     private readonly chatService: ChatService,
-    private readonly userService: UserService
+    private readonly userService: UserService,
+    private readonly conversation: ConversationService,
+    private readonly prisma: PrismaService
   ) {}
 
   // afterInit runs ONCE when the gateway is initialized. We can install middleware in here.
@@ -71,28 +103,27 @@ export class ChatGateway {
   }
 
   @SubscribeMessage('join')
-  async handleJoin(
-    @MessageBody() body: ReqChatJoinSchemaDto,
-    @ConnectedSocket() client: AppSocket
-  ) {
-    // Check if the client is allowed to join the chat room
-    const userIsAttendingEvent = await this.userService.userIsAttendingEvent(
-      client.data.userId,
-      body.eventId
-    );
-    if (!userIsAttendingEvent) {
-      client.disconnect();
-      return 0;
-    }
-    await client.join(`event:${String(body.eventId)}`);
-    // We lock down which room (eventId) this socket belongs to
-    client.data.eventId = body.eventId;
+  async handleJoin(@MessageBody() body: ReqChatJoinDto, @ConnectedSocket() client: AppSocket) {
+    // Check if the current user is allowed to join the room for the conversation id
+    const conversation = await this.prisma.conversation.findFirst({
+      where: {
+        id: body.id,
+        participants: {
+          some: {
+            userId: client.data.userId,
+          },
+        },
+      },
+    });
+    if (!conversation) throw new WsException('You are not allowed to view this conversation');
+    else await client.join(body.id);
 
+    // We lock down which conversation this socket belongs to
+    client.data.conversationId = body.id;
     // Get message history to prefill chat
-    const rows = await this.chatService.loadMessages(body.eventId);
-    const messages = rows.reverse().map((row) => ResChatMessageSchema.parse(row));
+    const rows = await this.chatService.loadMessages(body.id);
     // Serialization in Websocket context
-    const history = messages.map((message) => ResChatMessageSchema.parse(message));
+    const history = rows.reverse().map((row) => ResChatMessageSchema.parse(row));
     client.emit('history', history);
   }
 
@@ -101,9 +132,9 @@ export class ChatGateway {
     @MessageBody() body: ReqChatMessagePostDto,
     @ConnectedSocket() client: AppSocket
   ) {
-    const eventId = client.data.eventId;
+    const conversationId = client.data.conversationId;
     // Client must have joined an event room
-    if (!eventId) {
+    if (!conversationId) {
       client.disconnect();
       return null;
     }
@@ -112,7 +143,7 @@ export class ChatGateway {
     // Emit immediately (realtime first)
     const res = {
       id,
-      eventId,
+      conversationId,
       text: body.text,
       author: {
         id: client.data.userId,
@@ -122,12 +153,12 @@ export class ChatGateway {
       createdAt: new Date(),
     };
     const message = ResChatMessageSchema.parse(res);
-    this.server.to(`event:${String(eventId)}`).emit('message', message);
+    this.server.to(conversationId).emit('message', message);
 
     // Persist asynchronously (durability second)
     await this.chatService.saveMessage({
       id,
-      eventId,
+      conversationId,
       authorId: client.data.userId,
       text: body.text,
     });
@@ -138,10 +169,10 @@ export class ChatGateway {
     @MessageBody() body: { cursorSentAt: string; cursorId: string },
     @ConnectedSocket() client: AppSocket
   ) {
-    const eventId = client.data.eventId;
-    if (!eventId) return null;
+    const conversationId = client.data.conversationId;
+    if (!conversationId) return null;
 
-    const rows = await this.chatService.loadMessages(eventId, 2, {
+    const rows = await this.chatService.loadMessages(conversationId, 5, {
       createdAt: new Date(body.cursorSentAt),
       id: body.cursorId,
     });

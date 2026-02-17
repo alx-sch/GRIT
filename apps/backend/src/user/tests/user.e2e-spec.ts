@@ -7,6 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { MailService } from '@/mail/mail.service';
+import { cleanDb } from '@/tests/utils/cleanDb';
 import { StorageService } from '@/storage/storage.service';
 
 /**
@@ -102,6 +103,12 @@ describe('User E2E', () => {
         isPublic: true,
         startAt: new Date('2025-01-01T20:00:00.000Z'),
         title: 'Alice Event 1',
+        conversation: {
+          create: {
+            type: 'EVENT',
+            createdBy: user1.id,
+          },
+        },
       },
       include: {
         author: true,
@@ -187,31 +194,47 @@ describe('User E2E', () => {
   });
 
   // User attend event
-  describe('PATCH /users/attend', () => {
+  describe('PATCH /users/me', () => {
     it('return 200 (user1 attends event successfully)', async () => {
       await request(app.getHttpServer())
-        .patch('/users/attend')
-        .send({ attending: event.id })
+        .patch('/users/me')
+        .send({ attending: { connect: [event.id] } })
+        .set('Authorization', `Bearer ${token1}`)
+        .expect(200);
+    });
+
+    it('return 200 (user1 unattends event successfully)', async () => {
+      await request(app.getHttpServer())
+        .patch('/users/me')
+        .send({ attending: { disconnect: [event.id] } })
+        .set('Authorization', `Bearer ${token1}`)
+        .expect(200);
+    });
+
+    it('return 200 (user1 reattends event successfully)', async () => {
+      await request(app.getHttpServer())
+        .patch('/users/me')
+        .send({ attending: { connect: [event.id] } })
         .set('Authorization', `Bearer ${token1}`)
         .expect(200);
     });
 
     it('return 401 unauthorized access (no valid accesstoken)', async () => {
       await request(app.getHttpServer())
-        .patch('/users/attend')
-        .send({ attending: event.id })
+        .patch('/users/me')
+        .send({ attending: { connect: [event.id] } })
         .set('Authorization', `Bearer ${token2}`)
         .expect(401);
     });
 
     it('return 400 event not found', async () => {
       const res = await request(app.getHttpServer())
-        .patch('/users/attend')
-        .send({ attending: 200 })
+        .patch('/users/me')
+        .send({ attending: { connect: [200] } })
         .set('Authorization', `Bearer ${token1}`)
         .expect(404);
       expect(res.body).toStrictEqual({
-        message: 'Event with id 200 not found',
+        message: 'One or more events not found',
         error: 'Not Found',
         statusCode: 404,
       });
@@ -242,8 +265,6 @@ describe('User E2E', () => {
 
   // Cleaning up the database and closes the app when tests are finished.
   afterAll(async () => {
-    await prisma.event.deleteMany();
-    await prisma.user.deleteMany();
-    await app.close();
+    await cleanDb(prisma);
   });
 });

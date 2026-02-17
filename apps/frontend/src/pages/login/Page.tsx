@@ -38,8 +38,11 @@ export async function loginPageAction({ request }: { request: Request }) {
     // Side effects in action = not ideal
     useAuthStore.getState().setAuthenticated(data.accessToken);
     useCurrentUserStore.getState().setUser(data.user);
+    //Use redirect param
+    const searchParams = new URLSearchParams(location.search);
+    const redirectTo = searchParams.get('redirect') ?? '/events';
     // Redirect on success
-    return redirect('/?logged_in=true');
+    return redirect(redirectTo);
   } catch (err) {
     if (axios.isAxiosError(err))
       if (err.response?.status === 401)
