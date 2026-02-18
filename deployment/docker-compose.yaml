@@ -101,8 +101,8 @@ services:
     image: minio/minio
     restart: unless-stopped
     ports:
-      - '127.0.0.1:${MINIO_PORT}:9000' # API port  code uses this)
-      - '127.0.0.1:${MINIO_DASHBOARD_PORT}:9001' # Dashboard port (in browser for user)
+      - '${MINIO_PORT}:9000' # API port  code uses this)
+      - '${MINIO_DASHBOARD_PORT}:9001' # Dashboard port (in browser for user)
     environment:
       MINIO_ROOT_USER: ${MINIO_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
