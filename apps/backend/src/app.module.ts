@@ -43,7 +43,6 @@ class HttpExceptionFilter extends BaseExceptionFilter {
     }
 
     // For Zod we simply log the error and hand it off to the BaseExceptionFilter base (super) class
-    // The logging should later probably be reduced to only necessary errors.
     if (exception instanceof ZodSerializationException) {
       const zodError = exception.getZodError();
       if (zodError instanceof ZodError) {
@@ -58,7 +57,12 @@ class HttpExceptionFilter extends BaseExceptionFilter {
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      // Load .env.local first (local dev overrides), then fall back to .env.
+      // In Codespaces/Production, system environment variables always take
+      // precedence over any file, so no .env files are needed there.
+      envFilePath: ['.env.local', '.env'],
+    }),
     UserModule,
     EventModule,
     PrismaModule,

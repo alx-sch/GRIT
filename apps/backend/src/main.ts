@@ -18,7 +18,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, cleanupOpenApiDoc(openApiDoc));
 
   // Start Server and log relevant links
-  await app.listen(env.BE_PORT);
+  await app.listen(env.BE_PORT, '0.0.0.0');
 
   const baseBEUrl = `http://localhost:${String(env.BE_PORT)}`;
   const minioUrl = `http://localhost:${String(env.MINIO_DASHBOARD_PORT || 9001)}`;
