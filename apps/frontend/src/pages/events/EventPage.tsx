@@ -23,11 +23,11 @@ export const EventPage = () => {
   const event = useLoaderData<typeof eventLoader>();
   const currentUser: CurrentUser | null = useCurrentUserStore((s) => s.user);
   const currentUserAttending =
-    currentUser && event.attending.some((el) => el.id === currentUser.id);
+    currentUser && event.attendees.some((el) => el.id === currentUser.id);
   const isAuthor = event.authorId === currentUser?.id;
 
   const [isAttending, setIsAttending] = useState(currentUserAttending);
-  const [countAttending, setCountAttending] = useState(event.attending.length);
+  const [countAttending, setCountAttending] = useState(event.attendees.length);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -45,9 +45,9 @@ export const EventPage = () => {
   //Check if user is attending
   useEffect(() => {
     if (currentUser) {
-      setIsAttending(event.attending.some((el) => el.id === currentUser.id));
+      setIsAttending(event.attendees.some((el) => el.id === currentUser.id));
     }
-  }, [event.attending, currentUser]);
+  }, [event.attendees, currentUser]);
 
   const handleGoing = async (e: React.MouseEvent) => {
     e.preventDefault(); //Prevent Link navigation
@@ -105,7 +105,7 @@ export const EventPage = () => {
                 {/* Attendees */}
                 <div className="flex flex-row gap-2 items-center">
                   <User className="h-4 w-4 text-primary" />
-                  <Text>{event.attending.length}</Text>
+                  <Text>{event.attendees.length}</Text>
                 </div>
               </div>
               {/* Action buttons */}
@@ -146,7 +146,9 @@ export const EventPage = () => {
             <img src={getEventImageUrl(event)} className="w-full aspect-square object-cover" />
           </div>
         </div>
-        {currentUserAttending && <Chat event={event} />}
+        {event.conversation?.id && currentUserAttending && (
+          <ChatBox conversationId={event.conversation?.id} />
+        )}
       </Container>
     </>
   );

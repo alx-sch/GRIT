@@ -107,7 +107,7 @@ export class EventController {
   }
 
   // Delete event image
-  @Delete('id/delete-image')
+  @Delete(':id/image')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResEventBaseSchema)

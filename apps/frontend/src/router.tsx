@@ -1,22 +1,21 @@
 import { DefaultLayout } from '@/components/layout/DefaultLayout';
-import { eventCreationLoader } from '@/pages/create/event/EventFeedPage';
+import { eventCreationLoader } from '@/pages/create/event/Page';
 import Design from '@/pages/design/Page';
 import ErrorPage from '@/pages/error/Page';
 import { eventsLoader } from '@/pages/events/EventFeedPage';
 
-import Home from '@/pages/home/Page';
-import Users, { usersLoader } from '@/pages/users/Page';
-import EventFeedPage from '@/pages/events/EventFeedPage';
-import { createBrowserRouter } from 'react-router-dom';
-import { eventLoader } from '@/pages/events/EventPage';
-import { EventPage } from '@/pages/events/EventPage';
-import { LoginPage, loginPageAction, loginPageLoader } from '@/pages/login/Page';
-import type { NavRoute } from '@/types/navroute';
-import { LogoutPage, logoutPageLoader } from '@/pages/logout/Page';
 import { ProtectedLayout, protectedLayoutLoader } from '@/components/layout/ProtectedLayout';
-import CreateEventPage from '@/pages/create/event/Page';
-import { ChatPage } from '@/pages/chat/ChatPage';
 import { ChatFeedPage } from '@/pages/chat/ChatFeedPage';
+import { ChatPage } from '@/pages/chat/ChatPage';
+import CreateEventPage from '@/pages/create/event/Page';
+import EventFeedPage from '@/pages/events/EventFeedPage';
+import { eventLoader, EventPage } from '@/pages/events/EventPage';
+import Home from '@/pages/home/Page';
+import { LoginPage, loginPageAction, loginPageLoader } from '@/pages/login/Page';
+import { LogoutPage, logoutPageLoader } from '@/pages/logout/Page';
+import Users, { usersLoader } from '@/pages/users/Page';
+import type { NavRoute } from '@/types/navroute';
+import { createBrowserRouter } from 'react-router-dom';
 import EditEventPage, { editEventLoader } from './pages/event/edit/Page';
 
 // NOTE: let's define single source of truth for our routes here
@@ -80,32 +79,25 @@ export const router = createBrowserRouter([
           },
           {
             path: ':id',
-            Component: EventPage,
-            loader: eventLoader,
-          },
-        ],
-      },
-      {
-        path: 'events/:id/edit',
-        Component: ProtectedLayout,
-        loader: protectedLayoutLoader,
-        children: [
-          {
-            path: '',
-            Component: EditEventPage,
-            loader: editEventLoader,
-          },
-        ],
-      },
-      {
-        path: 'events/:id/edit',
-        Component: ProtectedLayout,
-        loader: protectedLayoutLoader,
-        children: [
-          {
-            path: '',
-            Component: EditEventPage,
-            loader: editEventLoader,
+            children: [
+              {
+                index: true,
+                Component: EventPage,
+                loader: eventLoader,
+              },
+              {
+                path: 'edit',
+                Component: ProtectedLayout,
+                loader: protectedLayoutLoader,
+                children: [
+                  {
+                    index: true,
+                    Component: EditEventPage,
+                    loader: editEventLoader,
+                  },
+                ],
+              },
+            ],
           },
         ],
       },
