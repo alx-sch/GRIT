@@ -1,10 +1,12 @@
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/prisma/prisma.service';
+import { cleanDb } from '@/tests/utils/cleanDb';
 import { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { StorageService } from '@/storage/storage.service';
 import request from 'supertest';
 
 /**
@@ -40,7 +42,14 @@ describe('Location E2E', () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(StorageService)
+      .useValue({
+        onModuleInit: jest.fn().mockResolvedValue(undefined),
+        ensureBucket: jest.fn().mockResolvedValue(undefined),
+        uploadBuffer: jest.fn().mockResolvedValue('mock-key'),
+      })
+      .compile();
 
     app = moduleRef.createNestApplication();
     await app.init();
@@ -51,9 +60,7 @@ describe('Location E2E', () => {
 
   // Happens before each test (deletes and reseeds database).
   beforeEach(async () => {
-    await prisma.event.deleteMany();
-    await prisma.location.deleteMany();
-    await prisma.user.deleteMany();
+    await cleanDb(prisma);
 
     user = await prisma.user.create({
       data: {

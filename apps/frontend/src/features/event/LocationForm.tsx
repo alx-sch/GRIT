@@ -1,17 +1,17 @@
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Text } from '@/components/ui/typography';
 import { useDebounce } from '@/hooks/useDebounce';
 import { locationService } from '@/services/locationService';
 import { LocationBase } from '@/types/location';
 import { CreateLocationInput, CreateLocationSchema } from '@grit/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { isAxiosError } from 'axios';
-import { AlertCircleIcon, Search } from 'lucide-react';
+import { AlertCircleIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { Control, Controller, SubmitHandler, useForm, useWatch } from 'react-hook-form';
+import { APIProvider } from '@vis.gl/react-google-maps';
+import { GMap } from '@/components/ui/gmap';
 
 //Key for local Storage
 const DRAFT_KEY = 'location-draft';
@@ -32,14 +32,16 @@ interface LocationFormProps {
   onCancel: () => void;
 }
 
-//TODO: Remove default coordinate value (lng/lat) once Google maps is integrated
 export default function LocationForm({ onSuccess, onCancel }: LocationFormProps) {
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API as string;
+
   const {
     register,
     handleSubmit,
     setValue,
     control,
     setError,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<CreateLocationInput>({
     resolver: zodResolver(CreateLocationSchema),
@@ -47,27 +49,25 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
       name: '',
       city: '',
       country: '',
-      latitude: 52.45,
-      longitude: 13.34,
+      latitude: undefined,
+      longitude: undefined,
       isPublic: undefined,
       address: '',
       postalCode: '',
     },
   });
 
+  const latitude = useWatch({ control, name: 'latitude' });
+  const longitude = useWatch({ control, name: 'longitude' });
+
   //Restore draft if exists
   useEffect(() => {
     const saved = localStorage.getItem(DRAFT_KEY);
     if (saved) {
-      const draft = JSON.parse(saved) as Record<string, unknown>;
-      for (const [key, value] of Object.entries(draft)) {
-        setValue(
-          key as keyof CreateLocationInput,
-          value as CreateLocationInput[keyof CreateLocationInput]
-        );
-      }
+      const draft = JSON.parse(saved) as CreateLocationInput;
+      reset(draft);
     }
-  }, [setValue]);
+  }, [reset]);
 
   const onSubmit: SubmitHandler<CreateLocationInput> = async (data) => {
     if (!data.longitude || !data.latitude) {
@@ -105,22 +105,22 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
     <>
       <form
         onSubmit={(e) => {
-          void handleSubmit(
-            onSubmit /*(validationErrors) => {
+          void handleSubmit(onSubmit, (validationErrors) => {
             if (validationErrors.latitude || validationErrors.longitude) {
-              setError('root', { message: 'Please select a location on the map' });
+              setError('root', { message: 'Please search for a location on the map' });
             }
-          }*/
-          )(e);
+          })(e);
         }}
         className="flex flex-col gap-4 h-full overflow-y-auto flex-1 px-1 pb-1 pr-3"
       >
         <DraftSaver control={control} />
+
         {/* Hidden Inputs: latitude and longitude */}
-        <Input type="hidden" {...register('latitude')} />
-        <Input type="hidden" {...register('longitude')} />
+        <Input type="hidden" id="latitude" {...register('latitude', { valueAsNumber: true })} />
+        <Input type="hidden" id="longitude" {...register('longitude', { valueAsNumber: true })} />
+
         {/* Name */}
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 mb-2">
           <label htmlFor="name" className="font-heading">
             Name of the location
           </label>
@@ -140,30 +140,22 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
         </div>
 
         {/* Map component */}
-        <Card className="h-80 min-h-70 flex flex-col">
-          <CardContent className="flex flex-col h-full p-4 gap-4">
-            {/* Search input */}
+        <label className="font-heading">Set a location pin</label>
+        <APIProvider apiKey={apiKey}>
+          <GMap setValue={setValue} lng={longitude} lat={latitude} />
+        </APIProvider>
 
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input type="text" placeholder="Search your location address" className="pl-9" />
-            </div>
-            <div className="flex flex-1 text-center justify-center">
-              <Text>***PLACEHOLDER FOR GOOGLE MAPS COMPONENT***</Text>
-            </div>
-          </CardContent>
-        </Card>
         {/* Address/PostCode */}
         <div className="flex flex-row gap-6">
           <div className="flex flex-col flex-1 gap-2">
             <label htmlFor="address" className="font-heading">
-              Address
+              Address or Location
             </label>
             <Input
               id="address"
               type="text"
               {...register('address')}
-              placeholder='e.g "Harzer Straße 42"'
+              placeholder='e.g "Alexanderplatz"'
             />
           </div>
         </div>

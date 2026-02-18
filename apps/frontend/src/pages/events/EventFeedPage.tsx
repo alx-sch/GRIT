@@ -53,7 +53,7 @@ const sortOptions: ComboboxOptions[] = [
   { value: 'popularity', label: 'Most popular' },
 ];
 
-export default function EventFeed() {
+export default function EventFeedPage() {
   const { events, locations } = useTypedLoaderData<{
     events: EventResponse;
     locations: LocationBase[];

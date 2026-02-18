@@ -2,7 +2,7 @@ import { Container } from '@/components/layout/Container';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Heading, Text } from '@/components/ui/typography';
-import { Chat } from '@/features/chat/Chat';
+import { ChatBox } from '@/features/chat/ChatBox';
 import { getEventImageUrl } from '@/lib/image_utils';
 import { eventService } from '@/services/eventService';
 import { userService } from '@/services/userService';
@@ -19,7 +19,7 @@ export const eventLoader = async ({ params }: LoaderFunctionArgs) => {
   return event;
 };
 
-export const Event = () => {
+export const EventPage = () => {
   const event = useLoaderData<typeof eventLoader>();
   const currentUser: CurrentUser | null = useCurrentUserStore((s) => s.user);
   const currentUserAttending =

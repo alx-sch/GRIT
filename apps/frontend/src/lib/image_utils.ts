@@ -5,12 +5,12 @@ export function getEventImageUrl(event: EventBase): string {
   if (!event.imageKey) {
     return generateImagePlaceholderEvent(event);
   }
-  return `${env.VITE_MINIO_URL}/event-images/${event.imageKey}`;
+  return `${env.MINIO_URL}/event-images/${event.imageKey}`;
 }
 
 export function getAvatarImageUrl(avatarFilename: string | undefined): string {
   if (!avatarFilename) return '';
-  return `${env.VITE_MINIO_URL}/user-avatars/${avatarFilename}`;
+  return `${env.MINIO_URL}/user-avatars/${avatarFilename}`;
 }
 
 function wrapLines(text: string, maxLen = 12, maxLines = 3): string[] {

@@ -13,7 +13,7 @@ export const ReqChatMessagePostSchema = z.object({
 // Chat Message sent from server
 export const ResChatMessageSchema = z.object({
   id: z.uuid(),
-  eventId: z.number().int().positive(),
+  conversationId: z.uuid(),
   text: z.string(),
   createdAt: z.date(),
   author: z.object({
@@ -26,5 +26,5 @@ export type ResChatMessage = z.infer<typeof ResChatMessageSchema>;
 
 // Chat Join request sent from client
 export const ReqChatJoinSchema = z.object({
-  eventId: z.number().int().positive(),
+  id: z.uuid(),
 });

@@ -30,14 +30,14 @@ export function EventCard({ event, location }: EventCardProps) {
   const [isLoading, setIsLoading] = useState(false);
   const currentUser: CurrentUser | null = useCurrentUserStore((s) => s.user);
   const navigate = useNavigate();
-  const [countAttending, setCountAttending] = useState(event.attending.length);
+  const [countAttending, setCountAttending] = useState(event.attendees.length);
 
   //Check if user is attending
   useEffect(() => {
     if (currentUser) {
-      setIsAttending(event.attending.some((el) => el.id === currentUser.id));
+      setIsAttending(event.attendees.some((el) => el.id === currentUser.id));
     }
-  }, [event.attending, currentUser]);
+  }, [event.attendees, currentUser]);
 
   const handleGoing = async (e: React.MouseEvent) => {
     e.preventDefault(); //Prevent Link navigation

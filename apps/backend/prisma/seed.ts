@@ -7,12 +7,12 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '@prisma/client';
-import crypto from 'crypto';
+import { PrismaClient, User } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
 import { Pool } from 'pg';
 import * as bcrypt from 'bcrypt';
+import { getPublicS3Policy, generateS3Key } from '@/storage/storage.utils';
 
 // Setup the Postgres connection
 const pool = new Pool({ connectionString: env.DATABASE_URL });
@@ -34,21 +34,6 @@ interface S3Error {
   $metadata?: { httpStatusCode?: number };
 }
 
-// This ensures that anyone can view the images via a URL without needing a
-// private signature.
-const getPublicPolicy = (bucketName: string) =>
-  JSON.stringify({
-    Version: '2012-10-17',
-    Statement: [
-      {
-        Effect: 'Allow',
-        Principal: { AWS: ['*'] },
-        Action: ['s3:GetObject'],
-        Resource: [`arn:aws:s3:::${bucketName}/*`],
-      },
-    ],
-  });
-
 // Helper: Check if bucket exists, create if not
 async function ensureBucket(bucketName: string) {
   console.log(`Checking for bucket: ${bucketName}...`);
@@ -69,7 +54,7 @@ async function ensureBucket(bucketName: string) {
       await s3.send(
         new PutBucketPolicyCommand({
           Bucket: bucketName,
-          Policy: getPublicPolicy(bucketName),
+          Policy: getPublicS3Policy(bucketName),
         })
       );
       console.log(`✅ Bucket '${bucketName}' created.`);
@@ -79,7 +64,7 @@ async function ensureBucket(bucketName: string) {
   }
 }
 
-// Helper: Upload file to bukcet
+// Helper: Upload file to bucket
 async function uploadToBucket(bucketName: string, localFilePath: string, originalName: string) {
   // 1. Check if local file exists
   if (!fs.existsSync(localFilePath)) {
@@ -87,13 +72,9 @@ async function uploadToBucket(bucketName: string, localFilePath: string, origina
     return null;
   }
 
-  // 2. Read file from disk
+  // 2. Read file from disk and hash
   const fileBuffer = fs.readFileSync(localFilePath);
-
-  const fileHash = crypto.randomBytes(4).toString('hex');
-  const timestamp = Date.now();
-  const extension = path.extname(originalName);
-  const s3Key = `${String(timestamp)}-${fileHash}${extension}`;
+  const s3Key = generateS3Key(originalName);
 
   // 3. Upload to S3/MinIO
   try {
@@ -225,11 +206,11 @@ async function main() {
     }
   }
 
-  ///////////////////
-  // EVENT SEEDING //
-  ///////////////////
+  ///////////////////////////////////
+  // EVENT SEEDING & CONVERSATIONS //
+  ///////////////////////////////////
 
-  console.log('--- Seeding Events ---');
+  console.log('--- Seeding Events & Matching Conversations ---');
 
   const eventsToCreate = [
     {
@@ -266,15 +247,40 @@ async function main() {
   ];
 
   for (const e of eventsToCreate) {
-    // Simple check to avoid duplicates if seed run twice
-    const existing = await prisma.event.findFirst({
+    // Simple check to avoid duplicate events if seed run twice
+    const existingEvent = await prisma.event.findFirst({
       where: { title: e.title, authorId: e.authorId },
     });
 
-    if (!existing) {
+    if (!existingEvent) {
       // Extract image from event data (not a DB field)
-      const { image, ...eventData } = e;
-      const event = await prisma.event.create({ data: eventData });
+      const { image } = e;
+
+      const event = await prisma.event.create({
+        data: {
+          title: e.title,
+          authorId: e.authorId,
+          startAt: e.startAt,
+          endAt: e.endAt,
+          isPublic: e.isPublic,
+          isPublished: e.isPublished,
+
+          attendees: {
+            create: [{ userId: e.authorId }],
+          },
+
+          conversation: {
+            create: {
+              type: 'EVENT',
+              createdBy: e.authorId,
+              participants: {
+                create: [{ userId: e.authorId }],
+              },
+            },
+          },
+        },
+      });
+
       console.log(`📅 Created Event: ${e.title} for User ${String(e.authorId)}`);
 
       // Upload image if specified
@@ -297,7 +303,7 @@ async function main() {
   // ATTENDANCE SEEDING //
   ////////////////////////
 
-  console.log('--- Seeding Atendance ---');
+  console.log('--- Seeding Attendance ---');
 
   const aliceFromDb = await prisma.user.findUnique({ where: { email: 'alice@example.com' } });
   const bobFromDb = await prisma.user.findUnique({ where: { email: 'bob@example.com' } });
@@ -306,15 +312,40 @@ async function main() {
   const attendees = [aliceFromDb, bobFromDb];
 
   if (!party) throw new Error('Party not found');
+
+  const conversation = await prisma.conversation.findUnique({
+    where: { eventId: party.id },
+    select: { id: true },
+  });
+
+  if (!conversation) throw new Error('Event conversation missing');
+
+  // Seed Attendance
+
+  await prisma.eventAttendee.createMany({
+    data: attendees
+      .filter((attendee): attendee is User => attendee !== null)
+      .map((attendee) => ({
+        eventId: party.id,
+        userId: attendee.id,
+      })),
+    skipDuplicates: true,
+  });
+
+  // Additionally seed conversation participation for the same users
+
+  await prisma.conversationParticipant.createMany({
+    data: attendees
+      .filter((attendee): attendee is User => attendee !== null)
+      .map((attendee) => ({
+        conversationId: conversation.id,
+        userId: attendee.id,
+      })),
+    skipDuplicates: true,
+  });
+
   for (const attendee of attendees) {
-    if (!attendee) continue;
-    await prisma.user.update({
-      where: { id: attendee.id },
-      data: {
-        attending: { connect: { id: party.id } },
-      },
-    });
-    if (attendee.name) console.log(`✅ ${attendee.name} is now attending the Party`);
+    if (attendee?.name) console.log(`✅ ${attendee.name} is now attending the Party`);
   }
 }
 
