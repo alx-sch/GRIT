@@ -17,7 +17,6 @@ import { ConversationService } from '@/conversation/conversation.service';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { ArgumentsHost, Catch, UseFilters, UsePipes, WsExceptionFilter } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { env } from 'process';
 
 interface SocketData {
   userId: number;
