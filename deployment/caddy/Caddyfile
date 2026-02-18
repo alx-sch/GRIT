@@ -24,20 +24,9 @@ localhost:443, :443 {
 	# Match requests starting with '/api' and strips the '/api' prefix.
 	# Example: Frontend requests '/api/users' -> Backend receives '/users'.
 	# This is required because the NestJS controller is mapped to 'users', not 'api/users'.
-
-	# SPECIFIC: Handle WebSockets first
-	handle /api/socket.io/* {
-		reverse_proxy backend:3000 {
-		header_up Host {host}
-		header_up X-Real-IP {remote_host}
-	}
-
-	# GENERAL: Handle all other API calls
 	handle_path /api/* {
 		reverse_proxy backend:3000
 	}
-
-}
 
 	# ---------------------
 	# Frontend SPA

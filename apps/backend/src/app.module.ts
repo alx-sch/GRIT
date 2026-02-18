@@ -58,10 +58,9 @@ class HttpExceptionFilter extends BaseExceptionFilter {
 @Module({
   imports: [
     ConfigModule.forRoot({
-      // Load .env.local first (local dev overrides), then fall back to .env.
       // In Codespaces/Production, system environment variables always take
       // precedence over any file, so no .env files are needed there.
-      envFilePath: ['.env.local', '.env'],
+      envFilePath: ['.env'],
     }),
     UserModule,
     EventModule,
