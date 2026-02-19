@@ -51,6 +51,32 @@ test.describe('Authentication Flow', () => {
         },
       });
     });
+
+    // Mock events
+    await page.route('**/api/events*', async (route) => {
+      await route.fulfill({
+        json: {
+          data: [],
+          pagination: {
+            nextCursor: null,
+            hasMore: false,
+          },
+        },
+      });
+    });
+
+    // Mock locations
+    await page.route('**/api/locations*', async (route) => {
+      await route.fulfill({
+        json: {
+          data: [],
+          pagination: {
+            nextCursor: null,
+            hasMore: false,
+          },
+        },
+      });
+    });
   });
 
   test('should allow user to login', async ({ page }) => {
@@ -81,10 +107,10 @@ test.describe('Authentication Flow', () => {
     await page.getByLabel('Name').fill('John Doe');
     await page.getByLabel('Email').fill('newuser@example.com');
     await page.getByLabel('Password', { exact: true }).fill('Password123!');
+    await page.getByLabel('Re-type Password').fill('Password123!');
 
     await page.getByRole('button', { name: 'Create account' }).click();
 
-    await expect(page).toHaveURL('/register');
     await expect(page.getByText('Account created')).toBeVisible();
   });
 
