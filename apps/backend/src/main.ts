@@ -6,14 +6,14 @@ import { env } from '@/config/env';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Create API Documentation Document with Swagger
   const document = new DocumentBuilder()
     .setTitle('GRIT API')
     .setDescription('API built with Zod and Swagger')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
-
-  // Create API Documentation Document with Swagger
   const openApiDoc = SwaggerModule.createDocument(app, document);
   SwaggerModule.setup('api', app, cleanupOpenApiDoc(openApiDoc));
 
@@ -22,6 +22,7 @@ async function bootstrap() {
 
   const baseBEUrl = `http://localhost:${String(env.BE_PORT)}`;
   const minioUrl = `http://localhost:${String(env.MINIO_DASHBOARD_PORT || 9001)}`;
+  const frontendUrl = `http://localhost:${String(env.FE_PORT || 5173)}`;
 
   const c = {
     reset: '\x1b[0m',
@@ -40,8 +41,9 @@ async function bootstrap() {
     console.log(url('[Backend ]', baseBEUrl));
     console.log(url('[Swagger ]', `${baseBEUrl}/api`));
     console.log(url('[Status  ]', `${baseBEUrl}/health`));
-    console.log(url('[Frontend]', `http://localhost:${String(env.FE_PORT)}`));
+    console.log(url('[OAuth   ]', `${baseBEUrl}/auth/google`));
     console.log(url('[MinIO   ]', minioUrl));
+    console.log(url('[Frontend]', frontendUrl));
     console.log(separator);
     console.log(`View Postgres DB:   ${c.yellow}make view-db${c.reset}`);
     console.log(separator);

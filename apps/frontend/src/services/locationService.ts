@@ -1,5 +1,6 @@
 import api from '@/lib/api';
 import type { LocationBase, LocationResponse } from '@/types/location';
+import { CreateLocationInput } from '@grit/schema';
 
 interface GetLocationsParams {
   limit?: string;
@@ -17,7 +18,7 @@ export const locationService = {
     return response.data;
   },
 
-  postLocation: async (data: FormData): Promise<LocationBase> => {
+  postLocation: async (data: CreateLocationInput): Promise<LocationBase> => {
     const response = await api.post<LocationBase>('/locations', data);
     return response.data;
   },

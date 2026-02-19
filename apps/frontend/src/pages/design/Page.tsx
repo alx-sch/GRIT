@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Combobox } from '@/components/ui/combobox';
 import { DatePicker } from '@/components/ui/datepicker';
+import { FileUpload } from '@/components/ui/fileUpload';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -289,6 +290,29 @@ export default function Design() {
                   </AlertDescription>
                 </Alert>
               </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* SECTION 4: Files*/}
+      <section className="space-y-4">
+        <Heading level={2}>4. Files</Heading>
+        <Separator />
+
+        <div className="grid gap-8 md:grid-cols-3">
+          {/* File upload*/}
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle>File Upload</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FileUpload
+                onChange={() => {
+                  console.log('File changed');
+                }}
+                aspectRatio="square"
+              ></FileUpload>
             </CardContent>
           </Card>
         </div>

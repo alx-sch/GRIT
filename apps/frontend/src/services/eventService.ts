@@ -1,5 +1,6 @@
 import api from '@/lib/api';
 import type { EventBase, EventResponse } from '@/types/event';
+import { CreateEventInput } from '@grit/schema';
 
 interface GetEventsParams {
   search?: string;
@@ -9,16 +10,7 @@ interface GetEventsParams {
   authorId?: string;
   cursor?: string;
   locationId?: string;
-}
-
-interface CreateEventPayload {
-  title: string;
-  content?: string;
-  startAt: string;
-  endAt: string;
-  isPublic: boolean;
-  isPublished: boolean;
-  locationId?: number;
+  sort?: string;
 }
 
 export const eventService = {
@@ -31,14 +23,39 @@ export const eventService = {
     if (params?.authorId) queryParams.set('authorId', params.authorId);
     if (params?.cursor) queryParams.set('cursor', params.cursor);
     if (params?.locationId) queryParams.set('location_id', params.locationId);
+    if (params?.sort) queryParams.set('sort', params.sort);
     const queryString = queryParams.toString();
     const url = queryString ? `events?${queryString}` : '/events';
     const response = await api.get<EventResponse>(url);
     return response.data;
   },
 
-  postEvent: async (data: CreateEventPayload): Promise<EventBase> => {
+  getEvent: async (id: string): Promise<EventBase> => {
+    const response = await api.get<EventBase>(`/events/${id}`);
+    return response.data;
+  },
+
+  postEvent: async (data: CreateEventInput): Promise<EventBase> => {
     const response = await api.post<EventBase>('/events', data);
+    return response.data;
+  },
+
+  uploadEventImage: async (
+    eventId: number,
+    file: File,
+    onProgress?: (progress: number) => void
+  ): Promise<EventBase> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await api.patch<EventBase>(
+      `/events/${String(eventId)}/upload-image`,
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (e) => onProgress?.(Math.round((e.loaded * 100) / (e.total ?? 1))),
+      }
+    );
     return response.data;
   },
 };

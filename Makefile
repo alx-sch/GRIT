@@ -226,7 +226,7 @@ lint-fix: install
 	@turbo lint:fix --no-update-notifier;
 	@echo "$(BOLD)$(GREEN)Linting complete.$(RESET)"
 
-format: install clean
+format: clean install
 	@echo "$(BOLD)$(YELLOW)--- Formating...$(RESET)"
 	pnpm run format;
 	@echo "$(BOLD)$(GREEN)Formating complete.$(RESET)"

@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
   const frontendPort = parseInt(env.FE_PORT || '5173');
 
   return {
+    envPrefix: ['VITE_', 'BE_', 'MINIO_'],
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
@@ -27,6 +28,7 @@ export default defineConfig(({ mode }) => {
           target: `http://localhost:${backendPort}`,
           changeOrigin: true,
           secure: false,
+          ws: true,
           rewrite: (path) => path.replace(/^\/api/, ''),
         },
       },

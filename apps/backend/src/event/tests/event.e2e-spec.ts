@@ -6,6 +6,8 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { cleanDb } from '@/tests/utils/cleanDb';
+import { StorageService } from '@/storage/storage.service';
 
 /**
  * ========================================
@@ -38,7 +40,14 @@ describe('Events E2E', () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(StorageService)
+      .useValue({
+        onModuleInit: jest.fn().mockResolvedValue(undefined),
+        ensureBucket: jest.fn().mockResolvedValue(undefined),
+        uploadBuffer: jest.fn().mockResolvedValue('mock-key'),
+      })
+      .compile();
 
     app = moduleRef.createNestApplication();
     await app.init();
@@ -49,8 +58,7 @@ describe('Events E2E', () => {
 
   // Happens before each test (deletes and reseeds database).
   beforeEach(async () => {
-    await prisma.event.deleteMany();
-    await prisma.user.deleteMany();
+    await cleanDb(prisma);
 
     user = await prisma.user.create({
       data: {

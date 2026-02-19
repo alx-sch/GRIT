@@ -1,30 +1,12 @@
-import { LocationBase } from './location';
-import { UserBase } from './user';
+import type { ResEventBase, ResEventGetPublished } from '@grit/schema';
+
+export type EventBase = Omit<ResEventBase, 'startAt' | 'endAt' | 'createdAt'> & {
+  startAt: string;
+  endAt: string;
+  createdAt: string;
+};
 
 export interface EventResponse {
   data: EventBase[];
-  pagination: {
-    hasMore: boolean;
-    nextCursor: string | null;
-  };
-}
-
-export interface EventBase {
-  id: number;
-  createdAt: number;
-  content?: string;
-  endAt: string;
-  isPublic: boolean;
-  isPublished: boolean;
-  startAt: string;
-  title: string;
-  imageKey: string;
-
-  author: UserBase;
-  authorId: number;
-
-  attending: UserBase[];
-
-  locationId?: number;
-  location?: LocationBase;
+  pagination: ResEventGetPublished['pagination'];
 }

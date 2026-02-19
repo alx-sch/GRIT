@@ -1,12 +1,8 @@
-export interface UserResponse {
-  data: UserBase[];
-  pagination: {
-    hasMore: boolean;
-    nextCursor: string | null;
-  };
-}
-export interface UserBase {
+export type { ResUserBase as UserBase, ResUserGetAll as UserResponse } from '@grit/schema';
+
+export interface CurrentUser {
   id: number;
-  name: string;
-  email: string;
+  email?: string;
+  avatarKey?: string;
+  name?: string;
 }

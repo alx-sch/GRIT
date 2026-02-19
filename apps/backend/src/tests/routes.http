@@ -10,17 +10,23 @@ GET {{baseUrl}}
 
 # ========== USER ONBOARDING ==========
 
-POST {{baseUrl}}/users
+POST {{baseUrl}}/auth/register
 Content-Type: application/json
 
 {
-	"name": "Thomas Test",
-	"email": "tester_v99@grit.comss",
+	"name": "Roberta Test",
+	"email": "test2@test.com",
 	"password": "password123"
 }
 ###
 
-// ========== AUTHENTICATOION ========== //
+# Confirm Email
+# Replace the 'token' value with the one you see in Mailtrap or the DB
+@confToken =14baa7811e83aac0f4cc9264d57f81f53d010bc933f79e478d52ead940abba08
+GET {{baseUrl}}/auth/confirm?token={{confToken}}
+###
+
+// ========== AUTHENTICATION ========== //
 
 # Get token of user 1
 # @name debugGetToken
@@ -129,7 +135,7 @@ GET {{baseUrl}}/events/2
 ###
 
 // Create event, use to whatever user the token resolves to
-POST http://localhost:3000/events HTTP/1.1
+POST {{baseUrl}}/events HTTP/1.1
 Authorization: Bearer {{token}}
 content-type: application/json
 
@@ -143,7 +149,7 @@ content-type: application/json
 ###
 
 # Update event (using ID 1)
-PATCH http://localhost:3000/events/1 HTTP/1.1
+PATCH {{baseUrl}}/events/1 HTTP/1.1
 Authorization: Bearer {{token}}
 content-type: application/json
 
@@ -154,6 +160,7 @@ content-type: application/json
 ###
 
 # Delete event (using ID 4)
-DELETE http://localhost:3000/events/4 HTTP/1.1
+DELETE {{baseUrl}}/events/4 HTTP/1.1
 Authorization: Bearer {{token}}
 ###
+

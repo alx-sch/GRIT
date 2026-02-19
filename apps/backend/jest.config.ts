@@ -6,6 +6,7 @@ const base = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
     '^@grit/schema$': '<rootDir>/../../../packages/schema/src/index.ts',
+    '^(\\.{1,2}/.+)\\.js$': '$1',
   },
   collectCoverageFrom: ['**/*.(t|j)s'],
   coverageDirectory: '../coverage',

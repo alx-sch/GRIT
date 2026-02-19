@@ -1,5 +1,5 @@
 import api from '@/lib/api';
-import type { UserResponse } from '@/types/user';
+import type { UserBase, UserResponse } from '@/types/user';
 
 interface GetUsersParams {
   limit?: string;
@@ -19,6 +19,16 @@ export const userService = {
   },
   getMe: async (): Promise<User> => {
     const response = await api.get<User>('/users/me');
+
+  attendEvent: async (eventId: number): Promise<UserBase> => {
+    const response = await api.patch<UserBase>('users/me', { attending: { connect: [eventId] } });
+    return response.data;
+  },
+
+  unattendEvent: async (eventId: number): Promise<UserBase> => {
+    const response = await api.patch<UserBase>('users/me', {
+      attending: { disconnect: [eventId] },
+    });
     return response.data;
   },
 };

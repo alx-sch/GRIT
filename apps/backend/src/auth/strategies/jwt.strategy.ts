@@ -7,8 +7,8 @@ import { UserService } from '@/user/user.service';
 /**
  * JWT STRATEGY
  * -------------------------------------------------------------------------
- * USAGE:
- * This class is the "Security Guard" for your protected routes.
+ * ROLE:
+ * This class is the "Security Guard" for protected routes.
  * When a controller uses @UseGuards(JwtAuthGuard), this strategy is triggered.
  *
  * HOW IT WORKS:
@@ -17,7 +17,7 @@ import { UserService } from '@/user/user.service';
  * 3. It checks if the token is expired.
  * 4. If valid, the 'validate' method runs, extracting user data from the token.
  * 5. This data is then attached to the Request object, allowing you to use
- * the @GetUser() decorator in your controllers.
+ *    the @GetUser() decorator in your controllers.
  * -------------------------------------------------------------------------
  */
 

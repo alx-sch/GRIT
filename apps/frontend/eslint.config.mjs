@@ -47,6 +47,8 @@ export default tseslint.config(
       'react/jsx-no-target-blank': 'error',
       'react/prop-types': 'off', // Not needed with TypeScript
 
+      // Dependency arrays must not
+      'react-hooks/exhaustive-deps': 'off',
       // For React Router loosen the "only throw Errors" rule from default config
       '@typescript-eslint/only-throw-error': 'off',
       // Too many stupid false positives

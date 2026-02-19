@@ -1,11 +1,13 @@
-import { Test } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/prisma/prisma.service';
+import { cleanDb } from '@/tests/utils/cleanDb';
+import { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { Test } from '@nestjs/testing';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { StorageService } from '@/storage/storage.service';
+import request from 'supertest';
 
 /**
  * ========================================
@@ -40,7 +42,14 @@ describe('Location E2E', () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(StorageService)
+      .useValue({
+        onModuleInit: jest.fn().mockResolvedValue(undefined),
+        ensureBucket: jest.fn().mockResolvedValue(undefined),
+        uploadBuffer: jest.fn().mockResolvedValue('mock-key'),
+      })
+      .compile();
 
     app = moduleRef.createNestApplication();
     await app.init();
@@ -51,9 +60,7 @@ describe('Location E2E', () => {
 
   // Happens before each test (deletes and reseeds database).
   beforeEach(async () => {
-    await prisma.event.deleteMany();
-    await prisma.location.deleteMany();
-    await prisma.user.deleteMany();
+    await cleanDb(prisma);
 
     user = await prisma.user.create({
       data: {
@@ -163,9 +170,10 @@ describe('Location E2E', () => {
       expect(res.body.pagination.hasMore).toBe(true);
     });
 
-    it('returns first location (confirms name=null gets placed last) -> limit set to 1)', async () => {
+    it('returns first location -> limit set to 1)', async () => {
       await prisma.location.create({
         data: {
+          name: 'location 1',
           isPublic: true,
           author: { connect: { id: user.id } },
           longitude: 42,
@@ -241,7 +249,6 @@ describe('Location E2E', () => {
     it('posts a new location', async () => {
       const newLocationData = {
         isPublic: true,
-        authorId: user.id,
         longitude: 42,
         latitude: 42,
         name: 'Test Location 2',
@@ -255,13 +262,13 @@ describe('Location E2E', () => {
 
       expect(res.body).toMatchObject({
         name: newLocationData.name,
+        authorId: user.id,
       });
     });
 
     it('returns 400 for bad request (longitude missing)', async () => {
       const newLocationData = {
         isPublic: true,
-        authorId: user.id,
         latitude: 42,
         name: 'Test Location 2',
       };
@@ -276,7 +283,6 @@ describe('Location E2E', () => {
     it('returns 401 for unauthorized access', async () => {
       const newLocationData = {
         isPublic: true,
-        authorId: user.id,
         latitude: 42,
         name: 'Test Location 2',
       };

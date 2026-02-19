@@ -14,6 +14,9 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 import { cn } from '@/lib/utils';
+import type { VariantProps } from 'class-variance-authority';
+import type { buttonVariants } from '@/components/ui/button';
+import type { LucideIcon } from 'lucide-react';
 
 export interface ComboboxOptions {
   value: string;
@@ -29,6 +32,10 @@ export interface ComboboxProps {
   emptyMessage?: string;
   className?: string;
   showSelectedTick?: boolean;
+  footer?: React.ReactNode;
+  variant?: VariantProps<typeof buttonVariants>['variant'];
+  icon?: LucideIcon;
+  showSearch?: boolean;
 }
 
 export function Combobox({
@@ -40,6 +47,10 @@ export function Combobox({
   emptyMessage,
   className,
   showSelectedTick = false,
+  footer,
+  variant = 'outline',
+  icon: Icon,
+  showSearch = true,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -49,20 +60,25 @@ export function Combobox({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
-          variant="outline"
+          variant={variant}
           role="combobox"
           aria-expanded={open}
-          className={cn('w-full max-w-full justify-between h-12', className)}
+          className={cn(
+            'w-full max-w-full justify-between h-12',
+            variant === 'ghost' && '!px-2',
+            className
+          )}
         >
           <span className="flex items-center gap-2 truncate">
+            {Icon && <Icon className="h-4 w-4 shrink-0" />}
             {showSelectedTick && value ? <CheckIcon className="h-4 w-4 shrink-0" /> : null}
             {selectedLabel ?? placeholder}
           </span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-(--radix-popover-trigger-width) border-0 p-0 bg-secondary font-sans">
-        <Command className="**:data-[slot=command-input-wrapper]:h-11">
-          <CommandInput placeholder={searchPlaceholder} />
+      <PopoverContent className="w-(--radix-popover-trigger-width) border-0 p-0 bg-secondary font-sans min-w-58">
+        <Command className={cn(showSearch && '**:data-[slot=command-input-wrapper]:h-11')}>
+          {showSearch && <CommandInput placeholder={searchPlaceholder} />}
           <CommandList className="p-1">
             <CommandEmpty>{emptyMessage}</CommandEmpty>
             <CommandGroup>
@@ -83,6 +99,7 @@ export function Combobox({
               ))}
             </CommandGroup>
           </CommandList>
+          {footer && <div className="border-t">{footer}</div>}
         </Command>
       </PopoverContent>
     </Popover>

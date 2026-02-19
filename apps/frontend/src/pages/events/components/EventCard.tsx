@@ -8,11 +8,17 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Text } from '@/components/ui/typography';
-import { EventBase } from '@/types/event';
 import { getEventImageUrl } from '@/lib/image_utils';
+import { userService } from '@/services/userService';
+import { useCurrentUserStore } from '@/store/currentUserStore';
+import { EventBase } from '@/types/event';
 import { LocationBase } from '@/types/location';
+import type { CurrentUser } from '@/types/user';
 import { format } from 'date-fns';
 import { User } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface EventCardProps {
   event: EventBase;
@@ -20,65 +26,121 @@ interface EventCardProps {
 }
 
 export function EventCard({ event, location }: EventCardProps) {
+  const [isAttending, setIsAttending] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const currentUser: CurrentUser | null = useCurrentUserStore((s) => s.user);
+  const navigate = useNavigate();
+  const [countAttending, setCountAttending] = useState(event.attendees.length);
+
+  //Check if user is attending
+  useEffect(() => {
+    if (currentUser) {
+      setIsAttending(event.attendees.some((el) => el.id === currentUser.id));
+    }
+  }, [event.attendees, currentUser]);
+
+  const handleGoing = async (e: React.MouseEvent) => {
+    e.preventDefault(); //Prevent Link navigation
+
+    if (!currentUser) {
+      void navigate('/login?redirect=' + encodeURIComponent(`/events/${String(event.id)}`));
+      return;
+    }
+    setIsLoading(true);
+    if (isAttending) {
+      try {
+        await userService.unattendEvent(event.id);
+        setIsAttending(false);
+        setCountAttending((prev) => prev - 1);
+        toast.info('You are no longer attending "' + event.title + '".');
+      } catch (error) {
+        toast.error('Something went wrong:' + String(error));
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      try {
+        await userService.attendEvent(event.id);
+        setIsAttending(true);
+        setCountAttending((prev) => prev + 1);
+        toast.info('You’re going to "' + event.title + '".');
+      } catch (error) {
+        toast.error('Something went wrong:' + String(error));
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
   return (
-    <Card className="w-full flex flex-col rounded border-3 mx-auto hover:-translate-y-1 transition-transform duration-200 max-w-100">
-      <CardHeader>
-        <img
-          src={getEventImageUrl(event)}
-          alt={event.title}
-          className="w-full aspect-square object-cover"
-        />
-      </CardHeader>
-      <CardContent className="px-4 pb-4 pt-0 space-y-3">
-        <CardTitle className="font-bold text-3xl line-clamp-2" title={event.title}>
-          {event.title}
-        </CardTitle>
-        <CardDescription className="font-heading font-medium text-xl">
-          {format(event.startAt, 'EEE, MMM d')} @ {location?.name ?? 'TBA'}
-        </CardDescription>
-        <div className="flex items-center gap-2 text-base font-normal text-muted-foreground">
-          <User className="h-5 w-5 text-primary" strokeWidth={2} />
-          <Text>
-            {event.attending.length > 0 ? event.attending.length.toLocaleString() : 'Be the first'}
-          </Text>
-        </div>
-      </CardContent>
+    <Link to={event.id.toString()}>
+      <Card className="w-full h-full flex flex-col rounded border-3 mx-auto hover:-translate-y-1 transition-transform duration-200 max-w-100">
+        <CardHeader>
+          <img
+            src={getEventImageUrl(event)}
+            alt={event.title}
+            className="w-full aspect-square object-cover"
+          />
+        </CardHeader>
+        <CardContent className="px-4 pb-4 pt-0 space-y-3 overflow-hidden">
+          <CardTitle className="font-bold text-3xl line-clamp-2" title={event.title}>
+            {event.title}
+          </CardTitle>
+          <CardDescription
+            className="font-heading font-medium text-xl line-clamp-2 min-w-0"
+            title={`${format(event.startAt, 'EEE, MMM d')} @ ${location?.name ?? 'TBA'}`}
+          >
+            {format(event.startAt, 'EEE, MMM d')} @ {location?.name ?? 'TBA'}
+          </CardDescription>
+          <div className="flex items-center gap-2 text-base font-normal text-muted-foreground">
+            <User className="h-5 w-5 text-primary" strokeWidth={2} />
+            <Text>{countAttending > 0 ? countAttending.toLocaleString() : 'Be the first'}</Text>
+          </div>
+        </CardContent>
 
-      <CardFooter className="p-4 pt-0 pb-2 gap-2 mt-auto flex flex-col">
-        {/* Friends interested section */}
-        <div className="flex items-center gap-1 w-full pb-2">
-          {/*{event.interestedFriends && event.interestedFriends.length > 0 && (
+        <CardFooter className="p-4 pt-0 pb-2 gap-2 mt-auto flex flex-col">
+          {/* Friends interested section */}
+          <div className="flex items-center gap-1 w-full pb-2">
+            {/*{event.interestedFriends && event.interestedFriends.length > 0 && (
             <div className="flex -space-x-3">
-              {event.interestedFriends.slice(0, 3).map((friend, index) => (
-                <Avatar
-                  key={index}
-                  className="h-8 w-8 border-2 border-background bg-muted"
-                  style={{ zIndex: 3 - index }}
-                >
-                  <AvatarImage seed={friend.name} />
+            {event.interestedFriends.slice(0, 3).map((friend, index) => (
+              <Avatar
+              key={index}
+              className="h-8 w-8 border-2 border-background bg-muted"
+              style={{ zIndex: 3 - index }}
+              >
+              <AvatarImage seed={friend.name} />
 
-                  <AvatarFallback>{friend.name[0]}</AvatarFallback>
-                </Avatar>
+              <AvatarFallback>{friend.name[0]}</AvatarFallback>
+              </Avatar>
               ))}
-            </div>
-          )}
-          <Text className="text-muted-foreground">
-            {event.interestedFriends &&
+              </div>
+              )}
+              <Text className="text-muted-foreground">
+              {event.interestedFriends &&
               event.interestedFriends.length > 3 &&
               ` + ${(event.interestedFriends.length - 3).toLocaleString()} friends are interested`}
-          </Text>*/}
-        </div>
+              </Text>*/}
+          </div>
 
-        {/* Action buttons */}
-        <div className="flex items-center gap-2 w-full">
-          <Button variant="default" className="flex-1">
-            INVITE
-          </Button>
-          <Button variant="outline" className="flex-1">
-            GOING
-          </Button>
-        </div>
-      </CardFooter>
-    </Card>
+          {/* Action buttons */}
+          <div className="flex items-center gap-2 w-full">
+            <Button variant="default" className="flex-1">
+              Invite
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={(e) => {
+                void handleGoing(e);
+              }}
+              disabled={isLoading}
+            >
+              {isAttending ? 'Going ✓' : 'Going'}
+            </Button>
+          </div>
+        </CardFooter>
+      </Card>
+    </Link>
   );
 }

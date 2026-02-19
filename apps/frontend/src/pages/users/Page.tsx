@@ -1,22 +1,17 @@
 import { useState, useMemo } from 'react';
 import { LoaderFunctionArgs } from 'react-router-dom';
 import { userService } from '@/services/userService';
-
 import { Container } from '@/components/layout/Container';
 import { Heading, Text } from '@/components/ui/typography';
 import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UserResponse } from '@/types/user';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
+import { UserCard } from '@/components/ui/userCard';
 
 export const usersLoader = async ({ request }: LoaderFunctionArgs): Promise<UserResponse> => {
   const url = new URL(request.url);
   const limit = url.searchParams.get('limit') ?? undefined;
   const cursor = url.searchParams.get('cursor') ?? undefined;
-
-  console.log(request); //we can use this to fitler or smth
-
   return userService.getUsers({ limit, cursor });
 };
 
@@ -27,7 +22,9 @@ export default function Users() {
 
   const filteredUsers = useMemo(() => {
     if (!searchTerm) return users.data;
-    return users.data.filter((user) => user.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    return users.data.filter((user) =>
+      (user.name ?? '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
   }, [users, searchTerm]);
 
   return (
@@ -50,24 +47,7 @@ export default function Users() {
         {filteredUsers.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredUsers.map((user) => (
-              <Card
-                key={user.id}
-                className="hover:-translate-y-1 transition-transform duration-200"
-              >
-                <CardHeader className="flex flex-row items-center gap-4 space-y-0 p-4">
-                  <Avatar className="h-12 w-12 border-2 border-black">
-                    <AvatarImage seed={user.name} />
-                    <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-
-                  <div className="overflow-hidden">
-                    <CardTitle className="text-base truncate">{user.name}</CardTitle>
-                    <CardDescription className="truncate" title={user.email}>
-                      {user.email}
-                    </CardDescription>
-                  </div>
-                </CardHeader>
-              </Card>
+              <UserCard key={user.id} user={user} />
             ))}
           </div>
         ) : (
