@@ -18,12 +18,12 @@
       "visibility": "public"
     },
     "8443": {
-      "label": "Web App (HTTPS/Caddy)",
+      "label": "Web App (HTTPS)",
       "onAutoForward": "notify",
       "visibility": "public"
     },
     "9000": {
-      "label": "MinIO Console/API",
+      "label": "MinIO",
       "onAutoForward": "notify",
       "visibility": "public"
     }

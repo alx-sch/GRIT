@@ -12,29 +12,19 @@ const frontendEnvSchema = sharedPortsSchema
     VITE_MINIO_URL: z.string().optional(),
     VITE_GOOGLE_MAPS_API: z.string(),
   })
-  .transform((validatedData) => {
-    // Determine the raw base URL (e.g., "https://xyz-3000.app.github.dev")
-    const rawBaseUrl = validatedData.VITE_API_BASE_URL
-      ? validatedData.VITE_API_BASE_URL.replace(/\/api$/, '') // Remove trailing /api if it exists
-      : `http://localhost:${String(validatedData.BE_PORT)}`;
-
-    return {
-      ...validatedData,
-      // The Socket.io root (No /api suffix)
-      VITE_CHAT_BASE_URL: rawBaseUrl,
-
-      // The REST API endpoint (With /api suffix)
-      VITE_API_BASE_URL: `${rawBaseUrl}/api`,
-
-      // Legacy or internal alias
-      API_URL: `${rawBaseUrl}/api`,
-
-      MINIO_URL:
-        validatedData.VITE_MINIO_URL ?? `http://localhost:${String(validatedData.MINIO_PORT)}`,
-      AUTH: AUTH_CONFIG,
-      EVENTS: EVENT_CONFIG,
-    };
-  });
+  .transform((validatedData) => ({
+    ...validatedData,
+    VITE_CHAT_BASE_URL:
+      validatedData.VITE_API_BASE_URL ?? `http://localhost:${String(validatedData.BE_PORT)}`,
+    VITE_API_BASE_URL:
+      validatedData.VITE_API_BASE_URL ?? `http://localhost:${String(validatedData.BE_PORT)}/api`,
+    API_URL:
+      validatedData.VITE_API_BASE_URL ?? `http://localhost:${String(validatedData.BE_PORT)}/api`,
+    MINIO_URL:
+      validatedData.VITE_MINIO_URL ?? `http://localhost:${String(validatedData.MINIO_PORT)}`,
+    AUTH: AUTH_CONFIG,
+    EVENTS: EVENT_CONFIG,
+  }));
 
 const isTest = import.meta.env.MODE === 'test' || process.env.NODE_ENV === 'test';
 const metaEnv = import.meta.env as unknown as Record<string, string | undefined>;

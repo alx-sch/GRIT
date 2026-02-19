@@ -57,11 +57,7 @@ class HttpExceptionFilter extends BaseExceptionFilter {
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      // In Codespaces/Production, system environment variables always take
-      // precedence over any file, so no .env files are needed there.
-      envFilePath: ['.env'],
-    }),
+    ConfigModule.forRoot(),
     UserModule,
     EventModule,
     PrismaModule,
