@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Form, redirect, useNavigation, useActionData, Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { useCurrentUserStore } from '@/store/currentUserStore';
-import { toast } from 'sonner';
 import { authService } from '@/services/authService';
 import { ActionFormError } from '@/types/actionFormError';
 import { useForm } from 'react-hook-form';
@@ -102,12 +101,6 @@ export const RegisterPage = () => {
   const password = watch('password') || '';
 
   const actionData = useActionData<ActionFormError | undefined>();
-
-  useEffect(() => {
-    actionData?.formErrors?.forEach((err) => {
-      toast.error(err);
-    });
-  }, [actionData]);
 
   useEffect(() => {
     if (!actionData?.fieldErrors) return;

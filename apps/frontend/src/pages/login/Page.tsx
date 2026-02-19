@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Form, redirect, useNavigation, useActionData, Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { useCurrentUserStore } from '@/store/currentUserStore';
-import { toast } from 'sonner';
 import { authService } from '@/services/authService';
 import { ActionFormError } from '@/types/actionFormError';
 import { useForm } from 'react-hook-form';
@@ -95,13 +94,6 @@ export const LoginPage = () => {
    */
   // Get data from form submission action
   const actionData = useActionData<ActionFormError | undefined>();
-
-  // FORM validation errors appear as toasts (or alert)
-  useEffect(() => {
-    actionData?.formErrors?.forEach((err) => {
-      toast.error(err);
-    });
-  }, [actionData]);
 
   // FIELD validation errors are injected into RHF for error display
   useEffect(() => {
