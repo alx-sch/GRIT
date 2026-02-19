@@ -18,7 +18,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'FE_PORT=5173 pnpm dev',
+    command: 'pnpm dev:e2e',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
     stdout: 'pipe',

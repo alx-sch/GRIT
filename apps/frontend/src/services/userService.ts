@@ -17,8 +17,10 @@ export const userService = {
     const response = await api.get<UserResponse>(url);
     return response.data;
   },
-  getMe: async (): Promise<User> => {
-    const response = await api.get<User>('/users/me');
+  getMe: async (): Promise<UserBase> => {
+    const response = await api.get<UserBase>('/users/me');
+    return response.data;
+  },
 
   attendEvent: async (eventId: number): Promise<UserBase> => {
     const response = await api.patch<UserBase>('users/me', { attending: { connect: [eventId] } });

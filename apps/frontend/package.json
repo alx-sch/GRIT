@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:integration": "vitest run"
+    "test:integration": "vitest run",
+    "dev:e2e": "vite --port 5173 --clearScreen false"
   },
   "dependencies": {
     "@grit/schema": "workspace:^",

@@ -1,9 +1,10 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Authentication Flow', () => {
-  // Mock the user profile endpoint for all tests in this group
+  // Mock the auth endpoints for all tests in this group
   test.beforeEach(async ({ page }) => {
-    await page.route('/api/users/me', async (route) => {
+    // Mock user profile (auth/me)
+    await page.route('**/api/auth/me', async (route) => {
       const json = {
         id: 1,
         name: 'Test User',
@@ -11,6 +12,44 @@ test.describe('Authentication Flow', () => {
         avatarKey: null,
       };
       await route.fulfill({ json });
+    });
+
+    // Mock login
+    await page.route('**/api/auth/login', async (route) => {
+      const request = route.request();
+      const postData = request.postDataJSON() as { email?: string };
+
+      if (postData.email === 'wrong@example.com') {
+        await route.fulfill({
+          status: 401,
+          json: { message: 'Invalid credentials' },
+        });
+      } else {
+        await route.fulfill({
+          json: {
+            accessToken: 'fake-jwt-token',
+            user: {
+              id: 1,
+              name: 'Test User',
+              email: 'test@example.com',
+            },
+          },
+        });
+      }
+    });
+
+    // Mock register
+    await page.route('**/api/auth/register', async (route) => {
+      await route.fulfill({
+        json: {
+          accessToken: 'fake-jwt-token',
+          user: {
+            id: 1,
+            name: 'Test User',
+            email: 'test@example.com',
+          },
+        },
+      });
     });
   });
 
@@ -26,8 +65,8 @@ test.describe('Authentication Flow', () => {
 
     // URL param is stripped by useRouteToasts, so we check for the toast
     // Wait for the toast to appear or for the URL to change first to ensure stability
-    await expect(page).toHaveURL('/');
     await expect(page.getByText('You are logged in')).toBeVisible();
+    await expect(page).toHaveURL(/\/events/);
 
     // Verify user is visible in Navbar
     // The avatar fallback uses the first letter of the name (T for Test User)
@@ -41,13 +80,12 @@ test.describe('Authentication Flow', () => {
 
     await page.getByLabel('Name').fill('John Doe');
     await page.getByLabel('Email').fill('newuser@example.com');
-    await page.getByLabel('Password').fill('Password123!');
+    await page.getByLabel('Password', { exact: true }).fill('Password123!');
 
     await page.getByRole('button', { name: 'Create account' }).click();
 
-    // URL param is stripped by useRouteToasts (assuming we updated it to use signup_success)
+    await expect(page).toHaveURL('/register');
     await expect(page.getByText('Account created')).toBeVisible();
-    await expect(page).toHaveURL('/');
   });
 
   test('should navigate between login and register pages', async ({ page }) => {
@@ -70,6 +108,6 @@ test.describe('Authentication Flow', () => {
     await page.getByRole('button', { name: 'Login' }).click();
 
     // Check for toast or error message. The code uses toast.error('Login Failed')
-    await expect(page.getByText('Login Failed')).toBeVisible();
+    await expect(page.getByRole('main').getByText('Invalid email or password')).toBeVisible();
   });
 });

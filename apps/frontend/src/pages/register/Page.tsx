@@ -65,7 +65,7 @@ export async function registerPageAction({ request }: { request: Request }) {
 
     useAuthStore.getState().setAuthenticated(data.accessToken);
     useCurrentUserStore.getState().setUser(data.user);
-    return redirect('/?registered=true');
+    return redirect('/?signup_success=true');
   } catch (err) {
     if (axios.isAxiosError(err)) {
       if (err.response?.status === 409) {

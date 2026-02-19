@@ -50,9 +50,19 @@ export const router = createBrowserRouter([
       },
       {
         path: 'events',
-        Component: EventFeed,
-        loader: eventsLoader,
-        handle: { title: 'Events' },
+        children: [
+          {
+            index: true,
+            Component: EventFeedPage,
+            loader: eventsLoader,
+            handle: { title: 'Events' },
+          },
+          {
+            path: ':id',
+            Component: EventPage,
+            loader: eventLoader,
+          },
+        ],
       },
       {
         path: 'login',
@@ -70,6 +80,8 @@ export const router = createBrowserRouter([
         path: 'logout',
         Component: LogoutPage,
         loader: logoutPageLoader,
+      },
+      {
         path: 'chat',
         handle: { title: 'Chat' },
         children: [
@@ -94,44 +106,6 @@ export const router = createBrowserRouter([
             loader: eventCreationLoader,
           },
         ],
-      },
-      {
-        path: 'design',
-        Component: Design,
-        handle: { title: 'Design' },
-      },
-      {
-        path: 'events',
-        children: [
-          {
-            index: true,
-            Component: EventFeedPage,
-            loader: eventsLoader,
-            handle: { title: 'Events' },
-          },
-          {
-            path: ':id',
-            Component: EventPage,
-            loader: eventLoader,
-          },
-        ],
-      },
-      {
-        path: 'login',
-        Component: LoginPage,
-        action: loginPageAction,
-        loader: loginPageLoader,
-      },
-      {
-        path: 'logout',
-        Component: LogoutPage,
-        loader: logoutPageLoader,
-      },
-      {
-        path: 'users',
-        Component: Users,
-        loader: usersLoader,
-        handle: { title: 'Users' },
       },
     ],
   },

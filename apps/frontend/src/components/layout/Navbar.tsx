@@ -29,7 +29,6 @@ export function Navbar() {
   const navConfig: NavRoute[] = [...baseNavConfig];
   const isLoggedIn = useAuthStore((s) => !!s.token);
   const user = useCurrentUserStore((s) => s.user);
-  const currentUserAvatar = user?.avatarKey;
   const currentUserName = user?.name;
   const initials = currentUserName?.trim().slice(0, 2).toUpperCase();
 
@@ -79,11 +78,11 @@ export function Navbar() {
         {isLoggedIn && (
           <Avatar>
             <AvatarImage
-              src={currentUser?.avatarKey ? getAvatarImageUrl(currentUser.avatarKey) : undefined}
-              seed={currentUser?.email ?? 'user'}
+              src={user?.avatarKey ? getAvatarImageUrl(user.avatarKey) : undefined}
+              seed={user?.email ?? 'user'}
             />
             <AvatarFallback>{initials}</AvatarFallback>
-          <Avatar>
+          </Avatar>
         )}
         <Button
           variant="ghost"
