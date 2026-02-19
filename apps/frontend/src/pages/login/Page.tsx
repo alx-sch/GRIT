@@ -12,7 +12,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import z from 'zod';
-import { LoginSchema, type LoginInput } from '@grit/schema';
+import { type LoginInput } from '@grit/schema';
 import {
   Card,
   CardContent,
@@ -62,10 +62,12 @@ export async function loginPageAction({ request }: { request: Request }) {
     // Redirect on success
     return redirect(redirectTo);
   } catch (err) {
-    if (axios.isAxiosError(err))
-      if (err.response?.status === 401)
+    if (axios.isAxiosError(err)) {
+      if (err.response?.status === 401 || err.response?.status === 400) {
         return { formErrors: ['Invalid email or password'] } satisfies ActionFormError;
-    throw err; // other errors are rethrown to react routers error boundary
+      }
+    }
+    return { formErrors: ['An error occurred. Please try again.'] } satisfies ActionFormError;
   }
 }
 

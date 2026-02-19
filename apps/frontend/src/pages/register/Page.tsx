@@ -24,6 +24,7 @@ import {
 import { AlertCircle, Check, X, Eye, EyeOff } from 'lucide-react';
 
 const LocalRegisterSchema = RegisterSchema.extend({
+  email: z.string().email('Please enter a valid email address'),
   password: z
     .string()
     .min(10, 'Password must be at least 10 characters')
@@ -132,7 +133,6 @@ export const RegisterPage = () => {
       <Card className="w-full max-w-md mx-4 sm:mx-auto">
         <CardHeader>
           <CardTitle className="text-2xl">Create an account</CardTitle>
-          <CardDescription>Enter your email below to create your account</CardDescription>
         </CardHeader>
         <CardContent>
           <Form
@@ -198,7 +198,7 @@ export const RegisterPage = () => {
                       onClick={() => {
                         setShowPassword(!showPassword);
                       }}
-                      className="absolute right-9 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -237,7 +237,7 @@ export const RegisterPage = () => {
                       onClick={() => {
                         setShowConfirmPassword(!showConfirmPassword);
                       }}
-                      className="absolute right-9 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
                       {showConfirmPassword ? (
                         <EyeOff className="h-4 w-4" />
