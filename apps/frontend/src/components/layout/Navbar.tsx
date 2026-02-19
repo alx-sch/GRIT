@@ -36,8 +36,7 @@ export function Navbar() {
   const navConfig: NavRoute[] = [...baseNavConfig];
   const isLoggedIn = useAuthStore((s) => !!s.token);
   const user = useCurrentUserStore((s) => s.user);
-  const currentUserName = user?.name;
-  const initials = currentUserName?.trim().slice(0, 2).toUpperCase();
+  const displayName = user?.name || user?.email || 'User';
 
   if (!isLoggedIn) {
     navConfig.push({ path: '/login', label: 'Login' });
@@ -105,9 +104,9 @@ export function Navbar() {
                     src={user?.avatarKey ? getAvatarImageUrl(user.avatarKey) : undefined}
                     seed={user?.email ?? 'user'}
                   />
-                  <AvatarFallback>{initials}</AvatarFallback>
+                  <AvatarFallback name={displayName} />
                 </Avatar>
-                <span className="normal-case">{currentUserName}</span>
+                <span className="normal-case">{displayName}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
@@ -172,10 +171,10 @@ export function Navbar() {
                         src={user?.avatarKey ? getAvatarImageUrl(user.avatarKey) : undefined}
                         seed={user?.email ?? 'user'}
                       />
-                      <AvatarFallback>{initials}</AvatarFallback>
+                      <AvatarFallback name={displayName} />
                     </Avatar>
                     <div className="flex flex-col flex-1">
-                      <span className="font-semibold">{currentUserName}</span>
+                      <span className="font-semibold">{displayName}</span>
                     </div>
                     <ChevronDown className="h-4 w-4 text-muted-foreground" />
                   </div>

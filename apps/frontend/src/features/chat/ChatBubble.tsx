@@ -8,7 +8,8 @@ export const ChatBubble = ({ message }: { message: ResChatMessage }) => {
   const currentUser = useCurrentUserStore((s) => s.user);
   const isFromCurrentUser = currentUser?.id === message.author.id;
   const align = isFromCurrentUser ? 'justify-end' : 'justify-start';
-  const initials = message.author?.name?.trim().slice(0, 2).toUpperCase();
+  const authorDisplay = message.author?.name || 'User';
+
   return (
     <>
       <div className={`${align} flex my-4`}>
@@ -16,7 +17,7 @@ export const ChatBubble = ({ message }: { message: ResChatMessage }) => {
           {!isFromCurrentUser && (
             <Avatar className="mr-2 w-6 h-6">
               <AvatarImage src={getAvatarImageUrl(message.author.avatarKey ?? undefined)} />
-              <AvatarFallback>{initials}</AvatarFallback>
+              <AvatarFallback name={authorDisplay} />
             </Avatar>
           )}
           <div>
