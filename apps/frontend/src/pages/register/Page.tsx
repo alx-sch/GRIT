@@ -12,21 +12,14 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import z from 'zod';
 import { RegisterSchema } from '@grit/schema';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { AlertCircle, Check, X, Eye, EyeOff } from 'lucide-react';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 const LocalRegisterSchema = RegisterSchema.extend({
-  email: z.string().email('Please enter a valid email address'),
+  email: z.email('Please enter a valid email address'),
   password: z
     .string()
-    .min(10, 'Password must be at least 10 characters')
+    .min(8, 'Password must be at least 8 characters')
     .regex(/[A-Z]/, 'Must contain an uppercase letter')
     .regex(/[a-z]/, 'Must contain a lowercase letter')
     .regex(/[0-9]/, 'Must contain a number'),
@@ -65,7 +58,7 @@ export async function registerPageAction({ request }: { request: Request }) {
 
     useAuthStore.getState().setAuthenticated(data.accessToken);
     useCurrentUserStore.getState().setUser(data.user);
-    return redirect('/?signup_success=true');
+    return redirect('/events?signup_success=true');
   } catch (err) {
     if (axios.isAxiosError(err)) {
       if (err.response?.status === 409) {
@@ -90,7 +83,7 @@ export const RegisterPage = () => {
     setError,
     clearErrors,
     watch,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<LocalRegisterInput>({
     resolver: zodResolver(LocalRegisterSchema),
     mode: 'onChange',
@@ -115,7 +108,7 @@ export const RegisterPage = () => {
   const isSubmitting = navigation.state === 'submitting';
 
   const criteria = [
-    { label: '10+ chars', valid: password.length >= 10 },
+    { label: '8+ chars', valid: password.length >= 8 },
     { label: 'Uppercase', valid: /[A-Z]/.test(password) },
     { label: 'Lowercase', valid: /[a-z]/.test(password) },
     { label: 'Number', valid: /[0-9]/.test(password) },
@@ -205,8 +198,7 @@ export const RegisterPage = () => {
                           c.valid ? 'text-green-600' : 'text-muted-foreground'
                         }`}
                       >
-                        {c.valid ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
-                        {c.label}
+                        {c.valid ? '✓' : '○'} {c.label}
                       </li>
                     ))}
                   </ul>
@@ -242,7 +234,7 @@ export const RegisterPage = () => {
                   <FieldError errors={[errors.confirmPassword]} />
                 </Field>
 
-                <Button disabled={isSubmitting} type="submit" className="w-full">
+                <Button disabled={isSubmitting || !isValid} type="submit" className="w-full">
                   {isSubmitting ? 'Creating account...' : 'Create account'}
                 </Button>
               </FieldGroup>

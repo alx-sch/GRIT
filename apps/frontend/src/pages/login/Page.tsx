@@ -23,7 +23,7 @@ import {
 import { AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 const LocalLoginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  email: z.email('Please enter a valid email address'),
   password: z.string().min(1, 'Password is required'),
 });
 
@@ -82,9 +82,10 @@ export const LoginPage = () => {
     register,
     setError,
     clearErrors,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<LoginInput>({
     resolver: zodResolver(LocalLoginSchema),
+    mode: 'onChange',
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -169,7 +170,7 @@ export const LoginPage = () => {
                       onClick={() => {
                         setShowPassword(!showPassword);
                       }}
-                      className="absolute right-9 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -177,7 +178,7 @@ export const LoginPage = () => {
                   <FieldError errors={[errors.password]} />
                 </Field>
 
-                <Button disabled={isSubmitting} type="submit" className="w-full">
+                <Button disabled={isSubmitting || !isValid} type="submit" className="w-full">
                   {isSubmitting ? 'Logging in...' : 'Login'}
                 </Button>
               </FieldGroup>
