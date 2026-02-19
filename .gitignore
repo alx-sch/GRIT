@@ -99,3 +99,6 @@ README.md
 # Turbo
 # =====================
 .turbo
+
+playwright-report/
+test-results/

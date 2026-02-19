@@ -76,13 +76,16 @@ export function Navbar() {
           </NavigationMenuList>
         </NavigationMenu>
         {isLoggedIn && (
-          <Avatar>
-            <AvatarImage
-              src={user?.avatarKey ? getAvatarImageUrl(user.avatarKey) : undefined}
-              seed={user?.email ?? 'user'}
-            />
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
+          <Button variant="ghost" className="flex items-center gap-2">
+            <Avatar>
+              <AvatarImage
+                src={user?.avatarKey ? getAvatarImageUrl(user.avatarKey) : undefined}
+                seed={user?.email ?? 'user'}
+              />
+              <AvatarFallback>{initials}</AvatarFallback>
+            </Avatar>
+            <span>{currentUserName}</span>
+          </Button>
         )}
         <Button
           variant="ghost"
