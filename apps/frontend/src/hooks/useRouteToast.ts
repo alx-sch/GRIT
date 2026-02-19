@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -39,6 +39,7 @@ const preparedToasts = [
 
 export function useRouteToasts() {
   const [params, setParams] = useSearchParams();
+  const processedRef = useRef(new Set<string>());
 
   useEffect(() => {
     // Get a copy of original params and track if we change it with a flag
@@ -47,12 +48,22 @@ export function useRouteToasts() {
 
     preparedToasts.forEach((el) => {
       if (params.has(el.param)) {
-        const { type, message, description } = el;
-        toast[type](message, { description });
+        // Create a unique key for this toast to prevent duplicates in StrictMode
+        const toastKey = `${el.param}-${params.get(el.param)}`;
+
+        // Only show toast if we haven't processed this exact param before
+        if (!processedRef.current.has(toastKey)) {
+          const { type, message, description } = el;
+          toast[type](message, { description });
+          processedRef.current.add(toastKey);
+          changed = true;
+        }
+
         processedParams.delete(el.param);
         changed = true;
       }
     });
+
     if (changed) setParams(processedParams, { replace: true }); // Replace params so we don't run this again
   }, [params, setParams]);
 }
