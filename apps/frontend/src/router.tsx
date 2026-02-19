@@ -17,6 +17,8 @@ import { ProtectedLayout, protectedLayoutLoader } from '@/components/layout/Prot
 import CreateEventPage from '@/pages/create/event/Page';
 import { ChatPage } from '@/pages/chat/ChatPage';
 import { ChatFeedPage } from '@/pages/chat/ChatFeedPage';
+import { Page as ProfilePage } from '@/pages/profile/Page';
+import { Page as MyEventsPage } from '@/pages/my-events/Page';
 
 // NOTE: let's define single source of truth for our routes here
 export const baseNavConfig: NavRoute[] = [
@@ -92,6 +94,30 @@ export const router = createBrowserRouter([
           {
             path: ':id',
             Component: ChatPage,
+          },
+        ],
+      },
+      {
+        path: 'profile',
+        Component: ProtectedLayout,
+        loader: protectedLayoutLoader,
+        children: [
+          {
+            index: true,
+            Component: ProfilePage,
+            handle: { title: 'Profile' },
+          },
+        ],
+      },
+      {
+        path: 'my-events',
+        Component: ProtectedLayout,
+        loader: protectedLayoutLoader,
+        children: [
+          {
+            index: true,
+            Component: MyEventsPage,
+            handle: { title: 'My Events' },
           },
         ],
       },

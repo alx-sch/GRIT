@@ -141,98 +141,101 @@ export default function EventFeedPage() {
   };
 
   return (
-    <Container className="py-10 space-y-8 p-0 md:px-0">
-      <div className="space-y-2">
-        <Heading level={1} className="text-3xl md:text-4xl">
-          Upcoming events
-        </Heading>
-      </div>
-
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-2">
-        <Input
-          placeholder="Search events..."
-          className="w-full md:w-sm md:shrink-0"
-          value={searchInput}
-          onChange={handleSearchChange}
-        />
-
-        <div className="flex items-center justify-between md:justify-end gap-1 md:gap-2 md:flex-1 min-w-0">
-          <Combobox
-            options={locationOptionsCombobox}
-            value={selectedLocation ?? undefined}
-            onChange={handleLocationChange}
-            placeholder="Location"
-            searchPlaceholder="Search"
-            emptyMessage="No location found"
-            variant="ghost"
-            icon={MapPinIcon}
-            className="w-auto min-w-0 md:min-w-32 md:flex-none text-xs md:text-base max-w-xs truncate font-normal max-w-[33%] md:shrink"
-          />
-
-          <div className="w-[1.5px] h-5 bg-border/60 shrink-0 dark:bg-white/20" />
-
-          <DatePicker
-            selected={selectedDateRange}
-            onSelect={handleDateSelect}
-            placeholder="Date"
-            variant="ghost"
-            className="min-w-0 md:flex-none text-xs md:text-base truncate font-normal max-w-[33%] md:shrink-0"
-          ></DatePicker>
-
-          <div className="w-[1.5px] h-5 bg-border/60 shrink-0 dark:bg-white/20" />
-
-          <Combobox
-            options={sortOptions}
-            value={sort}
-            onChange={handleSortChange}
-            placeholder="Sort"
-            variant="ghost"
-            icon={ArrowUpDown}
-            showSearch={false}
-            className="w-auto min-w-0 md:flex-none text-xs md:text-base font-normal max-w-[33%] md:shrink-0"
-          />
-        </div>
-      </div>
-      {events.data.length > 0 ? (
-        <div className="grid gap-6 justify-start md:grid-cols-2 lg:grid-cols-3">
-          {events.data.map((event) => (
-            <EventCard
-              key={event.id}
-              event={event}
-              location={event.location?.id ? locationMap.get(event.location.id) : undefined}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center py-20 px-4 border-2 border-dashed border-border text-center bg-card">
-          <Heading level={3} className="uppercase tracking-tight">
-            No events found
+    <Container className="py-10">
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <Heading level={1} className="text-3xl md:text-4xl">
+            Upcoming events
           </Heading>
-
-          <Text size="base" className="text-muted-foreground mt-2">
-            {searchInput
-              ? `No results for "${searchInput}"`
-              : selectedDateRange
-                ? 'Nothing scheduled for these dates'
-                : 'Check back later for new events.'}
-          </Text>
-
-          {searchInput || selectedDateRange || selectedLocation ? (
-            <Button
-              variant="destructive"
-              onClick={() => {
-                setSearchInput('');
-                setSort('');
-                const newParams = new URLSearchParams();
-                setSearchParams(newParams);
-              }}
-              className="mt-4"
-            >
-              Clear Filters
-            </Button>
-          ) : null}
         </div>
-      )}
+
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-2">
+          <Input
+            placeholder="Search events..."
+            className="w-full md:w-sm md:shrink-0"
+            value={searchInput}
+            onChange={handleSearchChange}
+          />
+
+          <div className="flex items-center justify-between md:justify-end gap-1 md:gap-2 md:flex-1 min-w-0">
+            <Combobox
+              options={locationOptionsCombobox}
+              value={selectedLocation ?? undefined}
+              onChange={handleLocationChange}
+              placeholder="Location"
+              searchPlaceholder="Search"
+              emptyMessage="No location found"
+              variant="ghost"
+              icon={MapPinIcon}
+              className="w-auto min-w-0 md:min-w-32 md:flex-none text-xs md:text-base max-w-xs truncate font-normal max-w-[33%] md:shrink"
+            />
+
+            <div className="w-[1.5px] h-5 bg-border/60 shrink-0 dark:bg-white/20" />
+
+            <DatePicker
+              selected={selectedDateRange}
+              onSelect={handleDateSelect}
+              placeholder="Date"
+              variant="ghost"
+              className="min-w-0 md:flex-none text-xs md:text-base truncate font-normal max-w-[33%] md:shrink-0"
+            ></DatePicker>
+
+            <div className="w-[1.5px] h-5 bg-border/60 shrink-0 dark:bg-white/20" />
+
+            <Combobox
+              options={sortOptions}
+              value={sort}
+              onChange={handleSortChange}
+              placeholder="Sort"
+              variant="ghost"
+              icon={ArrowUpDown}
+              showSearch={false}
+              className="w-auto min-w-0 md:flex-none text-xs md:text-base font-normal max-w-[33%] md:shrink-0"
+            />
+          </div>
+        </div>
+
+        {events.data.length > 0 ? (
+          <div className="grid gap-6 justify-start md:grid-cols-2 lg:grid-cols-3">
+            {events.data.map((event) => (
+              <EventCard
+                key={event.id}
+                event={event}
+                location={event.location?.id ? locationMap.get(event.location.id) : undefined}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 px-4 border-2 border-dashed border-border text-center bg-card">
+            <Heading level={3} className="uppercase tracking-tight">
+              No events found
+            </Heading>
+
+            <Text size="base" className="text-muted-foreground mt-2">
+              {searchInput
+                ? `No results for "${searchInput}"`
+                : selectedDateRange
+                  ? 'Nothing scheduled for these dates'
+                  : 'Check back later for new events.'}
+            </Text>
+
+            {searchInput || selectedDateRange || selectedLocation ? (
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  setSearchInput('');
+                  setSort('');
+                  const newParams = new URLSearchParams();
+                  setSearchParams(newParams);
+                }}
+                className="mt-4"
+              >
+                Clear Filters
+              </Button>
+            ) : null}
+          </div>
+        )}
+      </div>
     </Container>
   );
 }
