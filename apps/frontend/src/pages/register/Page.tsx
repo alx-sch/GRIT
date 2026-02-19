@@ -21,7 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { AlertCircle, Check, X, Eye, EyeOff } from 'lucide-react';
 
 const LocalRegisterSchema = RegisterSchema.extend({
   password: z
@@ -191,32 +191,32 @@ export const RegisterPage = () => {
                       autoComplete="new-password"
                       error={!!errors.password}
                       {...register('password')}
+                      className="pr-10"
                     />
                     <button
                       type="button"
                       onClick={() => {
                         setShowPassword(!showPassword);
                       }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-9 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 mt-2">
+                  <ul className="space-y-1 mt-2">
                     {criteria.map((c, i) => (
-                      <div
+                      <li
                         key={i}
-                        className={`text-xs p-2 border rounded-md text-center transition-colors ${
-                          c.valid
-                            ? 'bg-green-500/10 text-green-600 border-green-500/20'
-                            : 'bg-muted text-muted-foreground border-border'
+                        className={`text-xs flex items-center gap-2 transition-colors ${
+                          c.valid ? 'text-green-600' : 'text-muted-foreground'
                         }`}
                       >
+                        {c.valid ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
                         {c.label}
-                      </div>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
 
                   {/* <FieldError errors={[errors.password]} /> */}
                 </Field>
@@ -230,13 +230,14 @@ export const RegisterPage = () => {
                       autoComplete="new-password"
                       error={!!errors.confirmPassword}
                       {...register('confirmPassword')}
+                      className="pr-10"
                     />
                     <button
                       type="button"
                       onClick={() => {
                         setShowConfirmPassword(!showConfirmPassword);
                       }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-9 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
                       {showConfirmPassword ? (
                         <EyeOff className="h-4 w-4" />

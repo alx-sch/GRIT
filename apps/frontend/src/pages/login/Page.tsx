@@ -23,11 +23,16 @@ import {
 } from '@/components/ui/card';
 import { AlertCircle, Eye, EyeOff } from 'lucide-react';
 
+const LocalLoginSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(1, 'Password is required'),
+});
+
 export async function loginPageAction({ request }: { request: Request }) {
   const formData = await request.formData();
 
   // Checking login data before submitting for validity
-  const parsedData = LoginSchema.safeParse({
+  const parsedData = LocalLoginSchema.safeParse({
     email: formData.get('email'),
     password: formData.get('password'),
   });
@@ -78,7 +83,7 @@ export const LoginPage = () => {
     clearErrors,
     formState: { errors },
   } = useForm<LoginInput>({
-    resolver: zodResolver(LoginSchema),
+    resolver: zodResolver(LocalLoginSchema),
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -163,13 +168,14 @@ export const LoginPage = () => {
                       autoComplete="current-password"
                       error={!!errors.password}
                       {...register('password')}
+                      className="pr-10"
                     />
                     <button
                       type="button"
                       onClick={() => {
                         setShowPassword(!showPassword);
                       }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-9 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
