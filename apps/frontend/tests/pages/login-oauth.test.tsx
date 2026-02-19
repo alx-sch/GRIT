@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { LoginPage, loginPageLoader } from '@/pages/login/Page';
 import { useAuthStore } from '@/store/authStore';
@@ -66,7 +66,9 @@ describe('Login OAuth Flow', () => {
   });
 
   it('handles error when OAuth token fetch fails', async () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+      // Intentionally empty - suppress console.error in test
+    });
     vi.mocked(authService.me).mockRejectedValue(new Error('Invalid token'));
 
     const router = createMemoryRouter(

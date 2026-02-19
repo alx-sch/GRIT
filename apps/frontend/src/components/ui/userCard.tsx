@@ -9,7 +9,7 @@ import { type ConversationRes } from '@grit/schema';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 
 export const UserCard = ({ user }: { user: ResUserPublic }) => {
-  const displayName = user.name || 'User';
+  const displayName = user.name ?? 'User';
   const navigate = useNavigate();
   function startChat() {
     void startChatAsync();

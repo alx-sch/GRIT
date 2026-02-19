@@ -85,9 +85,9 @@ test.describe('Authentication Flow', () => {
     await expect(page.getByRole('heading', { name: 'Login' })).toBeVisible();
 
     await page.getByLabel('Email').fill('test@example.com');
-    await page.getByLabel('Password').fill('password');
+    await page.getByLabel('Password').fill('Password123');
 
-    await page.getByRole('button', { name: 'Login' }).click();
+    await page.getByRole('main').getByRole('button', { name: 'Login' }).click();
 
     // URL param is stripped by useRouteToasts, so we check for the toast
     // Wait for the toast to appear or for the URL to change first to ensure stability
@@ -129,9 +129,9 @@ test.describe('Authentication Flow', () => {
     await page.goto('/login');
 
     await page.getByLabel('Email').fill('wrong@example.com');
-    await page.getByLabel('Password').fill('wrongpassword');
+    await page.getByLabel('Password').fill('WrongPassword123');
 
-    await page.getByRole('button', { name: 'Login' }).click();
+    await page.getByRole('main').getByRole('button', { name: 'Login' }).click();
 
     // Check for toast or error message. The code uses toast.error('Login Failed')
     await expect(page.getByRole('main').getByText('Invalid email or password')).toBeVisible();

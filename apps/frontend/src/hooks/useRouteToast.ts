@@ -49,7 +49,8 @@ export function useRouteToasts() {
     preparedToasts.forEach((el) => {
       if (params.has(el.param)) {
         // Create a unique key for this toast to prevent duplicates in StrictMode
-        const toastKey = `${el.param}-${params.get(el.param)}`;
+        const paramValue = params.get(el.param) ?? '';
+        const toastKey = `${el.param}-${paramValue}`;
 
         // Only show toast if we haven't processed this exact param before
         if (!processedRef.current.has(toastKey)) {

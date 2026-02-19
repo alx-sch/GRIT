@@ -36,7 +36,7 @@ export function Navbar() {
   const navConfig: NavRoute[] = [...baseNavConfig];
   const isLoggedIn = useAuthStore((s) => !!s.token);
   const user = useCurrentUserStore((s) => s.user);
-  const displayName = user?.name || user?.email || 'User';
+  const displayName = user?.name ?? user?.email ?? 'User';
 
   if (!isLoggedIn) {
     navConfig.push({ path: '/login', label: 'Login' });

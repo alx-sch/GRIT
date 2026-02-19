@@ -8,7 +8,7 @@ export const ChatBubble = ({ message }: { message: ResChatMessage }) => {
   const currentUser = useCurrentUserStore((s) => s.user);
   const isFromCurrentUser = currentUser?.id === message.author.id;
   const align = isFromCurrentUser ? 'justify-end' : 'justify-start';
-  const authorDisplay = message.author?.name || 'User';
+  const authorDisplay = message.author?.name ?? 'User';
 
   return (
     <>
