@@ -1,4 +1,3 @@
-import { env } from '@/config/env';
 import { EventBase } from '@/types/event';
 
 export function getEventImageUrl(event: EventBase): string {

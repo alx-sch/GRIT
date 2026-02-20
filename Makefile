@@ -156,6 +156,11 @@ clean-backup:
 	rm -rf $(BACKUP_NAME)*
 	@echo "$(GREEN)$(BOLD)Backup folder deleted.$(RESET)"
 
+# Helper to wipe Turbo's stale daemon files
+clean-turbo:
+	@echo "$(BOLD)$(YELLOW)--- Cleaning stale Turbo daemons ...$(RESET)"
+	@rm -rf /tmp/turbod/
+
 # Cleans everything related to this project: builds, node_modules, DB container, volumes, backups:
 fclean: clean clean-backup
 	$(DC) down --volumes --rmi local
@@ -240,7 +245,7 @@ logs:
 #######################
 
 # Run all Tests for backend and frontend
-test: test-be test-fe
+test: clean-turbo test-be test-fe
 
 # Run all Tests for backend only
 test-be:
@@ -537,6 +542,7 @@ stop:
 		clean \
 		clean-backup \
 		clean-db \
+		clean-turbo \
 		db \
 		dev \
 		dev-be \

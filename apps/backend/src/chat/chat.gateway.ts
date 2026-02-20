@@ -17,6 +17,7 @@ import { ConversationService } from '@/conversation/conversation.service';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { ArgumentsHost, Catch, UseFilters, UsePipes, WsExceptionFilter } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
+import { env } from '@/config/env';
 
 interface SocketData {
   userId: number;
@@ -52,7 +53,7 @@ export class AllWsExceptionsFilter implements WsExceptionFilter {
 @UseFilters(new AllWsExceptionsFilter())
 @WebSocketGateway({
   cors: {
-    origin: true,
+    origin: [env.FRONTEND_URL, 'http://localhost:5173'],
     credentials: true,
   },
 })

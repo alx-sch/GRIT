@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { sharedPortsSchema, AUTH_CONFIG } from '@grit/schema';
-import { existsSync } from 'fs';
 
 // ---------- Base schema (raw env variables + MinIO transform) ----------
 const backendBaseSchema = sharedPortsSchema
@@ -65,8 +64,8 @@ const backendBaseSchema = sharedPortsSchema
 
     // Derive FRONTEND_URL: Strip /api from the base URL
     const derivedFrontend = isPublicEnv
-      ? env.VITE_API_BASE_URL!.replace(/\/api$/, '')
-      : `http://localhost:${env.FE_PORT}`;
+      ? env.VITE_API_BASE_URL.replace(/\/api$/, '')
+      : `http://localhost:${String(env.FE_PORT)}`;
 
     const internalMinio = isBackendContainer ? `http://minio:9000` : `http://localhost:9000`;
 
@@ -75,8 +74,8 @@ const backendBaseSchema = sharedPortsSchema
     const publicMinio = isPublicEnv
       ? isBackendContainer
         ? `${derivedFrontend}/s3` // Inside Docker: Use Proxy
-        : `http://localhost:${env.MINIO_PORT}` // Outside Docker (Seeding): Use Localhost
-      : `http://localhost:${env.MINIO_PORT}`;
+        : `http://localhost:${String(env.MINIO_PORT)}` // Outside Docker (Seeding): Use Localhost
+      : `http://localhost:${String(env.MINIO_PORT)}`;
 
     return {
       ...env,
@@ -103,7 +102,7 @@ const backendEnvSchema = backendBaseSchema.transform((data) => {
 
   const apiBase = data.VITE_API_BASE_URL
     ? data.VITE_API_BASE_URL.replace(/\/$/, '') // Entferne Slash am Ende, falls vorhanden
-    : `http://localhost:${data.BE_PORT}`;
+    : `http://localhost:${String(data.BE_PORT)}`;
 
   const googleCallback = `${apiBase}/auth/google/callback`;
 
