@@ -33,9 +33,9 @@ export function DefaultLayout() {
     const title = (currentMatch?.handle as RouteHandle | undefined)?.title;
 
     if (title) {
-      document.title = `${title} | ${env.APP_NAME}`;
+      document.title = `${title} | ${env.VITE_APP_NAME}`;
     } else {
-      document.title = env.APP_NAME;
+      document.title = env.VITE_APP_NAME;
     }
   }, [matches]);
 
