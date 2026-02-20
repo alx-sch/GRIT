@@ -10,6 +10,7 @@ import { eventLoader } from '@/pages/events/EventPage';
 import { EventPage } from '@/pages/events/EventPage';
 import { eventCreationLoader } from '@/pages/create/event/Page';
 import { LoginPage, loginPageAction, loginPageLoader } from '@/pages/login/Page';
+import { RegisterPage, registerPageAction, registerPageLoader } from '@/pages/register/Page';
 import type { NavRoute } from '@/types/navroute';
 import { LogoutPage, logoutPageLoader } from '@/pages/logout/Page';
 import { ProtectedLayout, protectedLayoutLoader } from '@/components/layout/ProtectedLayout';
@@ -37,35 +38,15 @@ export const router = createBrowserRouter([
         handle: { title: 'Home' },
       },
       {
-        path: 'chat',
-        handle: { title: 'Chat' },
-        children: [
-          {
-            index: true,
-            Component: ChatFeedPage,
-          },
-          {
-            path: ':id',
-            Component: ChatPage,
-          },
-        ],
-      },
-      {
-        path: 'create',
-        Component: ProtectedLayout,
-        loader: protectedLayoutLoader,
-        children: [
-          {
-            path: 'event',
-            Component: CreateEventPage,
-            loader: eventCreationLoader,
-          },
-        ],
-      },
-      {
         path: 'design',
         Component: Design,
         handle: { title: 'Design' },
+      },
+      {
+        path: 'users',
+        Component: Users,
+        loader: usersLoader,
+        handle: { title: 'Users' },
       },
       {
         path: 'events',
@@ -90,15 +71,41 @@ export const router = createBrowserRouter([
         loader: loginPageLoader,
       },
       {
+        path: 'register',
+        Component: RegisterPage,
+        action: registerPageAction,
+        loader: registerPageLoader,
+      },
+      {
         path: 'logout',
         Component: LogoutPage,
         loader: logoutPageLoader,
       },
       {
-        path: 'users',
-        Component: Users,
-        loader: usersLoader,
-        handle: { title: 'Users' },
+        path: 'chat',
+        handle: { title: 'Chat' },
+        children: [
+          {
+            index: true,
+            Component: ChatFeedPage,
+          },
+          {
+            path: ':id',
+            Component: ChatPage,
+          },
+        ],
+      },
+      {
+        path: 'create',
+        Component: ProtectedLayout,
+        loader: protectedLayoutLoader,
+        children: [
+          {
+            path: 'event',
+            Component: CreateEventPage,
+            loader: eventCreationLoader,
+          },
+        ],
       },
     ],
   },

@@ -70,7 +70,7 @@ describe('User E2E', () => {
       data: {
         email: 'Alice@example.com',
         name: 'Alice',
-        password: await bcrypt.hash('alicepassword123', 10),
+        password: await bcrypt.hash('AlicePassword123', 10),
         isConfirmed: true,
       },
       include: {
@@ -83,7 +83,7 @@ describe('User E2E', () => {
       data: {
         email: 'Bob@example.com',
         name: 'Bob',
-        password: await bcrypt.hash('bobpassword123', 10),
+        password: await bcrypt.hash('BobPassword123', 10),
         isConfirmed: true,
       },
       include: {
@@ -170,7 +170,7 @@ describe('User E2E', () => {
       const newUser = {
         email: 'David@example.com',
         name: 'David',
-        password: 'davidpassword123',
+        password: 'DavidPassword123',
       };
       await request(app.getHttpServer()).post('/users').send(newUser).expect(201);
     });
@@ -187,7 +187,7 @@ describe('User E2E', () => {
       const newUser = {
         email: 'David@example.com',
         name: 'David',
-        password: 'davidpassword123',
+        password: 'DavidPassword123',
       };
       await request(app.getHttpServer()).post('/users').send(newUser).expect(409);
     });

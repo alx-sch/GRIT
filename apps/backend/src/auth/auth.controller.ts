@@ -88,6 +88,6 @@ export class AuthController {
 
     // Redirect back to frontend with the token
     const frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:5173';
-    res.redirect(`${frontendUrl}/auth/success?token=${result.accessToken}`);
+    res.redirect(`${frontendUrl}/login?token=${result.accessToken}`);
   }
 }
