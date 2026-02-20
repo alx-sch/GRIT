@@ -5,7 +5,7 @@ import { sharedPortsSchema, AUTH_CONFIG } from '@grit/schema';
 const backendBaseSchema = sharedPortsSchema
   .extend({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-    VITE_API_BASE_URL: z.url().optional(),
+    APP_BASE_URL: z.url().optional(),
 
     // Authentication & Security
     JWT_SECRET: z
@@ -57,25 +57,28 @@ const backendBaseSchema = sharedPortsSchema
     HTTPS_PORT: z.coerce.number().default(443),
   })
   .transform((data) => {
-    // WICHTIG: Nutze nur "data", nicht "env"!
+    const cleanBaseUrl = data.APP_BASE_URL?.replace(/\/$/, '');
     const isBackendContainer = data.MINIO_HOST === 'minio';
-    const publicUrl = data.VITE_API_BASE_URL;
 
-    const derivedFrontend = publicUrl
-      ? publicUrl.replace(/\/api$/, '')
-      : `http://localhost:${String(data.FE_PORT)}`; // Fix: data statt env
+    const frontendUrl = cleanBaseUrl ?? `http://localhost:${String(data.FE_PORT)}`;
+    const apiBaseUrl = cleanBaseUrl
+      ? `${cleanBaseUrl}/api`
+      : `http://localhost:${String(data.BE_PORT)}`;
 
     const internalMinio = isBackendContainer ? `http://minio:9000` : `http://localhost:9000`;
 
-    const publicMinio = publicUrl
+    // If we have a public URL, we route through Caddy (/s3),
+    // otherwise we hit the local MinIO port directly.
+    const publicMinio = cleanBaseUrl
       ? isBackendContainer
-        ? `${derivedFrontend}/s3`
-        : `http://localhost:${String(data.MINIO_PORT)}` // Fix: data statt env
-      : `http://localhost:${String(data.MINIO_PORT)}`; // Fix: data statt env
+        ? `${frontendUrl}/s3`
+        : `http://localhost:${String(data.MINIO_PORT)}`
+      : `http://localhost:${String(data.MINIO_PORT)}`;
 
     return {
       ...data,
-      FRONTEND_URL: derivedFrontend,
+      FRONTEND_URL: frontendUrl,
+      API_BASE_URL: apiBaseUrl,
       MINIO_ENDPOINT: publicMinio,
       MINIO_INTERNAL_URL: internalMinio,
     };
@@ -85,8 +88,6 @@ const backendBaseSchema = sharedPortsSchema
 
 const backendEnvSchema = backendBaseSchema.transform((data) => {
   let dbName = data.POSTGRES_DB;
-  const publicUrl = data.VITE_API_BASE_URL; // Local constant für Type-Narrowing
-
   if (data.NODE_ENV === 'test') dbName = `${data.POSTGRES_DB}_test`;
 
   if (data.NODE_ENV === 'test' && !['localhost', '127.0.0.1'].includes(data.POSTGRES_HOST))
@@ -94,11 +95,7 @@ const backendEnvSchema = backendBaseSchema.transform((data) => {
 
   const dbUrl = `postgresql://${data.POSTGRES_USER}:${data.POSTGRES_PASSWORD}@${data.POSTGRES_HOST}:${String(data.DB_PORT)}/${dbName}?schema=public`;
 
-  const apiBase = publicUrl
-    ? publicUrl.replace(/\/$/, '')
-    : `http://localhost:${String(data.BE_PORT)}`;
-
-  const googleCallback = `${apiBase}/auth/google/callback`;
+  const googleCallback = `${data.API_BASE_URL}/auth/google/callback`;
 
   return {
     ...data,
