@@ -1,18 +1,20 @@
 import { z } from 'zod';
 import { sharedPortsSchema, AUTH_CONFIG } from '@grit/schema';
+import { existsSync } from 'fs';
 
 // ---------- Base schema (raw env variables + MinIO transform) ----------
 const backendBaseSchema = sharedPortsSchema
   .extend({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+    VITE_API_BASE_URL: z.url().optional(),
+
+    // Authentication & Security
     JWT_SECRET: z
       .string()
       .min(
         AUTH_CONFIG.JWT_SECRET_MIN_LENGTH,
         `JWT_SECRET must be at least ${String(AUTH_CONFIG.JWT_SECRET_MIN_LENGTH)} characters long`
       ),
-
-    // Explicit flag to skip validation during Docker builds (no env var provided)
     SKIP_ENV_VALIDATION: z
       .enum(['true', 'false', '1', '0'])
       .default('false')
@@ -46,12 +48,10 @@ const backendBaseSchema = sharedPortsSchema
     MAIL_USER: z.string(),
     MAIL_PASS: z.string(),
     MAIL_FROM: z.email().default('noreply@grit.social'),
-    FRONTEND_URL: z.url().default('http://localhost:3000'),
 
     // Google OAuth
     GOOGLE_CLIENT_ID: z.string().min(1, 'Google Client ID is required'),
     GOOGLE_CLIENT_SECRET: z.string().min(1, 'Google Client Secret is required'),
-    GOOGLE_CALLBACK_URL: z.url().default('http://localhost:3000/auth/google/callback'),
 
     // Ports (backend only)
     HTTP_PORT: z.coerce.number().default(80),
@@ -59,13 +59,30 @@ const backendBaseSchema = sharedPortsSchema
   })
   // Transform MinIO endpoint
   .transform((env) => {
-    // If MINIO_ENDPOINT is defined in .env, use it.
-    // Otherwise, construct it from HOST and PORT.
-    const endpoint = env.MINIO_ENDPOINT ?? `http://${env.MINIO_HOST}:${String(env.MINIO_PORT)}`;
+    // Detect if in a "Public" (Codespace/Prod) or "Local" environment
+    const isPublicEnv = !!env.VITE_API_BASE_URL;
+    const isBackendContainer = env.MINIO_HOST === 'minio';
+
+    // Derive FRONTEND_URL: Strip /api from the base URL
+    const derivedFrontend = isPublicEnv
+      ? env.VITE_API_BASE_URL!.replace(/\/api$/, '')
+      : `http://localhost:${env.FE_PORT}`;
+
+    const internalMinio = isBackendContainer ? `http://minio:9000` : `http://localhost:9000`;
+
+    // Derive MINIO_ENDPOINT (Public Browser Access)
+    // In Prod/Codespaces, we tunnel through Caddy /s3. In Dev, we hit the port directly.
+    const publicMinio = isPublicEnv
+      ? isBackendContainer
+        ? `${derivedFrontend}/s3` // Inside Docker: Use Proxy
+        : `http://localhost:${env.MINIO_PORT}` // Outside Docker (Seeding): Use Localhost
+      : `http://localhost:${env.MINIO_PORT}`;
 
     return {
       ...env,
-      MINIO_ENDPOINT: endpoint,
+      FRONTEND_URL: derivedFrontend,
+      MINIO_ENDPOINT: publicMinio,
+      MINIO_INTERNAL_URL: internalMinio,
     };
   });
 
@@ -82,10 +99,18 @@ const backendEnvSchema = backendBaseSchema.transform((data) => {
     throw new Error('Refusing to run tests against non-local Postgres');
 
   // building database url
-  const url = `postgresql://${data.POSTGRES_USER}:${data.POSTGRES_PASSWORD}@${data.POSTGRES_HOST}:${String(data.DB_PORT)}/${dbName}?schema=public`;
+  const dbUrl = `postgresql://${data.POSTGRES_USER}:${data.POSTGRES_PASSWORD}@${data.POSTGRES_HOST}:${String(data.DB_PORT)}/${dbName}?schema=public`;
+
+  const apiBase = data.VITE_API_BASE_URL
+    ? data.VITE_API_BASE_URL.replace(/\/$/, '') // Entferne Slash am Ende, falls vorhanden
+    : `http://localhost:${data.BE_PORT}`;
+
+  const googleCallback = `${apiBase}/auth/google/callback`;
+
   return {
     ...data,
-    DATABASE_URL: url,
+    DATABASE_URL: dbUrl,
+    GOOGLE_CALLBACK_URL: googleCallback,
   };
 });
 

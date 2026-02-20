@@ -507,9 +507,15 @@ run-fe: kill-port-fe build-fe
 start: check-env db
 	@echo "$(BOLD)$(YELLOW)--- Launching Application Services...$(RESET)"
 	$(DC) up -d --build backend caddy
+	
 	@echo "$(BOLD)$(GREEN)Full stack is live!$(RESET)"
 	@echo "•   View live logs: '$(YELLOW)make logs$(RESET)'"
-	@echo "•   View app:       '$(YELLOW)https://localhost:$(HTTPS_PORT)$(RESET)' / '$(YELLOW)http://localhost:$(HTTP_PORT)$(RESET)'"
+	
+	@if [ -n "$(VITE_API_BASE_URL)" ]; then \
+		echo "•   View app:       '$(YELLOW)$(subst /api,,$(VITE_API_BASE_URL))$(RESET)'"; \
+	else \
+		echo "•   View app:       '$(YELLOW)https://localhost:$(HTTPS_PORT)$(RESET)'"; \
+	fi
 
 # Stops production services via Docker Compose
 stop:

@@ -22,7 +22,7 @@ const prisma = new PrismaClient({ adapter }); // Initialize the client WITH the 
 // Setup S3/minIO Client
 const s3 = new S3Client({
   region: 'us-east-1', // MinIO requires a region, even if ignored
-  endpoint: env.MINIO_ENDPOINT,
+  endpoint: env.MINIO_INTERNAL_URL,
   credentials: {
     accessKeyId: env.MINIO_USER,
     secretAccessKey: env.MINIO_PASSWORD,

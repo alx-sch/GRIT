@@ -24,6 +24,11 @@ export default defineConfig(({ mode }) => {
         ignored: ['**/node_modules/**', '**/dist/**'],
       },
       proxy: {
+        '/s3': {
+          target: 'http://localhost:9000',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/s3/, ''),
+        },
         '/api': {
           target: `http://localhost:${backendPort}`,
           changeOrigin: true,
