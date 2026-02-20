@@ -56,29 +56,25 @@ const backendBaseSchema = sharedPortsSchema
     HTTP_PORT: z.coerce.number().default(80),
     HTTPS_PORT: z.coerce.number().default(443),
   })
-  // Transform MinIO endpoint
-  .transform((env) => {
-    // Detect if in a "Public" (Codespace/Prod) or "Local" environment
-    const isPublicEnv = !!env.VITE_API_BASE_URL;
-    const isBackendContainer = env.MINIO_HOST === 'minio';
+  .transform((data) => {
+    // WICHTIG: Nutze nur "data", nicht "env"!
+    const isBackendContainer = data.MINIO_HOST === 'minio';
+    const publicUrl = data.VITE_API_BASE_URL;
 
-    // Derive FRONTEND_URL: Strip /api from the base URL
-    const derivedFrontend = isPublicEnv
-      ? env.VITE_API_BASE_URL.replace(/\/api$/, '')
-      : `http://localhost:${String(env.FE_PORT)}`;
+    const derivedFrontend = publicUrl
+      ? publicUrl.replace(/\/api$/, '')
+      : `http://localhost:${String(data.FE_PORT)}`; // Fix: data statt env
 
     const internalMinio = isBackendContainer ? `http://minio:9000` : `http://localhost:9000`;
 
-    // Derive MINIO_ENDPOINT (Public Browser Access)
-    // In Prod/Codespaces, we tunnel through Caddy /s3. In Dev, we hit the port directly.
-    const publicMinio = isPublicEnv
+    const publicMinio = publicUrl
       ? isBackendContainer
-        ? `${derivedFrontend}/s3` // Inside Docker: Use Proxy
-        : `http://localhost:${String(env.MINIO_PORT)}` // Outside Docker (Seeding): Use Localhost
-      : `http://localhost:${String(env.MINIO_PORT)}`;
+        ? `${derivedFrontend}/s3`
+        : `http://localhost:${String(data.MINIO_PORT)}` // Fix: data statt env
+      : `http://localhost:${String(data.MINIO_PORT)}`; // Fix: data statt env
 
     return {
-      ...env,
+      ...data,
       FRONTEND_URL: derivedFrontend,
       MINIO_ENDPOINT: publicMinio,
       MINIO_INTERNAL_URL: internalMinio,
@@ -89,19 +85,17 @@ const backendBaseSchema = sharedPortsSchema
 
 const backendEnvSchema = backendBaseSchema.transform((data) => {
   let dbName = data.POSTGRES_DB;
+  const publicUrl = data.VITE_API_BASE_URL; // Local constant für Type-Narrowing
 
-  // Change database name if in test node env
-  if (data.NODE_ENV === 'test') dbName = data.POSTGRES_DB + '_test';
+  if (data.NODE_ENV === 'test') dbName = `${data.POSTGRES_DB}_test`;
 
-  // Do not connect to test db unless on localhost
   if (data.NODE_ENV === 'test' && !['localhost', '127.0.0.1'].includes(data.POSTGRES_HOST))
     throw new Error('Refusing to run tests against non-local Postgres');
 
-  // building database url
   const dbUrl = `postgresql://${data.POSTGRES_USER}:${data.POSTGRES_PASSWORD}@${data.POSTGRES_HOST}:${String(data.DB_PORT)}/${dbName}?schema=public`;
 
-  const apiBase = data.VITE_API_BASE_URL
-    ? data.VITE_API_BASE_URL.replace(/\/$/, '') // Entferne Slash am Ende, falls vorhanden
+  const apiBase = publicUrl
+    ? publicUrl.replace(/\/$/, '')
     : `http://localhost:${String(data.BE_PORT)}`;
 
   const googleCallback = `${apiBase}/auth/google/callback`;
@@ -116,7 +110,6 @@ const backendEnvSchema = backendBaseSchema.transform((data) => {
 // ---------- Validate environment ----------
 const envValidation = backendEnvSchema.safeParse(process.env);
 
-// Prepare the variable that will be exported
 type Env = z.infer<typeof backendEnvSchema>;
 let validatedEnv: Env;
 
@@ -128,9 +121,6 @@ if (envValidation.success) {
 
   if (isSkipValidation) {
     console.warn('⚠️  SKIP_ENV_VALIDATION detected: Using dummy values for build.');
-
-    // Provide a mock object that satisfies the Env type
-    // We cast this because these values are only for build-time (Prisma generation)
     validatedEnv = {
       ...process.env,
       NODE_ENV: 'production',
@@ -140,7 +130,6 @@ if (envValidation.success) {
     const pretty = z.prettifyError(envValidation.error);
     console.error('\n❌ Invalid Environment Variables:');
     console.error(pretty);
-    console.error(''); // Extra spacing for the CLI
     process.exit(1);
   }
 }
