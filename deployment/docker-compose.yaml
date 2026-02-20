@@ -9,6 +9,9 @@ services:
     build:
       context: ..
       dockerfile: deployment/caddy/Dockerfile.caddy
+      args:
+        - VITE_GOOGLE_MAPS_API=${VITE_GOOGLE_MAPS_API}
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL:-}
     restart: unless-stopped
     ports:
       - '${HTTP_PORT}:80'
@@ -45,6 +48,7 @@ services:
     restart: unless-stopped
     environment:
       - NODE_ENV=production
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-}
       - JWT_SECRET=${JWT_SECRET}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -52,9 +56,13 @@ services:
       - POSTGRES_HOST=postgres-db
       - MINIO_USER=${MINIO_USER}
       - MINIO_PASSWORD=${MINIO_PASSWORD}
+      - MINIO_HOST=minio
+      - MAIL_USER=${MAIL_USER}
+      - MAIL_PASS=${MAIL_PASS}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - HTTP_PORT=${HTTP_PORT}
       - HTTPS_PORT=${HTTPS_PORT}
-      - MINIO_HOST=minio
     depends_on:
       postgres-db:
         condition: service_healthy

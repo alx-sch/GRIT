@@ -26,6 +26,16 @@ RUN     pnpm install --frozen-lockfile --filter @grit/frontend...
 # Copy the frontend source code
 COPY    apps/frontend ./apps/frontend
 
+ARG     VITE_GOOGLE_MAPS_API
+ARG     VITE_API_BASE_URL
+ARG     VITE_MINIO_URL
+ARG     VITE_CHAT_BASE_URL
+
+ENV     VITE_GOOGLE_MAPS_API=$VITE_GOOGLE_MAPS_API
+ENV     VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV     VITE_MINIO_URL=$VITE_MINIO_URL
+ENV     VITE_CHAT_BASE_URL=$VITE_CHAT_BASE_URL
+
 # Build the frontend
 RUN     pnpm --filter @grit/frontend build
 
