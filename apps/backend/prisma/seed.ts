@@ -240,8 +240,8 @@ async function main() {
       content: 'We’re all mad here!',
       isPublic: true,
       isPublished: true,
-      startAt: new Date('2026-02-15T10:00:00Z'),
-      endAt: new Date('2026-02-15T12:00:00Z'),
+      startAt: new Date('2027-02-15T10:00:00Z'),
+      endAt: new Date('2027-02-15T12:00:00Z'),
       image: null as string | null,
     },
   ];
