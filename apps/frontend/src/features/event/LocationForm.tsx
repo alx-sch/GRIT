@@ -1,6 +1,6 @@
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { GMap } from '@/components/ui/gmap';
+import { GmapPicker } from '@/components/ui/gmapPicker';
 import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/useDebounce';
 import { locationService } from '@/services/locationService';
@@ -149,7 +149,7 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
         {/* Map component */}
         <label className="font-heading">Set a location pin</label>
         <APIProvider apiKey={apiKey}>
-          <GMap setValue={setValue} lng={longitude} lat={latitude} />
+          <GmapPicker setValue={setValue} lng={longitude} lat={latitude} />
         </APIProvider>
 
         {/* Address/PostCode */}

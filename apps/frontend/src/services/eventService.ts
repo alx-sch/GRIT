@@ -45,6 +45,11 @@ export const eventService = {
     return response.data;
   },
 
+  deleteEvent: async(id: string): Promise<EventBase> => {
+    const response = await api.delete<EventBase>(`/events/${id}`);
+    return response.data;
+  },
+
   uploadEventImage: async(
       eventId: number, file: File, onProgress?: (progress: number) => void):
       Promise<EventBase> => {

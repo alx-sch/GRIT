@@ -16,7 +16,7 @@ import { LogoutPage, logoutPageLoader } from '@/pages/logout/Page';
 import Users, { usersLoader } from '@/pages/users/Page';
 import type { NavRoute } from '@/types/navroute';
 import { createBrowserRouter } from 'react-router-dom';
-import EditEventPage, { editEventLoader } from './pages/event/edit/Page';
+import EditEventPage, { editEventLoader } from './pages/events/EditEventPage';
 
 // NOTE: let's define single source of truth for our routes here
 export const baseNavConfig: NavRoute[] = [
