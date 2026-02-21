@@ -1,4 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { LocationSummary } from '@/types/location';
+import { DialogDescription } from '@radix-ui/react-dialog';
 import { AdvancedMarker, Map as GoogleMap } from '@vis.gl/react-google-maps';
 
 interface GmapPreviewProps {
@@ -6,20 +8,31 @@ interface GmapPreviewProps {
   lat: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  locationName?: string | null | undefined;
+  location: LocationSummary;
 }
 
 /**
  * MAIN CODE
  */
 
-export const GmapPreview = ({ lng, lat, open, onOpenChange, locationName }: GmapPreviewProps) => {
+export const GmapPreview = ({ lng, lat, open, onOpenChange, location }: GmapPreviewProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
-        {locationName && (
-          <DialogHeader>
-            <DialogTitle>{locationName}</DialogTitle>
+        {location?.name && (
+          <DialogHeader className="gap-0 justify-start">
+            <DialogTitle>{location?.name}</DialogTitle>
+            <DialogDescription className="pt-0">
+              {location?.address}
+              {location?.postalCode && (
+                <>
+                  <br />
+                  {location.postalCode}
+                </>
+              )}
+              {location?.city && ` ${location.city}`}
+              {location?.country && `, ${location.country}`}
+            </DialogDescription>
           </DialogHeader>
         )}
         <GoogleMap

@@ -21,7 +21,7 @@ import { userService } from '@/services/userService';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import type { CurrentUser } from '@/types/user';
 import { APIProvider } from '@vis.gl/react-google-maps';
-import { Calendar, MapPinIcon, Pencil, Trash2, User } from 'lucide-react';
+import { Calendar, House, MapPinIcon, Pencil, Trash2, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -152,42 +152,62 @@ export const EventPage = () => {
         </div>
         <div className="flex flex-col md:flex-row gap-8">
           {/* Event details */}
-          <div className="flex-1 flex flex-col gap-4">
+          <div className="flex-1 flex flex-col gap-6">
             <div className="flex flex-col gap-2">
               {/* Date */}
               <div className="flex flex-row gap-2 items-center">
-                <Calendar className="h-4 w-4 text-primary" />
-                <Text>{formattedDate}</Text>
+                <Calendar className="h-6 w-6 text-primary" />
+                <Text className="text-lg">{formattedDate}</Text>
               </div>
               {/* Location */}
               <div className="flex flex-row gap-2 items-center">
-                <MapPinIcon className="h-4 w-4 text-primary" />
+                <MapPinIcon className="h-6 w-6 text-primary" />
                 {location?.latitude && location?.longitude ? (
-                  <button onClick={() => setIsMapOpen(true)} type="button">
-                    <Text>
+                  <button
+                    onClick={() => {
+                      setIsMapOpen(true);
+                    }}
+                    type="button"
+                  >
+                    <Text className="text-lg">
                       {location?.name && (
                         <span className="font-semibold underline decoration-1">
                           {location.name}
                         </span>
                       )}
-                      {location?.name && locationText && ' - '}
-                      {location?.name ? (locationText ? locationText : '') : 'TBA'}
                     </Text>
                   </button>
                 ) : (
-                  <Text>
-                    {location?.name && (
-                      <span className="font-semibold underline decoration-1">{location.name}</span>
+                  <Text className="text-lg">
+                    {location?.name ? (
+                      <>
+                        <span className="font-semibold underline decoration-1">
+                          {location.name}
+                        </span>
+                        {locationText && ` - ${locationText}`}
+                      </>
+                    ) : (
+                      'TBA'
                     )}
-                    {location?.name && locationText && ' - '}
-                    {location?.name ? (locationText ? locationText : '') : 'TBA'}
                   </Text>
+                )}
+              </div>
+              {/* Author */}
+              <div className="flex flex-row gap-2 items-center">
+                {event.author?.name && (
+                  <>
+                    <House className="h-6 w-6 text-primary" />
+                    <Text className="text-lg">
+                      <span>Host: </span>
+                      <span className="font-semibold">{event.author.name}</span>
+                    </Text>
+                  </>
                 )}
               </div>
               {/* Attendees */}
               <div className="flex flex-row gap-2 items-center">
-                <User className="h-4 w-4 text-primary" />
-                <Text>{countAttending}</Text>
+                <User className="h-6 w-6 text-primary" />
+                <Text className="text-lg">{countAttending}</Text>
               </div>
             </div>
             {/* Action buttons */}
@@ -199,8 +219,8 @@ export const EventPage = () => {
                 <Button
                   variant="secondary"
                   className="flex-1"
-                  onClick={(e) => {
-                    void handleGoing(e);
+                  onClick={() => {
+                    void handleGoing();
                   }}
                   disabled={isLoading}
                 >
@@ -220,20 +240,8 @@ export const EventPage = () => {
               {event.content && (
                 <>
                   <Separator className="shrink-0 dark:bg-white/20" />
-                  <Heading level={3}>About</Heading>
+                  <Heading level={2}>About</Heading>
                   <Text>{event.content}</Text>
-                </>
-              )}
-            </div>
-            {/* Author */}
-            <div className="flex flex-col gap-4">
-              {event.author?.name && (
-                <>
-                  <Separator className="shrink-0 dark:bg-white/20" />
-                  <p>
-                    <span className="text-muted-foreground">Host: </span>
-                    <span className="font-semibold">{event.author.name}</span>
-                  </p>
                 </>
               )}
             </div>
@@ -249,17 +257,22 @@ export const EventPage = () => {
         </div>
 
         {event.conversation?.id && isAttending && (
-          <ChatBox conversationId={event.conversation?.id} />
+          <>
+            <Separator className="shrink-0 dark:bg-white/20" />
+            <ChatBox conversationId={event.conversation?.id} />
+          </>
         )}
       </Container>
       <APIProvider apiKey={apiKey}>
-        <GmapPreview
-          lat={location?.latitude}
-          lng={location?.longitude}
-          open={isMapOpen}
-          onOpenChange={setIsMapOpen}
-          locationName={location?.name}
-        />
+        {location?.latitude != null && location?.longitude != null && (
+          <GmapPreview
+            lat={location?.latitude}
+            lng={location?.longitude}
+            open={isMapOpen}
+            onOpenChange={setIsMapOpen}
+            location={location}
+          />
+        )}
       </APIProvider>
     </>
   );

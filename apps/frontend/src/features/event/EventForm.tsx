@@ -137,16 +137,16 @@ export default function EventForm({ initialData, locations }: EventFormProps) {
       if (imageFile) {
         try {
           await eventService.uploadEventImage(result.id, imageFile, setUploadProgress);
-        } catch (uploadError) {
+        } catch {
           toast.warning('Event created, but image upload failed');
         }
-      } else if (isEditMode && imageRemoved && initialData.imageKey){
-		try {
-			await eventService.deleteEventImage(result.id);
-		} catch (deleteError) {
-			toast.warning('Event saved, but image deletion failed');
-		}
-	  }
+      } else if (isEditMode && imageRemoved && initialData.imageKey) {
+        try {
+          await eventService.deleteEventImage(result.id);
+        } catch {
+          toast.warning('Event saved, but image deletion failed');
+        }
+      }
       localStorage.removeItem(DRAFT_KEY);
       void navigate(`/events/${String(result.id)}`, { replace: true });
     } catch (error) {
@@ -408,13 +408,14 @@ export default function EventForm({ initialData, locations }: EventFormProps) {
           </label>
           <div className="items-center">
             <FileUpload
-              onChange={(file) => {setImageFile(file);
-				if (!file) {
-					setImageRemoved(true);
-				} else {
-					setImageRemoved(false);
-				}
-			  }}
+              onChange={(file) => {
+                setImageFile(file);
+                if (!file) {
+                  setImageRemoved(true);
+                } else {
+                  setImageRemoved(false);
+                }
+              }}
               progress={uploadProgress}
               aspectRatio="square"
               onError={setImageError}

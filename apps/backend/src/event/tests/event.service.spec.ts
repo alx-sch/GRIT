@@ -48,6 +48,14 @@ describe('Event / Service / Unit Tests', () => {
       size: 1024,
     } as Express.Multer.File;
 
+    prismaServiceMock.event.update.mockResolvedValue({
+      id: 1,
+      imageKey: 'new-key',
+      title: 'Test Event',
+      location: null,
+      attendees: [],
+    });
+
     it('throws NotFoundException when event does not exit', async () => {
       prismaServiceMock.event.findUnique.mockResolvedValue(null);
       await expect(testEventService.eventUpdateImage(999, 1, mockFile)).rejects.toThrow(
@@ -73,7 +81,11 @@ describe('Event / Service / Unit Tests', () => {
         imageKey: null,
       });
       storageServiceMock.uploadFile.mockResolvedValue('new-image-key.jpg');
-      prismaServiceMock.event.update.mockResolvedValue({ id: 1, imageKey: 'new-image-key.jpg' });
+      prismaServiceMock.event.update.mockResolvedValue({
+        id: 1,
+        imageKey: 'new-image-key.jpg',
+        attendees: [],
+      });
       const result = await testEventService.eventUpdateImage(1, 1, mockFile);
 
       expect(storageServiceMock.uploadFile).toHaveBeenCalledWith(mockFile, 'event-images');
@@ -96,6 +108,7 @@ describe('Event / Service / Unit Tests', () => {
       prismaServiceMock.event.update.mockResolvedValue({
         id: 1,
         imageKey: 'new-image-key.jpg',
+        attendees: [],
       });
 
       await testEventService.eventUpdateImage(1, 1, mockFile);
@@ -108,6 +121,14 @@ describe('Event / Service / Unit Tests', () => {
   });
 
   describe('eventDeleteImage', () => {
+    prismaServiceMock.event.update.mockResolvedValue({
+      id: 1,
+      imageKey: null,
+      title: 'Test Event',
+      location: null,
+      attendees: [],
+    });
+
     it('throws NotFoundException when event does not exist', async () => {
       prismaServiceMock.event.findUnique.mockResolvedValue(null);
 
@@ -143,6 +164,7 @@ describe('Event / Service / Unit Tests', () => {
       prismaServiceMock.event.update.mockResolvedValue({
         id: 1,
         imageKey: null,
+        attendees: [],
       });
 
       await testEventService.eventDeleteImage(1, 1);
