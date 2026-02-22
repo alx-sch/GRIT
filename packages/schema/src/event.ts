@@ -34,6 +34,7 @@ export const ResEventBaseSchema = z.object({
   isPublic: z.boolean(),
   startAt: z.date(),
   title: z.string(),
+  slug: z.string(),
   location: ResEventLocationSchema.nullable().optional(),
   attendees: z.array(ResEventAttendeeSchema).default([]),
 });
@@ -45,6 +46,11 @@ export const ResEventGetPublishedSchema = z.object({
   pagination: z.object({ nextCursor: z.string().nullable(), hasMore: z.boolean() }),
 });
 export type ResEventGetPublished = z.infer<typeof ResEventGetPublishedSchema>;
+
+export const ReqEventGetBySlugSchema = z.strictObject({
+  slug: z.string(),
+});
+export type ReqEventGetBySlug = z.infer<typeof ReqEventGetBySlugSchema>;
 
 // Shared event schema for creating an event
 export const CreateEventSchema = z.object({

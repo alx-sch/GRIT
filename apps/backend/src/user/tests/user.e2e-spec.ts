@@ -103,6 +103,7 @@ describe('User E2E', () => {
         isPublic: true,
         startAt: new Date('2025-01-01T20:00:00.000Z'),
         title: 'Alice Event 1',
+        slug: 'alice-event-483828238',
         conversation: {
           create: {
             type: 'EVENT',

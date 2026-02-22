@@ -99,6 +99,7 @@ describe('Location E2E', () => {
         isPublic: true,
         startAt: new Date('2025-01-01T20:00:00.000Z'),
         title: 'Test Event',
+        slug: 'test-location-483828238',
       },
       include: {
         author: true,

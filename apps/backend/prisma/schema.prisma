@@ -7,91 +7,94 @@ datasource db {
 }
 
 model User {
-
-
   // Primary Key
-  id                Int         @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
   // Core Data
-  email             String      @unique
+  email             String  @unique
   password          String?
   name              String?
   avatarKey         String?
-  confirmationToken String?     @unique
+  confirmationToken String? @unique
   googleId          String?
 
   // Status Flags
-  isConfirmed       Boolean     @default(false)
+  isConfirmed Boolean @default(false)
 
   // Relations
-  events            Event[]     @relation("EventAuthor")
-  locations         Location[]
-  chatMessages      ChatMessage[]
-  convMemberships   ConversationParticipant[]
-  convCreated       Conversation[]
-  attending         EventAttendee[]
+  events          Event[]                   @relation("EventAuthor")
+  locations       Location[]
+  chatMessages    ChatMessage[]
+  convMemberships ConversationParticipant[]
+  convCreated     Conversation[]
+  attending       EventAttendee[]
 
   // Time Stamps
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  invitesReceived EventInvite[] @relation("Invitee")
+  invitesSent     EventInvite[] @relation("Inviter")
 }
 
 model Location {
   // Primary Key
-  id          Int         @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
   // Core data
-  name        String
-  address	    String?
-  city        String?
-  country     String?
-  postalCode  String?
-  longitude   Float
-  latitude    Float
+  name       String
+  address    String?
+  city       String?
+  country    String?
+  postalCode String?
+  longitude  Float
+  latitude   Float
 
   // Status Flags
-  isPublic    Boolean     @default(false)
+  isPublic Boolean @default(false)
 
   // Foreign Keys
-  authorId    Int
+  authorId Int
 
   // Relations
-  author      User        @relation(fields: [authorId], references: [id])
-  events      Event[]
+  author User    @relation(fields: [authorId], references: [id])
+  events Event[]
 
   // Time Stamps
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Event {
   // Primary key
-  id            Int       @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
   // Core data
-  content       String?
-  endAt         DateTime
-  imageKey      String?
-  startAt       DateTime
-  title         String
+  content  String?
+  endAt    DateTime
+  imageKey String?
+  startAt  DateTime
+  title    String
+  slug     String   @unique
 
   // Status flags
-  isPublished   Boolean   @default(false)
-  isPublic      Boolean   @default(true)
+  isPublished Boolean @default(false)
+  isPublic    Boolean @default(true)
 
   // Foreign keys
-  authorId      Int
-  locationId    Int?
+  authorId   Int
+  locationId Int?
 
   // Relations
-  author        User      @relation("EventAuthor", fields: [authorId], references: [id])
-  location      Location? @relation(fields: [locationId], references: [id])
-  conversation  Conversation?
-  attendees     EventAttendee[]
+  author       User            @relation("EventAuthor", fields: [authorId], references: [id])
+  location     Location?       @relation(fields: [locationId], references: [id])
+  conversation Conversation?
+  attendees    EventAttendee[]
 
   // Time Stamps
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  eventInvites EventInvite[]
 }
 
 enum ConversationType {
@@ -102,25 +105,25 @@ enum ConversationType {
 
 model Conversation {
   // Primary Key
-  id            String              @id @default(uuid())
+  id String @id @default(uuid())
 
   // Core Data
-  type          ConversationType
-  title         String?
+  type  ConversationType
+  title String?
 
   // Foregin Keys
-  createdBy     Int
-  eventId       Int?                @unique
+  createdBy Int
+  eventId   Int? @unique
 
   // Reations
-  creator       User                @relation(fields: [createdBy], references: [id])
-  messages      ChatMessage[]
-  event         Event?              @relation(fields: [eventId], references: [id])
-  participants  ConversationParticipant[]
+  creator      User                      @relation(fields: [createdBy], references: [id])
+  messages     ChatMessage[]
+  event        Event?                    @relation(fields: [eventId], references: [id])
+  participants ConversationParticipant[]
 
   // Time Stamps
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // Explicit join table to track which user is part of which conversation.
@@ -128,8 +131,8 @@ model ConversationParticipant {
   conversationId String
   userId         Int
 
-  conversation   Conversation   @relation(fields: [conversationId], references: [id], onDelete: Cascade) // On delete cascade = Delete join entry when conversation is deleted
-  user           User           @relation(fields: [userId], references: [id])
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade) // On delete cascade = Delete join entry when conversation is deleted
+  user         User         @relation(fields: [userId], references: [id])
 
   @@id([conversationId, userId])
   @@index([userId])
@@ -137,11 +140,11 @@ model ConversationParticipant {
 
 // Expicit join table to track event attendance
 model EventAttendee {
-  eventId         Int
-  userId          Int
+  eventId Int
+  userId  Int
 
-  event           Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([eventId, userId])
   @@index([userId])
@@ -149,21 +152,38 @@ model EventAttendee {
 
 model ChatMessage {
   // Primary Key
-  id             String       @id
+  id String @id
 
   // Core Data
   conversationId String
   text           String
 
   // Foreign Keys
-  authorId       Int
+  authorId Int
 
   // Relations
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  author         User         @relation(fields: [authorId], references: [id])
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  author       User         @relation(fields: [authorId], references: [id])
 
   // Time Stamps
-  createdAt      DateTime     @default(now())
+  createdAt DateTime @default(now())
 
   @@index([conversationId, createdAt, id])
+}
+
+model EventInvite {
+  id        Int    @id @default(autoincrement())
+  eventId   Int
+  inviteeId Int
+  inviterId Int
+  status    String @default("pending") // "pending", "accepted", "declined"
+
+  event   Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  invitee User  @relation("Invitee", fields: [inviteeId], references: [id], onDelete: Cascade)
+  inviter User  @relation("Inviter", fields: [inviterId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([eventId, inviteeId]) // Prevents inviting the same person twice to the same event
 }

@@ -421,7 +421,7 @@ vol-backup:
 	@mkdir -p $(BACKUP_PATH)
 	@for vol in $(PREF_VOLUMES); do \
 		if docker volume inspect $$vol >/dev/null 2>&1; then \
-			echo "Backing up '$$vol' to '$(BOLD)$(BACKUP_PATH)/$$vol.tar.gz$(RESET)'"; \
+			echo "Backing npm install slugifypup '$$vol' to '$(BOLD)$(BACKUP_PATH)/$$vol.tar.gz$(RESET)'"; \
 			docker run --rm \
 				-v $$vol:/data \
 				-v $$(pwd)/$(BACKUP_PATH):/backup \

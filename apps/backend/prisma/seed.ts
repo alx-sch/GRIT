@@ -13,6 +13,7 @@ import path from 'path';
 import { Pool } from 'pg';
 import * as bcrypt from 'bcrypt';
 import { getPublicS3Policy, generateS3Key } from '@/storage/storage.utils';
+import { eventGenerateSlug } from '@/event/event.utils';
 
 // Setup the Postgres connection
 const pool = new Pool({ connectionString: env.DATABASE_URL });
@@ -215,6 +216,7 @@ async function main() {
   const eventsToCreate = [
     {
       title: 'Grit Launch Party',
+      slug: eventGenerateSlug('Grit Launch Party'),
       authorId: bob.id,
       locationId: gritHqId,
       content: 'Celebrating the first release of our app!',
@@ -226,6 +228,7 @@ async function main() {
     },
     {
       title: 'Private Strategy Meeting',
+      slug: eventGenerateSlug('Private Strategy Meeting'),
       authorId: alice.id,
       content: 'Discussing SECRETS!',
       isPublic: false,
@@ -236,6 +239,7 @@ async function main() {
     },
     {
       title: 'Alice in Wonderland',
+      slug: eventGenerateSlug('Alice in Wonderland'),
       authorId: alice.id,
       content: 'We’re all mad here!',
       isPublic: true,
@@ -259,6 +263,7 @@ async function main() {
       const event = await prisma.event.create({
         data: {
           title: e.title,
+          slug: e.slug,
           authorId: e.authorId,
           startAt: e.startAt,
           endAt: e.endAt,

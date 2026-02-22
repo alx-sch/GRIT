@@ -1,4 +1,9 @@
-import { eventCursorFilter, eventEncodeCursor, eventSearchFilter } from '@/event/event.utils';
+import {
+  eventCursorFilter,
+  eventEncodeCursor,
+  eventSearchFilter,
+  eventGenerateSlug,
+} from '@/event/event.utils';
 import { LocationService } from '@/location/location.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { StorageService } from '@/storage/storage.service';
@@ -259,9 +264,11 @@ export class EventService {
   }
 
   async eventPostDraft(data: ReqEventPostDraftDto & { authorId: number }) {
+    const slug = eventGenerateSlug(data.title);
     const createdEvent = await this.prisma.event.create({
       data: {
         title: data.title,
+        slug: slug,
         content: data.content,
         startAt: data.startAt,
         endAt: data.endAt,

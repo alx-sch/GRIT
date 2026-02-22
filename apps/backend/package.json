@@ -43,6 +43,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "minio": "^8.0.6",
+    "nanoid": "^3.3.11",
     "nestjs-zod": "^5.0.1",
     "nodemailer": "^7.0.13",
     "passport": "^0.7.0",
@@ -51,6 +52,7 @@
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "slugify": "^1.6.6",
     "socket.io": "^4.8.3",
     "zod": "^4.2.1"
   },

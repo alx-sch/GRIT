@@ -82,6 +82,7 @@ describe('Events E2E', () => {
         isPublic: true,
         startAt: new Date('2025-01-01T20:00:00.000Z'),
         title: 'Hello E2E',
+        slug: 'hello-e2e-1234456',
       },
       include: {
         author: true,
@@ -203,6 +204,7 @@ describe('Events E2E', () => {
           isPublic: true,
           startAt: new Date('2025-01-01T20:00:00.000Z'),
           title: 'Hello E2E again',
+          slug: 'hello-e2e-again-1234456',
         },
         include: {
           author: true,
