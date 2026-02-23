@@ -164,3 +164,23 @@ DELETE {{baseUrl}}/events/4 HTTP/1.1
 Authorization: Bearer {{token}}
 ###
 
+# Send friend request
+POST {{baseUrl}}/users/me/friends/requests HTTP/1.1
+Authorization: Bearer {{token}}
+content-type: application/json
+
+{
+	"receiverId": 1
+
+}
+###
+
+# Get incoming friend requests
+GET {{baseUrl}}/users/me/friends/requests/incoming HTTP/1.1
+Authorization: Bearer {{token}}
+###
+
+# Get outgoing friend requests
+GET {{baseUrl}}/users/me/friends/requests/outgoing HTTP/1.1
+Authorization: Bearer {{token}}
+###

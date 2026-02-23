@@ -10,26 +10,30 @@ model User {
 
 
   // Primary Key
-  id                Int         @id @default(autoincrement())
+  id                     Int         @id @default(autoincrement())
 
   // Core Data
-  email             String      @unique
-  password          String?
-  name              String?
-  avatarKey         String?
-  confirmationToken String?     @unique
-  googleId          String?
+  email                  String      @unique
+  password               String?
+  name                   String?
+  avatarKey              String?
+  confirmationToken      String?     @unique
+  googleId               String?
 
   // Status Flags
-  isConfirmed       Boolean     @default(false)
+  isConfirmed            Boolean     @default(false)
 
   // Relations
-  events            Event[]     @relation("EventAuthor")
-  locations         Location[]
-  chatMessages      ChatMessage[]
-  convMemberships   ConversationParticipant[]
-  convCreated       Conversation[]
-  attending         EventAttendee[]
+  events                 Event[]     @relation("EventAuthor")
+  locations              Location[]
+  chatMessages           ChatMessage[]
+  convMemberships        ConversationParticipant[]
+  convCreated            Conversation[]
+  attending              EventAttendee[]
+  sentFriendRequests     FriendRequest[] @relation("requester")
+  receivedFriendRequests FriendRequest[] @relation("receiver")
+  friendsAsUserA         Friends[]       @relation("FriendUserA")
+  friendsAsUserB         Friends[]       @relation("FriendUserB")
 
   // Time Stamps
   createdAt         DateTime    @default(now())
@@ -166,4 +170,36 @@ model ChatMessage {
   createdAt      DateTime     @default(now())
 
   @@index([conversationId, createdAt, id])
+}
+
+model FriendRequest {
+  // Primary Key
+  id          String   @id @default(uuid())
+
+  // Relations
+  requester   User     @relation("requester", fields: [requesterId], references: [id])
+  requesterId Int
+  receiver    User     @relation("receiver", fields: [receiverId], references: [id])
+  receiverId  Int
+
+  // Time Stamps
+  createdAt   DateTime @default(now())
+
+  @@unique([requesterId, receiverId])
+}
+
+model Friends {
+  // Primary Key
+  id        String   @id @default(uuid())
+
+  // Relations
+  user      User     @relation("FriendUserA", fields: [userId], references: [id])
+  userId    Int
+  friend    User     @relation("FriendUserB", fields: [friendId], references: [id])
+  friendId  Int
+
+  // Time Stamps
+  createdAt DateTime @default(now())
+
+  @@unique([userId, friendId])
 }
