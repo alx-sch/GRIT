@@ -33,4 +33,25 @@ export const userService = {
     });
     return response.data;
   },
+
+  updateMe: async (data: { name?: string }): Promise<UserBase> => {
+    const response = await api.patch<UserBase>('users/me', data);
+    return response.data;
+  },
+
+  uploadAvatar: async (file: File): Promise<UserBase> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.patch<UserBase>('users/me/upload-avatar', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  getMyEvents: async (): Promise<{ title: string }[]> => {
+    const response = await api.get<{ title: string }[]>('/users/me/events');
+    return response.data;
+  },
 };
