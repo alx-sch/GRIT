@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Sun, Moon, User, LogOut, Calendar, ChevronDown } from 'lucide-react';
+import { Menu, X, User, LogOut, Calendar, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   NavigationMenu,
@@ -24,7 +24,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useTheme } from '@/providers/theme-provider';
 import { baseNavConfig } from '@/router';
 import { useAuthStore } from '@/store/authStore';
 import { useCurrentUserStore } from '@/store/currentUserStore';
@@ -43,13 +42,8 @@ export function Navbar() {
   }
 
   const location = useLocation();
-  const { setTheme, resolvedTheme } = useTheme();
 
   const isActive = (path: string) => location.pathname === path;
-
-  const toggleTheme = () => {
-    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
-  };
 
   const navigate = useNavigate();
 
@@ -126,24 +120,9 @@ export function Navbar() {
             </DropdownMenuContent>
           </DropdownMenu>
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleTheme}
-          className="hover:bg-accent hover:text-accent-foreground"
-        >
-          <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Toggle theme</span>
-        </Button>
       </div>
 
       <div className="md:hidden flex items-center gap-2">
-        <Button variant="ghost" size="icon" onClick={toggleTheme} className="hover:bg-accent">
-          <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-        </Button>
-
         {!isLoggedIn && (
           <Link to="/login">
             <Button className="h-10">Login</Button>

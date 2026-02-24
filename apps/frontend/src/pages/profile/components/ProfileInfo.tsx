@@ -55,6 +55,7 @@ export function ProfileInfo({ user, onProfileUpdate }: ProfileInfoProps) {
 
   const handleCancel = () => {
     reset({ name: user.name ?? '' });
+
     setIsEditing(false);
   };
 
@@ -98,7 +99,9 @@ export function ProfileInfo({ user, onProfileUpdate }: ProfileInfoProps) {
             {!isEditing ? (
               <Button
                 type="button"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   setIsEditing(true);
                 }}
               >
@@ -112,7 +115,9 @@ export function ProfileInfo({ user, onProfileUpdate }: ProfileInfoProps) {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     handleCancel();
                   }}
                   disabled={isSubmitting}

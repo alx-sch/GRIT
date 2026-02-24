@@ -2,10 +2,10 @@ import { useCurrentUserStore } from '@/store/currentUserStore';
 import { Container } from '@/components/layout/Container';
 import { Heading, Text } from '@/components/ui/typography';
 import { getAvatarImageUrl } from '@/lib/image_utils';
-import { ProfileAvatar } from './ProfileAvatar';
-import { ProfileInfo } from './ProfileInfo';
-import { AccountInfo } from './AccountInfo';
-import { MyEvents } from './MyEvents';
+import { ProfileSidebar } from './components/ProfileSidebar';
+import { ProfileInfo } from './components/ProfileInfo';
+import { MyEvents } from './components/MyEvents';
+import { ThemeSettings } from './components/ThemeSettings';
 import type { CurrentUser } from '@/types/user';
 import { userService } from '@/services/userService';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
@@ -34,19 +34,10 @@ export function Page() {
   }
 
   const avatarUrl = currentUser.avatarKey ? getAvatarImageUrl(currentUser.avatarKey) : undefined;
-  const initials =
-    currentUser.name
-      ?.split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase() ??
-    currentUser.email?.[0]?.toUpperCase() ??
-    'U';
 
   return (
     <Container className="py-10">
-      <div className="space-y-6">
-        {/* Header */}
+      <div className="space-y-8">
         <div>
           <Heading>Profile</Heading>
           <Text className="text-muted-foreground">
@@ -54,18 +45,22 @@ export function Page() {
           </Text>
         </div>
 
-        <ProfileAvatar
-          user={currentUser}
-          avatarUrl={avatarUrl}
-          initials={initials}
-          onAvatarUpdate={handleUserUpdate}
-        />
+        <div className="flex flex-col md:flex-row gap-8">
+          <ProfileSidebar
+            user={currentUser}
+            avatarUrl={avatarUrl}
+            eventsCount={events.length}
+            onAvatarUpdate={handleUserUpdate}
+          />
 
-        <ProfileInfo user={currentUser} onProfileUpdate={handleUserUpdate} />
+          <div className="flex-1 space-y-6">
+            <ProfileInfo user={currentUser} onProfileUpdate={handleUserUpdate} />
 
-        <MyEvents events={events} />
+            <ThemeSettings />
 
-        <AccountInfo user={currentUser} />
+            <MyEvents events={events} />
+          </div>
+        </div>
       </div>
     </Container>
   );
