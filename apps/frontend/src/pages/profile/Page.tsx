@@ -7,8 +7,15 @@ import { ProfileInfo } from './ProfileInfo';
 import { AccountInfo } from './AccountInfo';
 import { MyEvents } from './MyEvents';
 import type { CurrentUser } from '@/types/user';
+import { userService } from '@/services/userService';
+import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
+
+export const profileLoader = async () => {
+  return userService.getMyEvents();
+};
 
 export function Page() {
+  const events = useTypedLoaderData<{ title: string }[]>();
   const currentUser = useCurrentUserStore((state) => state.user);
   const setUser = useCurrentUserStore((state) => state.setUser);
 
@@ -56,7 +63,7 @@ export function Page() {
 
         <ProfileInfo user={currentUser} onProfileUpdate={handleUserUpdate} />
 
-        <MyEvents userId={currentUser.id} />
+        <MyEvents events={events} />
 
         <AccountInfo user={currentUser} />
       </div>

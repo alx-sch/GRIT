@@ -1,38 +1,15 @@
-import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Text } from '@/components/ui/typography';
 import { Button } from '@/components/ui/button';
 import { CalendarDays, Plus } from 'lucide-react';
-import { userService } from '@/services/userService';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useNavigate } from 'react-router-dom';
 
 interface MyEventsProps {
-  userId: number;
+  events: { title: string }[];
 }
 
-export function MyEvents({ userId }: MyEventsProps) {
-  const [events, setEvents] = useState<{ title: string }[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export function MyEvents({ events }: MyEventsProps) {
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        setIsLoading(true);
-        const data = await userService.getMyEvents();
-        setEvents(data);
-      } catch (err) {
-        console.error('Failed to fetch events:', err);
-        setError('Failed to load events');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    void fetchEvents();
-  }, [userId]);
 
   // Show only first 5 events for summary view
   const displayedEvents = events.slice(0, 5);
@@ -75,17 +52,7 @@ export function MyEvents({ userId }: MyEventsProps) {
         </div>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
-          <div className="space-y-3">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-          </div>
-        ) : error ? (
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <Text className="text-destructive">{error}</Text>
-          </div>
-        ) : events.length === 0 ? (
+        {events.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <CalendarDays className="w-12 h-12 text-muted-foreground mb-4" />
             <Text className="text-muted-foreground mb-2">No events yet</Text>

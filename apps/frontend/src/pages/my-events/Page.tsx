@@ -1,37 +1,21 @@
-import { useEffect, useState } from 'react';
 import { Container } from '@/components/layout/Container';
 import { Heading, Text } from '@/components/ui/typography';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CalendarDays, Plus } from 'lucide-react';
 import { userService } from '@/services/userService';
 import { useNavigate } from 'react-router-dom';
+import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
+
+export const myEventsLoader = async () => {
+  return userService.getMyEvents();
+};
 
 export function Page() {
-  const [events, setEvents] = useState<{ title: string }[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const events = useTypedLoaderData<{ title: string }[]>();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        setIsLoading(true);
-        const data = await userService.getMyEvents();
-        setEvents(data);
-      } catch (err) {
-        console.error('Failed to fetch events:', err);
-        setError('Failed to load events');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    void fetchEvents();
-  }, []);
 
   const renderEventsList = (filteredEvents: { title: string }[]) => (
     <div className="grid gap-4">
@@ -119,30 +103,7 @@ export function Page() {
         </div>
 
         {/* Events List with Tabs */}
-        {isLoading ? (
-          <div className="space-y-3">
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-24 w-full" />
-          </div>
-        ) : error ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-              <Text className="text-destructive">{error}</Text>
-              <Button
-                variant="outline"
-                className="mt-4"
-                onClick={() => {
-                  window.location.reload();
-                }}
-              >
-                Try Again
-              </Button>
-            </CardContent>
-          </Card>
-        ) : events.length === 0 ? (
+        {events.length === 0 ? (
           renderEmptyState()
         ) : (
           <Tabs defaultValue="all" className="w-full">
