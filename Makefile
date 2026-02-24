@@ -234,6 +234,8 @@ lint-fix: install
 format: clean install
 	@echo "$(BOLD)$(YELLOW)--- Formating...$(RESET)"
 	pnpm run format;
+	-pnpm --filter @grit/backend exec prisma format
+	-caddy fmt --overwrite deployment/caddy/Caddyfile
 	@echo "$(BOLD)$(GREEN)Formating complete.$(RESET)"
 
 # Shows live logs of Docker services running (in the background)
@@ -421,7 +423,7 @@ vol-backup:
 	@mkdir -p $(BACKUP_PATH)
 	@for vol in $(PREF_VOLUMES); do \
 		if docker volume inspect $$vol >/dev/null 2>&1; then \
-			echo "Backing npm install slugifypup '$$vol' to '$(BOLD)$(BACKUP_PATH)/$$vol.tar.gz$(RESET)'"; \
+			echo "Backing up '$$vol' to '$(BOLD)$(BACKUP_PATH)/$$vol.tar.gz$(RESET)'"; \
 			docker run --rm \
 				-v $$vol:/data \
 				-v $$(pwd)/$(BACKUP_PATH):/backup \

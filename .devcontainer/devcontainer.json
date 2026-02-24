@@ -52,6 +52,10 @@
           "editor.defaultFormatter": "Prisma.prisma",
           "editor.formatOnSave": true
         },
+        "[caddyfile]": {
+          "editor.defaultFormatter": "matthewpi.caddyfile-support",
+          "editor.formatOnSave": true
+        },
         "pnpm.updateCheck": "never"
       }
     }

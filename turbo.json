@@ -30,7 +30,7 @@
     }
   },
   "globalEnv": [
-"NODE_ENV",
+    "NODE_ENV",
     "APP_BASE_URL",
     "VITE_APP_BASE_URL",
     "VITE_GOOGLE_MAPS_API",
