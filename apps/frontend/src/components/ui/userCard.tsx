@@ -9,8 +9,7 @@ import { type ConversationRes } from '@grit/schema';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 
 export const UserCard = ({ user }: { user: ResUserPublic }) => {
-  const name = user.name ?? 'Unknown user';
-  const initials = name.trim().slice(0, 2).toUpperCase();
+  const displayName = user.name ?? 'User';
   const navigate = useNavigate();
   function startChat() {
     void startChatAsync();
@@ -35,11 +34,11 @@ export const UserCard = ({ user }: { user: ResUserPublic }) => {
         <CardHeader className="flex flex-row items-center gap-4 space-y-0 p-4">
           <Avatar className="h-12 w-12 border-2 border-black">
             <AvatarImage src={getAvatarImageUrl(user.avatarKey ?? undefined)} />
-            <AvatarFallback>{initials}</AvatarFallback>
+            <AvatarFallback name={displayName} />
           </Avatar>
           <div className="flex flex-1 justify-between">
             <div className="overflow-hidden">
-              <CardTitle className="text-base truncate">{name}</CardTitle>
+              <CardTitle className="text-base truncate">{displayName}</CardTitle>
             </div>
             {currentUser && currentUser?.id !== user.id && (
               <MessageCircleMore className="cursor-pointer" onClick={startChat} />
