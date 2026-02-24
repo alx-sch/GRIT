@@ -19,6 +19,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       return; // bail early since we don't want to try and create a socket for unauthenticated users
     }
 
+    // Create new socket connection
     const newSocket = io({
       path: '/api/socket.io',
       auth: { token },
@@ -30,6 +31,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     // Listen for incoming messages
     newSocket.on('message', (message) => {
       chatStore.getState().addMessage(message);
+      console.log(message);
     });
 
     return () => {
@@ -43,3 +45,23 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 export const useSocket = (): Socket | null => {
   return useContext(SocketContext);
 };
+
+// NEEDS INTRODUCTION
+
+//     socket.on('history', (msgs: ResChatMessage[]) => {
+//       setMessages((prev) => [...msgs, ...prev]);
+//     });
+
+//         socket.on('history_end', () => {
+//           setHasMore(false);
+//         });
+
+//             socket.on('error', (err: { message: string }) => {
+//       setMessages(() => []);
+//       setErrorMessage(err.message ?? 'Error');
+//     });
+
+//         Your store will need:
+
+// prependMessages(...)
+// setHasMore(...)

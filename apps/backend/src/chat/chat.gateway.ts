@@ -6,6 +6,7 @@ import {
   WebSocketServer,
   WebSocketGateway,
   WsException,
+  OnGatewayConnection,
 } from '@nestjs/websockets';
 import { Server, Socket, type DefaultEventsMap } from 'socket.io';
 import { UserService } from '@/user/user.service';
@@ -57,7 +58,7 @@ export class AllWsExceptionsFilter implements WsExceptionFilter {
     credentials: true,
   },
 })
-export class ChatGateway {
+export class ChatGateway implements OnGatewayConnection {
   // With the WebSocketServer decorator we get an instance of the server. This is the same as the io object from raw Socket.IO.
   @WebSocketServer()
   private server!: Server;
@@ -72,9 +73,9 @@ export class ChatGateway {
 
   // afterInit runs ONCE when the gateway is initialized. We can install middleware in here.
   afterInit(server: Server) {
-    // This registers a Socket.IO middleware. It does not run immediately but for every incoming connection attempt. socket will be the client that tries to connect
-    server.use((socket: AppSocket, next) => {
-      const parsed_token = ReqSocketAuthSchema.safeParse(socket.handshake.auth);
+    // This registers a Socket.IO middleware. It does not run immediately but for every incoming connection attempt.
+    server.use((client: AppSocket, next) => {
+      const parsed_token = ReqSocketAuthSchema.safeParse(client.handshake.auth);
       if (!parsed_token.success) {
         next(new Error('Unauthorized'));
         return;
@@ -93,21 +94,71 @@ export class ChatGateway {
           return;
         }
 
-        socket.data.userId = user.id;
-        socket.data.userName = user.name ?? 'No username';
-        socket.data.userAvatarKey = user.avatarKey ?? undefined;
+        client.data.userId = user.id;
+        client.data.userName = user.name ?? 'No username';
+        client.data.userAvatarKey = user.avatarKey ?? undefined;
 
         next();
       })();
     });
   }
 
-  @SubscribeMessage('join')
-  async handleJoin(@MessageBody() body: ReqChatJoinDto, @ConnectedSocket() client: AppSocket) {
-    // Check if the current user is allowed to join the room for the conversation id
+  // We auto-join all conversations for the user in here
+  async handleConnection(client: AppSocket) {
+    // Get the conversations from db
+    const userId = client.data.userId;
+    const conversations = await this.prisma.conversation.findMany({
+      where: {
+        participants: {
+          some: { userId },
+        },
+      },
+      select: { id: true },
+    });
+
+    // Join all conversations
+    for (const conv of conversations) {
+      await client.join(conv.id);
+    }
+  }
+
+  // CHANGED: Client does not join rooms anymore. Instead the backend joins the client
+  // @SubscribeMessage('join')
+  // async handleJoin(@MessageBody() body: ReqChatJoinDto, @ConnectedSocket() client: AppSocket) {
+  //   // Check if the current user is allowed to join the room for the conversation id
+  //   const conversation = await this.prisma.conversation.findFirst({
+  //     where: {
+  //       id: body.id,
+  //       participants: {
+  //         some: {
+  //           userId: client.data.userId,
+  //         },
+  //       },
+  //     },
+  //   });
+  //   if (!conversation) throw new WsException('You are not allowed to view this conversation');
+  //   else await client.join(body.id);
+
+  //   // We lock down which conversation this socket belongs to
+  //   client.data.conversationId = body.id;
+  //   // Get message history to prefill chat
+  //   const rows = await this.chatService.loadMessages(body.id);
+  //   // Serialization in Websocket context
+  //   const history = rows.reverse().map((row) => ResChatMessageSchema.parse(row));
+  //   client.emit('history', history);
+  // }
+
+  @SubscribeMessage('message')
+  async handleMessage(
+    @MessageBody() body: ReqChatMessagePostDto,
+    @ConnectedSocket() client: AppSocket
+  ) {
+    const { text, conversationId } = body;
+
+    // Client must be in conversation
     const conversation = await this.prisma.conversation.findFirst({
       where: {
-        id: body.id,
+        id: conversationId,
         participants: {
           some: {
             userId: client.data.userId,
@@ -115,33 +166,11 @@ export class ChatGateway {
         },
       },
     });
-    if (!conversation) throw new WsException('You are not allowed to view this conversation');
-    else await client.join(body.id);
+    if (!conversation) throw new WsException('Not allowed to send message to this conversation');
 
-    // We lock down which conversation this socket belongs to
-    client.data.conversationId = body.id;
-    // Get message history to prefill chat
-    const rows = await this.chatService.loadMessages(body.id);
-    // Serialization in Websocket context
-    const history = rows.reverse().map((row) => ResChatMessageSchema.parse(row));
-    client.emit('history', history);
-  }
-
-  @SubscribeMessage('message')
-  async handleMessage(
-    @MessageBody() body: ReqChatMessagePostDto,
-    @ConnectedSocket() client: AppSocket
-  ) {
-    const conversationId = client.data.conversationId;
-    // Client must have joined an event room
-    if (!conversationId) {
-      client.disconnect();
-      return null;
-    }
     const id = randomUUID();
-
     // Emit immediately (realtime first)
-    const res = {
+    const message = ResChatMessageSchema.parse({
       id,
       conversationId,
       text: body.text,
@@ -151,8 +180,7 @@ export class ChatGateway {
         avatarKey: client.data.userAvatarKey,
       },
       createdAt: new Date(),
-    };
-    const message = ResChatMessageSchema.parse(res);
+    });
     this.server.to(conversationId).emit('message', message);
 
     // Persist asynchronously (durability second)

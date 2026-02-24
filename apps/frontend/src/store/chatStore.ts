@@ -9,19 +9,24 @@ import { create } from 'zustand';
  * finally set everything.
  */
 
+type Conversation = Record<
+  string,
+  {
+    messages: ResChatMessage[];
+    hasMore: boolean;
+  }
+>;
+
 interface ChatStore {
-  conversations: Record<
-    string,
-    {
-      messages: ResChatMessage[];
-      hasMore: boolean;
-    }
-  >;
+  conversations: Conversation;
   addMessage: (message: ResChatMessage) => void;
+  setInitialConversations: (messages: Conversation) => void;
 }
 
 export const chatStore = create<ChatStore>((set) => ({
   conversations: {},
+
+  // For adding a single message
   addMessage: (message) => {
     set((state) => {
       const conversationId = message.conversationId;
@@ -46,6 +51,37 @@ export const chatStore = create<ChatStore>((set) => ({
           },
         },
       };
+    });
+  },
+
+  // Conditionally loading initial messages if we have not loaded the conversation yet
+  setInitialConversations: (incoming) => {
+    set((state) => {
+      const merged = { ...state.conversations };
+
+      // For all incoming messages we check...
+      for (const conversationId in incoming) {
+        // if we already have the conversation
+        const existing = state.conversations[conversationId];
+
+        if (!existing) {
+          // if not simply add it
+          merged[conversationId] = incoming[conversationId];
+        } else {
+          merged[conversationId] = {
+            // if yes we spread the existing messages
+            ...existing,
+            // keep original hasMore state
+            hasMore: existing.hasMore,
+            // If we already have messages, keep those, otherwise store incoming
+            messages: existing.messages.length
+              ? existing.messages
+              : incoming[conversationId].messages,
+          };
+        }
+      }
+
+      return { conversations: merged };
     });
   },
 }));

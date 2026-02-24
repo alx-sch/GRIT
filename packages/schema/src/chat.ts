@@ -8,6 +8,7 @@ export const ReqSocketAuthSchema = z.object({
 // Chat Message sent from client
 export const ReqChatMessagePostSchema = z.object({
   text: z.string(),
+  conversationId: z.uuid(),
 });
 
 // Chat Message sent from server

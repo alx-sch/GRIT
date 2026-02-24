@@ -13,7 +13,6 @@ export const ChatFeedLayout = () => {
   const { id } = useParams();
   const conversations: ResConversationOverview = useLoaderData();
   const currentConversation = conversations.find((el) => el.id === id);
-  console.log('conversations', conversations);
 
   return (
     <>
