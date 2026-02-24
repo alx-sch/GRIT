@@ -12,9 +12,8 @@ export const ChatFeedLoader = async () => {
 export const ChatFeedLayout = () => {
   const { id } = useParams();
   const conversations: ResConversationOverview = useLoaderData();
-  console.log('conversations', conversations);
-  console.log('id', id);
   const currentConversation = conversations.find((el) => el.id === id);
+  console.log('conversations', conversations);
 
   return (
     <>

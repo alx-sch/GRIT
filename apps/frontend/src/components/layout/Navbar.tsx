@@ -24,6 +24,7 @@ import { useCurrentUserStore } from '@/store/currentUserStore';
 import type { NavRoute } from '@/types/navroute';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import { getAvatarImageUrl } from '@/lib/image_utils';
+import { useSocket } from '@/providers/socketProvider';
 
 export function Navbar() {
   const navConfig: NavRoute[] = [...baseNavConfig];
@@ -32,6 +33,8 @@ export function Navbar() {
   const currentUserAvatar = user?.avatarKey;
   const currentUserName = user?.name;
   const initials = currentUserName?.trim().slice(0, 2).toUpperCase();
+  const socket = useSocket();
+  console.log(socket);
 
   navConfig.push(
     isLoggedIn ? { path: '/logout', label: 'Logout' } : { path: '/login', label: 'Login' }
