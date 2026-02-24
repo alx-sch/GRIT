@@ -60,7 +60,7 @@ model Location {
   authorId    Int
 
   // Relations
-  author      User        @relation(fields: [authorId], references: [id])
+  author      User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
   events      Event[]
 
   // Time Stamps
@@ -88,7 +88,7 @@ model Event {
   locationId    Int?
 
   // Relations
-  author        User      @relation("EventAuthor", fields: [authorId], references: [id])
+  author        User      @relation("EventAuthor", fields: [authorId], references: [id], onDelete: Cascade)
   location      Location? @relation(fields: [locationId], references: [id])
   conversation  Conversation?
   attendees     EventAttendee[]
@@ -116,10 +116,10 @@ model Conversation {
   createdBy     Int
   eventId       Int?                @unique
 
-  // Reations
-  creator       User                @relation(fields: [createdBy], references: [id])
+  // Relations
+  creator       User                @relation(fields: [createdBy], references: [id], onDelete: Cascade)
   messages      ChatMessage[]
-  event         Event?              @relation(fields: [eventId], references: [id])
+  event         Event?              @relation(fields: [eventId], references: [id], onDelete: Cascade)
   participants  ConversationParticipant[]
 
   // Time Stamps
@@ -133,7 +133,7 @@ model ConversationParticipant {
   userId         Int
 
   conversation   Conversation   @relation(fields: [conversationId], references: [id], onDelete: Cascade) // On delete cascade = Delete join entry when conversation is deleted
-  user           User           @relation(fields: [userId], references: [id])
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([conversationId, userId])
   @@index([userId])
@@ -164,7 +164,7 @@ model ChatMessage {
 
   // Relations
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  author         User         @relation(fields: [authorId], references: [id])
+  author         User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   // Time Stamps
   createdAt      DateTime     @default(now())
@@ -176,11 +176,13 @@ model FriendRequest {
   // Primary Key
   id          String   @id @default(uuid())
 
-  // Relations
-  requester   User     @relation("requester", fields: [requesterId], references: [id])
+  // Foreign Keys
   requesterId Int
-  receiver    User     @relation("receiver", fields: [receiverId], references: [id])
   receiverId  Int
+
+  // Relations
+  requester   User     @relation("requester", fields: [requesterId], references: [id], onDelete: Cascade)
+  receiver    User     @relation("receiver", fields: [receiverId], references: [id], onDelete: Cascade)
 
   // Time Stamps
   createdAt   DateTime @default(now())
@@ -192,11 +194,13 @@ model Friends {
   // Primary Key
   id        String   @id @default(uuid())
 
-  // Relations
-  user      User     @relation("FriendUserA", fields: [userId], references: [id])
+  // Foreign Keys
   userId    Int
-  friend    User     @relation("FriendUserB", fields: [friendId], references: [id])
   friendId  Int
+
+  // Relations
+  user      User     @relation("FriendUserA", fields: [userId], references: [id], onDelete: Cascade)
+  friend    User     @relation("FriendUserB", fields: [friendId], references: [id], onDelete: Cascade)
 
   // Time Stamps
   createdAt DateTime @default(now())

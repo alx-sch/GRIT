@@ -14,8 +14,7 @@ POST {{baseUrl}}/auth/register
 Content-Type: application/json
 
 {
-	"name": "Roberta Test",
-	"email": "test2@test.com",
+	"email": "test@example.com",
 	"password": "password123"
 }
 ###
@@ -38,14 +37,14 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-	"email": "tester_v99@grit.coms",
-	"password": "password123"
+	"email": "cindy@example.com",
+	"password": "0123456789"
 }
 ###
 
 # Capture the token from response automatically
-@token = {{debugGetToken.response.body.accessToken}}
-# @token = {{login.response.body.accessToken}}
+#@token = {{debugGetToken.response.body.accessToken}}
+@token = {{login.response.body.accessToken}}
 
 # Verify/Rehydrate Current User
 GET {{baseUrl}}/auth/me
@@ -72,7 +71,7 @@ Authorization: Bearer {{token}}
 ###
 
 # User attends an event
-PATCH {{baseUrl}}/users/attend
+PATCH {{baseUrl}}/users/me
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
@@ -164,23 +163,45 @@ DELETE {{baseUrl}}/events/4 HTTP/1.1
 Authorization: Bearer {{token}}
 ###
 
+// ========== FRIENDS ========== //
+
 # Send friend request
 POST {{baseUrl}}/users/me/friends/requests HTTP/1.1
 Authorization: Bearer {{token}}
 content-type: application/json
 
 {
-	"receiverId": 1
+	"receiverId": 7
 
 }
 ###
 
-# Get incoming friend requests
+# List incoming friend requests
 GET {{baseUrl}}/users/me/friends/requests/incoming HTTP/1.1
 Authorization: Bearer {{token}}
 ###
 
-# Get outgoing friend requests
+# List outgoing friend requests
 GET {{baseUrl}}/users/me/friends/requests/outgoing HTTP/1.1
+Authorization: Bearer {{token}}
+###
+
+# List friends
+GET {{baseUrl}}/users/me/friends HTTP/1.1
+Authorization: Bearer {{token}}
+###
+
+# Accept friend request
+POST {{baseUrl}}/users/me/friends/requests/edb8ea35-b508-4bef-b4f1-7a03d77b95d7/accept HTTP/1.1
+Authorization: Bearer {{token}}
+###
+
+# Decline friend request
+POST {{baseUrl}}/users/me/friends/requests/ada2ba69-b7c8-41eb-bc72-3a8ceef974eb/decline HTTP/1.1
+Authorization: Bearer {{token}}
+###
+
+# Remove friend
+DELETE {{baseUrl}}/users/me/friends/3 HTTP/1.1
 Authorization: Bearer {{token}}
 ###

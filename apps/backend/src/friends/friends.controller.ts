@@ -7,8 +7,8 @@ import {
   ReqFriendRequestDto,
   ResFriendRequestDto,
   ResListFriendRequestDto,
-  ReqFriendActionDto,
   ResFriendDto,
+  ResListFriendDto,
 } from '@/friends/friends.schema';
 
 @Controller('users/me/friends')
@@ -23,6 +23,27 @@ export class FriendsController {
     return this.friendsService.sendRequest(userId, body.receiverId);
   }
 
+  // Accept a friend request
+  @Post('requests/:id/accept')
+  @ZodSerializerDto(ResFriendDto)
+  accept(@Param('id') id: string, @GetUser('id') userId: number) {
+    return this.friendsService.acceptRequest(id, userId);
+  }
+
+  // Decline a friend request
+  @Post('requests/:id/decline')
+  @ZodSerializerDto(ResFriendRequestDto)
+  decline(@Param('id') id: string, @GetUser('id') userId: number) {
+    return this.friendsService.declineRequest(id, userId);
+  }
+
+  // Delete a friend
+  @Delete(':friendId')
+  @ZodSerializerDto(ResFriendDto)
+  remove(@Param('friendId') friendId: string, @GetUser('id') userId: number) {
+    return this.friendsService.removeFriend(userId, Number(friendId));
+  }
+
   // List incoming friend requests
   @Get('requests/incoming')
   @ZodSerializerDto(ResListFriendRequestDto)
@@ -35,5 +56,12 @@ export class FriendsController {
   @ZodSerializerDto(ResListFriendRequestDto)
   outgoing(@GetUser('id') userId: number) {
     return this.friendsService.listOutgoing(userId);
+  }
+
+  // List friends
+  @Get()
+  @ZodSerializerDto(ResListFriendDto)
+  list(@GetUser('id') userId: number) {
+    return this.friendsService.listFriends(userId);
   }
 }

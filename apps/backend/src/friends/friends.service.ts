@@ -1,6 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { UserService } from '@/user/user.service';
 
 @Injectable()
 export class FriendsService {
@@ -72,5 +71,93 @@ export class FriendsService {
       where: { requesterId: id },
     });
     return { data };
+  }
+
+  async listFriends(id: number) {
+    const data = await this.prisma.friends.findMany({
+      where: { userId: id },
+    });
+    return { data };
+  }
+
+  async acceptRequest(id: string, userId: number) {
+    const friendRequest = await this.prisma.friendRequest.findFirst({
+      where: { id: id },
+    });
+
+    if (!friendRequest) {
+      throw new BadRequestException('Friend request does not exist.');
+    }
+
+    if (friendRequest.receiverId !== userId) {
+      throw new BadRequestException('You can only accept friend requests sent to you.');
+    }
+
+    // Create friendship for both users, and delete friend request
+    const result = await this.prisma.$transaction([
+      this.prisma.friends.create({
+        data: {
+          userId: userId,
+          friendId: friendRequest.requesterId,
+        },
+      }),
+      this.prisma.friends.create({
+        data: {
+          userId: friendRequest.requesterId,
+          friendId: userId,
+        },
+      }),
+      this.prisma.friendRequest.delete({
+        where: { id },
+      }),
+    ]);
+
+    // Return the first friendship created (for current user)
+    return result[0];
+  }
+
+  async declineRequest(id: string, userId: number) {
+    const friendRequest = await this.prisma.friendRequest.findFirst({
+      where: { id: id },
+    });
+
+    if (!friendRequest) {
+      throw new BadRequestException('Friend request does not exist.');
+    }
+
+    if (friendRequest.receiverId !== userId) {
+      throw new BadRequestException('You can only decline friend requests sent to you.');
+    }
+
+    // Delete friend request
+    return await this.prisma.friendRequest.delete({
+      where: { id },
+    });
+  }
+
+  async removeFriend(userId: number, friendId: number) {
+    if (userId === friendId) {
+      throw new BadRequestException('You can not delete yourself as a friend.');
+    }
+
+    const friendship = await this.prisma.friends.findFirst({
+      where: {
+        userId: userId,
+        friendId: friendId,
+      },
+    });
+    if (!friendship) throw new BadRequestException('Friendship does not exist.');
+
+    // Delete both friendship directions
+    const result = await this.prisma.friends.deleteMany({
+      where: {
+        OR: [
+          { userId: userId, friendId: friendId },
+          { userId: friendId, friendId: userId },
+        ],
+      },
+    });
+
+    return friendship;
   }
 }

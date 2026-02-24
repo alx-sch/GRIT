@@ -5,6 +5,7 @@ import {
   ResFriendRequestSchema,
   ResFriendSchema,
   ResListFriendRequestSchema,
+  ResListFriendSchema,
 } from '@grit/schema';
 
 // Request DTOs
@@ -15,3 +16,4 @@ export class ReqFriendActionDto extends createZodDto(ReqFriendActionSchema) {}
 export class ResFriendRequestDto extends createZodDto(ResFriendRequestSchema) {}
 export class ResFriendDto extends createZodDto(ResFriendSchema) {}
 export class ResListFriendRequestDto extends createZodDto(ResListFriendRequestSchema) {}
+export class ResListFriendDto extends createZodDto(ResListFriendSchema) {}
