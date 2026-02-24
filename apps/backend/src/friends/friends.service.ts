@@ -67,7 +67,7 @@ export class FriendsService {
 
     const requests = await this.prisma.friendRequest.findMany({
       where: { receiverId: id, ...cursorFilter },
-      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
       take: limit + 1,
     });
 
@@ -94,7 +94,7 @@ export class FriendsService {
 
     const requests = await this.prisma.friendRequest.findMany({
       where: { requesterId: id, ...cursorFilter },
-      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
       take: limit + 1,
     });
 
@@ -121,7 +121,7 @@ export class FriendsService {
 
     const friends = await this.prisma.friends.findMany({
       where: { userId: id, ...cursorFilter },
-      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
       take: limit + 1,
     });
 

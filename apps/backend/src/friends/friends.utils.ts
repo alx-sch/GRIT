@@ -30,7 +30,7 @@ export function friendsDecodeCursor(cursor: string): { createdAt: Date; id: stri
  * Constructs a Prisma-compatible filter for cursor-based pagination.
  *
  * Sorts friends by:
- *   1. createdAt ascending (oldest friendships first)
+ *   1. createdAt descending (newest friendships/friends first)
  *   2. id ascending as a tie-breaker
  */
 export function friendsCursorFilter(input: ReqFriendsGetAllDto) {
@@ -49,7 +49,7 @@ export function friendsCursorFilter(input: ReqFriendsGetAllDto) {
       }
 
       cursorFilter = {
-        OR: [{ createdAt: { gt: createdAt } }, { createdAt, id: { gt: id } }],
+        OR: [{ createdAt: { lt: createdAt } }, { createdAt, id: { gt: id } }],
       };
     } catch {
       throw new BadRequestException('Invalid cursor provided');
