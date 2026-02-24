@@ -23,7 +23,7 @@ export const ReqUserGetAllSchema = z.strictObject({
 
 // Post a new user draft
 export const ReqUserPostSchema = z.object({
-  name: z.string().optional(),
+  name: z.string(),
   email: z.email(),
   password: z.string().min(8),
   avatarKey: z.string().optional(),

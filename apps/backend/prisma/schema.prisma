@@ -15,7 +15,7 @@ model User {
   // Core Data
   email                  String      @unique
   password               String?
-  name                   String?
+  name                   String
   avatarKey              String?
   confirmationToken      String?     @unique
   googleId               String?
