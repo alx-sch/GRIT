@@ -60,7 +60,7 @@ model Location {
   authorId    Int
 
   // Relations
-  author      User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author      User        @relation(fields: [authorId], references: [id])
   events      Event[]
 
   // Time Stamps
@@ -88,7 +88,7 @@ model Event {
   locationId    Int?
 
   // Relations
-  author        User      @relation("EventAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  author        User      @relation("EventAuthor", fields: [authorId], references: [id])
   location      Location? @relation(fields: [locationId], references: [id])
   conversation  Conversation?
   attendees     EventAttendee[]
@@ -116,10 +116,10 @@ model Conversation {
   createdBy     Int
   eventId       Int?                @unique
 
-  // Relations
-  creator       User                @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  // Reations
+  creator       User                @relation(fields: [createdBy], references: [id])
   messages      ChatMessage[]
-  event         Event?              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event         Event?              @relation(fields: [eventId], references: [id])
   participants  ConversationParticipant[]
 
   // Time Stamps
@@ -133,7 +133,7 @@ model ConversationParticipant {
   userId         Int
 
   conversation   Conversation   @relation(fields: [conversationId], references: [id], onDelete: Cascade) // On delete cascade = Delete join entry when conversation is deleted
-  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           User           @relation(fields: [userId], references: [id])
 
   @@id([conversationId, userId])
   @@index([userId])
@@ -164,7 +164,7 @@ model ChatMessage {
 
   // Relations
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  author         User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author         User         @relation(fields: [authorId], references: [id])
 
   // Time Stamps
   createdAt      DateTime     @default(now())

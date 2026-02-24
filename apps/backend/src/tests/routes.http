@@ -38,7 +38,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-	"email": "alice@example.com",
+	"email": "cindy@example.com",
 	"password": "0123456789"
 }
 ###
@@ -98,7 +98,7 @@ Content-Type: application/json
 
 {
 	"authorId": 1,
-	"name": "Secret Lair",
+	"name": "Not secret Lair",
 	"city": "Berlin",
 	"country": "Germany",
 	"longitude": 59.4748,
@@ -172,7 +172,7 @@ Authorization: Bearer {{token}}
 content-type: application/json
 
 {
-	"receiverId": 2
+	"receiverId": 3
 
 }
 ###
@@ -193,7 +193,7 @@ Authorization: Bearer {{token}}
 ###
 
 # Accept friend request
-POST {{baseUrl}}/users/me/friends/requests/f3afa56d-e993-4820-8275-14fb6dfb6278/accept HTTP/1.1
+POST {{baseUrl}}/users/me/friends/requests/90e4c37a-f7af-4319-9485-a08e2dd71cef/accept HTTP/1.1
 Authorization: Bearer {{token}}
 ###
 
