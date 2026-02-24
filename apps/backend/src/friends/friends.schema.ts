@@ -1,7 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import {
   ReqFriendRequestSchema,
-  ReqFriendActionSchema,
   ResFriendRequestSchema,
   ResFriendSchema,
   ResListFriendRequestSchema,
@@ -10,7 +9,6 @@ import {
 
 // Request DTOs
 export class ReqFriendRequestDto extends createZodDto(ReqFriendRequestSchema) {}
-export class ReqFriendActionDto extends createZodDto(ReqFriendActionSchema) {}
 
 // Response DTOs
 export class ResFriendRequestDto extends createZodDto(ResFriendRequestSchema) {}

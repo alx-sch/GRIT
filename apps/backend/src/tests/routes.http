@@ -171,7 +171,7 @@ Authorization: Bearer {{token}}
 content-type: application/json
 
 {
-	"receiverId": 7
+	"receiverId": 3
 
 }
 ###
@@ -192,16 +192,16 @@ Authorization: Bearer {{token}}
 ###
 
 # Accept friend request
-POST {{baseUrl}}/users/me/friends/requests/edb8ea35-b508-4bef-b4f1-7a03d77b95d7/accept HTTP/1.1
+POST {{baseUrl}}/users/me/friends/requests/5a84a94f-7aca-4c02-9123-d171c05a56b7/accept HTTP/1.1
 Authorization: Bearer {{token}}
 ###
 
 # Decline friend request
-POST {{baseUrl}}/users/me/friends/requests/ada2ba69-b7c8-41eb-bc72-3a8ceef974eb/decline HTTP/1.1
+POST {{baseUrl}}/users/me/friends/requests/64ff0ec9-e768-4b78-95fe-31863d8ab5ae/decline HTTP/1.1
 Authorization: Bearer {{token}}
 ###
 
 # Remove friend
-DELETE {{baseUrl}}/users/me/friends/3 HTTP/1.1
+DELETE {{baseUrl}}/users/me/friends/1 HTTP/1.1
 Authorization: Bearer {{token}}
 ###

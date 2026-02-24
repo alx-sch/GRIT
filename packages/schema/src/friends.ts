@@ -18,11 +18,6 @@ export const ResListFriendRequestSchema = z.strictObject({
   data: z.array(ResFriendRequestSchema),
 });
 
-// Friend action (accept, delete, etc) -> request schema
-export const ReqFriendActionSchema = z.strictObject({
-  id: z.string().uuid({}),
-});
-
 // Friend -> response schema
 export const ResFriendSchema = z.strictObject({
   id: z.string().uuid({}),

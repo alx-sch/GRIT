@@ -81,6 +81,7 @@ export class FriendsService {
   }
 
   async acceptRequest(id: string, userId: number) {
+    // Find friend request
     const friendRequest = await this.prisma.friendRequest.findFirst({
       where: { id: id },
     });
@@ -117,6 +118,7 @@ export class FriendsService {
   }
 
   async declineRequest(id: string, userId: number) {
+    // Find friend request
     const friendRequest = await this.prisma.friendRequest.findFirst({
       where: { id: id },
     });
@@ -140,6 +142,7 @@ export class FriendsService {
       throw new BadRequestException('You can not delete yourself as a friend.');
     }
 
+    // Find friendship
     const friendship = await this.prisma.friends.findFirst({
       where: {
         userId: userId,
@@ -149,7 +152,7 @@ export class FriendsService {
     if (!friendship) throw new BadRequestException('Friendship does not exist.');
 
     // Delete both friendship directions
-    const result = await this.prisma.friends.deleteMany({
+    await this.prisma.friends.deleteMany({
       where: {
         OR: [
           { userId: userId, friendId: friendId },
