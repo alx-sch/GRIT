@@ -11,7 +11,7 @@ import { userService } from '@/services/userService';
 import { useNavigate } from 'react-router-dom';
 
 export function Page() {
-  const [events, setEvents] = useState<Array<{ title: string }>>([]);
+  const [events, setEvents] = useState<{ title: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -30,10 +30,10 @@ export function Page() {
       }
     };
 
-    fetchEvents();
+    void fetchEvents();
   }, []);
 
-  const renderEventsList = (filteredEvents: Array<{ title: string }>) => (
+  const renderEventsList = (filteredEvents: { title: string }[]) => (
     <div className="grid gap-4">
       {filteredEvents.map((event, index) => (
         <Card key={index} className="hover:shadow-md transition-shadow">
@@ -50,7 +50,13 @@ export function Page() {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => navigate('/events')}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  void navigate('/events');
+                }}
+              >
                 View Details
               </Button>
             </div>
@@ -70,11 +76,20 @@ export function Page() {
           events to attend.
         </Text>
         <div className="flex gap-3">
-          <Button onClick={() => navigate('/create/event')}>
+          <Button
+            onClick={() => {
+              void navigate('/create/event');
+            }}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Create Event
           </Button>
-          <Button variant="outline" onClick={() => navigate('/events')}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              void navigate('/events');
+            }}
+          >
             Browse Events
           </Button>
         </div>
@@ -90,10 +105,14 @@ export function Page() {
           <div>
             <Heading>My Events</Heading>
             <Text className="text-muted-foreground">
-              Events you're attending {events.length > 0 && `(${events.length})`}
+              Events you're attending {events.length > 0 && `(${String(events.length)})`}
             </Text>
           </div>
-          <Button onClick={() => navigate('/create/event')}>
+          <Button
+            onClick={() => {
+              void navigate('/create/event');
+            }}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Create Event
           </Button>
@@ -112,7 +131,13 @@ export function Page() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12 text-center">
               <Text className="text-destructive">{error}</Text>
-              <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+              <Button
+                variant="outline"
+                className="mt-4"
+                onClick={() => {
+                  window.location.reload();
+                }}
+              >
                 Try Again
               </Button>
             </CardContent>

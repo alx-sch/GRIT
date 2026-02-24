@@ -34,10 +34,10 @@ export function ProfileInfo({ user, onProfileUpdate }: ProfileInfoProps) {
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: user.name || '',
+      name: user.name ?? '',
     },
     values: {
-      name: user.name || '',
+      name: user.name ?? '',
     },
   });
 
@@ -54,7 +54,7 @@ export function ProfileInfo({ user, onProfileUpdate }: ProfileInfoProps) {
   };
 
   const handleCancel = () => {
-    reset({ name: user.name || '' });
+    reset({ name: user.name ?? '' });
     setIsEditing(false);
   };
 
@@ -65,7 +65,12 @@ export function ProfileInfo({ user, onProfileUpdate }: ProfileInfoProps) {
         <CardDescription>Update your personal details</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form
+          onSubmit={(e) => {
+            void handleSubmit(onSubmit)(e);
+          }}
+          className="space-y-4"
+        >
           <div className="space-y-2">
             <Label htmlFor="name">
               <User className="w-4 h-4 inline mr-2" />
@@ -93,8 +98,7 @@ export function ProfileInfo({ user, onProfileUpdate }: ProfileInfoProps) {
             {!isEditing ? (
               <Button
                 type="button"
-                onClick={(e) => {
-                  e.preventDefault();
+                onClick={() => {
                   setIsEditing(true);
                 }}
               >
@@ -108,8 +112,7 @@ export function ProfileInfo({ user, onProfileUpdate }: ProfileInfoProps) {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={(e) => {
-                    e.preventDefault();
+                  onClick={() => {
                     handleCancel();
                   }}
                   disabled={isSubmitting}

@@ -50,8 +50,8 @@ export const userService = {
     return response.data;
   },
 
-  getMyEvents: async (): Promise<Array<{ title: string }>> => {
-    const response = await api.get<Array<{ title: string }>>('/users/me/events');
+  getMyEvents: async (): Promise<{ title: string }[]> => {
+    const response = await api.get<{ title: string }[]>('/users/me/events');
     return response.data;
   },
 };

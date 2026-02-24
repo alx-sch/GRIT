@@ -12,7 +12,7 @@ interface MyEventsProps {
 }
 
 export function MyEvents({ userId }: MyEventsProps) {
-  const [events, setEvents] = useState<Array<{ title: string }>>([]);
+  const [events, setEvents] = useState<{ title: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -31,7 +31,7 @@ export function MyEvents({ userId }: MyEventsProps) {
       }
     };
 
-    fetchEvents();
+    void fetchEvents();
   }, [userId]);
 
   // Show only first 5 events for summary view
@@ -46,17 +46,28 @@ export function MyEvents({ userId }: MyEventsProps) {
             <CardTitle>My Events</CardTitle>
             <CardDescription>
               {events.length > 0
-                ? `${events.length} event${events.length === 1 ? '' : 's'}`
+                ? `${String(events.length)} event${events.length === 1 ? '' : 's'}`
                 : "Events you're attending"}
             </CardDescription>
           </div>
           <div className="flex gap-2">
             {events.length > 0 && (
-              <Button size="sm" variant="outline" onClick={() => navigate('/my-events')}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  void navigate('/my-events');
+                }}
+              >
                 View All
               </Button>
             )}
-            <Button size="sm" onClick={() => navigate('/create/event')}>
+            <Button
+              size="sm"
+              onClick={() => {
+                void navigate('/create/event');
+              }}
+            >
               <Plus className="w-4 h-4 mr-2" />
               Create Event
             </Button>
@@ -82,10 +93,21 @@ export function MyEvents({ userId }: MyEventsProps) {
               Start by creating or joining an event
             </Text>
             <div className="flex gap-2">
-              <Button size="sm" onClick={() => navigate('/create/event')}>
+              <Button
+                size="sm"
+                onClick={() => {
+                  void navigate('/create/event');
+                }}
+              >
                 Create Event
               </Button>
-              <Button size="sm" variant="outline" onClick={() => navigate('/events')}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  void navigate('/events');
+                }}
+              >
                 Browse Events
               </Button>
             </div>
@@ -110,7 +132,9 @@ export function MyEvents({ userId }: MyEventsProps) {
                 variant="ghost"
                 size="sm"
                 className="w-full"
-                onClick={() => navigate('/my-events')}
+                onClick={() => {
+                  void navigate('/my-events');
+                }}
               >
                 View all {events.length} events
               </Button>

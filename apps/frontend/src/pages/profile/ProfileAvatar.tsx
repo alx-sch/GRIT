@@ -65,7 +65,7 @@ export function ProfileAvatar({ user, avatarUrl, initials, onAvatarUpdate }: Pro
       <CardContent className="flex items-center gap-6">
         <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
           <Avatar className="w-24 h-24">
-            <AvatarImage src={avatarUrl} alt={user.name || 'User avatar'} />
+            <AvatarImage src={avatarUrl} alt={user.name ?? 'User avatar'} />
             <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
           </Avatar>
           <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -73,7 +73,13 @@ export function ProfileAvatar({ user, avatarUrl, initials, onAvatarUpdate }: Pro
           </div>
         </div>
         <div className="flex-1">
-          <Button variant="outline" onClick={handleAvatarClick} disabled={isUploading}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              handleAvatarClick();
+            }}
+            disabled={isUploading}
+          >
             {isUploading ? 'Uploading...' : 'Change Picture'}
           </Button>
           <Text className="text-sm text-muted-foreground mt-2">JPG, PNG or GIF. Max size 5MB.</Text>
@@ -82,7 +88,9 @@ export function ProfileAvatar({ user, avatarUrl, initials, onAvatarUpdate }: Pro
           ref={fileInputRef}
           type="file"
           accept="image/*"
-          onChange={handleFileChange}
+          onChange={(e) => {
+            void handleFileChange(e);
+          }}
           className="hidden"
         />
       </CardContent>

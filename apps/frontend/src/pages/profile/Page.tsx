@@ -32,8 +32,8 @@ export function Page() {
       ?.split(' ')
       .map((n) => n[0])
       .join('')
-      .toUpperCase() ||
-    currentUser.email?.[0]?.toUpperCase() ||
+      .toUpperCase() ??
+    currentUser.email?.[0]?.toUpperCase() ??
     'U';
 
   return (
