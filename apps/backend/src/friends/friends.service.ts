@@ -1,5 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
+import { friendsCursorFilter, friendsEncodeCursor } from './friends.utils';
+import { ReqFriendsGetAllDto, ReqFriendRequestsGetAllDto } from './friends.schema';
 
 @Injectable()
 export class FriendsService {
@@ -59,25 +61,85 @@ export class FriendsService {
     return friendRequest;
   }
 
-  async listIncoming(id: number) {
-    const data = await this.prisma.friendRequest.findMany({
-      where: { receiverId: id },
+  async listIncoming(id: number, input: ReqFriendRequestsGetAllDto) {
+    const cursorFilter = friendsCursorFilter(input);
+    const { limit } = input;
+
+    const requests = await this.prisma.friendRequest.findMany({
+      where: { receiverId: id, ...cursorFilter },
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      take: limit + 1,
     });
-    return { data };
+
+    const hasMore = requests.length > limit;
+    const slicedData = hasMore ? requests.slice(0, limit) : requests;
+
+    return {
+      data: slicedData,
+      pagination: {
+        nextCursor: hasMore
+          ? friendsEncodeCursor(
+              slicedData[slicedData.length - 1].createdAt,
+              slicedData[slicedData.length - 1].id
+            )
+          : null,
+        hasMore,
+      },
+    };
   }
 
-  async listOutgoing(id: number) {
-    const data = await this.prisma.friendRequest.findMany({
-      where: { requesterId: id },
+  async listOutgoing(id: number, input: ReqFriendRequestsGetAllDto) {
+    const cursorFilter = friendsCursorFilter(input);
+    const { limit } = input;
+
+    const requests = await this.prisma.friendRequest.findMany({
+      where: { requesterId: id, ...cursorFilter },
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      take: limit + 1,
     });
-    return { data };
+
+    const hasMore = requests.length > limit;
+    const slicedData = hasMore ? requests.slice(0, limit) : requests;
+
+    return {
+      data: slicedData,
+      pagination: {
+        nextCursor: hasMore
+          ? friendsEncodeCursor(
+              slicedData[slicedData.length - 1].createdAt,
+              slicedData[slicedData.length - 1].id
+            )
+          : null,
+        hasMore,
+      },
+    };
   }
 
-  async listFriends(id: number) {
-    const data = await this.prisma.friends.findMany({
-      where: { userId: id },
+  async listFriends(id: number, input: ReqFriendsGetAllDto) {
+    const cursorFilter = friendsCursorFilter(input);
+    const { limit } = input;
+
+    const friends = await this.prisma.friends.findMany({
+      where: { userId: id, ...cursorFilter },
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      take: limit + 1,
     });
-    return { data };
+
+    const hasMore = friends.length > limit;
+    const slicedData = hasMore ? friends.slice(0, limit) : friends;
+
+    return {
+      data: slicedData,
+      pagination: {
+        nextCursor: hasMore
+          ? friendsEncodeCursor(
+              slicedData[slicedData.length - 1].createdAt,
+              slicedData[slicedData.length - 1].id
+            )
+          : null,
+        hasMore,
+      },
+    };
   }
 
   async acceptRequest(id: string, userId: number) {

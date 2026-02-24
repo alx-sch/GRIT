@@ -1,13 +1,15 @@
-import { Controller, Post, UseGuards, Body, Get, Param, Delete } from '@nestjs/common';
+import { Controller, Post, UseGuards, Body, Get, Param, Delete, Query } from '@nestjs/common';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { GetUser } from '@/auth/guards/get-user.decorator';
 import { FriendsService } from './friends.service';
 import { ZodSerializerDto } from 'nestjs-zod';
 import {
   ReqFriendRequestDto,
+  ReqFriendRequestsGetAllDto,
+  ReqFriendsGetAllDto,
   ResFriendRequestDto,
-  ResListFriendRequestDto,
   ResFriendDto,
+  ResListFriendRequestDto,
   ResListFriendDto,
 } from '@/friends/friends.schema';
 
@@ -47,21 +49,21 @@ export class FriendsController {
   // List incoming friend requests
   @Get('requests/incoming')
   @ZodSerializerDto(ResListFriendRequestDto)
-  incoming(@GetUser('id') userId: number) {
-    return this.friendsService.listIncoming(userId);
+  listIncoming(@Query() query: ReqFriendRequestsGetAllDto, @GetUser('id') userId: number) {
+    return this.friendsService.listIncoming(userId, query);
   }
 
   // List outgoing friend requests
   @Get('requests/outgoing')
   @ZodSerializerDto(ResListFriendRequestDto)
-  outgoing(@GetUser('id') userId: number) {
-    return this.friendsService.listOutgoing(userId);
+  listOutgoing(@Query() query: ReqFriendRequestsGetAllDto, @GetUser('id') userId: number) {
+    return this.friendsService.listOutgoing(userId, query);
   }
 
   // List friends
   @Get()
   @ZodSerializerDto(ResListFriendDto)
-  list(@GetUser('id') userId: number) {
-    return this.friendsService.listFriends(userId);
+  listFriends(@Query() query: ReqFriendsGetAllDto, @GetUser('id') userId: number) {
+    return this.friendsService.listFriends(userId, query);
   }
 }

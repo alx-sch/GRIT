@@ -38,7 +38,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-	"email": "cindy@example.com",
+	"email": "alice@example.com",
 	"password": "0123456789"
 }
 ###
@@ -172,28 +172,28 @@ Authorization: Bearer {{token}}
 content-type: application/json
 
 {
-	"receiverId": 3
+	"receiverId": 2
 
 }
 ###
 
 # List incoming friend requests
-GET {{baseUrl}}/users/me/friends/requests/incoming HTTP/1.1
+GET {{baseUrl}}/users/me/friends/requests/incoming?limit=1 HTTP/1.1
 Authorization: Bearer {{token}}
 ###
 
 # List outgoing friend requests
-GET {{baseUrl}}/users/me/friends/requests/outgoing HTTP/1.1
+GET {{baseUrl}}/users/me/friends/requests/outgoing?limit=1 HTTP/1.1
 Authorization: Bearer {{token}}
 ###
 
 # List friends
-GET {{baseUrl}}/users/me/friends HTTP/1.1
+GET {{baseUrl}}/users/me/friends?limit=10 HTTP/1.1
 Authorization: Bearer {{token}}
 ###
 
 # Accept friend request
-POST {{baseUrl}}/users/me/friends/requests/5a84a94f-7aca-4c02-9123-d171c05a56b7/accept HTTP/1.1
+POST {{baseUrl}}/users/me/friends/requests/f3afa56d-e993-4820-8275-14fb6dfb6278/accept HTTP/1.1
 Authorization: Bearer {{token}}
 ###
 
