@@ -92,13 +92,13 @@ export function Navbar() {
         </NavigationMenu>
         {!isLoggedIn && (
           <Link to="/login">
-            <Button>Login</Button>
+            <Button className="text-base font-bold">Login</Button>
           </Link>
         )}
         {isLoggedIn && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2 h-auto py-2 px-3">
+              <Button variant="ghost" className="flex items-center gap-2 h-10 px-3">
                 <Avatar className="h-8 w-8">
                   <AvatarImage
                     src={user?.avatarKey ? getAvatarImageUrl(user.avatarKey) : undefined}
@@ -106,7 +106,7 @@ export function Navbar() {
                   />
                   <AvatarFallback name={displayName} />
                 </Avatar>
-                <span className="normal-case">{displayName}</span>
+                <span className="normal-case text-base font-bold">{displayName}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
