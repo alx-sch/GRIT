@@ -4,6 +4,7 @@ BACKEND_FOLDER :=	apps/backend
 FRONTEND_FOLDER :=	apps/frontend
 
 TIMESTAMP :=	$(shell date +%Y%m%d_%H%M%S)
+OS :=			$(shell uname)
 
 PROJECT_ROOT :=	$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 export PATH :=	$(PROJECT_ROOT)/node_modules/.bin:$(PATH)
@@ -125,6 +126,14 @@ install-be: build-schema
 install-fe: build-schema
 	@echo "$(BOLD)$(YELLOW)--- Installing Frontend Dependencies...$(RESET)"
 	@pnpm --filter @grit/frontend install
+ifeq ($(OS), Linux)
+	@if ! ldconfig -p | grep -q libatk-1.0.so.0; then \
+		echo "$(BOLD)$(BLUE)--- Playwright dependencies missing. Installing...$(RESET)"; \
+		pnpm --filter @grit/frontend exec playwright install-deps; \
+	else \
+		echo "$(BOLD)$(BLUE)--- Playwright dependencies already satisfied. Skipping.$(RESET)"; \
+	fi
+endif
 	@echo "$(BOLD)$(GREEN)Frontend dependencies installed.$(RESET)"
 
 # -- CLEANUP TARGETS --
