@@ -13,7 +13,7 @@ export const ResLocationEventSchema = z.object({
 
 export const ResLocationBaseSchema = z.object({
   id: z.number().int().positive(),
-  authorId: z.number().int().positive(),
+  authorId: z.number().int().positive().nullable(),
   name: z.string().nullable(),
   city: z.string().nullable().optional(),
   country: z.string().nullable().optional(),

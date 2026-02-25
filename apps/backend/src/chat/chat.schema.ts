@@ -6,7 +6,7 @@ import { z } from 'zod';
 export const IntChatMessageSchema = z.object({
   id: z.uuid(),
   conversationId: z.uuid(),
-  authorId: z.number().int().positive(),
+  authorId: z.number().int().positive().nullable(),
   text: z.string().min(1),
 });
 export class IntChatMessageDto extends createZodDto(IntChatMessageSchema) {}

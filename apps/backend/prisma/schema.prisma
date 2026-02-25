@@ -57,10 +57,10 @@ model Location {
   isPublic    Boolean     @default(false)
 
   // Foreign Keys
-  authorId    Int
+  authorId    Int?
 
   // Relations
-  author      User        @relation(fields: [authorId], references: [id])
+  author      User?        @relation(fields: [authorId], references: [id], onDelete: SetNull) // If author is deleted, location shows authorId NULL
   events      Event[]
 
   // Time Stamps
@@ -84,12 +84,12 @@ model Event {
   isPublic      Boolean   @default(true)
 
   // Foreign keys
-  authorId      Int
+  authorId      Int?
   locationId    Int?
 
   // Relations
-  author        User      @relation("EventAuthor", fields: [authorId], references: [id])
-  location      Location? @relation(fields: [locationId], references: [id])
+  author        User?      @relation("EventAuthor", fields: [authorId], references: [id], onDelete: SetNull) // If author is deleted, event shows authorId NULL
+  location      Location?  @relation(fields: [locationId], references: [id], onDelete: SetNull) // // If location is deleted, location shows locationId NULL
   conversation  Conversation?
   attendees     EventAttendee[]
 
@@ -113,13 +113,13 @@ model Conversation {
   title         String?
 
   // Foregin Keys
-  createdBy     Int
+  createdBy     Int?
   eventId       Int?                @unique
 
-  // Reations
-  creator       User                @relation(fields: [createdBy], references: [id])
+  // Relations
+  creator       User?                @relation(fields: [createdBy], references: [id], onDelete: SetNull) // If creator is deleted, conversation shows createdBy NULL
   messages      ChatMessage[]
-  event         Event?              @relation(fields: [eventId], references: [id])
+  event         Event?               @relation(fields: [eventId], references: [id], onDelete: Cascade) // If event is deleted, conversation is DELETED.
   participants  ConversationParticipant[]
 
   // Time Stamps
@@ -133,7 +133,7 @@ model ConversationParticipant {
   userId         Int
 
   conversation   Conversation   @relation(fields: [conversationId], references: [id], onDelete: Cascade) // On delete cascade = Delete join entry when conversation is deleted
-  user           User           @relation(fields: [userId], references: [id])
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade) // If user is deleted, ConversationParticipant is deleted.
 
   @@id([conversationId, userId])
   @@index([userId])
@@ -160,11 +160,11 @@ model ChatMessage {
   text           String
 
   // Foreign Keys
-  authorId       Int
+  authorId       Int?
 
   // Relations
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  author         User         @relation(fields: [authorId], references: [id])
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade) // If conversation is deleted, chat message is deleted
+  author         User?         @relation(fields: [authorId], references: [id], onDelete: SetNull) // If author of chatmessage is deleted, authorId is set to NULL
 
   // Time Stamps
   createdAt      DateTime     @default(now())

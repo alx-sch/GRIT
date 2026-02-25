@@ -36,7 +36,7 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
     // Else the messages array was changed because of a new incoming message
     else {
       // If we are close to the bottom or the last message was one of our own, scroll down
-      const isOwnMessage = lastMessage.author.id === currentUserId;
+      const isOwnMessage = lastMessage.author?.id === currentUserId;
       if (isOwnMessage || isNearBottom) {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
         requestAnimationFrame(() => {

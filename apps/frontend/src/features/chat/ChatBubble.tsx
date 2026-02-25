@@ -6,23 +6,22 @@ import { timestampToLocalTime } from '@/lib/time_utils';
 
 export const ChatBubble = ({ message }: { message: ResChatMessage }) => {
   const currentUser = useCurrentUserStore((s) => s.user);
-  const isFromCurrentUser = currentUser?.id === message.author.id;
+  const author = message.author ?? { id: null, name: '[DELETED USER]', avatarKey: null };
+  const isFromCurrentUser = currentUser?.id === author.id;
   const align = isFromCurrentUser ? 'justify-end' : 'justify-start';
-  const initials = message.author?.name?.trim().slice(0, 2).toUpperCase();
+  const initials = author?.name?.trim().slice(0, 2).toUpperCase();
   return (
     <>
       <div className={`${align} flex my-4`}>
         <div className={`border border-input p-2 max-w-4/5 flex`}>
           {!isFromCurrentUser && (
             <Avatar className="mr-2 w-6 h-6">
-              <AvatarImage src={getAvatarImageUrl(message.author.avatarKey ?? undefined)} />
+              <AvatarImage src={getAvatarImageUrl(author.avatarKey ?? undefined)} />
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
           )}
           <div>
-            {!isFromCurrentUser && (
-              <div className="font-bold uppercase text-xs">{message.author.name}</div>
-            )}
+            {!isFromCurrentUser && <div className="font-bold uppercase text-xs">{author.name}</div>}
             {message.text}
             <div className="text-right text-xs mt-1">{timestampToLocalTime(message.createdAt)}</div>
           </div>
