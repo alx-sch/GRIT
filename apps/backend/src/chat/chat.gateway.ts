@@ -107,19 +107,47 @@ export class ChatGateway implements OnGatewayConnection {
   async handleConnection(client: AppSocket) {
     // Get the conversations from db
     const userId = client.data.userId;
+
     const conversations = await this.prisma.conversation.findMany({
       where: {
         participants: {
           some: { userId },
         },
       },
-      select: { id: true },
+      select: {
+        id: true,
+        messages: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: {
+            id: true,
+            conversationId: true,
+            text: true,
+            createdAt: true,
+            author: {
+              select: {
+                id: true,
+                name: true,
+                avatarKey: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     // Join all conversations
     for (const conv of conversations) {
       await client.join(conv.id);
     }
+
+    // Send the last chat message for each conversation the client is in
+    const payload: Record<string, any> = {};
+    for (const conv of conversations) {
+      await client.join(conv.id);
+      payload[conv.id] = conv.messages[0] ?? null;
+    }
+    client.emit('initialLastMessages', payload);
   }
 
   // CHANGED: Client does not join rooms anymore. Instead the backend joins the client

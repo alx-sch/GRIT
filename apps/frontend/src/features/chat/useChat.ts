@@ -3,14 +3,33 @@ import { useEffect, useRef, useState } from 'react';
 import { type ResChatMessage } from '@grit/schema';
 import { useAuthStore } from '@/store/authStore';
 import { useSocket } from '@/providers/socketProvider';
-import { chatStore } from '@/store/chatStore';
 
 export function useChat(conversationId: string) {
-  const conversation = chatStore((s) => s.conversations[conversationId]);
-  const messages = conversation?.messages ?? [];
-  const hasMore = conversation?.hasMore ?? true;
-  const socket = useSocket();
+  const [messages, setMessages] = useState<ResChatMessage[]>([]);
+  const [hasMore, setHasMore] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+  const socket = useSocket();
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on('message', (msg: ResChatMessage) => {
+      setMessages((prev) => [...prev, msg]);
+    });
+
+    socket.on('history', (msgs: ResChatMessage[]) => {
+      setMessages((prev) => [...msgs, ...prev]);
+    });
+
+    socket.on('history_end', () => {
+      setHasMore(false);
+    });
+
+    socket.on('error', (err: { message: string }) => {
+      setMessages(() => []);
+      setErrorMessage(err.message ?? 'Error');
+    });
+  }, [conversationId]);
 
   const sendMessage = (text: string) => {
     if (!text.trim()) return;

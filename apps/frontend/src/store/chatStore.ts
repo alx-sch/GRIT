@@ -2,86 +2,57 @@ import { ResChatMessage } from '@grit/schema';
 import { create } from 'zustand';
 
 /**
- * The chatStore will store in messages a Record where the key is the conversation's id
- * and the messages is an array of chat messages.
- * Each time a new message comes in we need to expand first the conversations, then expand
- * the messages, add the message on existing conversation or create a new conversation and
- * finally set everything.
+ * The chatStore will store in conversations a Record where the key is the conversation's id.
+ * Then we store only the last chat message for that conversation as well as an unread count
+ * Chat history is only stored in each chat components local storage
  */
 
 type Conversation = Record<
   string,
   {
-    messages: ResChatMessage[];
-    hasMore: boolean;
+    lastMessage: ResChatMessage | null;
+    unreadCount: number;
   }
 >;
 
 interface ChatStore {
   conversations: Conversation;
-  addMessage: (message: ResChatMessage) => void;
-  setInitialConversations: (messages: Conversation) => void;
+  storeLastMessage: (message: ResChatMessage) => void;
+  setInitialConversations: (messages: Record<string, ResChatMessage | null>) => void;
 }
 
 export const chatStore = create<ChatStore>((set) => ({
   conversations: {},
 
-  // For adding a single message
-  addMessage: (message) => {
+  // For storing a new last message
+  storeLastMessage: (message) => {
     set((state) => {
-      const conversationId = message.conversationId;
-
-      // Either get an existing conversation to store the message OR create a new one
-      const conversation = state.conversations[conversationId] ?? {
-        messages: [],
-        hasMore: true,
-      };
-
-      // This is what we actually set in the store
+      const id = message.conversationId;
+      const targetConversation = state.conversations[id];
       return {
         conversations: {
-          // Keep all other conversations
           ...state.conversations,
-          // Override the conversation we selected above
-          [conversationId]: {
-            // Expand original content of conversation
-            ...conversation,
-            // append message
-            messages: [...conversation.messages, message],
+          [id]: {
+            lastMessage: message,
+            unreadCount: targetConversation ? targetConversation.unreadCount + 1 : 1,
           },
         },
       };
     });
   },
 
-  // Conditionally loading initial messages if we have not loaded the conversation yet
-  setInitialConversations: (incoming) => {
-    set((state) => {
-      const merged = { ...state.conversations };
-
-      // For all incoming messages we check...
-      for (const conversationId in incoming) {
-        // if we already have the conversation
-        const existing = state.conversations[conversationId];
-
-        if (!existing) {
-          // if not simply add it
-          merged[conversationId] = incoming[conversationId];
-        } else {
-          merged[conversationId] = {
-            // if yes we spread the existing messages
-            ...existing,
-            // keep original hasMore state
-            hasMore: existing.hasMore,
-            // If we already have messages, keep those, otherwise store incoming
-            messages: existing.messages.length
-              ? existing.messages
-              : incoming[conversationId].messages,
-          };
-        }
+  // The initial load of last messages we receive on socket connect
+  setInitialConversations: (lastMessages) => {
+    set(() => {
+      // Need to transform the incoming Record of last messages into conversations Records
+      const newConversation: Conversation = {};
+      for (const id in lastMessages) {
+        newConversation[id] = {
+          lastMessage: lastMessages[id],
+          unreadCount: 0,
+        };
       }
-
-      return { conversations: merged };
+      return { conversations: newConversation };
     });
   },
 }));

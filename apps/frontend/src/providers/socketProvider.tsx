@@ -28,9 +28,15 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     // We store the new socket in state to cause a rerender
     setSocket(newSocket);
 
+    // On connect the backend will send the last messages for all conversations the client is in
+    newSocket.on('initialLastMessages', (messages) => {
+      chatStore.getState().setInitialConversations(messages);
+      console.log(messages);
+    });
+
     // Listen for incoming messages
     newSocket.on('message', (message) => {
-      chatStore.getState().addMessage(message);
+      chatStore.getState().storeLastMessage(message);
       console.log(message);
     });
 
@@ -45,23 +51,3 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 export const useSocket = (): Socket | null => {
   return useContext(SocketContext);
 };
-
-// NEEDS INTRODUCTION
-
-//     socket.on('history', (msgs: ResChatMessage[]) => {
-//       setMessages((prev) => [...msgs, ...prev]);
-//     });
-
-//         socket.on('history_end', () => {
-//           setHasMore(false);
-//         });
-
-//             socket.on('error', (err: { message: string }) => {
-//       setMessages(() => []);
-//       setErrorMessage(err.message ?? 'Error');
-//     });
-
-//         Your store will need:
-
-// prependMessages(...)
-// setHasMore(...)
