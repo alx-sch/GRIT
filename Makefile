@@ -288,12 +288,17 @@ test-be-testdb-remove:
 test-fe:
 	@echo "$(BOLD)$(YELLOW)--- Starting Tests ...$(RESET)"
 	@$(MAKE) --no-print-directory test-fe-integration
-	#@$(MAKE) --no-print-directory test-fe-e2e
+	@$(MAKE) --no-print-directory test-fe-e2e
 
 # Helper
 test-fe-integration: install-fe
 	@echo "$(BOLD)$(YELLOW)--- Running Frontend Integration Tests ...$(RESET)"
 	@NODE_ENV=test turbo test:integration --filter=@grit/frontend --no-update-notifier
+
+test-fe-e2e: install-fe
+	@echo "$(BOLD)$(YELLOW)--- Running Frontend E2E Tests ...$(RESET)"
+	@pnpm --filter @grit/frontend exec playwright install
+	@pnpm --filter @grit/frontend exec playwright test
 
 #############################
 ## 🚀 DEVELOPMENT COMMANDS ##
@@ -516,8 +521,8 @@ start: check-env db
 	@echo "$(BOLD)$(GREEN)Full stack is live!$(RESET)"
 	@echo "•   View live logs: '$(YELLOW)make logs$(RESET)'"
 	
-	@if [ -n "$(VITE_API_BASE_URL)" ]; then \
-		echo "•   View app:       '$(YELLOW)$(subst /api,,$(VITE_API_BASE_URL))$(RESET)'"; \
+	@if [ -n "$(APP_BASE_URL)" ]; then \
+		echo "•   View app:       '$(YELLOW)$(APP_BASE_URL)$(RESET)'"; \
 	else \
 		echo "•   View app:       '$(YELLOW)https://localhost:$(HTTPS_PORT)$(RESET)'"; \
 	fi

@@ -9,7 +9,7 @@ export const ChatBubble = ({ message }: { message: ResChatMessage }) => {
   const author = message.author ?? { id: null, name: '[DELETED USER]', avatarKey: null };
   const isFromCurrentUser = currentUser?.id === author.id;
   const align = isFromCurrentUser ? 'justify-end' : 'justify-start';
-  const initials = author?.name?.trim().slice(0, 2).toUpperCase();
+  const initials = author.name?.trim().slice(0, 2).toUpperCase();
   return (
     <>
       <div className={`${align} flex my-4`}>
