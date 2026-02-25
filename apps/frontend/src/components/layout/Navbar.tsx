@@ -102,7 +102,7 @@ export function Navbar() {
                 <Avatar className="h-8 w-8">
                   <AvatarImage
                     src={user?.avatarKey ? getAvatarImageUrl(user.avatarKey) : undefined}
-                    seed={user?.email ?? 'user'}
+                    seed={user?.id?.toString() ?? 'user'}
                   />
                   <AvatarFallback name={displayName} />
                 </Avatar>
@@ -169,7 +169,7 @@ export function Navbar() {
                     <Avatar className="h-10 w-10">
                       <AvatarImage
                         src={user?.avatarKey ? getAvatarImageUrl(user.avatarKey) : undefined}
-                        seed={user?.email ?? 'user'}
+                        seed={user?.id?.toString() ?? 'user'}
                       />
                       <AvatarFallback name={displayName} />
                     </Avatar>

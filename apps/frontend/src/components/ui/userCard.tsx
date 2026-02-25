@@ -33,7 +33,10 @@ export const UserCard = ({ user }: { user: ResUserPublic }) => {
       <Card key={user.id} className="hover:-translate-y-1 transition-transform duration-200">
         <CardHeader className="flex flex-row items-center gap-4 space-y-0 p-4">
           <Avatar className="h-12 w-12 border-2 border-black">
-            <AvatarImage src={getAvatarImageUrl(user.avatarKey ?? undefined)} />
+            <AvatarImage
+              src={user?.avatarKey ? getAvatarImageUrl(user.avatarKey) : undefined}
+              seed={user?.id?.toString() ?? 'user'}
+            />
             <AvatarFallback name={displayName} />
           </Avatar>
           <div className="flex flex-1 justify-between">

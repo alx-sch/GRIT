@@ -1,4 +1,9 @@
-import { eventCursorFilter, eventEncodeCursor, eventSearchFilter } from '@/event/event.utils';
+import {
+  eventCursorFilter,
+  eventEncodeCursor,
+  eventSearchFilter,
+  eventGenerateSlug,
+} from '@/event/event.utils';
 import { LocationService } from '@/location/location.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { StorageService } from '@/storage/storage.service';
@@ -144,6 +149,37 @@ export class EventService {
     return event;
   }
 
+  async eventGetBySlug(slug: string, userId?: number) {
+    const event_raw = await this.prisma.event.findUnique({
+      where: { slug },
+      include: {
+        author: true,
+        location: true,
+        attendees: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+        conversation: {
+          select: { id: true },
+        },
+      },
+    });
+    if (!event_raw || (!event_raw.isPublished && event_raw.authorId !== userId)) {
+      throw new NotFoundException(`Event "${slug}" not found`);
+    }
+    const event = {
+      ...event_raw,
+      attendees: event_raw.attendees.map((a) => a.user),
+    };
+    return event;
+  }
+
   async eventPatch(id: number, data: ReqEventPatchDto, userId: number) {
     const newData: Prisma.EventUpdateInput = {};
     if (data.content !== undefined) newData.content = data.content;
@@ -259,9 +295,11 @@ export class EventService {
   }
 
   async eventPostDraft(data: ReqEventPostDraftDto & { authorId: number }) {
+    const slug = eventGenerateSlug(data.title);
     const createdEvent = await this.prisma.event.create({
       data: {
         title: data.title,
+        slug: slug,
         content: data.content,
         startAt: data.startAt,
         endAt: data.endAt,
@@ -307,5 +345,45 @@ export class EventService {
       select: { id: true },
     });
     return !!event;
+  }
+
+  async eventInviteUsers(
+    eventId: number,
+    userIds: number[],
+    inviterId: number
+  ): Promise<{ count: number }> {
+    // Security Check: Only the event author can invite others
+    const event = await this.prisma.event.findUnique({
+      where: { id: eventId },
+      select: { authorId: true },
+    });
+
+    if (!event) throw new NotFoundException('Event not found');
+    if (event.authorId !== inviterId) {
+      throw new UnauthorizedException('Only the host can invite users to this event');
+    }
+
+    // Filter out the inviterId just in case they are in the list (can't invite yourself)
+    const inviteData = userIds
+      .filter((id) => id !== inviterId)
+      .map((id) => ({
+        eventId,
+        inviteeId: id,
+        inviterId,
+        status: 'pending',
+      }));
+
+    if (inviteData.length === 0) {
+      return { count: 0 };
+    }
+
+    // Execute bulk insert
+    // skipDuplicates: true ensures that if someone is already invited, the query doesn't crash.
+    const result = await this.prisma.eventInvite.createMany({
+      data: inviteData,
+      skipDuplicates: true,
+    });
+
+    return { count: result.count };
   }
 }

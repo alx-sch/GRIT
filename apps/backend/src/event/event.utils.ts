@@ -1,6 +1,8 @@
 import { ReqEventGetPublishedDto } from './event.schema';
 import { Prisma } from '@prisma/client';
 import { BadRequestException } from '@nestjs/common';
+import slugify from 'slugify';
+import { nanoid } from 'nanoid';
 
 /**
  * ==================================================
@@ -84,4 +86,30 @@ export function eventCursorFilter(input: ReqEventGetPublishedDto) {
     }
   }
   return cursorFilter;
+}
+
+/**
+ * ==================================================
+ * HELPER FUNCTIONS (GENERAL)
+ * ==================================================
+ */
+
+/**
+ * Generates a unique, URL-friendly slug for an event.
+ * Combines the title with a random suffix to support anonymous sharing
+ * and prevent URL guessing.
+ */
+export function eventGenerateSlug(title: string): string {
+  const base = slugify(title, {
+    lower: true,
+    strict: true,
+    trim: true,
+  });
+
+  // Use a fallback if the title was only special characters/emojis
+  const prefix = base || 'event';
+
+  // nanoid(6) gives ~68 billion possibilities, plenty for uniqueness
+  // and makes the "anonymous link" secure enough.
+  return `${prefix}-${nanoid(6)}`;
 }

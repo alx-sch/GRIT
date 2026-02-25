@@ -1,4 +1,9 @@
-import { CreateEventSchema, ResEventBaseSchema } from '@grit/schema';
+import {
+  CreateEventSchema,
+  ResEventBaseSchema,
+  ReqEventGetBySlugSchema,
+  ReqEventInviteSchema,
+} from '@grit/schema';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
@@ -60,5 +65,14 @@ export class ReqEventPatchDto extends createZodDto(ReqEventPatchSchema) {}
 export const ResEventPatchSchema = ResEventBaseSchema;
 
 export class ReqEventPostDraftDto extends createZodDto(CreateEventSchema) {}
-
 export const ResEventPostDraftSchema = ResEventBaseSchema;
+
+// Get an individual event by slug (for anonymous links)
+export class ReqEventGetBySlugDto extends createZodDto(ReqEventGetBySlugSchema) {}
+export const ResEventGetBySlugSchema = ResEventBaseSchema;
+
+// Bulk invite users to an event
+export class ReqEventInviteDto extends createZodDto(ReqEventInviteSchema) {}
+export const ResEventInviteSchema = z.object({
+  count: z.number().describe('The number of invites successfully sent'),
+});

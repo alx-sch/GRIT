@@ -4,6 +4,7 @@ BACKEND_FOLDER :=	apps/backend
 FRONTEND_FOLDER :=	apps/frontend
 
 TIMESTAMP :=	$(shell date +%Y%m%d_%H%M%S)
+OS :=			$(shell uname)
 
 PROJECT_ROOT :=	$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 export PATH :=	$(PROJECT_ROOT)/node_modules/.bin:$(PATH)
@@ -125,6 +126,14 @@ install-be: build-schema
 install-fe: build-schema
 	@echo "$(BOLD)$(YELLOW)--- Installing Frontend Dependencies...$(RESET)"
 	@pnpm --filter @grit/frontend install
+ifeq ($(OS), Linux)
+	@if ! ldconfig -p | grep -q libatk-1.0.so.0; then \
+		echo "$(BOLD)$(BLUE)--- Playwright dependencies missing. Installing...$(RESET)"; \
+		pnpm --filter @grit/frontend exec playwright install-deps; \
+	else \
+		echo "$(BOLD)$(BLUE)--- Playwright dependencies already satisfied. Skipping.$(RESET)"; \
+	fi
+endif
 	@echo "$(BOLD)$(GREEN)Frontend dependencies installed.$(RESET)"
 
 # -- CLEANUP TARGETS --
@@ -234,6 +243,8 @@ lint-fix: install
 format: clean install
 	@echo "$(BOLD)$(YELLOW)--- Formating...$(RESET)"
 	pnpm run format;
+	-pnpm --filter @grit/backend exec prisma format
+	-caddy fmt --overwrite deployment/caddy/Caddyfile
 	@echo "$(BOLD)$(GREEN)Formating complete.$(RESET)"
 
 # Shows live logs of Docker services running (in the background)
@@ -275,13 +286,13 @@ test-be-e2e: install-be test-be-testdb-init
 # Helper commands
 test-be-testdb-init: start-postgres
 	@echo "$(BOLD)$(YELLOW)--- Creating Test Database ...$(RESET)"
-	@$(DC) exec postgres-db psql -h localhost -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
-	@$(DC) exec postgres-db psql -h localhost -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
+	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
+	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
 	@NODE_ENV=test pnpm --filter @grit/backend exec prisma db push
 
 test-be-testdb-remove:
 	@echo "$(BOLD)$(YELLOW)--- Removing Test Database ...$(RESET)"
-	@$(DC) exec postgres-db psql -h localhost -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
+	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
 
 ## Frontend ##
 

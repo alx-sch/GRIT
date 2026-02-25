@@ -90,6 +90,12 @@ jobs:
     environment: defaultenv
     needs: [backend-tests, frontend-tests]
     timeout-minutes: 10
+    env:
+      PGHOST: 127.0.0.1
+      POSTGRES_USER: postgres
+      POSTGRES_DB: grit
+      POSTGRES_PASSWORD: password
+      DATABASE_URL: postgresql://postgres:password@127.0.0.1:5432/grit_test
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -100,6 +106,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Run Backend E2E tests
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: grit
+          DATABASE_URL: postgresql://postgres:password@127.0.0.1:5432/grit_test
         run: make test-be-e2e
 
       - name: Run Frontend E2E tests

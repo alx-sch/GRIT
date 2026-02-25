@@ -13,8 +13,10 @@ import {
   Post,
   Query,
   UploadedFile,
+  ParseIntPipe,
   UseGuards,
   UseInterceptors,
+  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
@@ -30,6 +32,9 @@ import {
   ResEventGetByIdSchema,
   ResEventPatchSchema,
   ResEventPostDraftSchema,
+  ReqEventGetBySlugDto,
+  ResEventInviteSchema,
+  ReqEventInviteDto,
 } from './event.schema';
 import { ResEventGetPublishedSchema, ResEventBaseSchema } from '@grit/schema';
 import { EventService } from './event.service';
@@ -122,5 +127,31 @@ export class EventController {
   @ZodSerializerDto(ResEventPostDraftSchema)
   eventCreateDraft(@Body() data: ReqEventPostDraftDto, @GetUser('id') userId: number) {
     return this.eventService.eventPostDraft(Object.assign(data, { authorId: userId }));
+  }
+
+  // Get an individual event by slug (for anonymous/public links)
+  @Get('join/:slug')
+  @ZodSerializerDto(ResEventBaseSchema)
+  async getBySlug(@Param() param: ReqEventGetBySlugDto, @GetUser('id') userId?: number) {
+    return await this.eventService.eventGetBySlug(param.slug, userId);
+  }
+
+  // Bulk invite users to an event
+  @Post(':id/invite')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(ResEventInviteSchema)
+  async inviteUsers(
+    @Param('id', ParseIntPipe) eventId: number,
+    @Body() data: ReqEventInviteDto,
+    @GetUser('id') userId: number
+  ) {
+    try {
+      const result = await this.eventService.eventInviteUsers(eventId, data.userIds, userId);
+      return result;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'An unknown error occurred';
+      throw new BadRequestException(message);
+    }
   }
 }

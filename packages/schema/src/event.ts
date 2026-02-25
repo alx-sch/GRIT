@@ -34,6 +34,7 @@ export const ResEventBaseSchema = z.object({
   isPublic: z.boolean(),
   startAt: z.date(),
   title: z.string(),
+  slug: z.string(),
   location: ResEventLocationSchema.nullable().optional(),
   attendees: z.array(ResEventAttendeeSchema).default([]),
 });
@@ -45,6 +46,24 @@ export const ResEventGetPublishedSchema = z.object({
   pagination: z.object({ nextCursor: z.string().nullable(), hasMore: z.boolean() }),
 });
 export type ResEventGetPublished = z.infer<typeof ResEventGetPublishedSchema>;
+
+/**
+ * Schema for retrieving an event using its unique, unguessable slug.
+ * Used primarily for anonymous invite links (e.g., /join/my-event-x8k2n1).
+ */
+export const ReqEventGetBySlugSchema = z.strictObject({
+  slug: z.string(),
+});
+export type ReqEventGetBySlug = z.infer<typeof ReqEventGetBySlugSchema>;
+
+/**
+ * Schema for bulk-inviting specific users to an event.
+ * Validates that at least one user ID is provided and that all IDs are positive integers.
+ */
+export const ReqEventInviteSchema = z.strictObject({
+  userIds: z.array(z.number().int().positive()).min(1, 'Select at least one user to invite'),
+});
+export type ReqEventInvite = z.infer<typeof ReqEventInviteSchema>;
 
 // Shared event schema for creating an event
 export const CreateEventSchema = z.object({
