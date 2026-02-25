@@ -156,6 +156,11 @@ clean-backup:
 	rm -rf $(BACKUP_NAME)*
 	@echo "$(GREEN)$(BOLD)Backup folder deleted.$(RESET)"
 
+# Helper to wipe Turbo's stale daemon files
+clean-turbo:
+	@echo "$(BOLD)$(YELLOW)--- Cleaning stale Turbo daemons ...$(RESET)"
+	@rm -rf /tmp/turbod/
+
 # Cleans everything related to this project: builds, node_modules, DB container, volumes, backups:
 fclean: clean clean-backup
 	$(DC) down --volumes --rmi local
@@ -240,7 +245,7 @@ logs:
 #######################
 
 # Run all Tests for backend and frontend
-test: test-be test-fe
+test: clean-turbo test-be test-fe
 
 # Run all Tests for backend only
 test-be:
@@ -283,12 +288,17 @@ test-be-testdb-remove:
 test-fe:
 	@echo "$(BOLD)$(YELLOW)--- Starting Tests ...$(RESET)"
 	@$(MAKE) --no-print-directory test-fe-integration
-	#@$(MAKE) --no-print-directory test-fe-e2e
+	@$(MAKE) --no-print-directory test-fe-e2e
 
 # Helper
 test-fe-integration: install-fe
 	@echo "$(BOLD)$(YELLOW)--- Running Frontend Integration Tests ...$(RESET)"
 	@NODE_ENV=test turbo test:integration --filter=@grit/frontend --no-update-notifier
+
+test-fe-e2e: install-fe
+	@echo "$(BOLD)$(YELLOW)--- Running Frontend E2E Tests ...$(RESET)"
+	@pnpm --filter @grit/frontend exec playwright install
+	@pnpm --filter @grit/frontend exec playwright test
 
 #############################
 ## 🚀 DEVELOPMENT COMMANDS ##
@@ -507,9 +517,15 @@ run-fe: kill-port-fe build-fe
 start: check-env db
 	@echo "$(BOLD)$(YELLOW)--- Launching Application Services...$(RESET)"
 	$(DC) up -d --build backend caddy
+	
 	@echo "$(BOLD)$(GREEN)Full stack is live!$(RESET)"
 	@echo "•   View live logs: '$(YELLOW)make logs$(RESET)'"
-	@echo "•   View app:       '$(YELLOW)https://localhost:$(HTTPS_PORT)$(RESET)' / '$(YELLOW)http://localhost:$(HTTP_PORT)$(RESET)'"
+	
+	@if [ -n "$(APP_BASE_URL)" ]; then \
+		echo "•   View app:       '$(YELLOW)$(APP_BASE_URL)$(RESET)'"; \
+	else \
+		echo "•   View app:       '$(YELLOW)https://localhost:$(HTTPS_PORT)$(RESET)'"; \
+	fi
 
 # Stops production services via Docker Compose
 stop:
@@ -531,6 +547,7 @@ stop:
 		clean \
 		clean-backup \
 		clean-db \
+		clean-turbo \
 		db \
 		dev \
 		dev-be \

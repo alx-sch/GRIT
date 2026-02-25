@@ -12,6 +12,8 @@ import EventFeedPage from '@/pages/events/EventFeedPage';
 import { eventLoader, EventPage } from '@/pages/events/EventPage';
 import Home from '@/pages/home/Page';
 import { LoginPage, loginPageAction, loginPageLoader } from '@/pages/login/Page';
+import { RegisterPage, registerPageAction, registerPageLoader } from '@/pages/register/Page';
+import type { NavRoute } from '@/types/navroute';
 import { LogoutPage, logoutPageLoader } from '@/pages/logout/Page';
 import Users, { usersLoader } from '@/pages/users/Page';
 import type { NavRoute } from '@/types/navroute';
@@ -36,6 +38,50 @@ export const router = createBrowserRouter([
         index: true,
         Component: Home,
         handle: { title: 'Home' },
+      },
+      {
+        path: 'design',
+        Component: Design,
+        handle: { title: 'Design' },
+      },
+      {
+        path: 'users',
+        Component: Users,
+        loader: usersLoader,
+        handle: { title: 'Users' },
+      },
+      {
+        path: 'events',
+        children: [
+          {
+            index: true,
+            Component: EventFeedPage,
+            loader: eventsLoader,
+            handle: { title: 'Events' },
+          },
+          {
+            path: ':id',
+            Component: EventPage,
+            loader: eventLoader,
+          },
+        ],
+      },
+      {
+        path: 'login',
+        Component: LoginPage,
+        action: loginPageAction,
+        loader: loginPageLoader,
+      },
+      {
+        path: 'register',
+        Component: RegisterPage,
+        action: registerPageAction,
+        loader: registerPageLoader,
+      },
+      {
+        path: 'logout',
+        Component: LogoutPage,
+        loader: logoutPageLoader,
       },
       {
         path: 'chat',
