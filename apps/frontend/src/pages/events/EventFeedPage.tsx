@@ -13,32 +13,27 @@ import { EventResponse } from '@/types/event';
 import { LocationBase } from '@/types/location';
 import { format, parse } from 'date-fns';
 import { ArrowUpDown, MapPinIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { DateRange } from 'react-day-picker';
 import { LoaderFunctionArgs, useSearchParams } from 'react-router-dom';
 
+const buildEventQuery = (searchParams: URLSearchParams, cursor?: string | null) => ({
+  search: searchParams.get('search') ?? undefined,
+  startFrom: searchParams.get('start_from') ?? format(new Date(), 'yyyy-MM-dd'),
+  startUntil: searchParams.get('start_until') ?? undefined,
+  locationId: searchParams.get('location_id') ?? undefined,
+  limit: searchParams.get('limit') ?? undefined,
+  authorId: searchParams.get('authorId') ?? undefined,
+  cursor: cursor ?? undefined,
+  sort: searchParams.get('sort') ?? 'date-asc',
+});
+
 export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
-  const search = url.searchParams.get('search') ?? undefined;
-  const startFrom = url.searchParams.get('start_from') ?? format(new Date(), 'yyyy-MM-dd');
-  const startUntil = url.searchParams.get('start_until') ?? undefined;
-  const locationId = url.searchParams.get('location_id') ?? undefined;
-  const limit = url.searchParams.get('limit') ?? undefined;
-  const authorId = url.searchParams.get('authorId') ?? undefined;
-  const cursor = url.searchParams.get('cursor') ?? undefined;
-  const sort = url.searchParams.get('sort') ?? 'date-asc';
+  const query = buildEventQuery(url.searchParams);
 
   const [events, locationsResponse] = await Promise.all([
-    eventService.getEvents({
-      search,
-      startFrom,
-      startUntil,
-      locationId,
-      limit,
-      authorId,
-      cursor,
-      sort,
-    }),
+    eventService.getEvents(query),
     locationService.getLocations(),
   ]);
   return { events, locations: locationsResponse.data };
@@ -70,6 +65,62 @@ export default function EventFeedPage() {
   const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '');
 
   const debouncedSearch = useDebounce(searchInput, 500);
+
+  // Infinite scroll state (only gets called once on first render).
+  const [items, setItems] = useState(() => events.data); // Displayed events (initial + loaded)
+  const [nextCursor, setNextCursor] = useState<string | null>(() => events.pagination.nextCursor); // Pointer to next page
+  const [hasMoreClient, setHasMoreClient] = useState<boolean>(() => events.pagination.hasMore); // Are there more events to load?
+  const [isLoadingMore, setIsLoadingMore] = useState(false); // Avoid duplicate requests if one request is currently happening
+  const sentinelRef = useRef<HTMLDivElement | null>(null); // Reference to invisible div at bottom (IntersectionObserver watches this)
+
+  // Reset on filter change (if filter changes, the events displayed go back to initial state with only first [limit] amount loaded.)
+  useEffect(() => {
+    setItems(events.data);
+    setNextCursor(events.pagination.nextCursor);
+    setHasMoreClient(events.pagination.hasMore);
+  }, [events]); // Only runs when events changes
+
+  // Main function for loading more events -> takes whichever events were already there, and appends the next ones to also be displayed.
+  const loadMore = async () => {
+    if (!hasMoreClient || isLoadingMore || !nextCursor) return;
+    setIsLoadingMore(true);
+    try {
+      const query = buildEventQuery(searchParams, nextCursor);
+      const res = await eventService.getEvents(query);
+      setItems((prev) => {
+        const existing = new Set(prev.map((e) => e.id)); // Already displayed events (e is ONE event object).
+        const appended = res.data.filter((e) => !existing.has(e.id)); // Making sure already displayed events are not displayed again.
+        return [...prev, ...appended];
+      });
+      setNextCursor(res.pagination.nextCursor);
+      setHasMoreClient(res.pagination.hasMore);
+    } catch (err) {
+      console.error('Failed to load more events', err);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  // Observes sentinel (an invisible div element) -> when scrolling and getting close
+  // to sentinel -> call loadMore.
+  useEffect(() => {
+    const el = sentinelRef.current; // Store the sentinel (if it exists)
+    if (!el) return;
+
+    const io = new IntersectionObserver( // Create an observer that watches elements
+      (entries) => {
+        // Entries -> watched elements.
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            loadMore();
+          }
+        });
+      },
+      { rootMargin: '400px', threshold: 0.1 } // Two options: Trigger 400 px BEFORE sentinel reaches viewport, and when 10% of sentinel is visible.
+    );
+    io.observe(el); // Set observer to watch sentinel.
+    return () => io.disconnect();
+  }, [nextCursor, hasMoreClient, searchParams]); // Whenever one of these changes, this function gets called again.
 
   useEffect(() => {
     if (!searchInput && debouncedSearch) {
@@ -193,16 +244,22 @@ export default function EventFeedPage() {
           />
         </div>
       </div>
-      {events.data.length > 0 ? (
-        <div className="grid gap-6 justify-start md:grid-cols-2 lg:grid-cols-3">
-          {events.data.map((event) => (
-            <EventCard
-              key={event.id}
-              event={event}
-              location={event.location?.id ? locationMap.get(event.location.id) : undefined}
-            />
-          ))}
-        </div>
+      {items.length > 0 ? (
+        <>
+          <div className="grid gap-6 justify-start md:grid-cols-2 lg:grid-cols-3">
+            {items.map((event) => (
+              <EventCard
+                key={event.id}
+                event={event}
+                location={event.location?.id ? locationMap.get(event.location.id) : undefined}
+              />
+            ))}
+          </div>
+          <div ref={sentinelRef} />
+          {isLoadingMore && (
+            <div className="py-8 text-center text-muted-foreground">Loading more events…</div>
+          )}
+        </>
       ) : (
         <div className="flex flex-col items-center justify-center py-20 px-4 border-2 border-dashed border-border text-center bg-card">
           <Heading level={3} className="uppercase tracking-tight">
