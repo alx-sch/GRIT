@@ -1,20 +1,16 @@
 import { DefaultLayout } from '@/components/layout/DefaultLayout';
-import { eventCreationLoader } from '@/pages/create/event/Page';
-import Design from '@/pages/design/Page';
-import ErrorPage from '@/pages/error/Page';
-import { eventsLoader } from '@/pages/events/EventFeedPage';
-
 import { ProtectedLayout, protectedLayoutLoader } from '@/components/layout/ProtectedLayout';
 import { ChatFeedPage } from '@/pages/chat/ChatFeedPage';
 import { ChatPage } from '@/pages/chat/ChatPage';
-import CreateEventPage from '@/pages/create/event/Page';
-import EventFeedPage from '@/pages/events/EventFeedPage';
+import CreateEventPage, { eventCreationLoader } from '@/pages/create/event/Page';
+import Design from '@/pages/design/Page';
+import ErrorPage from '@/pages/error/Page';
+import EventFeedPage, { eventsLoader } from '@/pages/events/EventFeedPage';
 import { eventLoader, EventPage } from '@/pages/events/EventPage';
 import Home from '@/pages/home/Page';
 import { LoginPage, loginPageAction, loginPageLoader } from '@/pages/login/Page';
-import { RegisterPage, registerPageAction, registerPageLoader } from '@/pages/register/Page';
-import type { NavRoute } from '@/types/navroute';
 import { LogoutPage, logoutPageLoader } from '@/pages/logout/Page';
+import { RegisterPage, registerPageAction, registerPageLoader } from '@/pages/register/Page';
 import Users, { usersLoader } from '@/pages/users/Page';
 import type { NavRoute } from '@/types/navroute';
 import { createBrowserRouter } from 'react-router-dom';

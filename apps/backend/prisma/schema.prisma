@@ -64,6 +64,23 @@ model Location {
   updatedAt   DateTime    @updatedAt
 }
 
+enum FileType {
+	IMAGE
+	PDF
+}
+
+model EventFile {
+	id	Int	@id @default(autoincrement())
+	fileKey String
+	bucket String
+	fileType FileType
+	fileName String
+	mimeType String
+	eventId	Int
+	event	Event @relation(fields: [eventId], references:[id], onDelete: Cascade)
+	createdAt DateTime @default(now())
+}
+
 model Event {
   // Primary key
   id            Int       @id @default(autoincrement())
@@ -74,6 +91,7 @@ model Event {
   imageKey      String?
   startAt       DateTime
   title         String
+  files			EventFile[]
 
   // Status flags
   isPublished   Boolean   @default(false)
