@@ -64,16 +64,10 @@ model Location {
   updatedAt   DateTime    @updatedAt
 }
 
-enum FileType {
-	IMAGE
-	PDF
-}
-
 model EventFile {
 	id	Int	@id @default(autoincrement())
 	fileKey String
 	bucket String
-	fileType FileType
 	fileName String
 	mimeType String
 	eventId	Int

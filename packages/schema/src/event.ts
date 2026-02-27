@@ -27,7 +27,6 @@ export const ResEventLocationSchema = z.object({
 export const ResEventFileSchema = z.object({
   id: z.number().int().positive(),
   fileKey: z.string(),
-  fileType: z.enum(['IMAGE', 'PDF']),
   fileName: z.string(),
   mimeType: z.string(),
 });

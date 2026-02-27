@@ -100,17 +100,17 @@ export class EventController {
     return this.eventService.eventUploadFile(param.id, userId, file);
   }
 
-  //Delete documents (image or pdf)
-  @Delete
+
+  // Delete documents (image or pdf)
+  @Delete(':id/files/:fileId')
   @UseGuards(JwtAuthGuard)
   deleteEventFile(
-	@Param('id', ParseIntPipe) eventId: number,
-	@Param('fileId', ParseIntPipe) fileId: number,
-	@GetUser('id') userId: number,
+      @Param('id', ParseIntPipe) eventId: number,
+      @Param('fileId', ParseIntPipe) fileId: number,
+      @GetUser('id') userId: number,
   ) {
-	  return this.eventService.eventDeleteFile(param.id, userId, fileId);
+    return this.eventService.eventDeleteFile(eventId, userId, fileId);
   }
-
   // Post a new event draft
   @Post()
   @ApiBearerAuth()

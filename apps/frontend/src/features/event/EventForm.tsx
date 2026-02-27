@@ -93,8 +93,15 @@ export default function EventForm({ initialData, locations }: EventFormProps) {
   //image upload
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageRemoved, setImageRemoved] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [imageUploadProgress, setImageUploadProgress] = useState(0);
   const [imageError, setImageError] = useState<string | null>(null);
+
+  //Additionnal files
+  const [additionalFiles, setAdditionalFiles] = useState<File[]>([]);
+  const [additionalFilesError, setAdditionalFilesError] = useState<string | null>(null);
+  const [filesUploadProgress, setFilesUploadProgress] = useState(0);
+  const [existingFiles, setExistingFiles] = useState(initialData?.files ?? []);
+  const [filesToDelete, setFilesToDelete] = useState<number[]>([]);
 
   //Restore draft if exists
   useEffect(() => {
@@ -136,7 +143,7 @@ export default function EventForm({ initialData, locations }: EventFormProps) {
 
       if (imageFile) {
         try {
-          await eventService.uploadEventImage(result.id, imageFile, setUploadProgress);
+          await eventService.uploadEventImage(result.id, imageFile, setImageUploadProgress);
         } catch {
           toast.warning('Event created, but image upload failed');
         }
@@ -145,6 +152,20 @@ export default function EventForm({ initialData, locations }: EventFormProps) {
           await eventService.deleteEventImage(result.id);
         } catch {
           toast.warning('Event saved, but image deletion failed');
+        }
+      }
+      for (const file of additionalFiles) {
+        try {
+          await eventService.uploadEventFile(result.id, file);
+        } catch {
+          toast.warning(`Failed to upload ${file.name}`);
+        }
+      }
+      for (const fileId of filesToDelete) {
+        try {
+          await eventService.deleteEventFile(result.id, fileId);
+        } catch {
+          toast.warning(`Failed to delete a file`);
         }
       }
       localStorage.removeItem(DRAFT_KEY);
@@ -408,15 +429,12 @@ export default function EventForm({ initialData, locations }: EventFormProps) {
           </label>
           <div className="items-center">
             <FileUpload
-              onChange={(file) => {
+              onChange={(files) => {
+                const file = files[0] ?? null;
                 setImageFile(file);
-                if (!file) {
-                  setImageRemoved(true);
-                } else {
-                  setImageRemoved(false);
-                }
+                setImageRemoved(!file);
               }}
-              progress={uploadProgress}
+              progress={imageUploadProgress}
               aspectRatio="square"
               onError={setImageError}
               value={initialData?.imageKey ? getEventImageUrl(initialData) : null}
@@ -425,6 +443,32 @@ export default function EventForm({ initialData, locations }: EventFormProps) {
               <Alert variant="destructive">
                 <AlertCircleIcon className="h-4 w-4" />
                 <AlertTitle className="text-sm">{imageError}</AlertTitle>
+              </Alert>
+            )}
+          </div>
+        </div>
+
+        {/* Documents Upload */}
+        <div className="flex flex-col gap-4">
+          <label htmlFor="image" className="font-heading">
+            Additionnal documents
+          </label>
+          <div className="items-center">
+            <FileUpload
+              multiple
+              onChange={setAdditionalFiles}
+              onError={setAdditionalFilesError}
+              progress={filesUploadProgress}
+              existingFiles={existingFiles}
+              onRemoveExisting={(fileId) => {
+                setExistingFiles((prev) => prev.filter((f) => f.id !== fileId));
+                setFilesToDelete((prev) => [...prev, fileId]);
+              }}
+            />
+            {additionalFilesError && (
+              <Alert variant="destructive">
+                <AlertCircleIcon className="h-4 w-4" />
+                <AlertTitle className="text-sm">{additionalFilesError}</AlertTitle>
               </Alert>
             )}
           </div>

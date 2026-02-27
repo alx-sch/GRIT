@@ -5,7 +5,7 @@ import {LocationService} from '@/location/location.service';
 import {PrismaService} from '@/prisma/prisma.service';
 import {StorageService} from '@/storage/storage.service';
 import {BadRequestException, Injectable, NotFoundException, UnauthorizedException,} from '@nestjs/common';
-import {ConversationType, FileType, Prisma} from '@prisma/client';
+import {ConversationType, Prisma} from '@prisma/client';
 
 @Injectable()
 export class EventService {
@@ -297,8 +297,6 @@ export class EventService {
         data: {
           fileKey: newFileKey,
           bucket: bucket,
-          fileType: file.mimetype.startsWith('image/') ? FileType.IMAGE :
-                                                         FileType.PDF,
           mimeType: file.mimetype,
           fileName: file.originalname,
           eventId: eventId,
@@ -348,14 +346,14 @@ export class EventService {
     if (event.authorId !== userId) throw new UnauthorizedException();
 
     // Verify file exists and belongs to this event
-    const file = await this.prisma.eventFile.FindUnique({
+    const file = await this.prisma.eventFile.findUnique({
       where: {id: fileId},
     });
     if (!file || file.eventId !== eventId)
       throw new NotFoundException('File not found');
 
     await this.storage.deleteFile(file.fileKey, file.bucket);
-    await this.prisma.event.delete({where: {id: fileId}});
+    await this.prisma.eventFile.delete({where: {id: fileId}});
 
     const updatedEvent = await this.prisma.event.findUniqueOrThrow({
       where: {id: eventId},
