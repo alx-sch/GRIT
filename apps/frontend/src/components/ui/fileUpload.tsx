@@ -181,7 +181,7 @@ export function FileUpload({
       </ul>
       {/*Separator - if existing files = true*/}
       {files.length > 0 && existingFiles && existingFiles.length > 0 && (
-        <p className="text-muted-foreground text-xs mt-2">Already uploaded</p>
+        <p className="text-muted-foreground text-xs mt-2">Already uploaded:</p>
       )}
       {/* Existing files */}
       {existingFiles && existingFiles.length > 0 && (
@@ -193,10 +193,7 @@ export function FileUpload({
             >
               <FileTypeIcon mimeType={file.mimeType} />
               <span className="flex-1 truncate">{file.fileName}</span>
-              <button
-                type="button"
-                onClick={() => onRemoveExisting?.(file.id)}
-              >
+              <button type="button" onClick={() => onRemoveExisting?.(file.id)}>
                 <Trash2 className="h-4 w-4" />
               </button>
             </li>

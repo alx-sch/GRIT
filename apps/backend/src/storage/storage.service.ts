@@ -34,7 +34,7 @@ export class StorageService implements OnModuleInit {
     this.logger.log('Initializing Storage Buckets...');
     await this.ensureBucket('user-avatars');
     await this.ensureBucket('event-images');
-	await this.ensureBucket('event-files');
+    await this.ensureBucket('event-files');
   }
 
   // Raw buffer upload, used by to get avatas from Google (OAuth)
