@@ -15,15 +15,6 @@ const user = z.object({
   name: z.string().optional().nullable(),
 });
 
-const messages = z.array(
-  z.object({
-    id: z.uuid(),
-    author: user,
-    createdAt: z.string(),
-    text: z.string(),
-  })
-);
-
 const participants = z.array(
   z.object({
     user: user,
@@ -57,7 +48,6 @@ export const ResConversationSingleSchema = z.object({
   type: conversationTypes,
   updatedAt: z.string().or(z.date()),
   event: event,
-  messages: messages.optional(),
   participants: participants,
 });
 export type ResConversationSingle = z.infer<typeof ResConversationSingleSchema>;

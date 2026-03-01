@@ -4,7 +4,7 @@ import { create } from 'zustand';
 /**
  * The chatStore will store in conversations a Record where the key is the conversation's id.
  * Then we store only the last chat message for that conversation as well as an unread count
- * Chat history is only stored in each chat components local storage
+ * Complete chat history is only stored in each chat components local storage
  */
 
 type Conversation = Record<

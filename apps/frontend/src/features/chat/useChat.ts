@@ -13,23 +13,48 @@ export function useChat(conversationId: string) {
   useEffect(() => {
     if (!socket) return;
 
-    socket.on('message', (msg: ResChatMessage) => {
+    const handleMessage = (msg: ResChatMessage) => {
+      // TODO This conversationId check should be implemented for all message types to prevent mixed messages on fast navigation
+      if (msg.conversationId !== conversationId) return;
       setMessages((prev) => [...prev, msg]);
-    });
+    };
 
-    socket.on('history', (msgs: ResChatMessage[]) => {
+    const handleInitialHistory = (msgs: ResChatMessage[]) => {
+      setMessages([...msgs]);
+    };
+
+    const handleMoreHistory = (msgs: ResChatMessage[]) => {
       setMessages((prev) => [...msgs, ...prev]);
-    });
+    };
 
-    socket.on('history_end', () => {
+    const handleHistoryEnd = () => {
       setHasMore(false);
-    });
+    };
 
-    socket.on('error', (err: { message: string }) => {
-      setMessages(() => []);
+    const handleError = (err: { message: string }) => {
+      setMessages([]);
       setErrorMessage(err.message ?? 'Error');
-    });
-  }, [conversationId]);
+    };
+
+    socket.on('message', handleMessage);
+    socket.on('initialHistory', handleInitialHistory);
+    socket.on('moreHistory', handleMoreHistory);
+    socket.on('historyEnd', handleHistoryEnd);
+    socket.on('error', handleError);
+
+    // Deregister handlers once component dismounts
+    return () => {
+      socket.off('message', handleMessage);
+      socket.off('initialHistory', handleInitialHistory);
+      socket.off('moreHistory', handleMoreHistory);
+      socket.off('historyEnd', handleHistoryEnd);
+      socket.off('error', handleError);
+    };
+  }, [socket, conversationId]);
+
+  const getHistory = () => {
+    socket?.emit('getInitialHistory', { conversationId });
+  };
 
   const sendMessage = (text: string) => {
     if (!text.trim()) return;
@@ -40,12 +65,15 @@ export function useChat(conversationId: string) {
   };
 
   const loadMore = (cursor: { createdAt: Date; id: string }) => {
-    if (!hasMore) return;
-    socket?.emit('load_more', {
+    if (!hasMore) {
+      return;
+    }
+    socket?.emit('loadMoreHistory', {
       cursorSentAt: cursor.createdAt,
       cursorId: cursor.id,
+      conversationId,
     });
   };
 
-  return { messages, sendMessage, loadMore, hasMore, errorMessage };
+  return { messages, getHistory, sendMessage, loadMore, hasMore, errorMessage };
 }

@@ -83,22 +83,6 @@ export class ConversationService {
             title: true,
           },
         },
-        messages: {
-          orderBy: { createdAt: 'desc' },
-          take: 1,
-          select: {
-            id: true,
-            text: true,
-            createdAt: true,
-            author: {
-              select: {
-                id: true,
-                name: true,
-                avatarKey: true,
-              },
-            },
-          },
-        },
       },
       orderBy: {
         updatedAt: 'desc',

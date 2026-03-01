@@ -5,6 +5,7 @@ import { ResConversationSingle } from '@grit/schema';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { trimText } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { chatStore } from '@/store/chatStore';
 
 type ConversationCardProps = {
   conversation: ResConversationSingle;
@@ -14,10 +15,13 @@ type ConversationCardProps = {
 export const ConversationCard = ({ conversation, isActive }: ConversationCardProps) => {
   const currentUser = useCurrentUserStore((s) => s.user);
   if (!currentUser) return ''; // Narrowing for Typesafety only
+
+  // Set other user if it is a 1:1 conversation
   const otherUser =
     conversation.type === 'DIRECT'
       ? conversation.participants.find((el) => el.user.id !== currentUser.id)?.user
       : undefined;
+
   const isEvent = conversation.type === 'EVENT';
   const navigate = useNavigate();
 
@@ -51,35 +55,38 @@ export const ConversationCard = ({ conversation, isActive }: ConversationCardPro
   const titleLong = findTitle();
   const title = titleLong ? trimText(titleLong, 20) : undefined;
 
+  // Get the matching last message data from the chatStore
+  const conversationState = chatStore((s) => {
+    return s.conversations[conversation.id];
+  });
+
   // Last Message Text
-  const findLastMessage = () => {
-    if (conversation.messages && conversation.messages.length > 0)
-      return conversation.messages[0].text;
-    return 'No messages yet';
-  };
-  const lastMessageTextLong = findLastMessage();
+  const lastMessageTextLong = conversationState?.lastMessage?.text ?? 'No messages yet';
   const lastMessageText = trimText(lastMessageTextLong, 24);
 
   // Last Message Author
-  const findLastMessageAuthor = () => {
-    if (conversation.messages && conversation.messages.length > 0) {
-      if (conversation.messages[0].author.id === currentUser.id) return 'You';
-      else return conversation.messages[0].author.name;
-    } else return '';
-  };
-  const lastMessageAuthorLong = findLastMessageAuthor();
-  const lastMessageAuthor = lastMessageAuthorLong ? trimText(lastMessageAuthorLong, 10) : undefined;
+  let lastMessageAuthorNameLong;
+  if (conversationState?.lastMessage?.author?.id === currentUser.id)
+    lastMessageAuthorNameLong = 'You';
+  else lastMessageAuthorNameLong = conversationState?.lastMessage?.author.name;
+  const lastMessageAuthor = lastMessageAuthorNameLong
+    ? trimText(lastMessageAuthorNameLong, 10)
+    : undefined;
 
   // Last Message Created At
-  const messageCreatedAtRaw = conversation.messages?.[0]?.createdAt
-    ? new Date(conversation.messages[0].createdAt)
+  // const messageCreatedAtRaw = conversation.messages?.[0]?.createdAt
+  //   ? new Date(conversation.messages[0].createdAt)
+  //   : undefined;
+
+  const lastMessageCreatedAtRaw = conversationState?.lastMessage?.createdAt;
+  const lastMessageCreatedAt = lastMessageCreatedAtRaw
+    ? new Date(lastMessageCreatedAtRaw).toLocaleDateString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        month: 'short',
+        day: '2-digit',
+      })
     : undefined;
-  const messageCreatedAt = messageCreatedAtRaw?.toLocaleDateString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    month: 'short',
-    day: '2-digit',
-  });
 
   // Event Start
   const eventStartRaw = conversation.event?.startAt
@@ -122,7 +129,7 @@ export const ConversationCard = ({ conversation, isActive }: ConversationCardPro
               {lastMessageText}
             </div>
             <div className="text-[11px] text-right text-muted-foreground">
-              {messageCreatedAt || `–`}
+              {lastMessageCreatedAt || `–`}
             </div>
           </div>
         </CardHeader>

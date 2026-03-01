@@ -6,7 +6,6 @@ import { io, Socket } from 'socket.io-client';
 const SocketContext = createContext<Socket | null>(null);
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
-  // Do something fancy here
   const token = useAuthStore((s) => s.token);
   const [socket, setSocket] = useState<Socket | null>(null);
 
@@ -31,7 +30,6 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     // On connect the backend will send the last messages for all conversations the client is in
     newSocket.on('initialLastMessages', (messages) => {
       chatStore.getState().setInitialConversations(messages);
-      console.log(messages);
     });
 
     // Listen for incoming messages

@@ -17,7 +17,7 @@ export const ChatFeedLayout = () => {
   return (
     <>
       <div className="flex">
-        <div className="mr-8">
+        <div className="mr-8 overflow-auto max-h-[80vh]">
           {conversations.map((conversation) => (
             <ConversationCard
               key={conversation.id}

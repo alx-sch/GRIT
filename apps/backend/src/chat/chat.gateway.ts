@@ -176,6 +176,17 @@ export class ChatGateway implements OnGatewayConnection {
   //   client.emit('history', history);
   // }
 
+  @SubscribeMessage('getInitialHistory')
+  async handGetHistory(
+    @MessageBody() body: { conversationId: string },
+    @ConnectedSocket() client: AppSocket
+  ) {
+    const rows = await this.chatService.loadMessages(body.conversationId);
+    // Serialization in Websocket context
+    const history = rows.reverse().map((row) => ResChatMessageSchema.parse(row));
+    client.emit('initialHistory', history);
+  }
+
   @SubscribeMessage('message')
   async handleMessage(
     @MessageBody() body: ReqChatMessagePostDto,
@@ -220,25 +231,22 @@ export class ChatGateway implements OnGatewayConnection {
     });
   }
 
-  @SubscribeMessage('load_more')
+  @SubscribeMessage('loadMoreHistory')
   async handleLoadMore(
-    @MessageBody() body: { cursorSentAt: string; cursorId: string },
+    @MessageBody() body: { cursorSentAt: string; cursorId: string; conversationId: string },
     @ConnectedSocket() client: AppSocket
   ) {
-    const conversationId = client.data.conversationId;
-    if (!conversationId) return null;
-
-    const rows = await this.chatService.loadMessages(conversationId, 5, {
+    const rows = await this.chatService.loadMessages(body.conversationId, 5, {
       createdAt: new Date(body.cursorSentAt),
       id: body.cursorId,
     });
 
     if (rows.length === 0) {
-      client.emit('history_end');
+      client.emit('historyEnd');
       return;
     }
 
     const messages = rows.reverse().map((row) => ResChatMessageSchema.parse(row));
-    client.emit('history', messages);
+    client.emit('moreHistory', messages);
   }
 }
