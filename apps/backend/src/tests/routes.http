@@ -38,7 +38,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-	"email": "cindy@example.com",
+	"email": "alice@example.com",
 	"password": "0123456789"
 }
 ###
@@ -79,6 +79,11 @@ Content-Type: application/json
 {
 	"attending": 2
 }
+###
+
+# Delete logged in user
+DELETE {{baseUrl}}/users/me
+Authorization: Bearer {{token}}
 ###
 
 # ========== LOCATION ========== //
