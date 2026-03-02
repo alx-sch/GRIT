@@ -16,6 +16,7 @@ import { ArrowUpDown, MapPinIcon } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 import { DateRange } from 'react-day-picker';
 import { LoaderFunctionArgs, useSearchParams } from 'react-router-dom';
+import { Pagination, useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 
 const buildEventQuery = (searchParams: URLSearchParams, cursor?: string | null) => ({
   search: searchParams.get('search') ?? undefined,
@@ -36,7 +37,11 @@ export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
     eventService.getEvents(query),
     locationService.getLocations(),
   ]);
-  return { events, locations: locationsResponse.data };
+  return {
+    events,
+    locations: locationsResponse.data,
+    locationsPagination: locationsResponse.pagination,
+  };
 };
 
 //Sorting Options
@@ -49,78 +54,49 @@ const sortOptions: ComboboxOptions[] = [
 ];
 
 export default function EventFeedPage() {
-  const { events, locations } = useTypedLoaderData<{
+  const { events, locations, locationsPagination } = useTypedLoaderData<{
     events: EventResponse;
     locations: LocationBase[];
+    locationsPagination: Pagination;
   }>();
-
-  const locationOptionsCombobox: ComboboxOptions[] = locations.map(({ id, name }) => ({
-    value: String(id),
-    label: name ?? '',
-  }));
-
-  const locationMap = new Map(locations.map((l) => [l.id, l]));
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '');
 
   const debouncedSearch = useDebounce(searchInput, 500);
 
-  // Infinite scroll state (only gets called once on first render).
-  const [items, setItems] = useState(() => events.data); // Displayed events (initial + loaded)
-  const [nextCursor, setNextCursor] = useState<string | null>(() => events.pagination.nextCursor); // Pointer to next page
-  const [hasMoreClient, setHasMoreClient] = useState<boolean>(() => events.pagination.hasMore); // Are there more events to load?
-  const [isLoadingMore, setIsLoadingMore] = useState(false); // Avoid duplicate requests if one request is currently happening
-  const sentinelRef = useRef<HTMLDivElement | null>(null); // Reference to invisible div at bottom (IntersectionObserver watches this)
+  // Events infinite scroll
+  const {
+    items,
+    isLoading: isLoadingMore,
+    sentinelRef,
+  } = useInfiniteScroll(
+    events.data,
+    events.pagination,
+    async (cursor) => {
+      const res = await eventService.getEvents(buildEventQuery(searchParams, cursor));
+      return { data: res.data, pagination: res.pagination };
+    },
+    [searchParams]
+  );
 
-  // Reset on filter change (if filter changes, the events displayed go back to initial state with only first [limit] amount loaded.)
-  useEffect(() => {
-    setItems(events.data);
-    setNextCursor(events.pagination.nextCursor);
-    setHasMoreClient(events.pagination.hasMore);
-  }, [events]); // Only runs when events changes
+  // Locations infinite scroll
+  const {
+    items: locationItems,
+    isLoading: isLoadingLocations,
+    pagination: locationPagination,
+    loadMore: loadMore,
+  } = useInfiniteScroll(locations, locationsPagination, async (cursor) => {
+    const res = await locationService.getLocations({ cursor });
+    return { data: res.data, pagination: res.pagination };
+  });
 
-  // Main function for loading more events -> takes whichever events were already there, and appends the next ones to also be displayed.
-  const loadMore = async () => {
-    if (!hasMoreClient || isLoadingMore || !nextCursor) return;
-    setIsLoadingMore(true);
-    try {
-      const query = buildEventQuery(searchParams, nextCursor);
-      const res = await eventService.getEvents(query);
-      setItems((prev) => {
-        const existing = new Set(prev.map((e) => e.id)); // Already displayed events (e is ONE event object).
-        const appended = res.data.filter((e) => !existing.has(e.id)); // Making sure already displayed events are not displayed again.
-        return [...prev, ...appended];
-      });
-      setNextCursor(res.pagination.nextCursor);
-      setHasMoreClient(res.pagination.hasMore);
-    } catch (err) {
-      console.error('Failed to load more events', err);
-    } finally {
-      setIsLoadingMore(false);
-    }
-  };
+  const locationOptionsCombobox: ComboboxOptions[] = locationItems.map(({ id, name }) => ({
+    value: String(id),
+    label: name ?? '',
+  }));
 
-  // Observes sentinel (an invisible div element) -> when scrolling and getting close
-  // to sentinel -> call loadMore.
-  useEffect(() => {
-    const el = sentinelRef.current; // Store the sentinel (if it exists)
-    if (!el) return;
-
-    const io = new IntersectionObserver( // Create an observer that watches elements
-      (entries) => {
-        // Entries -> watched elements.
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            loadMore();
-          }
-        });
-      },
-      { rootMargin: '400px', threshold: 0.1 } // Two options: Trigger 400 px BEFORE sentinel reaches viewport, and when 10% of sentinel is visible.
-    );
-    io.observe(el); // Set observer to watch sentinel.
-    return () => io.disconnect();
-  }, [nextCursor, hasMoreClient, searchParams]); // Whenever one of these changes, this function gets called again.
+  const locationMap = new Map(locationItems.map((l) => [l.id, l]));
 
   useEffect(() => {
     if (!searchInput && debouncedSearch) {
@@ -174,13 +150,20 @@ export default function EventFeedPage() {
     setSearchParams(searchParams);
   };
 
-  const handleLocationChange = (locationId: string) => {
-    if (locationId) {
-      searchParams.set('location_id', locationId);
+  const handleLocationChange = (value: string) => {
+    if (value) {
+      searchParams.set('location_id', value);
     } else {
       searchParams.delete('location_id');
     }
     setSearchParams(searchParams);
+  };
+
+  // User scrolls in locations dropdown -> this function is called
+  const handleLocationMenuScrollToBottom = () => {
+    if (locationPagination.hasMore && !isLoadingLocations) {
+      loadMore();
+    }
   };
 
   //Sorting
@@ -213,10 +196,12 @@ export default function EventFeedPage() {
             value={selectedLocation ?? undefined}
             onChange={handleLocationChange}
             placeholder="Location"
-            searchPlaceholder="Search"
-            emptyMessage="No location found"
+            searchPlaceholder="Search locations..."
+            emptyMessage="No locations found"
             variant="ghost"
             icon={MapPinIcon}
+            onMenuScrollToBottom={handleLocationMenuScrollToBottom} // When close to reaching the end of dropdown
+            isLoading={isLoadingLocations}
             className="w-auto min-w-0 md:min-w-32 md:flex-none text-xs md:text-base max-w-xs truncate font-normal max-w-[33%] md:shrink"
           />
 

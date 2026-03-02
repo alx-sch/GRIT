@@ -98,7 +98,7 @@ Content-Type: application/json
 
 {
 	"authorId": 1,
-	"name": "Not secret Lair",
+	"name": "Na",
 	"city": "Berlin",
 	"country": "Germany",
 	"longitude": 59.4748,
