@@ -64,7 +64,7 @@ describe('Events E2E', () => {
       data: {
         email: 'test@example.com',
         name: 'Test User',
-        password: await bcrypt.hash('password123', 10),
+        password: await bcrypt.hash('Password123', 10),
       },
       include: {
         attending: true,

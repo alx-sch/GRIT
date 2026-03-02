@@ -10,6 +10,7 @@ import { eventLoader } from '@/pages/events/EventPage';
 import { EventPage } from '@/pages/events/EventPage';
 import { eventCreationLoader } from '@/pages/create/event/Page';
 import { LoginPage, loginPageAction, loginPageLoader } from '@/pages/login/Page';
+import { RegisterPage, registerPageAction, registerPageLoader } from '@/pages/register/Page';
 import type { NavRoute } from '@/types/navroute';
 import { LogoutPage, logoutPageLoader } from '@/pages/logout/Page';
 import { ProtectedLayout, protectedLayoutLoader } from '@/components/layout/ProtectedLayout';
@@ -38,6 +39,50 @@ export const router = createBrowserRouter([
         handle: { title: 'Home' },
       },
       {
+        path: 'design',
+        Component: Design,
+        handle: { title: 'Design' },
+      },
+      {
+        path: 'users',
+        Component: Users,
+        loader: usersLoader,
+        handle: { title: 'Users' },
+      },
+      {
+        path: 'events',
+        children: [
+          {
+            index: true,
+            Component: EventFeedPage,
+            loader: eventsLoader,
+            handle: { title: 'Events' },
+          },
+          {
+            path: ':id',
+            Component: EventPage,
+            loader: eventLoader,
+          },
+        ],
+      },
+      {
+        path: 'login',
+        Component: LoginPage,
+        action: loginPageAction,
+        loader: loginPageLoader,
+      },
+      {
+        path: 'register',
+        Component: RegisterPage,
+        action: registerPageAction,
+        loader: registerPageLoader,
+      },
+      {
+        path: 'logout',
+        Component: LogoutPage,
+        loader: logoutPageLoader,
+      },
+      {
         path: 'chat',
         handle: { title: 'Chat' },
         Component: ChatFeedLayout,
@@ -64,44 +109,6 @@ export const router = createBrowserRouter([
             loader: eventCreationLoader,
           },
         ],
-      },
-      {
-        path: 'design',
-        Component: Design,
-        handle: { title: 'Design' },
-      },
-      {
-        path: 'events',
-        children: [
-          {
-            index: true,
-            Component: EventFeedPage,
-            loader: eventsLoader,
-            handle: { title: 'Events' },
-          },
-          {
-            path: ':id',
-            Component: EventPage,
-            loader: eventLoader,
-          },
-        ],
-      },
-      {
-        path: 'login',
-        Component: LoginPage,
-        action: loginPageAction,
-        loader: loginPageLoader,
-      },
-      {
-        path: 'logout',
-        Component: LogoutPage,
-        loader: logoutPageLoader,
-      },
-      {
-        path: 'users',
-        Component: Users,
-        loader: usersLoader,
-        handle: { title: 'Users' },
       },
     ],
   },

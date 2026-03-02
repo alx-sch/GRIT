@@ -43,7 +43,6 @@ class HttpExceptionFilter extends BaseExceptionFilter {
     }
 
     // For Zod we simply log the error and hand it off to the BaseExceptionFilter base (super) class
-    // The logging should later probably be reduced to only necessary errors.
     if (exception instanceof ZodSerializationException) {
       const zodError = exception.getZodError();
       if (zodError instanceof ZodError) {

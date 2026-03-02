@@ -65,7 +65,7 @@ describe('Auth E2E', () => {
       data: {
         email: 'test@example.com',
         name: 'Test User',
-        password: await bcrypt.hash('password123', 10),
+        password: await bcrypt.hash('Password123', 10),
         isConfirmed: true,
       },
       include: {
@@ -87,7 +87,7 @@ describe('Auth E2E', () => {
     it('returns user info and accessToken upon successful login', async () => {
       const res = await request(app.getHttpServer())
         .post('/auth/login')
-        .send({ email: user.email, password: 'password123' })
+        .send({ email: user.email, password: 'Password123' })
         .expect(201);
 
       expect(res.body).toHaveProperty('accessToken');
@@ -97,7 +97,7 @@ describe('Auth E2E', () => {
     it('returns 401 for unauthorized access (wrong password)', async () => {
       const res = await request(app.getHttpServer())
         .post('/auth/login')
-        .send({ email: user.email, password: 'wrongpassword123' })
+        .send({ email: user.email, password: 'WrongPassword123' })
         .expect(401);
       expect(res.body.message).toBe('Invalid email or password');
     });
@@ -105,7 +105,7 @@ describe('Auth E2E', () => {
     it('returns 401 for unauthorized access (wrong email)', async () => {
       const res = await request(app.getHttpServer())
         .post('/auth/login')
-        .send({ email: 'wrong@email.com', password: 'password123' })
+        .send({ email: 'wrong@email.com', password: 'Password123' })
         .expect(401);
 
       expect(res.body.message).toBe('Invalid email or password');
