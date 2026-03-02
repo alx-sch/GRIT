@@ -12,7 +12,7 @@ export const ResEventAuthorSchema = z.object({ id: z.number(), name: z.string() 
 export const ResEventAttendeeSchema = z.object({ id: z.number(), name: z.string() });
 export const ResEventLocationSchema = z.object({
   id: z.number().int().positive(),
-  authorId: z.number().int().positive(),
+  authorId: z.number().int().positive().nullable(),
   name: z.string().nullable(),
   city: z.string().nullable().optional(),
   country: z.string().nullable().optional(),

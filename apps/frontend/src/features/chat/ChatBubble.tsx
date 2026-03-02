@@ -6,10 +6,10 @@ import { timestampToLocalTime } from '@/lib/time_utils';
 
 export const ChatBubble = ({ message }: { message: ResChatMessage }) => {
   const currentUser = useCurrentUserStore((s) => s.user);
-  const isFromCurrentUser = currentUser?.id === message.author.id;
+  const author = message.author ?? { id: null, name: '[DELETED USER]', avatarKey: null };
+  const isFromCurrentUser = currentUser?.id === author.id;
   const align = isFromCurrentUser ? 'justify-end' : 'justify-start';
-  const authorDisplay = message.author?.name ?? 'User';
-
+  const initials = author.name?.trim().slice(0, 2).toUpperCase();
   return (
     <>
       <div className={`${align} flex my-4`}>
@@ -28,9 +28,7 @@ export const ChatBubble = ({ message }: { message: ResChatMessage }) => {
             </Avatar>
           )}
           <div>
-            {!isFromCurrentUser && (
-              <div className="font-bold uppercase text-xs">{message.author.name}</div>
-            )}
+            {!isFromCurrentUser && <div className="font-bold uppercase text-xs">{author.name}</div>}
             {message.text}
             <div className="text-right text-xs mt-1">{timestampToLocalTime(message.createdAt)}</div>
           </div>
