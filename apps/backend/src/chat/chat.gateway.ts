@@ -13,7 +13,11 @@ import { UserService } from '@/user/user.service';
 import { ChatService } from '@/chat/chat.service';
 import { randomUUID } from 'crypto';
 import { ReqChatMessagePostDto } from '@/chat/chat.schema';
-import { ResChatMessageSchema, ReqSocketAuthSchema, LastMessage } from '@grit/schema';
+import {
+  ResChatMessageSchema,
+  ReqSocketAuthSchema,
+  ResConversationsLastMessages,
+} from '@grit/schema';
 import { ConversationService } from '@/conversation/conversation.service';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { ArgumentsHost, Catch, UseFilters, UsePipes, WsExceptionFilter } from '@nestjs/common';
@@ -142,7 +146,7 @@ export class ChatGateway implements OnGatewayConnection {
     }
 
     // Send the last chat message for each conversation the client is in
-    const payload: Record<string, LastMessage> = {};
+    const payload: ResConversationsLastMessages = {};
     for (const conv of conversations) {
       await client.join(conv.id);
       payload[conv.id] = conv.messages[0] ?? null;

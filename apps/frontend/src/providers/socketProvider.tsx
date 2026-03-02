@@ -1,5 +1,6 @@
 import { useAuthStore } from '@/store/authStore';
 import { chatStore } from '@/store/chatStore';
+import { ResChatMessage, ResConversationsLastMessages } from '@grit/schema';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
@@ -13,6 +14,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     if (!token) {
       if (socket) {
         socket.disconnect();
+        // eslint-disable-next-line
         setSocket(null);
       }
       return; // bail early since we don't want to try and create a socket for unauthenticated users
@@ -25,16 +27,15 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     // We store the new socket in state to cause a rerender
-    // eslint-disable-next-line
     setSocket(newSocket);
 
     // On connect the backend will send the last messages for all conversations the client is in
-    newSocket.on('initialLastMessages', (messages) => {
+    newSocket.on('initialLastMessages', (messages: ResConversationsLastMessages) => {
       chatStore.getState().setInitialConversations(messages);
     });
 
     // Listen for incoming messages
-    newSocket.on('message', (message) => {
+    newSocket.on('message', (message: ResChatMessage) => {
       chatStore.getState().storeLastMessage(message);
       console.log(message);
     });

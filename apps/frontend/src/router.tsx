@@ -24,6 +24,7 @@ export const baseNavConfig: NavRoute[] = [
   { path: '/', label: 'Home' },
   { path: '/design', label: 'Design' },
   { path: '/users', label: 'Users' },
+  { path: '/chat', label: 'Chat' },
   { path: '/events', label: 'Events' },
   { path: '/create/event', label: 'Add Event' },
 ] as const;
