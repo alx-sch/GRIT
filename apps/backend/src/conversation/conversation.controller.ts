@@ -3,20 +3,18 @@ import { ConversationService } from './conversation.service';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { GetUser } from '@/auth/guards/get-user.decorator';
-import {
-  type ReqConversationCreate,
-  ResConversationSingleSchema,
-  ResConversationSingleIdSchema,
-} from '@grit/schema';
+import { type ReqConversationCreate, ResConversationSingleIdSchema } from '@grit/schema';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { Socket } from 'socket.io';
 
 import { ArgumentsHost, Catch, WsExceptionFilter } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
 
+// Exception handler for websockets. We turn otherwise silent errors into messages
 @Catch()
 export class AllWsExceptionsFilter implements WsExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
-    const client = host.switchToWs().getClient();
+    const client = host.switchToWs().getClient<Socket>();
 
     // Log full error for debugging
     console.error('WS Exception:', exception);

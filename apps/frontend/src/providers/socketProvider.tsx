@@ -1,6 +1,6 @@
 import { useAuthStore } from '@/store/authStore';
 import { chatStore } from '@/store/chatStore';
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 const SocketContext = createContext<Socket | null>(null);
@@ -25,6 +25,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     // We store the new socket in state to cause a rerender
+    // eslint-disable-next-line
     setSocket(newSocket);
 
     // On connect the backend will send the last messages for all conversations the client is in

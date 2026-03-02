@@ -5,7 +5,6 @@ import { getAvatarImageUrl } from '@/lib/image_utils';
 import { MessageCircleMore } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { conversationService } from '@/services/conversationService';
-import { type ConversationBase } from '@grit/schema';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 
 export const UserCard = ({ user }: { user: ResUserPublic }) => {

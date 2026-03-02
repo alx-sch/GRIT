@@ -21,6 +21,15 @@ const participants = z.array(
   })
 );
 
+export const LastMessageSchema = z.object({
+  id: z.uuid(),
+  conversationId: z.uuid(),
+  text: z.string(),
+  createdAt: z.date(),
+  author: user,
+});
+export type LastMessage = z.infer<typeof LastMessageSchema>;
+
 export const ConversationBaseSchema = z.object({
   id: z.uuid(),
   type: conversationTypes,

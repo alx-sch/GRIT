@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardHeader } from '@/components/ui/card';
 import { getAvatarImageUrl, getEventImageUrlByKey } from '@/lib/image_utils';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import { ResConversationSingle } from '@grit/schema';
@@ -7,13 +7,15 @@ import { trimText } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { chatStore } from '@/store/chatStore';
 
-type ConversationCardProps = {
+interface ConversationCardProps {
   conversation: ResConversationSingle;
   isActive: boolean;
-};
+}
 
 export const ConversationCard = ({ conversation, isActive }: ConversationCardProps) => {
   const currentUser = useCurrentUserStore((s) => s.user);
+  const navigate = useNavigate();
+
   if (!currentUser) return ''; // Narrowing for Typesafety only
 
   // Set other user if it is a 1:1 conversation
@@ -23,7 +25,6 @@ export const ConversationCard = ({ conversation, isActive }: ConversationCardPro
       : undefined;
 
   const isEvent = conversation.type === 'EVENT';
-  const navigate = useNavigate();
 
   // Image
   const findImageUrl = () => {
@@ -100,7 +101,7 @@ export const ConversationCard = ({ conversation, isActive }: ConversationCardPro
   return (
     <>
       <Card
-        onClick={() => navigate(`./${conversation.id}`)}
+        onClick={() => void navigate(`./${conversation.id}`)}
         className={`hover:-translate-y-1 transition-transform duration-200 mb-1 cursor-pointer`}
       >
         <CardHeader
@@ -129,7 +130,7 @@ export const ConversationCard = ({ conversation, isActive }: ConversationCardPro
               {lastMessageText}
             </div>
             <div className="text-[11px] text-right text-muted-foreground">
-              {lastMessageCreatedAt || `–`}
+              {lastMessageCreatedAt ?? `–`}
             </div>
           </div>
         </CardHeader>

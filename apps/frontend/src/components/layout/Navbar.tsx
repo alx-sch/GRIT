@@ -31,7 +31,6 @@ import { useCurrentUserStore } from '@/store/currentUserStore';
 import type { NavRoute } from '@/types/navroute';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import { getAvatarImageUrl } from '@/lib/image_utils';
-import { useSocket } from '@/providers/socketProvider';
 
 export function Navbar() {
   const navConfig: NavRoute[] = [...baseNavConfig];

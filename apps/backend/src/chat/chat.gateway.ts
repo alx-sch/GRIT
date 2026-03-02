@@ -12,8 +12,8 @@ import { Server, Socket, type DefaultEventsMap } from 'socket.io';
 import { UserService } from '@/user/user.service';
 import { ChatService } from '@/chat/chat.service';
 import { randomUUID } from 'crypto';
-import { ReqChatMessagePostDto, ReqChatJoinDto } from '@/chat/chat.schema';
-import { ResChatMessageSchema, ReqSocketAuthSchema } from '@grit/schema';
+import { ReqChatMessagePostDto } from '@/chat/chat.schema';
+import { ResChatMessageSchema, ReqSocketAuthSchema, LastMessage } from '@grit/schema';
 import { ConversationService } from '@/conversation/conversation.service';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { ArgumentsHost, Catch, UseFilters, UsePipes, WsExceptionFilter } from '@nestjs/common';
@@ -142,39 +142,13 @@ export class ChatGateway implements OnGatewayConnection {
     }
 
     // Send the last chat message for each conversation the client is in
-    const payload: Record<string, any> = {};
+    const payload: Record<string, LastMessage> = {};
     for (const conv of conversations) {
       await client.join(conv.id);
       payload[conv.id] = conv.messages[0] ?? null;
     }
     client.emit('initialLastMessages', payload);
   }
-
-  // CHANGED: Client does not join rooms anymore. Instead the backend joins the client
-  // @SubscribeMessage('join')
-  // async handleJoin(@MessageBody() body: ReqChatJoinDto, @ConnectedSocket() client: AppSocket) {
-  //   // Check if the current user is allowed to join the room for the conversation id
-  //   const conversation = await this.prisma.conversation.findFirst({
-  //     where: {
-  //       id: body.id,
-  //       participants: {
-  //         some: {
-  //           userId: client.data.userId,
-  //         },
-  //       },
-  //     },
-  //   });
-  //   if (!conversation) throw new WsException('You are not allowed to view this conversation');
-  //   else await client.join(body.id);
-
-  //   // We lock down which conversation this socket belongs to
-  //   client.data.conversationId = body.id;
-  //   // Get message history to prefill chat
-  //   const rows = await this.chatService.loadMessages(body.id);
-  //   // Serialization in Websocket context
-  //   const history = rows.reverse().map((row) => ResChatMessageSchema.parse(row));
-  //   client.emit('history', history);
-  // }
 
   @SubscribeMessage('getInitialHistory')
   async handGetHistory(
@@ -192,7 +166,7 @@ export class ChatGateway implements OnGatewayConnection {
     @MessageBody() body: ReqChatMessagePostDto,
     @ConnectedSocket() client: AppSocket
   ) {
-    const { text, conversationId } = body;
+    const { conversationId } = body;
 
     // Client must be in conversation
     const conversation = await this.prisma.conversation.findFirst({

@@ -31,7 +31,7 @@ export class ConversationService {
       },
       select: { id: true, participants: true },
     });
-    if (existing && existing.participants.length === 2) return existing;
+    if (existing?.participants.length === 2) return existing;
 
     // Otherwise create the DIRECT conversation
     const newConversation = await this.prisma.conversation.create({
