@@ -36,6 +36,8 @@ export function EventCard({ event, location }: EventCardProps) {
   useEffect(() => {
     if (currentUser) {
       setIsAttending(event.attendees.some((el) => el.id === currentUser.id));
+    } else {
+      setIsAttending(false);
     }
   }, [event.attendees, currentUser]);
 

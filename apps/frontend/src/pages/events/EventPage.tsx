@@ -21,7 +21,7 @@ import { userService } from '@/services/userService';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import type { CurrentUser } from '@/types/user';
 import { APIProvider } from '@vis.gl/react-google-maps';
-import { Calendar, House, MapPinIcon, Pencil, Trash2, User } from 'lucide-react';
+import { Pencil, Trash2, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -120,48 +120,53 @@ export const EventPage = () => {
               {event.title}
             </Heading>
           </div>
-          {isAuthor && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" size="sm">
-                  <Trash2 className="h-4 w-4" />
-                  Delete
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete this event?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    {' '}
-                    This action cannot be undone. This will permanently delete "{event.title}".
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => {
-                      void handleDelete();
-                    }}
-                  >
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
+          <div className="flex flex-row gap-2">
+            {isAuthor && (
+              <Button variant="outline" size="sm">
+				<Link to='edit'>
+                <Pencil className="h-4 w-4" />
+				</Link>
+              </Button>
+            )}
+            {isAuthor && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="default" size="sm">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete this event?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {' '}
+                      This action cannot be undone. This will permanently delete "{event.title}".
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => {
+                        void handleDelete();
+                      }}
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
         </div>
         <div className="flex flex-col md:flex-row gap-8">
           {/* Event details */}
           <div className="flex-1 flex flex-col gap-6">
-            <div className="flex flex-col gap-2">
-              {/* Date */}
-              <div className="flex flex-row gap-2 items-center">
-                <Calendar className="h-6 w-6 text-primary" />
-                <Text className="text-lg">{formattedDate}</Text>
-              </div>
+            <div className="flex flex-row gap-2 justify-between">
               {/* Location */}
-              <div className="flex flex-row gap-2 items-center">
-                <MapPinIcon className="h-6 w-6 text-primary" />
+              <div className="flex flex-col gap-2">
+                <Heading level={4} className="uppercase">
+                  Location
+                </Heading>
                 {location?.latitude && location?.longitude ? (
                   <button
                     onClick={() => {
@@ -170,9 +175,9 @@ export const EventPage = () => {
                     type="button"
                   >
                     <Text className="text-lg">
-                      {location?.name && (
-                        <span className="font-semibold underline decoration-1">
-                          {location.name}
+                      {locationText && (
+                        <span>
+                          {locationText}
                         </span>
                       )}
                     </Text>
@@ -193,21 +198,30 @@ export const EventPage = () => {
                 )}
               </div>
               {/* Author */}
-              <div className="flex flex-row gap-2 items-center">
+              <div className="flex flex-col gap-2">
+                <Heading level={4} className="uppercase">
+                  Host
+                </Heading>
                 {event.author?.name && (
                   <>
-                    <House className="h-6 w-6 text-primary" />
                     <Text className="text-lg">
-                      <span>Host: </span>
-                      <span className="font-semibold">{event.author.name}</span>
+                      {event.author.name}
                     </Text>
                   </>
                 )}
               </div>
+              {/* Date */}
+              <div className="flex flex-col gap-2">
+                <Heading level={4} className="uppercase">
+                  Date
+                </Heading>
+                <Text className="text-lg">{formattedDate}</Text>
+              </div>
               {/* Attendees */}
-              <div className="flex flex-row gap-2 items-center">
-                <User className="h-6 w-6 text-primary" />
-                <Text className="text-lg">{countAttending}</Text>
+              <div className="flex flex-col gap-2">
+				<Heading level={4} className='uppercase'>Going</Heading>
+                {/*<User className="h-6 w-6 text-primary" />*/}
+                <Text className="text-lg">{countAttending > 0 ? `${countAttending}` : 'Be the first'}</Text>
               </div>
             </div>
             {/* Action buttons */}
@@ -226,13 +240,6 @@ export const EventPage = () => {
                 >
                   {isAttending ? 'Going ✓' : 'Going'}
                 </Button>
-                {isAuthor && (
-                  <Button variant="ghost" asChild>
-                    <Link to="edit">
-                      <Pencil className="h-4 w-4" /> Edit
-                    </Link>
-                  </Button>
-                )}
               </div>
             </div>
             {/* Description */}
@@ -246,15 +253,15 @@ export const EventPage = () => {
               )}
             </div>
           </div>
-          {getEventImageUrl(event) && (
-            <div className="flex-1 max-w-md flex-col">
-              <img
-                src={getEventImageUrl(event)}
-                className="w-full aspect-square object-cover rounded-lg"
-              />
-            </div>
-          )}
         </div>
+        {getEventImageUrl(event) && (
+          <div className="flex-1 max-w-md flex-col">
+            <img
+              src={getEventImageUrl(event)}
+              className="w-full aspect-square object-cover rounded-lg"
+            />
+          </div>
+        )}
 
         {event.conversation?.id && isAttending && (
           <>
