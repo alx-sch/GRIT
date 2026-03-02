@@ -5,41 +5,7 @@ import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { GetUser } from '@/auth/guards/get-user.decorator';
 import { type ReqConversationCreate, ResConversationSingleIdSchema } from '@grit/schema';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { Socket } from 'socket.io';
 
-import { ArgumentsHost, Catch, WsExceptionFilter } from '@nestjs/common';
-import { WsException } from '@nestjs/websockets';
-
-// Exception handler for websockets. We turn otherwise silent errors into messages
-@Catch()
-export class AllWsExceptionsFilter implements WsExceptionFilter {
-  catch(exception: unknown, host: ArgumentsHost) {
-    const client = host.switchToWs().getClient<Socket>();
-
-    // Log full error for debugging
-    console.error('WS Exception:', exception);
-
-    if (exception instanceof WsException) {
-      client.emit('error', {
-        message: exception.message,
-      });
-      return;
-    }
-
-    if (exception instanceof Error) {
-      client.emit('error', {
-        message: exception.message,
-      });
-      return;
-    }
-
-    client.emit('error', {
-      message: 'Internal server error',
-    });
-  }
-}
-
-@UseFilters(AllWsExceptionsFilter)
 @Controller('conversation')
 export class ConversationController {
   constructor(private readonly conversationService: ConversationService) {}
@@ -48,17 +14,14 @@ export class ConversationController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResConversationSingleIdSchema)
-  // TODO Check again that validation works as expected
-  async conversationCreate(@Body() data: ReqConversationCreate, @GetUser('id') userId: number) {
-    const want = await this.conversationService.conversationGetOrCreate(data, userId);
-    console.log(want);
-    return want;
+  // TODO Add body validation
+  conversationCreate(@Body() data: ReqConversationCreate, @GetUser('id') userId: number) {
+    return this.conversationService.conversationGetOrCreate(data, userId);
   }
 
   @Get()
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  // TODO Serialize and Validate
   conversationGetMany(@GetUser('id') userId: number) {
     return this.conversationService.conversationGetMany(userId);
   }

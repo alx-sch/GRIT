@@ -29,7 +29,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     // We store the new socket in state to cause a rerender
     setSocket(newSocket);
 
-    // On connect the backend will send the last messages for all conversations the client is in
+    // On connect, the backend will send the last messages for all conversations the client is in
     newSocket.on('initialLastMessages', (messages: ResConversationsLastMessages) => {
       chatStore.getState().setInitialConversations(messages);
     });
@@ -37,7 +37,6 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     // Listen for incoming messages
     newSocket.on('message', (message: ResChatMessage) => {
       chatStore.getState().storeLastMessage(message);
-      console.log(message);
     });
 
     return () => {

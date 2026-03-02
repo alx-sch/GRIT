@@ -1,4 +1,4 @@
-import { ResChatMessage } from '@grit/schema';
+import { ResChatMessage, ResConversationsLastMessages } from '@grit/schema';
 import { create } from 'zustand';
 
 /**
@@ -11,14 +11,15 @@ type Conversation = Record<
   string,
   {
     lastMessage: ResChatMessage | null;
-    unreadCount: number;
+    lastReadAt: string | null;
   }
 >;
 
 interface ChatStore {
   conversations: Conversation;
   storeLastMessage: (message: ResChatMessage) => void;
-  setInitialConversations: (messages: Record<string, ResChatMessage | null>) => void;
+  setInitialConversations: (messages: ResConversationsLastMessages) => void;
+  setLastReadAt: (conversationId: string) => void;
 }
 
 export const chatStore = create<ChatStore>((set) => ({
@@ -28,13 +29,14 @@ export const chatStore = create<ChatStore>((set) => ({
   storeLastMessage: (message) => {
     set((state) => {
       const id = message.conversationId;
-      const targetConversation = state.conversations[id];
+      const existing = state.conversations[id];
+
       return {
         conversations: {
           ...state.conversations,
           [id]: {
             lastMessage: message,
-            unreadCount: targetConversation ? targetConversation.unreadCount + 1 : 1,
+            lastReadAt: existing?.lastReadAt ?? null,
           },
         },
       };
@@ -42,17 +44,33 @@ export const chatStore = create<ChatStore>((set) => ({
   },
 
   // The initial load of last messages we receive on socket connect
-  setInitialConversations: (lastMessages) => {
+  setInitialConversations: (lastMessages: ResConversationsLastMessages) => {
     set(() => {
       // Need to transform the incoming Record of last messages into conversations Records
       const newConversation: Conversation = {};
       for (const id in lastMessages) {
         newConversation[id] = {
-          lastMessage: lastMessages[id],
-          unreadCount: 0,
+          lastMessage: lastMessages[id].lastMessage,
+          lastReadAt: lastMessages[id].lastReadAt,
         };
       }
       return { conversations: newConversation };
+    });
+  },
+
+  setLastReadAt: (conversationId: string) => {
+    set((state) => {
+      const existing = state.conversations[conversationId];
+
+      return {
+        conversations: {
+          ...state.conversations,
+          [conversationId]: {
+            lastMessage: existing?.lastMessage,
+            lastReadAt: existing?.lastMessage?.createdAt ?? null,
+          },
+        },
+      };
     });
   },
 }));

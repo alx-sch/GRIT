@@ -75,10 +75,6 @@ export const ConversationCard = ({ conversation, isActive }: ConversationCardPro
     : undefined;
 
   // Last Message Created At
-  // const messageCreatedAtRaw = conversation.messages?.[0]?.createdAt
-  //   ? new Date(conversation.messages[0].createdAt)
-  //   : undefined;
-
   const lastMessageCreatedAtRaw = conversationState?.lastMessage?.createdAt;
   const lastMessageCreatedAt = lastMessageCreatedAtRaw
     ? new Date(lastMessageCreatedAtRaw).toLocaleDateString('en-US', {
@@ -98,15 +94,31 @@ export const ConversationCard = ({ conversation, isActive }: ConversationCardPro
     day: '2-digit',
   });
 
+  // Has unread
+  const lastMessage = conversationState?.lastMessage;
+  const lastReadAt = conversationState?.lastReadAt;
+
+  let hasUnread = false;
+
+  // If there are no messages, there cannot be unred messages
+  if (!lastMessage) hasUnread = false;
+  // Otherwise there must be messages and lastread being null means we have unread
+  else if (!lastReadAt) hasUnread = true;
+  // Otherwise we must compage
+  else hasUnread = new Date(lastMessage.createdAt).getTime() > new Date(lastReadAt).getTime();
+
   return (
     <>
       <Card
         onClick={() => void navigate(`./${conversation.id}`)}
-        className={`hover:-translate-y-1 transition-transform duration-200 mb-1 cursor-pointer`}
+        className={`hover:-translate-y-1 transition-transform duration-200 mb-1 w-xs cursor-pointer`}
       >
         <CardHeader
-          className={`flex flex-row items-center gap-4 space-y-0 p-4 ${isActive && 'bg-secondary'}`}
+          className={`flex flex-row items-center gap-4 space-y-0 relative p-4 ${isActive && 'bg-secondary'}`}
         >
+          {hasUnread && (
+            <div className="bg-primary johhere w-1.5 h-1.5 rounded-full absolute top-4 right-4"></div>
+          )}
           <div className="relative">
             <div className="text-lg flex items-center absolute -left-1 top-9 z-10">
               {eventStart && (

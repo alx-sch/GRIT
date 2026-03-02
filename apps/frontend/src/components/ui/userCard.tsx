@@ -6,11 +6,13 @@ import { MessageCircleMore } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { conversationService } from '@/services/conversationService';
 import { useCurrentUserStore } from '@/store/currentUserStore';
+// import { useSocket } from '@/providers/socketProvider';
 
 export const UserCard = ({ user }: { user: ResUserPublic }) => {
   const displayName = user.name ?? 'User';
   const navigate = useNavigate();
   const currentUser = useCurrentUserStore((s) => s.user);
+  // const socket = useSocket();
 
   // To make fucking linting happy
   function startChat() {
@@ -18,10 +20,13 @@ export const UserCard = ({ user }: { user: ResUserPublic }) => {
   }
   async function startChatAsync() {
     try {
+      // This will either get an existing conversation or create it
       const res: ResConversationSingleId = await conversationService.getConversation({
         type: 'DIRECT',
         directId: user.id,
       });
+      // In case we created a new conversation, our client socket needs to join the created room
+      // socket?.emit('joinConversation', { conversationId: res.id });
 
       void navigate(`/chat/${res.id}`);
     } catch (err) {

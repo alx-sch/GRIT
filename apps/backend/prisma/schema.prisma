@@ -112,7 +112,7 @@ model Conversation {
   createdBy     Int
   eventId       Int?                @unique
 
-  // Reations
+  // Relations
   creator       User                @relation(fields: [createdBy], references: [id])
   messages      ChatMessage[]
   event         Event?              @relation(fields: [eventId], references: [id])
@@ -125,11 +125,12 @@ model Conversation {
 
 // Explicit join table to track which user is part of which conversation.
 model ConversationParticipant {
-  conversationId String
-  userId         Int
+  conversationId  String
+  userId          Int
 
-  conversation   Conversation   @relation(fields: [conversationId], references: [id], onDelete: Cascade) // On delete cascade = Delete join entry when conversation is deleted
-  user           User           @relation(fields: [userId], references: [id])
+  lastReadAt      DateTime?
+  conversation    Conversation   @relation(fields: [conversationId], references: [id], onDelete: Cascade) // On delete cascade = Delete join entry when conversation is deleted
+  user            User           @relation(fields: [userId], references: [id])
 
   @@id([conversationId, userId])
   @@index([userId])

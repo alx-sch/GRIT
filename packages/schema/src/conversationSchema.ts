@@ -4,7 +4,7 @@ const conversationTypes = z.enum(['EVENT', 'DIRECT', 'GROUP']);
 
 const event = z.object({
   id: z.number().int().positive(),
-  startAt: z.string(),
+  startAt: z.iso.datetime(),
   title: z.string(),
   imageKey: z.string().optional().nullable(),
 });
@@ -19,7 +19,7 @@ const messageSchema = z.object({
   id: z.uuid(),
   conversationId: z.uuid(),
   text: z.string(),
-  createdAt: z.date(),
+  createdAt: z.iso.datetime(),
   author: user,
 });
 
@@ -29,7 +29,13 @@ const participants = z.array(
   })
 );
 
-export const ResConversationsLastMessagesSchema = z.record(z.uuid(), messageSchema.nullable());
+export const ResConversationsLastMessagesSchema = z.record(
+  z.uuid(),
+  z.object({
+    lastMessage: messageSchema.nullable(),
+    lastReadAt: z.iso.datetime().nullable(),
+  })
+);
 export type ResConversationsLastMessages = z.infer<typeof ResConversationsLastMessagesSchema>;
 
 export const ConversationBaseSchema = z.object({
@@ -57,7 +63,7 @@ export const ResConversationSingleSchema = z.object({
   id: z.string(),
   title: z.string().optional().nullable(),
   type: conversationTypes,
-  updatedAt: z.string().or(z.date()),
+  updatedAt: z.iso.datetime(),
   event: event,
   participants: participants,
 });

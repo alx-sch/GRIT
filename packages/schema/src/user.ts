@@ -1,6 +1,9 @@
 import { z } from 'zod';
 
-export const ResUserEventSchema = z.object({ title: z.string() });
+export const ResUserEventSchema = z.object({
+  title: z.string(),
+  conversationId: z.string().optional(),
+});
 export const ResUserEventsSchema = z.array(ResUserEventSchema);
 export type ResUserEvents = z.infer<typeof ResUserEventsSchema>;
 

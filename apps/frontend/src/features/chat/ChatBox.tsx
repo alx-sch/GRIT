@@ -7,9 +7,10 @@ import { useCurrentUserStore } from '@/store/currentUserStore';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircleIcon } from 'lucide-react';
 import { useSocket } from '@/providers/socketProvider';
+import { chatStore } from '@/store/chatStore';
 
 export const ChatBox = ({ conversationId }: { conversationId: string }) => {
-  const { messages, getHistory, sendMessage, loadMore, hasMore, errorMessage } =
+  const { messages, getHistory, sendMessage, loadMore, sendNewLastReadAt, hasMore, errorMessage } =
     useChat(conversationId);
   const [input, setInput] = useState('');
   const [isNearBottom, setIsNearBottom] = useState(true);
@@ -22,9 +23,22 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
   const socket = useSocket();
   const messagesRef = useRef(messages);
 
+  // We are creating a stable reference to the updated messages so that event listeners don't work on outdated data.
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
+
+  // Helper for updating the last read at
+  const updateLastReadAt = () => {
+    if (!conversationId) return;
+    sendNewLastReadAt(conversationId);
+    chatStore.getState().setLastReadAt(conversationId);
+  };
+
+  // At first mount we update that the user has read the conversation
+  useEffect(() => {
+    updateLastReadAt();
+  }, [conversationId]);
 
   // Every time a new messages arrives we check if we need to scroll to the message or how to handle the ui
   useEffect(() => {
@@ -39,6 +53,7 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
       });
       // wait for 1 frame until scroll has settled
       requestAnimationFrame(() => (isInitialLoad.current = false));
+      updateLastReadAt();
     }
     // If the messages array changed from loading more chat history, don't scroll but set the isLoadingMoreHistory flag to false
     else if (isLoadingMoreHistory.current) {
@@ -54,14 +69,12 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
           behavior: 'smooth',
         });
         requestAnimationFrame(() => {
-          // Too silence that bitch of a linter
           setHasNewMessages(false);
+          updateLastReadAt();
         });
       } else {
         // otherwise we set a flag which will cause the display of a "new messages" notification but don't scroll down.
         requestAnimationFrame(() => {
-          // Too silence that bitch of a linter
-          console.log('Should show message about extra messages');
           setHasNewMessages(true);
         });
       }
@@ -88,7 +101,10 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
       setIsNearBottom(nearBottom);
 
       // If we are near the bottom we remove any new message notification that might be present
-      if (nearBottom) setHasNewMessages(false);
+      if (nearBottom) {
+        setHasNewMessages(false);
+        updateLastReadAt();
+      }
 
       // If we scroll close to the top and there are no other reasons not to, we load more chat history
       if (

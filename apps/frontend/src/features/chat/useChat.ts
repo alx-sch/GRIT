@@ -12,8 +12,10 @@ export function useChat(conversationId: string) {
     if (!socket) return;
 
     const handleMessage = (msg: ResChatMessage) => {
+      console.log('received message back');
       // TODO This conversationId check should be implemented for all message types to prevent mixed messages on fast navigation
       if (msg.conversationId !== conversationId) return;
+      console.log('received message back 2');
       setMessages((prev) => [...prev, msg]);
     };
 
@@ -55,14 +57,21 @@ export function useChat(conversationId: string) {
   };
 
   const sendMessage = (text: string) => {
+    console.log('Sending message');
     if (!text.trim()) return;
+    console.log('Sending message 2 for conversationId', conversationId);
     socket?.emit('message', {
       text,
       conversationId,
     });
   };
 
-  const loadMore = (cursor: { createdAt: Date; id: string }) => {
+  // This is for updating when a user last read a conversation
+  const sendNewLastReadAt = (conversationId: string) => {
+    socket?.emit('conversationRead', { conversationId });
+  };
+
+  const loadMore = (cursor: { createdAt: string; id: string }) => {
     if (!hasMore) {
       return;
     }
@@ -73,5 +82,5 @@ export function useChat(conversationId: string) {
     });
   };
 
-  return { messages, getHistory, sendMessage, loadMore, hasMore, errorMessage };
+  return { messages, getHistory, sendMessage, loadMore, sendNewLastReadAt, hasMore, errorMessage };
 }

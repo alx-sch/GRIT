@@ -44,7 +44,6 @@ export class ConversationService {
       },
       include: { participants: true },
     });
-    console.log(newConversation);
     return newConversation;
   }
 
@@ -58,6 +57,14 @@ export class ConversationService {
             userId,
           },
         },
+        OR: [
+          { event: null },
+          {
+            event: {
+              isPublished: true,
+            },
+          },
+        ],
       },
       select: {
         id: true,
