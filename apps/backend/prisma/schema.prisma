@@ -8,30 +8,30 @@ datasource db {
 
 model User {
   // Primary Key
-  id                     Int         @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
   // Core Data
-  email                  String      @unique
-  password               String?
-  name                   String
-  avatarKey              String?
-  confirmationToken      String?     @unique
-  googleId               String?
+  email             String  @unique
+  password          String?
+  name              String
+  avatarKey         String?
+  confirmationToken String? @unique
+  googleId          String?
 
   // Status Flags
-  isConfirmed            Boolean     @default(false)
+  isConfirmed Boolean @default(false)
 
   // Relations
-  events                 Event[]     @relation("EventAuthor")
+  events                 Event[]                   @relation("EventAuthor")
   locations              Location[]
   chatMessages           ChatMessage[]
   convMemberships        ConversationParticipant[]
   convCreated            Conversation[]
   attending              EventAttendee[]
-  sentFriendRequests     FriendRequest[] @relation("requester")
-  receivedFriendRequests FriendRequest[] @relation("receiver")
-  friendsAsUserA         Friends[]       @relation("FriendUserA")
-  friendsAsUserB         Friends[]       @relation("FriendUserB")
+  sentFriendRequests     FriendRequest[]           @relation("requester")
+  receivedFriendRequests FriendRequest[]           @relation("receiver")
+  friendsAsUserA         Friends[]                 @relation("FriendUserA")
+  friendsAsUserB         Friends[]                 @relation("FriendUserB")
 
   // Time Stamps
   createdAt DateTime @default(now())
@@ -58,11 +58,11 @@ model Location {
   isPublic Boolean @default(false)
 
   // Foreign Keys
-  authorId    Int?
+  authorId Int?
 
   // Relations
-  author      User?        @relation(fields: [authorId], references: [id], onDelete: SetNull) // If author is deleted, location shows authorId NULL
-  events      Event[]
+  author User?   @relation(fields: [authorId], references: [id], onDelete: SetNull) // If author is deleted, location shows authorId NULL
+  events Event[]
 
   // Time Stamps
   createdAt DateTime @default(now())
@@ -86,14 +86,14 @@ model Event {
   isPublic    Boolean @default(true)
 
   // Foreign keys
-  authorId      Int?
-  locationId    Int?
+  authorId   Int?
+  locationId Int?
 
   // Relations
-  author        User?      @relation("EventAuthor", fields: [authorId], references: [id], onDelete: SetNull) // If author is deleted, event shows authorId NULL
-  location      Location?  @relation(fields: [locationId], references: [id], onDelete: SetNull) // // If location is deleted, location shows locationId NULL
-  conversation  Conversation?
-  attendees     EventAttendee[]
+  author       User?           @relation("EventAuthor", fields: [authorId], references: [id], onDelete: SetNull) // If author is deleted, event shows authorId NULL
+  location     Location?       @relation(fields: [locationId], references: [id], onDelete: SetNull) // // If location is deleted, location shows locationId NULL
+  conversation Conversation?
+  attendees    EventAttendee[]
 
   // Time Stamps
   createdAt    DateTime      @default(now())
@@ -116,14 +116,14 @@ model Conversation {
   title String?
 
   // Foregin Keys
-  createdBy     Int?
-  eventId       Int?                @unique
+  createdBy Int?
+  eventId   Int? @unique
 
   // Relations
-  creator       User?                @relation(fields: [createdBy], references: [id], onDelete: SetNull) // If creator is deleted, conversation shows createdBy NULL
-  messages      ChatMessage[]
-  event         Event?               @relation(fields: [eventId], references: [id], onDelete: Cascade) // If event is deleted, conversation is DELETED.
-  participants  ConversationParticipant[]
+  creator      User?                     @relation(fields: [createdBy], references: [id], onDelete: SetNull) // If creator is deleted, conversation shows createdBy NULL
+  messages     ChatMessage[]
+  event        Event?                    @relation(fields: [eventId], references: [id], onDelete: Cascade) // If event is deleted, conversation is DELETED.
+  participants ConversationParticipant[]
 
   // Time Stamps
   createdAt DateTime @default(now())
@@ -135,8 +135,8 @@ model ConversationParticipant {
   conversationId String
   userId         Int
 
-  conversation   Conversation   @relation(fields: [conversationId], references: [id], onDelete: Cascade) // On delete cascade = Delete join entry when conversation is deleted
-  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade) // If user is deleted, ConversationParticipant is deleted.
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade) // On delete cascade = Delete join entry when conversation is deleted
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade) // If user is deleted, ConversationParticipant is deleted.
 
   @@id([conversationId, userId])
   @@index([userId])
@@ -163,11 +163,11 @@ model ChatMessage {
   text           String
 
   // Foreign Keys
-  authorId       Int?
+  authorId Int?
 
   // Relations
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade) // If conversation is deleted, chat message is deleted
-  author         User?         @relation(fields: [authorId], references: [id], onDelete: SetNull) // If author of chatmessage is deleted, authorId is set to NULL
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade) // If conversation is deleted, chat message is deleted
+  author       User?        @relation(fields: [authorId], references: [id], onDelete: SetNull) // If author of chatmessage is deleted, authorId is set to NULL
 
   // Time Stamps
   createdAt DateTime @default(now())
@@ -177,36 +177,53 @@ model ChatMessage {
 
 model FriendRequest {
   // Primary Key
-  id          String   @id @default(uuid())
+  id String @id @default(uuid())
 
   // Foreign Keys
   requesterId Int
   receiverId  Int
 
   // Relations
-  requester   User     @relation("requester", fields: [requesterId], references: [id], onDelete: Cascade)
-  receiver    User     @relation("receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  requester User @relation("requester", fields: [requesterId], references: [id], onDelete: Cascade)
+  receiver  User @relation("receiver", fields: [receiverId], references: [id], onDelete: Cascade)
 
   // Time Stamps
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@unique([requesterId, receiverId])
 }
 
 model Friends {
   // Primary Key
-  id        String   @id @default(uuid())
+  id String @id @default(uuid())
 
   // Foreign Keys
-  userId    Int
-  friendId  Int
+  userId   Int
+  friendId Int
 
   // Relations
-  user      User     @relation("FriendUserA", fields: [userId], references: [id], onDelete: Cascade)
-  friend    User     @relation("FriendUserB", fields: [friendId], references: [id], onDelete: Cascade)
+  user   User @relation("FriendUserA", fields: [userId], references: [id], onDelete: Cascade)
+  friend User @relation("FriendUserB", fields: [friendId], references: [id], onDelete: Cascade)
 
   // Time Stamps
   createdAt DateTime @default(now())
 
   @@unique([userId, friendId])
+}
+
+model EventInvite {
+  id        Int    @id @default(autoincrement())
+  eventId   Int
+  inviteeId Int
+  inviterId Int
+  status    String @default("pending") // "pending", "accepted", "declined"
+
+  event   Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  invitee User  @relation("Invitee", fields: [inviteeId], references: [id], onDelete: Cascade)
+  inviter User  @relation("Inviter", fields: [inviterId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([eventId, inviteeId]) // Prevents inviting the same person twice to the same event
 }
