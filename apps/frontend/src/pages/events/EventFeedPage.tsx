@@ -13,7 +13,7 @@ import { EventResponse } from '@/types/event';
 import { LocationBase } from '@/types/location';
 import { format, parse } from 'date-fns';
 import { ArrowUpDown, MapPinIcon } from 'lucide-react';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { DateRange } from 'react-day-picker';
 import { LoaderFunctionArgs, useSearchParams } from 'react-router-dom';
 import { Pagination, useInfiniteScroll } from '@/hooks/useInfiniteScroll';
@@ -162,7 +162,7 @@ export default function EventFeedPage() {
   // User scrolls in locations dropdown -> this function is called
   const handleLocationMenuScrollToBottom = () => {
     if (locationPagination.hasMore && !isLoadingLocations) {
-      loadMore();
+      void loadMore();
     }
   };
 

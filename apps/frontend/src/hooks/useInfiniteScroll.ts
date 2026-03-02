@@ -49,19 +49,21 @@ export function useInfiniteScroll<T extends PaginatedItem>(
   // Observes sentinel (invisible div) -> when scrolling close to it -> automatically calls loadMore.
   useEffect(() => {
     const el = sentinelRef.current; // Store the sentinel (if it exists)
-    if (!el) return;
+    if (!el || typeof IntersectionObserver == 'undefined') return; // If sentinelRef does not exist OR test is running.
 
     const io = new IntersectionObserver( // Create an observer that watches elements
       (entries) => {
         // Entries -> watched elements.
         entries.forEach((entry) => {
-          if (entry.isIntersecting) loadMore(); // Trigger loadMore() when sentinel is getting close to viewport.
+          if (entry.isIntersecting) void loadMore(); // Trigger loadMore() when sentinel is getting close to viewport.
         });
       },
       { rootMargin: '400px', threshold: 0.1 } // Trigger 400 px BEFORE sentinel reaches viewport, or when 10% of sentinel is visible.
     );
     io.observe(el); // Set observer to watch sentinel.
-    return () => io.disconnect();
+    return () => {
+      io.disconnect();
+    };
   }, [pagination.nextCursor, pagination.hasMore, ...dependencies]); // Re-create observer when pagination or filters change (dependencies)
 
   // Sets up the initial state (first API call OR if filter/search changes).
