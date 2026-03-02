@@ -16,11 +16,13 @@ export const ResChatMessageSchema = z.object({
   conversationId: z.uuid(),
   text: z.string(),
   createdAt: z.date(),
-  author: z.object({
-    id: z.number().int().positive(),
-    name: z.string().nullable().optional(),
-    avatarKey: z.string().nullable().optional(),
-  }),
+  author: z
+    .object({
+      id: z.number().int().positive(),
+      name: z.string().nullable().optional(),
+      avatarKey: z.string().nullable().optional(),
+    })
+    .nullable(),
 });
 export type ResChatMessage = z.infer<typeof ResChatMessageSchema>;
 

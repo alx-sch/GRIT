@@ -6,7 +6,7 @@ export type ResUserEvents = z.infer<typeof ResUserEventsSchema>;
 
 export const ResUserBaseSchema = z.object({
   id: z.number().int().positive(),
-  name: z.string().nullable(),
+  name: z.string(),
   email: z.email(),
   avatarKey: z.string().nullable().optional(),
   isConfirmed: z.boolean().default(false),
@@ -16,7 +16,7 @@ export type ResUserBase = z.infer<typeof ResUserBaseSchema>;
 
 export const ResUserPublicSchema = z.object({
   id: z.number().int().positive(),
-  name: z.string().nullable(),
+  name: z.string(),
   avatarKey: z.string().nullable().optional(),
 });
 export type ResUserPublic = z.infer<typeof ResUserPublicSchema>;
