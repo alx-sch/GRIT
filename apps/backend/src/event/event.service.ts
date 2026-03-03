@@ -259,6 +259,12 @@ export class EventService {
   }
 
   async eventPostDraft(data: ReqEventPostDraftDto & { authorId: number }) {
+    const duplicate = await this.prisma.event.findFirst({
+      where: data,
+    });
+    if (duplicate) {
+      throw new BadRequestException(`Identical event already exists`);
+    }
     const createdEvent = await this.prisma.event.create({
       data: {
         title: data.title,

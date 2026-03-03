@@ -38,7 +38,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-	"email": "alice@example.com",
+	"email": "cindy@example.com",
 	"password": "0123456789"
 }
 ###
@@ -102,8 +102,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-	"authorId": 1,
-	"name": "Na",
+	"name": "Test locationsssss",
 	"city": "Berlin",
 	"country": "Germany",
 	"longitude": 59.4748,
