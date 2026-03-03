@@ -94,7 +94,7 @@ export class ChatGateway implements OnGatewayConnection {
         }
 
         client.data.userId = user.id;
-        client.data.userName = user.name ?? 'No username';
+        client.data.userName = user.name;
         client.data.userAvatarKey = user.avatarKey ?? undefined;
 
         next();
