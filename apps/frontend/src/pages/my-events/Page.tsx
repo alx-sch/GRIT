@@ -13,42 +13,73 @@ export const myEventsLoader = async () => {
   return userService.getMyEvents();
 };
 
+interface MyEvent {
+  id: number;
+  title: string;
+  startAt: string | Date;
+  isOrganizer?: boolean;
+}
+
 export function Page() {
-  const events = useTypedLoaderData<{ title: string }[]>();
+  const events = useTypedLoaderData<MyEvent[]>();
   const navigate = useNavigate();
 
-  const renderEventsList = (filteredEvents: { title: string }[]) => (
-    <div className="grid gap-4">
-      {filteredEvents.map((event, index) => (
-        <Card key={index} className="hover:shadow-md transition-shadow">
-          <CardContent className="flex items-center justify-between p-6">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center justify-center w-14 h-14 rounded-lg bg-primary/10">
-                <CalendarDays className="w-7 h-7 text-primary" />
-              </div>
-              <div className="space-y-1">
-                <Text className="font-semibold text-lg">{event.title}</Text>
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">Attending</Badge>
-                </div>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  void navigate('/events');
-                }}
-              >
-                View Details
-              </Button>
-            </div>
+  const now = new Date();
+  const upcomingEvents = events.filter((event) => new Date(event.startAt) >= now);
+  const pastEvents = events.filter((event) => new Date(event.startAt) < now);
+  const organizingEvents = events.filter((event) => event.isOrganizer);
+
+  const renderEventsList = (filteredEvents: MyEvent[]) => {
+    if (filteredEvents.length === 0) {
+      return (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+            <CalendarDays className="w-12 h-12 text-muted-foreground mb-3" />
+            <Text className="text-muted-foreground">No events found in this category.</Text>
           </CardContent>
         </Card>
-      ))}
-    </div>
-  );
+      );
+    }
+
+    return (
+      <div className="grid gap-4">
+        {filteredEvents.map((event) => (
+          <Card key={event.id} className="hover:shadow-md transition-shadow">
+            <CardContent className="flex items-center justify-between p-6">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center justify-center w-14 h-14 rounded-lg bg-primary/10">
+                  <CalendarDays className="w-7 h-7 text-primary" />
+                </div>
+                <div className="space-y-1">
+                  <Text className="font-semibold text-lg">{event.title}</Text>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={event.isOrganizer ? 'default' : 'secondary'}>
+                      {event.isOrganizer
+                        ? 'Organizing'
+                        : new Date(event.startAt) >= now
+                          ? 'Attending'
+                          : 'Attended'}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    void navigate(`/events/${event.id}`);
+                  }}
+                >
+                  View Details {event.id}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  };
 
   const renderEmptyState = () => (
     <Card>
@@ -84,14 +115,8 @@ export function Page() {
   return (
     <Container className="py-10">
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <Heading>My Events</Heading>
-            <Text className="text-muted-foreground">
-              Events you're attending {events.length > 0 && `(${String(events.length)})`}
-            </Text>
-          </div>
+          <Heading>My Events</Heading>
           <Button
             onClick={() => {
               void navigate('/create/event');
@@ -102,15 +127,15 @@ export function Page() {
           </Button>
         </div>
 
-        {/* Events List with Tabs */}
         {events.length === 0 ? (
           renderEmptyState()
         ) : (
           <Tabs defaultValue="all" className="w-full">
             <TabsList>
               <TabsTrigger value="all">All Events ({events.length})</TabsTrigger>
-              <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-              <TabsTrigger value="past">Past</TabsTrigger>
+              <TabsTrigger value="upcoming">Upcoming ({upcomingEvents.length})</TabsTrigger>
+              <TabsTrigger value="past">Past ({pastEvents.length})</TabsTrigger>
+              <TabsTrigger value="organizing">Organizing ({organizingEvents.length})</TabsTrigger>
             </TabsList>
 
             <TabsContent value="all" className="mt-6">
@@ -118,16 +143,15 @@ export function Page() {
             </TabsContent>
 
             <TabsContent value="upcoming" className="mt-6">
-              {renderEventsList(events)}
+              {renderEventsList(upcomingEvents)}
             </TabsContent>
 
             <TabsContent value="past" className="mt-6">
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                  <CalendarDays className="w-12 h-12 text-muted-foreground mb-3" />
-                  <Text className="text-muted-foreground">No past events</Text>
-                </CardContent>
-              </Card>
+              {renderEventsList(pastEvents)}
+            </TabsContent>
+
+            <TabsContent value="organizing" className="mt-6">
+              {renderEventsList(organizingEvents)}
             </TabsContent>
           </Tabs>
         )}

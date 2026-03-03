@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Text } from '@/components/ui/typography';
 import { Button } from '@/components/ui/button';
-import { CalendarDays, Plus } from 'lucide-react';
+import { CalendarDays } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface MyEventsProps {
@@ -39,15 +39,6 @@ export function MyEvents({ events }: MyEventsProps) {
                 View All
               </Button>
             )}
-            <Button
-              size="sm"
-              onClick={() => {
-                void navigate('/create/event');
-              }}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Event
-            </Button>
           </div>
         </div>
       </CardHeader>
