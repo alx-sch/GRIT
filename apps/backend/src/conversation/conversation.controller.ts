@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseFilters, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { ConversationService } from './conversation.service';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';

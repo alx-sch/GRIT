@@ -20,7 +20,6 @@ export class ChatService {
       });
 
       // Updating the conversation so that we can get properly ordered chat boxes
-      console.log(message.conversationId);
       await tx.conversation.update({
         where: { id: message.conversationId },
         data: {

@@ -79,7 +79,7 @@ export class ChatGateway implements OnGatewayConnection {
       }
       void (async () => {
         const token = parsed_token.data.token;
-        const userId = this.jwtService.verify(token).sub;
+        const userId = this.jwtService.verify<{ sub: number }>(token).sub;
         if (!userId) {
           next(new Error('Unauthorized'));
           return;
@@ -124,7 +124,7 @@ export class ChatGateway implements OnGatewayConnection {
     if (!this.userSockets.has(userId)) {
       this.userSockets.set(userId, new Set());
     }
-    this.userSockets.get(userId)!.add(client.id);
+    this.userSockets.get(userId)?.add(client.id);
 
     // Get the conversations from db
     const conversations = await this.prisma.conversation.findMany({
@@ -210,7 +210,7 @@ export class ChatGateway implements OnGatewayConnection {
       if (!socket) continue;
 
       for (const conv of conversations) {
-        socket.join(conv.id);
+        await socket.join(conv.id);
       }
     }
   }
