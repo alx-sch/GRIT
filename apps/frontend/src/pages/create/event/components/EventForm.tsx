@@ -1,6 +1,6 @@
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Combobox, ComboboxOptions } from '@/components/ui/combobox';
+import { Combobox } from '@/components/ui/combobox';
 import { DatePicker } from '@/components/ui/datepicker';
 import { FileUpload } from '@/components/ui/fileUpload';
 import { Input } from '@/components/ui/input';
