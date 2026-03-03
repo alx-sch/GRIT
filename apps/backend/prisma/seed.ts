@@ -131,7 +131,7 @@ async function main() {
         confirmationToken: null,
       },
     });
-    console.log(`👤 Processed User: ${user.name ?? 'Unknown'} (${String(user.id)})`);
+    console.log(`👤 Processed User: ${user.name} (${String(user.id)})`);
 
     // Upload Image (Only if one is provided)
     if (u.image && !user.avatarKey) {
@@ -149,7 +149,7 @@ async function main() {
         console.log(`   📝 Saved to DB: ${bucketKey}`);
       }
     } else if (u.image && user.avatarKey) {
-      console.log(`   ⏩ User ${user.name ?? 'Unknown'} already has an avatar. Skipping upload.`);
+      console.log(`   ⏩ User ${user.name} already has an avatar. Skipping upload.`);
     }
   }
 

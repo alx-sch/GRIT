@@ -5,3 +5,4 @@ export * from './chat.js';
 export * from './env.js';
 export * from './user.js';
 export * from './conversationSchema.js';
+export * from './friends.js';
