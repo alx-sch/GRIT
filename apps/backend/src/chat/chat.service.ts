@@ -1,25 +1,32 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import type { IntChatMessageDto } from './chat.schema';
-import { ConversationService } from '@/conversation/conversation.service';
 
 @Injectable()
 export class ChatService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly conversation: ConversationService
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async saveMessage(message: IntChatMessageDto) {
-    return this.prisma.chatMessage.upsert({
-      where: { id: message.id },
-      create: {
-        id: message.id,
-        conversationId: message.conversationId,
-        authorId: message.authorId,
-        text: message.text,
-      },
-      update: {},
+    await this.prisma.$transaction(async (tx) => {
+      await tx.chatMessage.upsert({
+        where: { id: message.id },
+        create: {
+          id: message.id,
+          conversationId: message.conversationId,
+          authorId: message.authorId,
+          text: message.text,
+        },
+        update: {},
+      });
+
+      // Updating the conversation so that we can get properly ordered chat boxes
+      console.log(message.conversationId);
+      await tx.conversation.update({
+        where: { id: message.conversationId },
+        data: {
+          updatedAt: new Date(),
+        },
+      });
     });
   }
 

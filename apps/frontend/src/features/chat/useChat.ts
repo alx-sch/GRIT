@@ -12,10 +12,8 @@ export function useChat(conversationId: string) {
     if (!socket) return;
 
     const handleMessage = (msg: ResChatMessage) => {
-      console.log('received message back');
       // TODO This conversationId check should be implemented for all message types to prevent mixed messages on fast navigation
       if (msg.conversationId !== conversationId) return;
-      console.log('received message back 2');
       setMessages((prev) => [...prev, msg]);
     };
 

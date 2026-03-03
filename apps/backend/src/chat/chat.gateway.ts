@@ -1,4 +1,3 @@
-import { AuthService } from '@/auth/auth.service';
 import {
   ConnectedSocket,
   MessageBody,
@@ -9,16 +8,15 @@ import {
   OnGatewayConnection,
 } from '@nestjs/websockets';
 import { Server, Socket, type DefaultEventsMap } from 'socket.io';
-import { UserService } from '@/user/user.service';
 import { ChatService } from '@/chat/chat.service';
 import { randomUUID } from 'crypto';
 import { ReqChatMessagePostDto } from '@/chat/chat.schema';
 import { ResChatMessageSchema, ReqSocketAuthSchema } from '@grit/schema';
-import { ConversationService } from '@/conversation/conversation.service';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { ArgumentsHost, Catch, UseFilters, UsePipes, WsExceptionFilter } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { env } from '@/config/env';
+import { JwtService } from '@nestjs/jwt';
 
 interface SocketData {
   userId: number;
@@ -65,9 +63,8 @@ export class ChatGateway implements OnGatewayConnection {
   private server!: Server;
 
   constructor(
-    private readonly authService: AuthService,
+    private readonly jwtService: JwtService,
     private readonly chatService: ChatService,
-    private readonly userService: UserService,
     private readonly prisma: PrismaService
   ) {}
 
@@ -82,13 +79,15 @@ export class ChatGateway implements OnGatewayConnection {
       }
       void (async () => {
         const token = parsed_token.data.token;
-        const userId = this.authService.verifyToken(token);
+        const userId = this.jwtService.verify(token).sub;
         if (!userId) {
           next(new Error('Unauthorized'));
           return;
         }
 
-        const user = await this.userService.userGetById(userId);
+        const user = await this.prisma.user.findUnique({
+          where: { id: userId },
+        });
         if (!user) {
           next(new Error('Unauthorized'));
           return;
@@ -247,11 +246,9 @@ export class ChatGateway implements OnGatewayConnection {
     @MessageBody() body: ReqChatMessagePostDto,
     @ConnectedSocket() client: AppSocket
   ) {
-    console.log('received message');
     await this.assertUserInConversation(body.conversationId, client.data.userId);
     const { conversationId } = body;
     const id = randomUUID();
-    console.log('received message2');
     // Emit immediately (realtime first)
     const message = ResChatMessageSchema.parse({
       id,
@@ -264,7 +261,6 @@ export class ChatGateway implements OnGatewayConnection {
       },
       createdAt: new Date().toISOString(),
     });
-    console.log('sending message back ');
     this.server.to(conversationId).emit('message', message);
 
     // Persist asynchronously (durability second)

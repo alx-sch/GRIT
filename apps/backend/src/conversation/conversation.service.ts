@@ -3,10 +3,14 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { ConversationType } from '@prisma/client';
 import { ForbiddenException } from '@nestjs/common';
 import { ReqConversationCreate } from '@grit/schema';
+import { ChatGateway } from '@/chat/chat.gateway';
 
 @Injectable()
 export class ConversationService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly chatGateway: ChatGateway
+  ) {}
 
   // Note that event conversations are created automatically during event creation and are passed in the event object to fe
   async conversationGetOrCreate(data: ReqConversationCreate, userId: number) {
@@ -44,6 +48,10 @@ export class ConversationService {
       },
       include: { participants: true },
     });
+
+    // When we have created a new conversation we need to resync the rooms the user should have joined
+    await this.chatGateway.resyncUserRooms(userId);
+
     return newConversation;
   }
 
