@@ -31,11 +31,16 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
     // On connect, the backend will send the last messages for all conversations the client is in
     newSocket.on('initialLastMessages', (messages: ResConversationsLastMessages) => {
-      chatStore.getState().setInitialConversations(messages);
+      const store = chatStore.getState();
+      store.resetConversations();
+      store.setInitialConversations(messages);
     });
 
     // Listen for incoming messages
     newSocket.on('message', (message: ResChatMessage) => {
+      console.log('Should have stored', message.text);
+      const conversations = chatStore.getState().conversations;
+      console.log('current storage looks like', conversations);
       chatStore.getState().storeLastMessage(message);
     });
 

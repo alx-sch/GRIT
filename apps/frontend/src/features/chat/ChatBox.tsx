@@ -8,6 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircleIcon } from 'lucide-react';
 import { useSocket } from '@/providers/socketProvider';
 import { chatStore } from '@/store/chatStore';
+import { ChatBoxHeader } from './ChatBoxHeader';
 
 export const ChatBox = ({ conversationId }: { conversationId: string }) => {
   const { messages, getHistory, sendMessage, loadMore, sendNewLastReadAt, hasMore, errorMessage } =

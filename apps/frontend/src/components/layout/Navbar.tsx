@@ -31,6 +31,7 @@ import { useCurrentUserStore } from '@/store/currentUserStore';
 import type { NavRoute } from '@/types/navroute';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import { getAvatarImageUrl } from '@/lib/image_utils';
+import { chatStore } from '@/store/chatStore';
 
 export function Navbar() {
   const navConfig: NavRoute[] = [...baseNavConfig];
@@ -38,6 +39,12 @@ export function Navbar() {
   const user = useCurrentUserStore((s) => s.user);
   const displayName = user?.name ?? user?.email ?? 'User';
 
+  // Check if any conversations have an unread message
+  const hasUnread = chatStore((s) => s.hasUnread());
+
+  if (isLoggedIn) {
+    navConfig.push({ path: '/chat', label: 'Chat' });
+  }
   if (!isLoggedIn) {
     navConfig.push({ path: '/login', label: 'Login' });
   }
@@ -71,7 +78,7 @@ export function Navbar() {
               .filter((link) => link.label !== 'Login')
               .map((link) => (
                 <NavigationMenuItem key={link.label}>
-                  <NavigationMenuLink asChild className="p-0">
+                  <NavigationMenuLink asChild className="p-0 relative">
                     <Link
                       to={link.path}
                       className={cn(
@@ -83,6 +90,11 @@ export function Navbar() {
                           : 'border-transparent hover:border-foreground/50'
                       )}
                     >
+                      {link.label === 'Chat' && hasUnread ? (
+                        <div className="bg-primary w-1.5 h-1.5 rounded-full absolute top-1 right-1"></div>
+                      ) : (
+                        ''
+                      )}
                       {link.label}
                     </Link>
                   </NavigationMenuLink>

@@ -29,13 +29,13 @@ const participants = z.array(
   })
 );
 
-export const ResConversationsLastMessagesSchema = z.record(
-  z.uuid(),
-  z.object({
-    lastMessage: messageSchema.nullable(),
-    lastReadAt: z.iso.datetime().nullable(),
-  })
-);
+export const ResConversationStateSchema = z.object({
+  lastMessage: messageSchema.nullable(),
+  lastReadAt: z.iso.datetime().nullable(),
+});
+export type ResConversationState = z.infer<typeof ResConversationStateSchema>;
+
+export const ResConversationsLastMessagesSchema = z.record(z.uuid(), ResConversationStateSchema);
 export type ResConversationsLastMessages = z.infer<typeof ResConversationsLastMessagesSchema>;
 
 export const ConversationBaseSchema = z.object({

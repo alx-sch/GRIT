@@ -17,7 +17,9 @@ export const ChatFeedLayout = () => {
   return (
     <>
       <div className="flex">
-        <div className="mr-8 overflow-auto max-h-[80vh]">
+        <div
+          className={`md:mr-8 overflow-auto max-h-[80vh] ${id ? 'hidden md:block' : 'w-full block'}`}
+        >
           {conversations.map((conversation) => (
             <ConversationCard
               key={conversation.id}
@@ -26,8 +28,10 @@ export const ChatFeedLayout = () => {
             />
           ))}
         </div>
-        <div className="flex-1">
-          {currentConversation && <ChatBoxHeader conversation={currentConversation} />}
+        <div className={`flex-1 ${!id ? 'hidden md:block' : 'block'}`}>
+          {currentConversation && (
+            <ChatBoxHeader key={currentConversation.id} conversation={currentConversation} />
+          )}
           <Outlet />
         </div>
       </div>

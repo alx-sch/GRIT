@@ -19,10 +19,12 @@ interface ChatStore {
   conversations: Conversation;
   storeLastMessage: (message: ResChatMessage) => void;
   setInitialConversations: (messages: ResConversationsLastMessages) => void;
+  resetConversations: () => void;
   setLastReadAt: (conversationId: string) => void;
+  hasUnread: () => boolean;
 }
 
-export const chatStore = create<ChatStore>((set) => ({
+export const chatStore = create<ChatStore>((set, get) => ({
   conversations: {},
 
   // For storing a new last message
@@ -43,19 +45,20 @@ export const chatStore = create<ChatStore>((set) => ({
     });
   },
 
+  resetConversations: () => set({ conversations: {} }),
+
   // The initial load of last messages we receive on socket connect
   setInitialConversations: (lastMessages: ResConversationsLastMessages) => {
-    set(() => {
-      // Need to transform the incoming Record of last messages into conversations Records
-      const newConversation: Conversation = {};
-      for (const id in lastMessages) {
-        newConversation[id] = {
-          lastMessage: lastMessages[id].lastMessage,
-          lastReadAt: lastMessages[id].lastReadAt,
-        };
-      }
-      return { conversations: newConversation };
-    });
+    const newConversation: Conversation = {};
+
+    for (const id in lastMessages) {
+      newConversation[id] = {
+        lastMessage: lastMessages[id].lastMessage,
+        lastReadAt: lastMessages[id].lastReadAt,
+      };
+    }
+
+    set({ conversations: newConversation });
   },
 
   setLastReadAt: (conversationId: string) => {
@@ -71,6 +74,14 @@ export const chatStore = create<ChatStore>((set) => ({
           },
         },
       };
+    });
+  },
+
+  hasUnread: () => {
+    const conversations = get().conversations;
+    return Object.values(conversations).some((conv) => {
+      if (!conv.lastReadAt || !conv.lastMessage?.createdAt) return false;
+      return new Date(conv.lastReadAt) < new Date(conv.lastMessage.createdAt);
     });
   },
 }));
