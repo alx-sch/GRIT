@@ -11,6 +11,7 @@ export const ResUserBaseSchema = z.object({
   avatarKey: z.string().nullable().optional(),
   isConfirmed: z.boolean().default(false),
   attending: z.array(ResUserEventSchema).default([]),
+  isAdmin: z.boolean().default(false),
 });
 export type ResUserBase = z.infer<typeof ResUserBaseSchema>;
 

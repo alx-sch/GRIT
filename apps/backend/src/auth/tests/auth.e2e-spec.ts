@@ -129,6 +129,7 @@ describe('Auth E2E', () => {
         name: user.name,
         isConfirmed: true,
         attending: [],
+        isAdmin: user.isAdmin,
       });
     });
 

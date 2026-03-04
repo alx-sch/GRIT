@@ -19,7 +19,6 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { ZodSerializerDto } from 'nestjs-zod';
-
 import {
   ReqEventDeleteDto,
   ReqEventGetByIdDto,
@@ -33,6 +32,7 @@ import {
 } from './event.schema';
 import { ResEventGetPublishedSchema, ResEventBaseSchema } from '@grit/schema';
 import { EventService } from './event.service';
+import { User } from '@/auth/interfaces/user.interface';
 
 @Controller('events')
 export class EventController {
@@ -43,8 +43,8 @@ export class EventController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResEventDeleteSchema)
-  eventDelete(@Param() param: ReqEventDeleteDto, @GetUser('id') userId: number) {
-    return this.eventService.eventDelete(param.id, userId);
+  eventDelete(@Param() param: ReqEventDeleteDto, @GetUser() user: User) {
+    return this.eventService.eventDelete(param.id, user.id, user.isAdmin);
   }
 
   // Get an individual event by id

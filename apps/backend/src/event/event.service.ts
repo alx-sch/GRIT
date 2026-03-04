@@ -7,6 +7,7 @@ import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { ConversationType, Prisma } from '@prisma/client';
 import {
@@ -25,35 +26,32 @@ export class EventService {
     private readonly conversation: ConversationService
   ) {}
 
-  async eventDelete(id: number, userId: number) {
-    const exists = await this.eventExists(id);
-
-    if (!exists) {
+  async eventDelete(id: number, userId: number, isAdmin: boolean) {
+    const event = await this.prisma.event.findFirst({ where: { id } });
+    if (!event) {
       throw new NotFoundException(`Event with id ${id.toString()} not found`);
     }
-    try {
-      const deleted = await this.prisma.event.delete({
-        where: {
-          id,
-          authorId: userId,
-        },
-        include: {
-          author: true,
-          location: true,
-        },
-      });
-
-      if (deleted.imageKey) {
-        try {
-          await this.storage.deleteFile(deleted.imageKey, 'event-images');
-        } catch (error) {
-          console.error(`Failed to delete event image with key ${deleted.imageKey}:`, error);
-        }
-      }
-      return deleted;
-    } catch {
-      throw new UnauthorizedException(`No permission to delete event with id ${id.toString()}.`);
+    if (event.authorId !== userId && !isAdmin) {
+      throw new ForbiddenException('You can only delete your own events');
     }
+    const deleted = await this.prisma.event.delete({
+      where: {
+        id,
+      },
+      include: {
+        author: true,
+        location: true,
+      },
+    });
+
+    if (deleted.imageKey) {
+      try {
+        await this.storage.deleteFile(deleted.imageKey, 'event-images');
+      } catch (error) {
+        console.error(`Failed to delete event image with key ${deleted.imageKey}:`, error);
+      }
+    }
+    return deleted;
   }
 
   async eventGetPublished(input: ReqEventGetPublishedDto) {

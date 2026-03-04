@@ -16,7 +16,7 @@ Content-Type: application/json
 {
 	"name": "test",
 	"email": "test@example.com",
-	"password": "password123"
+	"password": "password123",
 }
 ###
 
@@ -33,13 +33,25 @@ GET {{baseUrl}}/auth/confirm?token={{confToken}}
 GET {{baseUrl}}/auth/debug/token/1
 ###
 
+// Normal login
 # @name login
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-	"email": "cindy@example.com",
+	"email": "alice@example.com",
 	"password": "0123456789"
+}
+###
+
+// Admin login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+	"email": "admin@example.com",
+	"password": "admin123"
 }
 ###
 
@@ -112,7 +124,7 @@ Content-Type: application/json
 ###
 
 // Delete location
-DELETE {{baseUrl}}/locations/6 HTTP/1.1
+DELETE {{baseUrl}}/locations/1 HTTP/1.1
 Authorization: Bearer {{token}}
 ###
 
@@ -153,7 +165,7 @@ content-type: application/json
 ###
 
 # Update event (using ID 1)
-PATCH {{baseUrl}}/events/1 HTTP/1.1
+PATCH {{baseUrl}}/events/4 HTTP/1.1
 Authorization: Bearer {{token}}
 content-type: application/json
 
@@ -164,7 +176,7 @@ content-type: application/json
 ###
 
 # Delete event (using ID 4)
-DELETE {{baseUrl}}/events/4 HTTP/1.1
+DELETE {{baseUrl}}/events/1 HTTP/1.1
 Authorization: Bearer {{token}}
 ###
 
@@ -210,3 +222,8 @@ Authorization: Bearer {{token}}
 DELETE {{baseUrl}}/users/me/friends/1 HTTP/1.1
 Authorization: Bearer {{token}}
 ###
+
+// ========== ADMIN ========== //
+
+GET {{baseUrl}}/admin/users HTTP/1.1
+Authorization: Bearer {{token}}

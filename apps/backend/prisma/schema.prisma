@@ -23,6 +23,9 @@ model User {
   // Status Flags
   isConfirmed            Boolean     @default(false)
 
+  // Role
+  isAdmin                Boolean     @default(false)
+
   // Relations
   events                 Event[]     @relation("EventAuthor")
   locations              Location[]

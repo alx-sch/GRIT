@@ -45,6 +45,7 @@ export class AuthService {
       email: user.email,
       name: user.name,
       avatarKey: user.avatarKey,
+      isAdmin: user.isAdmin,
     } as ResAuthMeDto;
   }
 
@@ -68,6 +69,7 @@ export class AuthService {
       name: user.name,
       avatarKey: user.avatarKey,
       isConfirmed: user.isConfirmed,
+      isAdmin: user.isAdmin,
     });
   }
 
@@ -101,6 +103,7 @@ export class AuthService {
       avatarKey: user.avatarKey,
       isConfirmed: user.isConfirmed,
       attending: [],
+      isAdmin: user.isAdmin,
     };
   }
 
