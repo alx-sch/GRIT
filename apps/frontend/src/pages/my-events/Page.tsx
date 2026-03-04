@@ -8,20 +8,15 @@ import { CalendarDays, Plus } from 'lucide-react';
 import { userService } from '@/services/userService';
 import { useNavigate } from 'react-router-dom';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
+import type { ResUserEvents } from '@grit/schema';
+import { getEventImageUrl } from '@/lib/image_utils';
 
 export const myEventsLoader = async () => {
   return userService.getMyEvents();
 };
 
-interface MyEvent {
-  id: number;
-  title: string;
-  startAt: string | Date;
-  isOrganizer?: boolean;
-}
-
 export function Page() {
-  const events = useTypedLoaderData<MyEvent[]>();
+  const events = useTypedLoaderData<ResUserEvents>();
   const navigate = useNavigate();
 
   const now = new Date();
@@ -29,7 +24,7 @@ export function Page() {
   const pastEvents = events.filter((event) => new Date(event.startAt) < now);
   const organizingEvents = events.filter((event) => event.isOrganizer);
 
-  const renderEventsList = (filteredEvents: MyEvent[]) => {
+  const renderEventsList = (filteredEvents: ResUserEvents) => {
     if (filteredEvents.length === 0) {
       return (
         <Card>
@@ -45,14 +40,32 @@ export function Page() {
       <div className="grid gap-4">
         {filteredEvents.map((event) => (
           <Card key={event.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="flex items-center justify-between p-6">
+            <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 gap-4">
               <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center w-14 h-14 rounded-lg bg-primary/10">
-                  <CalendarDays className="w-7 h-7 text-primary" />
+                <div className="flex items-center justify-center shrink-0 w-16 h-16 sm:w-24 sm:h-24 rounded-lg overflow-hidden bg-muted border">
+                  <img
+                    // We cast as any because getEventImageUrl expects an EventBase,
+                    // but it only actually uses id, title, and imageKey internally which we have.
+                    src={getEventImageUrl(event)}
+                    alt={event.title}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
+
                 <div className="space-y-1">
-                  <Text className="font-semibold text-lg">{event.title}</Text>
-                  <div className="flex items-center gap-2">
+                  <Text className="font-semibold text-lg line-clamp-1">{event.title}</Text>
+
+                  {/* Event Location */}
+                  {event.location && (
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <MapPin className="w-4 h-4 mr-1 shrink-0" />
+                      <span className="line-clamp-1">
+                        {event.location.name || event.location.city || 'Location TBD'}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
                     <Badge variant={event.isOrganizer ? 'default' : 'secondary'}>
                       {event.isOrganizer
                         ? 'Organizing'
@@ -60,20 +73,25 @@ export function Page() {
                           ? 'Attending'
                           : 'Attended'}
                     </Badge>
+                    <Text className="text-sm text-muted-foreground">
+                      {new Date(event.startAt).toLocaleString(undefined, {
+                        dateStyle: 'medium',
+                        timeStyle: 'short',
+                      })}
+                    </Text>
                   </div>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    void navigate(`/events/${event.id}`);
-                  }}
-                >
-                  View Details {event.id}
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full sm:w-auto shrink-0"
+                onClick={() => {
+                  void navigate(`/events/${event.id}`);
+                }}
+              >
+                View Details
+              </Button>
             </CardContent>
           </Card>
         ))}
@@ -115,24 +133,26 @@ export function Page() {
   return (
     <Container className="py-10">
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <Heading>My Events</Heading>
-          <Button
-            onClick={() => {
-              void navigate('/create/event');
-            }}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create Event
-          </Button>
+          {events.length > 0 && (
+            <Button
+              onClick={() => {
+                void navigate('/create/event');
+              }}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Event
+            </Button>
+          )}
         </div>
 
         {events.length === 0 ? (
           renderEmptyState()
         ) : (
           <Tabs defaultValue="all" className="w-full">
-            <TabsList>
-              <TabsTrigger value="all">All Events ({events.length})</TabsTrigger>
+            <TabsList className="w-full sm:w-auto flex overflow-x-auto">
+              <TabsTrigger value="all">All ({events.length})</TabsTrigger>
               <TabsTrigger value="upcoming">Upcoming ({upcomingEvents.length})</TabsTrigger>
               <TabsTrigger value="past">Past ({pastEvents.length})</TabsTrigger>
               <TabsTrigger value="organizing">Organizing ({organizingEvents.length})</TabsTrigger>

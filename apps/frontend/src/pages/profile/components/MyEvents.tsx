@@ -1,11 +1,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Text } from '@/components/ui/typography';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { CalendarDays } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface MyEventsProps {
-  events: { title: string }[];
+  events: { id: number; title: string; startAt: string; isOrganizer: boolean }[];
 }
 
 export function MyEvents({ events }: MyEventsProps) {
@@ -73,14 +74,27 @@ export function MyEvents({ events }: MyEventsProps) {
         ) : (
           <div className="space-y-3">
             <div className="space-y-2">
-              {displayedEvents.map((event, index) => (
+              {displayedEvents.map((event) => (
                 <div
-                  key={index}
-                  className="flex items-center justify-between p-3 rounded-lg border hover:bg-accent transition-colors"
+                  key={event.id}
+                  onClick={() => void navigate(`/events/${String(event.id)}`)}
+                  className="flex items-center justify-between p-3 rounded-lg border hover:bg-accent transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
                     <CalendarDays className="w-5 h-5 text-muted-foreground" />
-                    <Text className="font-medium">{event.title}</Text>
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2">
+                        <Text className="font-medium">{event.title}</Text>
+                        {event.isOrganizer && (
+                          <Badge variant="secondary" className="text-xs">
+                            Organizer
+                          </Badge>
+                        )}
+                      </div>
+                      <Text className="text-xs text-muted-foreground">
+                        {new Date(event.startAt).toLocaleDateString()}
+                      </Text>
+                    </div>
                   </div>
                 </div>
               ))}

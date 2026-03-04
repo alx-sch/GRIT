@@ -1,5 +1,6 @@
 import api from '@/lib/api';
 import type { UserBase, UserResponse } from '@/types/user';
+import { ResUserEvents } from '@grit/schema';
 
 interface GetUsersParams {
   limit?: string;
@@ -17,8 +18,14 @@ export const userService = {
     const response = await api.get<UserResponse>(url);
     return response.data;
   },
+
   getMe: async (): Promise<UserBase> => {
-    const response = await api.get<UserBase>('/users/me');
+    const response = await api.get<UserBase>('users/me');
+    return response.data;
+  },
+
+  getMyEvents: async (): Promise<ResUserEvents> => {
+    const response = await api.get<ResUserEvents>('users/me/events');
     return response.data;
   },
 
@@ -47,11 +54,6 @@ export const userService = {
         'Content-Type': 'multipart/form-data',
       },
     });
-    return response.data;
-  },
-
-  getMyEvents: async (): Promise<{ title: string }[]> => {
-    const response = await api.get<{ title: string }[]>('/users/me/events');
     return response.data;
   },
 };

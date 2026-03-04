@@ -1,4 +1,8 @@
-export type { ResUserBase as UserBase, ResUserGetAll as UserResponse } from '@grit/schema';
+export type {
+  ResUserBase as UserBase,
+  ResUserGetAll as UserResponse,
+  ResUserEvents,
+} from '@grit/schema';
 
 export interface CurrentUser {
   id: number;

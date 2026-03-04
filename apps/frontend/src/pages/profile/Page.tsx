@@ -8,22 +8,23 @@ import { MyEvents } from './components/MyEvents';
 import { ThemeSettings } from './components/ThemeSettings';
 import type { CurrentUser } from '@/types/user';
 import { userService } from '@/services/userService';
-import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
+import { useLoaderData, useRevalidator } from 'react-router-dom';
 
 export const profileLoader = async () => {
-  return userService.getMyEvents();
+  return userService.getMe();
 };
 
 export function Page() {
-  const events = useTypedLoaderData<{ title: string }[]>();
-  const currentUser = useCurrentUserStore((state) => state.user);
+  const user = useLoaderData<typeof profileLoader>();
   const setUser = useCurrentUserStore((state) => state.setUser);
+  const { revalidate } = useRevalidator();
 
   const handleUserUpdate = (updatedUser: CurrentUser) => {
     setUser(updatedUser);
+    void revalidate();
   };
 
-  if (!currentUser) {
+  if (!user) {
     return (
       <Container>
         <div className="flex items-center justify-center min-h-[60vh]">
@@ -33,7 +34,7 @@ export function Page() {
     );
   }
 
-  const avatarUrl = currentUser.avatarKey ? getAvatarImageUrl(currentUser.avatarKey) : undefined;
+  const avatarUrl = user.avatarKey ? getAvatarImageUrl(user.avatarKey) : undefined;
 
   return (
     <Container className="py-10">
@@ -47,18 +48,18 @@ export function Page() {
 
         <div className="flex flex-col md:flex-row gap-8">
           <ProfileSidebar
-            user={currentUser}
+            user={user}
             avatarUrl={avatarUrl}
-            eventsCount={events.length}
+            eventsCount={user.attending.length}
             onAvatarUpdate={handleUserUpdate}
           />
 
           <div className="flex-1 space-y-6">
-            <ProfileInfo user={currentUser} onProfileUpdate={handleUserUpdate} />
+            <ProfileInfo user={user} onProfileUpdate={handleUserUpdate} />
 
             <ThemeSettings />
 
-            <MyEvents events={events} />
+            <MyEvents events={user.attending} />
           </div>
         </div>
       </div>

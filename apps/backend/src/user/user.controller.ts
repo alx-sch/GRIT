@@ -17,10 +17,10 @@ import {
   ResUserBaseDto,
   ResUserPostDto,
   ReqUserPostDto,
-  ResUserEventsDto,
   ReqUserGetAllDto,
   ResUserPatchSchema,
   ReqUserPatchDto,
+  ResUserEventsDto,
 } from '@/user/user.schema';
 import { UserService } from '@/user/user.service';
 import { ZodSerializerDto } from 'nestjs-zod';
@@ -56,6 +56,24 @@ export class UserController {
     return this.userService.userPatch(userId, data);
   }
 
+  @Get('me')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(ResUserBaseDto)
+  async getMe(@GetUser('id') userId: number): Promise<ResUserBaseDto> {
+    const user = await this.userService.userGetById(userId);
+    return user;
+  }
+
+  // Get user events
+  @Get('me/events')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(ResUserEventsDto)
+  async getMyEvents(@GetUser('id') userId: number) {
+    return await this.userService.userGetEvents(userId);
+  }
+
   // ADD IMAGE UPLOAD ROUTINE
   @Patch('me/upload-avatar')
   @ApiBearerAuth()
@@ -86,15 +104,5 @@ export class UserController {
   ): Promise<ResUserBaseDto> {
     console.log('File received:', file.originalname);
     return await this.userService.userUpdateAvatar(userId, file);
-  }
-
-  @Get('me/events')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @ZodSerializerDto(ResUserEventsDto)
-  async getMyEvents(@GetUser('id') userId: number): Promise<ResUserEventsDto> {
-    const events = await this.userService.userGetEvents(userId);
-
-    return ResUserEventsDto.create(events);
   }
 }
