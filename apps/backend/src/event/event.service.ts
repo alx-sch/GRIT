@@ -67,7 +67,7 @@ export class EventService {
       'date-dsc': [{ startAt: 'desc' }, { id: 'desc' }],
       'alpha-asc': [{ title: 'asc' }, { startAt: 'asc' }, { id: 'asc' }],
       'alpha-dsc': [{ title: 'desc' }, { startAt: 'asc' }, { id: 'asc' }],
-      popularity: [{ attending: { _count: 'desc' } }, { startAt: 'asc' }, { id: 'asc' }],
+      popularity: [{ attendees: { _count: 'desc' } }, { startAt: 'asc' }, { id: 'asc' }],
     };
     const orderBy = orderByMap[sort ?? 'date-asc'];
 
@@ -259,6 +259,12 @@ export class EventService {
   }
 
   async eventPostDraft(data: ReqEventPostDraftDto & { authorId: number }) {
+    const duplicate = await this.prisma.event.findFirst({
+      where: data,
+    });
+    if (duplicate) {
+      throw new BadRequestException(`Identical event already exists`);
+    }
     const createdEvent = await this.prisma.event.create({
       data: {
         title: data.title,

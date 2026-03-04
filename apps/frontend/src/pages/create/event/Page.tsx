@@ -4,14 +4,38 @@ import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { locationService } from '@/services/locationService';
 import { LocationBase } from '@/types/location';
 import EventForm from './components/EventForm';
+import { useInfiniteScroll, Pagination } from '@/hooks/useInfiniteScroll';
 
 export const eventCreationLoader = async () => {
   const response = await locationService.getLocations();
-  return response.data;
+  return {
+    data: response.data,
+    pagination: response.pagination,
+  };
 };
 
 export default function CreateEventPage() {
-  const locations = useTypedLoaderData<LocationBase[]>();
+  const { data: initialLocations, pagination: initialPagination } = useTypedLoaderData<{
+    data: LocationBase[];
+    pagination: Pagination;
+  }>();
+
+  const {
+    items: locationItems,
+    isLoading: isLoadingLocations,
+    pagination: locationPagination,
+    loadMore,
+  } = useInfiniteScroll(initialLocations, initialPagination, async (cursor) => {
+    const res = await locationService.getLocations({ cursor });
+    return { data: res.data, pagination: res.pagination };
+  });
+
+  const handleLocationMenuScrollToBottom = () => {
+    if (locationPagination.hasMore && !isLoadingLocations) {
+      void loadMore();
+    }
+  };
+
   return (
     <Container className="py-10 space-y-8 p-0 md:px-0">
       <div className="space-y-2">
@@ -19,7 +43,11 @@ export default function CreateEventPage() {
           Create Event
         </Heading>
       </div>
-      <EventForm locations={locations} />
+      <EventForm
+        locations={locationItems}
+        onLocationMenuScrollToBottom={handleLocationMenuScrollToBottom}
+        isLoadingLocations={isLoadingLocations}
+      />
     </Container>
   );
 }

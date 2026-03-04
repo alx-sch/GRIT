@@ -1,6 +1,6 @@
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Combobox, ComboboxOptions } from '@/components/ui/combobox';
+import { Combobox } from '@/components/ui/combobox';
 import { DatePicker } from '@/components/ui/datepicker';
 import { FileUpload } from '@/components/ui/fileUpload';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,7 @@ import { CreateEventSchema } from '@grit/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { isAxiosError } from 'axios';
 import { AlertCircleIcon, PlusIcon, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Control, Controller, SubmitHandler, useForm, useWatch } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -36,9 +36,15 @@ function DraftSaver({ control }: { control: Control<EventFormFields> }) {
 
 interface EventFormProps {
   locations: LocationBase[];
+  onLocationMenuScrollToBottom?: () => void;
+  isLoadingLocations?: boolean;
 }
 
-export default function EventForm({ locations }: EventFormProps) {
+export default function EventForm({
+  locations,
+  onLocationMenuScrollToBottom,
+  isLoadingLocations,
+}: EventFormProps) {
   const navigate = useNavigate();
 
   const {
@@ -65,15 +71,17 @@ export default function EventForm({ locations }: EventFormProps) {
 
   //Locations set-up
   const [showAddLocation, setShowAddLocation] = useState(false);
-  const [locationsList, setLocationsList] = useState<LocationBase[]>(locations);
 
-  const locationOptionsCombobox: ComboboxOptions[] = [
-    { value: '', label: 'TBA (To be Announced)' },
-    ...locationsList.map(({ id, name }) => ({
-      value: String(id),
-      label: name ?? '',
-    })),
-  ];
+  const locationOptionsCombobox = useMemo(
+    () => [
+      { value: '', label: 'TBA (To be Announced)' },
+      ...locations.map(({ id, name }) => ({
+        value: String(id),
+        label: name ?? '',
+      })),
+    ],
+    [locations]
+  );
 
   //image upload
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -355,6 +363,8 @@ export default function EventForm({ locations }: EventFormProps) {
                   placeholder="Select the location"
                   searchPlaceholder="Search"
                   emptyMessage="No location found"
+                  onMenuScrollToBottom={onLocationMenuScrollToBottom}
+                  isLoading={isLoadingLocations}
                   className="bg-secondary text-secondary-foreground text-sm md:text-base justify-center text-center"
                   showSelectedTick={true}
                   footer={
@@ -445,7 +455,6 @@ export default function EventForm({ locations }: EventFormProps) {
           </SheetHeader>
           <LocationForm
             onSuccess={(location) => {
-              setLocationsList((prev) => [...prev, location]);
               setValue('locationId', String(location.id));
               setShowAddLocation(false);
             }}
