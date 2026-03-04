@@ -69,9 +69,9 @@ export class EventController {
   eventPatch(
     @Body() data: ReqEventPatchDto,
     @Param() param: ReqEventGetByIdDto,
-    @GetUser('id') userId: number
+    @GetUser() user: User
   ) {
-    return this.eventService.eventPatch(param.id, data, userId);
+    return this.eventService.eventPatch(param.id, data, user.id, user.isAdmin);
   }
 
   // ADD Image upload routine
@@ -91,7 +91,7 @@ export class EventController {
   @UseInterceptors(FileInterceptor('file'))
   async uploadEventImage(
     @Param() param: ReqEventGetByIdDto,
-    @GetUser('id') userId: number,
+    @GetUser() user: User,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -103,16 +103,16 @@ export class EventController {
     file: Express.Multer.File
   ) {
     console.log('File received:', file.originalname);
-    return await this.eventService.eventUpdateImage(param.id, userId, file);
+    return await this.eventService.eventUpdateImage(param.id, user.id, user.isAdmin, file);
   }
 
   // Delete event image
-  @Delete('id/delete-image')
+  @Delete(':id/delete-image')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResEventBaseSchema)
-  async deleteEventImage(@Param() param: ReqEventDeleteDto, @GetUser('id') userId: number) {
-    return this.eventService.eventDeleteImage(param.id, userId);
+  async deleteEventImage(@Param() param: ReqEventDeleteDto, @GetUser() user: User) {
+    return this.eventService.eventDeleteImage(param.id, user.id, user.isAdmin);
   }
 
   // Post a new event draft
@@ -120,7 +120,7 @@ export class EventController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResEventPostDraftSchema)
-  eventCreateDraft(@Body() data: ReqEventPostDraftDto, @GetUser('id') userId: number) {
-    return this.eventService.eventPostDraft(Object.assign(data, { authorId: userId }));
+  eventCreateDraft(@Body() data: ReqEventPostDraftDto, @GetUser() user: User) {
+    return this.eventService.eventPostDraft(Object.assign(data, { authorId: user.id }));
   }
 }
