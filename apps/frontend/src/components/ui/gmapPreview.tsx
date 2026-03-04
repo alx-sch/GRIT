@@ -28,13 +28,13 @@ export const GmapPreview = ({ lng, lat, open, onOpenChange, location }: GmapPrev
     try {
       await navigator.clipboard.writeText(fullAddress);
       toast.info('Address copied');
-    } catch (error) {
+    } catch {
       toast.warning('Failed to copy address');
     }
   };
 
   const handleGetDirections = () => {
-    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${String(lat)},${String(lng)}`;
     window.open(googleMapsUrl, '_blank');
   };
 
@@ -44,7 +44,7 @@ export const GmapPreview = ({ lng, lat, open, onOpenChange, location }: GmapPrev
         {location?.name && (
           <DialogHeader className="gap-0 justify-start">
             <DialogTitle>{location?.name}</DialogTitle>
-            {(location?.address || location?.postalCode || location?.city || location?.country) && (
+            {(location?.address ?? location?.postalCode ?? location?.city ?? location?.country) && (
               <DialogDescription className="pt-0">
                 {location?.address && location.address !== undefined && (
                   <>
@@ -73,7 +73,13 @@ export const GmapPreview = ({ lng, lat, open, onOpenChange, location }: GmapPrev
           <AdvancedMarker position={{ lat, lng }} />
         </GoogleMap>
         <div className="flex flex-row justify-between pt-4">
-          <Button variant="outline" className="md:min-w-48" onClick={handleCopyAddress}>
+          <Button
+            variant="outline"
+            className="md:min-w-48"
+            onClick={() => {
+              void handleCopyAddress();
+            }}
+          >
             Copy address
           </Button>
           <Button variant="default" className="md:min-w-48" onClick={handleGetDirections}>

@@ -1,4 +1,3 @@
-import DRAFT_KEY from './EventForm';
 import { getEventImageUrl } from '@/lib/image_utils';
 import { type EventFormFields, EventFormSchema } from '@/schema/event';
 import { eventService } from '@/services/eventService';
@@ -7,11 +6,12 @@ import { LocationBase } from '@/types/location';
 import { CreateEventSchema } from '@grit/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { isAxiosError } from 'axios';
-import { ArrowDownLeftFromSquareIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { SubmitHandler, useForm, useWatch } from 'react-hook-form';
+import { SubmitHandler, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+
+import { DRAFT_KEY } from './EventForm';
 
 interface UseEventFormProps {
   initialData?: EventBase;
@@ -268,6 +268,7 @@ export function useEventForm({ initialData, locations }: UseEventFormProps) {
     additionalFilesError,
     setAdditionalFilesError,
     filesUploadProgress,
+    setFilesUploadProgress,
     existingFiles,
     handleRemoveExistingFile,
     // dates

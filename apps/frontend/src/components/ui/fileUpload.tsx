@@ -1,7 +1,8 @@
 import { Dropzone, DropzoneContent, DropzoneEmptyState } from '@/components/ui/dropzone';
 import { Progress } from '@/components/ui/progress';
+import { FileTypeIcon } from '@/lib/file_utils';
 import { cn } from '@/lib/utils';
-import { FileIcon, ImageIcon, Trash2, UploadIcon, X } from 'lucide-react';
+import { Trash2, UploadIcon, X } from 'lucide-react';
 import { useState } from 'react';
 
 const DEFAULT_ACCEPT = { 'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'] };
@@ -18,19 +19,14 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(0)}MB`;
 }
 
-function FileTypeIcon({ mimeType }: { mimeType: string }) {
-  if (mimeType.startsWith('image/')) return <ImageIcon className="h-4 w-4 text-muted-foreground" />;
-  return <FileIcon className="h-4 w-4 text-muted-foreground" />;
-}
-
 interface FileUploadProps {
   multiple?: boolean;
   value?: string | null;
   onChange: (files: File[]) => void;
   progress?: number;
-  existingFiles?: Array<{ id: number; fileName: string; mimeType: string }>;
+  existingFiles?: { id: number; fileName: string; mimeType: string }[];
   onRemoveExisting?: (id: number) => void;
-  aspectRatio?: 'square' | 'video' | 'auto';
+  aspectRatio?: 'square' | 'video' | 'auto' | 'rectangle';
   onError?: (error: string | null) => void;
   accept?: Record<string, string[]>;
   maxSize?: number;
@@ -65,6 +61,7 @@ export function FileUpload({
     square: 'aspect-square',
     video: 'aspect-video',
     auto: '',
+    rectangle: 'aspect-3/2',
   }[aspectRatio];
 
   const handleDrop = (acceptedFiles: File[]) => {
@@ -90,7 +87,7 @@ export function FileUpload({
     } else if (err.message.includes('File type')) {
       onError?.('Invalid file type');
     } else if (err.message.includes('Too many files')) {
-      onError?.(`You can only upload up to ${multiple ? 20 : 1} files`);
+      onError?.(`You can only upload up to ${String(multiple ? 20 : 1)} files`);
     } else {
       onError?.(err.message);
     }

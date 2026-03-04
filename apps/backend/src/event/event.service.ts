@@ -351,7 +351,7 @@ export class EventService {
     const file = await this.prisma.eventFile.findUnique({
       where: { id: fileId },
     });
-    if (!file || file.eventId !== eventId) throw new NotFoundException('File not found');
+    if (file?.eventId !== eventId) throw new NotFoundException('File not found');
 
     await this.storage.deleteFile(file.fileKey, file.bucket);
     await this.prisma.eventFile.delete({ where: { id: fileId } });

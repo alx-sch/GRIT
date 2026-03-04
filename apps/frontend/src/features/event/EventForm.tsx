@@ -18,7 +18,7 @@ import { Control, Controller, useWatch } from 'react-hook-form';
 import { useEventForm } from './useEventForm';
 
 // Key for localStorage
-const DRAFT_KEY = 'event-draft';
+export const DRAFT_KEY = 'event-draft';
 // Component to auto-save draft to localStorage
 function DraftSaver({ control }: { control: Control<EventFormFields> }) {
   const formValues = useWatch({ control });
@@ -38,7 +38,6 @@ interface EventFormProps {
 
 export default function EventForm({ initialData, locations }: EventFormProps) {
   const {
-    form,
     control,
     isEditMode,
     isSubmitting,
@@ -55,7 +54,6 @@ export default function EventForm({ initialData, locations }: EventFormProps) {
     imageUploadProgress,
     imageError,
     setImageError,
-    existingImageUrl,
     setAdditionalFiles,
     additionalFilesError,
     setAdditionalFilesError,
@@ -258,7 +256,7 @@ export default function EventForm({ initialData, locations }: EventFormProps) {
                 setImageRemoved(!file);
               }}
               progress={imageUploadProgress}
-              aspectRatio="square"
+              aspectRatio="rectangle"
               onError={setImageError}
               value={initialData?.imageKey ? getEventImageUrl(initialData) : null}
             />

@@ -12,19 +12,15 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { GmapPreview } from '@/components/ui/gmapPreview';
-import { Separator } from '@/components/ui/separator';
 import { Heading, Text } from '@/components/ui/typography';
-import { ChatBox } from '@/features/chat/ChatBox';
 import { getEventImageUrl } from '@/lib/image_utils';
 import { eventService } from '@/services/eventService';
-import { userService } from '@/services/userService';
-import { useCurrentUserStore } from '@/store/currentUserStore';
-import type { CurrentUser } from '@/types/user';
 import { APIProvider } from '@vis.gl/react-google-maps';
-import { Pencil, Trash2, User } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Link, LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import { ChevronLeft, HomeIcon, Pencil, Trash2, User } from 'lucide-react';
+import { Link, LoaderFunctionArgs } from 'react-router-dom';
+import { EventPageActions } from './components/EventPageActions';
+import { EventPageFiles } from './components/EventPageFiles';
+import { useEventPage } from './useEventPage';
 
 export const eventLoader = async ({ params }: LoaderFunctionArgs) => {
   if (!params.id) throw new Response('Not Found', { status: 404 });
@@ -35,85 +31,45 @@ export const eventLoader = async ({ params }: LoaderFunctionArgs) => {
 export const EventPage = () => {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API as string;
 
-  const event = useLoaderData<typeof eventLoader>();
-  const currentUser: CurrentUser | null = useCurrentUserStore((s) => s.user);
-  const currentUserAttending =
-    currentUser && event.attendees.some((el) => el.id === currentUser.id);
-  const isAuthor = event.authorId === currentUser?.id;
-
-  const [isAttending, setIsAttending] = useState(currentUserAttending);
-  const [countAttending, setCountAttending] = useState(event.attendees.length);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isMapOpen, setIsMapOpen] = useState(false);
-  const navigate = useNavigate();
-
-  const formattedDate = new Date(event.startAt).toLocaleString(undefined, {
-    dateStyle: 'long',
-    timeStyle: 'short',
-  });
-
-  const location = event.location;
-  const cityPostal = [location?.postalCode, location?.city].map((s) => s?.trim()).filter(Boolean);
-  const locationPostal = cityPostal.length > 0 ? cityPostal.join(' ') : null;
-  const locationParts = [location?.address, locationPostal].map((s) => s?.trim()).filter(Boolean);
-  const locationText =
-    locationParts.length > 0
-      ? locationParts.length > 1
-        ? locationParts.join(', ')
-        : locationParts[0]
-      : '';
-
-  //Check if user is attending
-  useEffect(() => {
-    if (currentUser) {
-      setIsAttending(event.attendees.some((el) => el.id === currentUser.id));
-    }
-  }, [event.attendees, currentUser]);
-
-  const handleGoing = async () => {
-    if (!currentUser) {
-      void navigate('/login?redirect=' + encodeURIComponent(`/events/${String(event.id)}`));
-      return;
-    }
-    setIsLoading(true);
-    if (isAttending) {
-      try {
-        await userService.unattendEvent(event.id);
-        setIsAttending(false);
-        setCountAttending((prev) => prev - 1);
-        toast.info('You are no longer attending "' + event.title + '".');
-      } catch (error) {
-        toast.error('Something went wrong:' + String(error));
-      } finally {
-        setIsLoading(false);
-      }
-    } else {
-      try {
-        await userService.attendEvent(event.id);
-        setIsAttending(true);
-        setCountAttending((prev) => prev + 1);
-        toast.info('You’re going to "' + event.title + '".');
-      } catch (error) {
-        toast.error('Something went wrong:' + String(error));
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  };
-
-  const handleDelete = async () => {
-    try {
-      await eventService.deleteEvent(String(event.id));
-      toast.success('Event Deleted');
-      void navigate('/events', { replace: true });
-    } catch (error) {
-      toast.error('Failed to delete events: ' + String(error));
-    }
-  };
+  const {
+    event,
+    isAuthor,
+    isAttending,
+    countAttending,
+    isLoading,
+    isMapOpen,
+    setIsMapOpen,
+    selectedImageIndex,
+    setSelectedImageIndex,
+    shareOpen,
+    setShareOpen,
+    formattedDate,
+    location,
+    locationText,
+    imageFiles,
+    otherFiles,
+    handlePrev,
+    handleNext,
+    handleShare,
+    handleCopyLink,
+    handleChat,
+    handleGoing,
+    handleDelete,
+    navigate,
+  } = useEventPage();
 
   return (
     <>
       <Container className="py-10 space-y-8 p-0 md:px-0">
+        <button
+          onClick={() => {
+            void navigate(-1);
+          }}
+          className="flex items-center gap-1 uppercase text-primary font-heading text-lg hover:text-foreground transition-color w-fit"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Back
+        </button>
         <div className="flex flex-row justify-between">
           <div className="space-y-2">
             <Heading level={1} className="text-3xl md:text-4xl">
@@ -123,9 +79,9 @@ export const EventPage = () => {
           <div className="flex flex-row gap-2">
             {isAuthor && (
               <Button variant="outline" size="sm">
-				<Link to='edit'>
-                <Pencil className="h-4 w-4" />
-				</Link>
+                <Link to="edit">
+                  <Pencil className="h-4 w-4" />
+                </Link>
               </Button>
             )}
             {isAuthor && (
@@ -139,7 +95,6 @@ export const EventPage = () => {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Delete this event?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      {' '}
                       This action cannot be undone. This will permanently delete "{event.title}".
                     </AlertDialogDescription>
                   </AlertDialogHeader>
@@ -158,10 +113,11 @@ export const EventPage = () => {
             )}
           </div>
         </div>
+
         <div className="flex flex-col md:flex-row gap-8">
-          {/* Event details */}
           <div className="flex-1 flex flex-col gap-6">
-            <div className="flex flex-row gap-2 justify-between">
+            {/* Info row */}
+            <div className="grid grid-cols-2 gap-6 md:gap-4 md:flex md:flex-row md:justify-between">
               {/* Location */}
               <div className="flex flex-col gap-2">
                 <Heading level={4} className="uppercase">
@@ -173,13 +129,10 @@ export const EventPage = () => {
                       setIsMapOpen(true);
                     }}
                     type="button"
+                    className="group flex items-center gap-1.5 text-left cursor-pointer"
                   >
-                    <Text className="text-lg">
-                      {locationText && (
-                        <span>
-                          {locationText}
-                        </span>
-                      )}
+                    <Text className="text-lg md:underline decoration-dashed underline-offset-4 group-hover:decoration-solid transition-all">
+                      {[location?.address, location?.city].filter(Boolean).join(', ')}
                     </Text>
                   </button>
                 ) : (
@@ -197,84 +150,108 @@ export const EventPage = () => {
                   </Text>
                 )}
               </div>
-              {/* Author */}
-              <div className="flex flex-col gap-2">
-                <Heading level={4} className="uppercase">
-                  Host
-                </Heading>
-                {event.author?.name && (
-                  <>
-                    <Text className="text-lg">
-                      {event.author.name}
-                    </Text>
-                  </>
-                )}
-              </div>
+
               {/* Date */}
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 order-2 md:order-3 items-end md:items-start">
                 <Heading level={4} className="uppercase">
                   Date
                 </Heading>
-                <Text className="text-lg">{formattedDate}</Text>
+                <Text className="text-lg text-right md:text-left">{formattedDate}</Text>
               </div>
-              {/* Attendees */}
-              <div className="flex flex-col gap-2">
-				<Heading level={4} className='uppercase'>Going</Heading>
-                {/*<User className="h-6 w-6 text-primary" />*/}
-                <Text className="text-lg">{countAttending > 0 ? `${countAttending}` : 'Be the first'}</Text>
+
+              {/* Host */}
+              <div className="flex flex-row md:flex-col gap-2 order-3 md:order-2 items-center md:items-start">
+                <HomeIcon className="h-6 w-6 text-primary md:hidden" />
+                <Heading level={4} className="uppercase hidden md:block">
+                  Host
+                </Heading>
+                {event.author?.name && <Text className="text-lg">{event.author.name}</Text>}
+              </div>
+
+              {/* Going */}
+              <div className="flex flex-col gap-2 order-4 items-end md:items-start">
+                <Heading level={4} className="uppercase hidden md:block">
+                  Going
+                </Heading>
+                <div className="flex flex-row gap-2">
+                  <Text className="text-lg">
+                    {countAttending > 0 ? String(countAttending) : 'Be the first'}
+                  </Text>
+                  <User className="h-6 w-6 text-primary md:hidden" />
+                </div>
               </div>
             </div>
+
             {/* Action buttons */}
-            <div className="flex flex-row justify-between">
-              <div className="flex items-center gap-2 w-/50">
-                <Button variant="secondary" className="flex-1">
-                  Invite
-                </Button>
-                <Button
-                  variant="secondary"
-                  className="flex-1"
-                  onClick={() => {
-                    void handleGoing();
-                  }}
-                  disabled={isLoading}
-                >
-                  {isAttending ? 'Going ✓' : 'Going'}
-                </Button>
+            <EventPageActions
+              isAttending={isAttending}
+              isLoading={isLoading}
+              shareOpen={shareOpen}
+              onShareOpenChange={setShareOpen}
+              onGoing={() => {
+                void handleGoing();
+              }}
+              onShare={() => {
+                handleShare();
+              }}
+              onChat={handleChat}
+              onCopyLink={() => {
+                void handleCopyLink();
+              }}
+              eventTitle={event.title}
+            />
+
+            {/* Event image */}
+            {event.imageKey && (
+              <div className="-mx-8 md:mx-0 md:h-160">
+                <img
+                  src={getEventImageUrl(event)}
+                  className="w-full h-full aspect-3/2 object-cover"
+                />
               </div>
-            </div>
+            )}
+
             {/* Description */}
-            <div className="flex flex-col gap-4">
-              {event.content && (
-                <>
-                  <Separator className="shrink-0 dark:bg-white/20" />
-                  <Heading level={2}>About</Heading>
-                  <Text>{event.content}</Text>
-                </>
-              )}
-            </div>
+            {event.content && (
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-2 self-start">
+                  <span className="font-semibold">&gt;</span>
+                  <Text className="text-xl font-heading uppercase">Description</Text>
+                </div>
+                <Text>{event.content}</Text>
+              </div>
+            )}
+
+            {/* Additional info */}
+            {event.files && event.files.length > 0 && (
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-2 self-start">
+                  <span className="font-semibold">&gt;</span>
+                  <Text className="text-xl font-heading uppercase">Additional info</Text>
+                </div>
+                <EventPageFiles
+                  imageFiles={imageFiles}
+                  otherFiles={otherFiles}
+                  selectedImageIndex={selectedImageIndex}
+                  onSelectImage={setSelectedImageIndex}
+                  onClose={() => {
+                    setSelectedImageIndex(null);
+                  }}
+                  onPrev={handlePrev}
+                  onNext={handleNext}
+                />
+              </div>
+            )}
           </div>
         </div>
-        {getEventImageUrl(event) && (
-          <div className="flex-1 max-w-md flex-col">
-            <img
-              src={getEventImageUrl(event)}
-              className="w-full aspect-square object-cover rounded-lg"
-            />
-          </div>
-        )}
-
-        {event.conversation?.id && isAttending && (
-          <>
-            <Separator className="shrink-0 dark:bg-white/20" />
-            <ChatBox conversationId={event.conversation?.id} />
-          </>
-        )}
       </Container>
+
+      {/* Map dialog */}
       <APIProvider apiKey={apiKey}>
         {location?.latitude != null && location?.longitude != null && (
           <GmapPreview
-            lat={location?.latitude}
-            lng={location?.longitude}
+            lat={location.latitude}
+            lng={location.longitude}
             open={isMapOpen}
             onOpenChange={setIsMapOpen}
             location={location}
