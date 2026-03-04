@@ -132,7 +132,10 @@ export const EventPage = () => {
                     className="group flex items-center gap-1.5 text-left cursor-pointer"
                   >
                     <Text className="text-lg md:underline decoration-dashed underline-offset-4 group-hover:decoration-solid transition-all">
-                      {[location?.address, location?.city].map((s) => s?.trim()).filter(Boolean).join(', ')}
+                      {[location?.address, location?.city]
+                        .map((s) => s?.trim())
+                        .filter(Boolean)
+                        .join(', ')}
                     </Text>
                   </button>
                 ) : (
