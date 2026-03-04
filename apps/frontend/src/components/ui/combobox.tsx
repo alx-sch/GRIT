@@ -36,6 +36,8 @@ export interface ComboboxProps {
   variant?: VariantProps<typeof buttonVariants>['variant'];
   icon?: LucideIcon;
   showSearch?: boolean;
+  onMenuScrollToBottom?: () => void;
+  isLoading?: boolean;
 }
 
 export function Combobox({
@@ -51,10 +53,22 @@ export function Combobox({
   variant = 'outline',
   icon: Icon,
   showSearch = true,
+  onMenuScrollToBottom,
+  isLoading = false,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
+  const listRef = React.useRef<HTMLDivElement>(null);
 
   const selectedLabel = options.find((opt) => opt.value === value)?.label;
+
+  // FOR LOCATIONS ONLY: Manual load via scroll listener.
+  // When user scrolls within 100px of dropdown bottom, trigger load more.
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const element = e.currentTarget;
+    if (element.scrollHeight - element.scrollTop - element.clientHeight < 100) {
+      onMenuScrollToBottom?.();
+    }
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -79,21 +93,25 @@ export function Combobox({
       <PopoverContent className="w-(--radix-popover-trigger-width) border-0 p-0 bg-secondary font-sans min-w-58">
         <Command className={cn(showSearch && '**:data-[slot=command-input-wrapper]:h-11')}>
           {showSearch && <CommandInput placeholder={searchPlaceholder} />}
-          <CommandList className="p-1">
-            <CommandEmpty>{emptyMessage}</CommandEmpty>
+          <CommandList
+            ref={listRef}
+            className="p-1 max-h-64 overflow-y-auto"
+            onScroll={handleScroll}
+          >
+            <CommandEmpty>{isLoading ? 'Loading...' : emptyMessage}</CommandEmpty>
             <CommandGroup>
-              {options.map((options) => (
+              {options.map((option) => (
                 <CommandItem
-                  key={options.value}
-                  value={options.label}
+                  key={option.value}
+                  value={option.label}
                   onSelect={() => {
-                    onChange(options.value === value ? '' : options.value);
+                    onChange(option.value === value ? '' : option.value);
                     setOpen(false);
                   }}
                 >
-                  {options.label}
+                  {option.label}
                   <CheckIcon
-                    className={cn('ml-auto', value === options.value ? 'opacity-100' : 'opacity-0')}
+                    className={cn('ml-auto', value === option.value ? 'opacity-100' : 'opacity-0')}
                   />
                 </CommandItem>
               ))}

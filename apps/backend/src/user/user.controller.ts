@@ -11,6 +11,7 @@ import {
   MaxFileSizeValidator,
   FileTypeValidator,
   UseGuards,
+  Delete,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -21,6 +22,7 @@ import {
   ReqUserGetAllDto,
   ResUserPatchSchema,
   ReqUserPatchDto,
+  ResUserDeleteSchema,
 } from '@/user/user.schema';
 import { UserService } from '@/user/user.service';
 import { ZodSerializerDto } from 'nestjs-zod';
@@ -54,6 +56,15 @@ export class UserController {
   @ZodSerializerDto(ResUserPatchSchema)
   userPatch(@Body() data: ReqUserPatchDto, @GetUser('id') userId: number) {
     return this.userService.userPatch(userId, data);
+  }
+
+  // Delete a user
+  @Delete('me')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(ResUserDeleteSchema)
+  userDelete(@GetUser('id') id: number) {
+    return this.userService.userDelete(id);
   }
 
   // ADD IMAGE UPLOAD ROUTINE

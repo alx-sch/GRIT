@@ -1,6 +1,6 @@
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Combobox, ComboboxOptions } from '@/components/ui/combobox';
+import { Combobox } from '@/components/ui/combobox';
 import { DatePicker } from '@/components/ui/datepicker';
 import { FileUpload } from '@/components/ui/fileUpload';
 import { Input } from '@/components/ui/input';
@@ -8,17 +8,17 @@ import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle } from '@/comp
 import { Textarea } from '@/components/ui/textarea';
 import LocationForm from '@/features/event/LocationForm';
 import { useDebounce } from '@/hooks/useDebounce';
-import { getEventImageUrl } from '@/lib/image_utils';
 import { type EventFormFields } from '@/schema/event';
 import { EventBase } from '@/types/event';
 import { LocationBase } from '@/types/location';
 import { AlertCircleIcon, PlusIcon, X } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Control, Controller, useWatch } from 'react-hook-form';
 import { useEventForm } from './useEventForm';
 
 // Key for localStorage
 export const DRAFT_KEY = 'event-draft';
+
 // Component to auto-save draft to localStorage
 function DraftSaver({ control }: { control: Control<EventFormFields> }) {
   const formValues = useWatch({ control });
@@ -34,9 +34,16 @@ function DraftSaver({ control }: { control: Control<EventFormFields> }) {
 interface EventFormProps {
   initialData?: EventBase;
   locations: LocationBase[];
+  onLocationMenuScrollToBottom?: () => void;
+  isLoadingLocations?: boolean;
 }
 
-export default function EventForm({ initialData, locations }: EventFormProps) {
+export default function EventForm({
+  initialData,
+  locations,
+  onLocationMenuScrollToBottom,
+  isLoadingLocations,
+}: EventFormProps) {
   const {
     control,
     isEditMode,
@@ -47,8 +54,6 @@ export default function EventForm({ initialData, locations }: EventFormProps) {
     onSubmit,
     showAddLocation,
     setShowAddLocation,
-    locationsList,
-    setLocationsList,
     setImageFile,
     setImageRemoved,
     imageUploadProgress,
@@ -72,15 +77,19 @@ export default function EventForm({ initialData, locations }: EventFormProps) {
     dateErrorMessage,
     showRootError,
     rootErrorMessage,
+    existingImageUrl,
   } = useEventForm({ initialData, locations });
 
-  const locationOptionsCombobox: ComboboxOptions[] = [
-    { value: '', label: 'TBA (To be Announced)' },
-    ...locationsList.map(({ id, name }) => ({
-      value: String(id),
-      label: name ?? '',
-    })),
-  ];
+  const locationOptionsCombobox = useMemo(
+    () => [
+      { value: '', label: 'TBA (To be Announced)' },
+      ...locations.map(({ id, name }) => ({
+        value: String(id),
+        label: name ?? '',
+      })),
+    ],
+    [locations]
+  );
 
   return (
     <>
@@ -221,6 +230,8 @@ export default function EventForm({ initialData, locations }: EventFormProps) {
                   placeholder="Select the location"
                   searchPlaceholder="Search"
                   emptyMessage="No location found"
+                  onMenuScrollToBottom={onLocationMenuScrollToBottom}
+                  isLoading={isLoadingLocations}
                   className="bg-secondary text-secondary-foreground text-sm md:text-base justify-center text-center"
                   showSelectedTick={true}
                   footer={
@@ -258,7 +269,7 @@ export default function EventForm({ initialData, locations }: EventFormProps) {
               progress={imageUploadProgress}
               aspectRatio="rectangle"
               onError={setImageError}
-              value={initialData?.imageKey ? getEventImageUrl(initialData) : null}
+              value={existingImageUrl}
             />
             {imageError && (
               <Alert variant="destructive">
@@ -339,7 +350,6 @@ export default function EventForm({ initialData, locations }: EventFormProps) {
           </SheetHeader>
           <LocationForm
             onSuccess={(location) => {
-              setLocationsList((prev) => [...prev, location]);
               setValue('locationId', String(location.id));
               setShowAddLocation(false);
             }}

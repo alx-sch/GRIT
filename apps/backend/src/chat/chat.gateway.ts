@@ -94,7 +94,7 @@ export class ChatGateway {
         }
 
         socket.data.userId = user.id;
-        socket.data.userName = user.name ?? 'No username';
+        socket.data.userName = user.name;
         socket.data.userAvatarKey = user.avatarKey ?? undefined;
 
         next();
