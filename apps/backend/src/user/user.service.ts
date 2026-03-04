@@ -319,12 +319,9 @@ export class UserService {
       data: newData,
       include: {
         attending: {
-          select: {
+          include: {
             event: {
-              select: {
-                title: true,
-                startAt: true,
-              },
+              include: { location: true },
             },
           },
         },
@@ -335,8 +332,12 @@ export class UserService {
       ...user_raw,
       createdAt: user_raw.createdAt.toISOString(),
       attending: user_raw.attending.map((a) => ({
+        id: a.event.id,
         title: a.event.title,
         startAt: a.event.startAt.toISOString(),
+        isOrganizer: a.event.authorId === userId,
+        imageKey: a.event.imageKey,
+        location: a.event.location,
       })),
     };
   }

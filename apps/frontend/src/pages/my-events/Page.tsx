@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CalendarDays, Plus } from 'lucide-react';
+import { CalendarDays, Plus, MapPin } from 'lucide-react';
 import { userService } from '@/services/userService';
 import { useNavigate } from 'react-router-dom';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
@@ -41,56 +41,62 @@ export function Page() {
         {filteredEvents.map((event) => (
           <Card key={event.id} className="hover:shadow-md transition-shadow">
             <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 gap-4">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 w-full sm:w-auto">
+                {/* Event Image */}
                 <div className="flex items-center justify-center shrink-0 w-16 h-16 sm:w-24 sm:h-24 rounded-lg overflow-hidden bg-muted border">
                   <img
-                    // We cast as any because getEventImageUrl expects an EventBase,
-                    // but it only actually uses id, title, and imageKey internally which we have.
                     src={getEventImageUrl(event)}
                     alt={event.title}
                     className="w-full h-full object-cover"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <Text className="font-semibold text-lg line-clamp-1">{event.title}</Text>
-
-                  {/* Event Location */}
-                  {event.location && (
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <MapPin className="w-4 h-4 mr-1 shrink-0" />
-                      <span className="line-clamp-1">
-                        {event.location.name || event.location.city || 'Location TBD'}
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="flex flex-wrap items-center gap-2 pt-1">
-                    <Badge variant={event.isOrganizer ? 'default' : 'secondary'}>
+                {/* Event Details */}
+                <div className="space-y-1.5 flex-1 min-w-0">
+                  {/* Title and Badge */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Text className="font-semibold text-lg line-clamp-1">{event.title}</Text>
+                    <Badge
+                      variant={event.isOrganizer ? 'default' : 'secondary'}
+                      className="shrink-0"
+                    >
                       {event.isOrganizer
-                        ? 'Organizing'
+                        ? 'Organizer'
                         : new Date(event.startAt) >= now
-                          ? 'Attending'
+                          ? 'Going'
                           : 'Attended'}
                     </Badge>
-                    <Text className="text-sm text-muted-foreground">
-                      {new Date(event.startAt).toLocaleString(undefined, {
-                        dateStyle: 'medium',
-                        timeStyle: 'short',
-                      })}
-                    </Text>
+                  </div>
+
+                  <Text className="text-sm text-muted-foreground">
+                    {new Date(event.startAt).toLocaleString(undefined, {
+                      weekday: 'short',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit',
+                    })}
+                  </Text>
+
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <MapPin className="w-4 h-4 mr-1 shrink-0" />
+                    <span className="line-clamp-1">
+                      {event?.location?.name ?? event?.location?.city ?? 'TBA'}
+                    </span>
                   </div>
                 </div>
               </div>
+
+              {/* Action Button */}
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full sm:w-auto shrink-0"
+                className="w-full sm:w-auto shrink-0 mt-2 sm:mt-0"
                 onClick={() => {
-                  void navigate(`/events/${event.id}`);
+                  void navigate(`/events/${String(event.id)}`);
                 }}
               >
-                View Details
+                Details
               </Button>
             </CardContent>
           </Card>

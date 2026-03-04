@@ -2,17 +2,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Text } from '@/components/ui/typography';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CalendarDays } from 'lucide-react';
+import { CalendarDays, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { getEventImageUrl } from '@/lib/image_utils';
 
 interface MyEventsProps {
-  events: { id: number; title: string; startAt: string; isOrganizer: boolean }[];
+  events: {
+    id: number;
+    title: string;
+    startAt: string;
+    isOrganizer: boolean;
+    imageKey?: string | null;
+    location?: { name?: string | null; city?: string | null } | null;
+  }[];
 }
 
 export function MyEvents({ events }: MyEventsProps) {
   const navigate = useNavigate();
 
-  // Show only first 5 events for summary view
   const displayedEvents = events.slice(0, 5);
   const hasMore = events.length > 5;
 
@@ -80,20 +87,43 @@ export function MyEvents({ events }: MyEventsProps) {
                   onClick={() => void navigate(`/events/${String(event.id)}`)}
                   className="flex items-center justify-between p-3 rounded-lg border hover:bg-accent transition-colors cursor-pointer"
                 >
-                  <div className="flex items-center gap-3">
-                    <CalendarDays className="w-5 h-5 text-muted-foreground" />
+                  <div className="flex items-center gap-4">
+                    {/* Event Mini Image */}
+                    <div className="w-12 h-12 shrink-0 rounded-md overflow-hidden bg-muted">
+                      <img
+                        src={getEventImageUrl(event)}
+                        alt={event.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+
                     <div className="flex flex-col">
                       <div className="flex items-center gap-2">
-                        <Text className="font-medium">{event.title}</Text>
+                        <Text className="font-medium line-clamp-1">{event.title}</Text>
                         {event.isOrganizer && (
-                          <Badge variant="secondary" className="text-xs">
+                          <Badge variant="secondary" className="text-[10px] h-4 px-1">
                             Organizer
                           </Badge>
                         )}
                       </div>
-                      <Text className="text-xs text-muted-foreground">
-                        {new Date(event.startAt).toLocaleDateString()}
-                      </Text>
+
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                        <Text className="text-xs">
+                          {new Date(event.startAt).toLocaleDateString()}
+                        </Text>
+
+                        {event.location && (
+                          <>
+                            <span>•</span>
+                            <div className="flex items-center max-w-30">
+                              <MapPin className="w-3 h-3 mr-1 shrink-0" />
+                              <span className="truncate">
+                                {event.location.name ?? event.location.city}
+                              </span>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -103,7 +133,7 @@ export function MyEvents({ events }: MyEventsProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-full"
+                className="w-full mt-2"
                 onClick={() => {
                   void navigate('/my-events');
                 }}
