@@ -139,7 +139,9 @@ export function ImageCropDialog({
           <Button
             type="button"
             variant="default"
-            onClick={void handleApply}
+            onClick={() => {
+              void handleApply();
+            }}
             disabled={isProcessing}
           >
             {isProcessing && <Loader2 className="animate-spin" />}

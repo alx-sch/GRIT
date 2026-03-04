@@ -119,7 +119,6 @@ export function ProfileAvatar({ user, avatarUrl, initials, onAvatarUpdate }: Pro
         </CardContent>
       </Card>
 
-      {/* Image Crop Dialog */}
       <ImageCropDialog
         open={showCropDialog}
         imageSrc={selectedImageSrc}
