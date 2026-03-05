@@ -16,16 +16,11 @@ export const ChatBoxHeader = ({ conversation }: { conversation: ResConversationS
     return s.conversations[conversation.id];
   });
 
-  const {
-    title,
-    imageUrl,
-    imageFallback,
-    lastMessageText,
-    lastMessageAuthor,
-    lastMessageCreatedAt,
-    eventStart,
-    isEvent,
-  } = mapConversationToCard(conversation, conversationState, currentUser);
+  const { title, imageUrl, imageFallback, isEvent } = mapConversationToCard(
+    conversation,
+    conversationState,
+    currentUser
+  );
 
   return (
     <>
@@ -33,7 +28,7 @@ export const ChatBoxHeader = ({ conversation }: { conversation: ResConversationS
         <div className="border-r-2 flex items-center">
           <button
             className="h-17 w-15 flex justify-center items-center md:hidden cursor-pointer"
-            onClick={() => navigate('/chat')}
+            onClick={() => void navigate('/chat')}
           >
             <ChevronLeft />
           </button>

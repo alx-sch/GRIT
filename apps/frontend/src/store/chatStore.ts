@@ -45,8 +45,9 @@ export const chatStore = create<ChatStore>((set, get) => ({
     });
   },
 
-  resetConversations: () => set({ conversations: {} }),
-
+  resetConversations: () => {
+    set({ conversations: {} });
+  },
   // The initial load of last messages we receive on socket connect
   setInitialConversations: (lastMessages: ResConversationsLastMessages) => {
     console.log('setting last messages', lastMessages);

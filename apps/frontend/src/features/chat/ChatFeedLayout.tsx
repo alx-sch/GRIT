@@ -18,7 +18,9 @@ export const ChatFeedLayout = () => {
 
   // This listens to an event we fire in the socketProvider if the list of chats changes to be able to refetch the list in the chat.
   useEffect(() => {
-    const handler = () => revalidate();
+    const handler = () => {
+      void revalidate();
+    };
     window.addEventListener('chat:conversationsChanged', handler);
     return () => {
       window.removeEventListener('chat:conversationsChanged', handler);

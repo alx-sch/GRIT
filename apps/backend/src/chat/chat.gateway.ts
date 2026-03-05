@@ -179,7 +179,7 @@ export class ChatGateway implements OnGatewayConnection {
 
       payload[conv.id] = {
         lastMessage: conv.messages[0] ?? null,
-        lastReadAt: participant?.lastReadAt ?? null,
+        lastReadAt: participant.lastReadAt ?? null,
       };
     }
     console.log('backend emits initialLastMessages with', payload);
@@ -203,7 +203,7 @@ export class ChatGateway implements OnGatewayConnection {
     if (!socketIds) return;
 
     for (const socketId of socketIds) {
-      const socket = this.server.sockets.sockets.get(socketId);
+      const socket = this.server.sockets.sockets.get(socketId) as AppSocket | undefined;
       if (!socket) continue;
 
       await this.syncSocketConversations(socket, userId);

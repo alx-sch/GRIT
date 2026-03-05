@@ -1,4 +1,4 @@
-import { CurrentUser, UserBase } from '@/types/user';
+import { CurrentUser } from '@/types/user';
 import { ResConversationOverview, ResConversationState } from '@grit/schema';
 import { getAvatarImageUrl, getEventImageUrlByKey } from '@/lib/image_utils';
 import { trimText } from '@/lib/utils';

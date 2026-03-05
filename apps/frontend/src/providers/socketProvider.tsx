@@ -48,10 +48,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Listen for incoming messages
     newSocket.on('message', (message: ResChatMessage) => {
-      console.log('Should have stored', message.text);
-      const conversations = chatStore.getState().conversations;
       chatStore.getState().storeLastMessage(message);
-      console.log('after storing', chatStore.getState().conversations);
     });
 
     return () => {
