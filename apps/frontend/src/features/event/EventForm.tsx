@@ -10,7 +10,7 @@ import LocationForm from '@/features/event/LocationForm';
 import { useDebounce } from '@/hooks/useDebounce';
 import { type EventFormFields } from '@/schema/event';
 import { EventBase } from '@/types/event';
-import { LocationBase } from '@/types/location';
+import { LocationBase, LocationSummary } from '@/types/location';
 import { AlertCircleIcon, PlusIcon, X } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { Control, Controller, useWatch } from 'react-hook-form';
@@ -33,7 +33,7 @@ function DraftSaver({ control }: { control: Control<EventFormFields> }) {
 
 interface EventFormProps {
   initialData?: EventBase;
-  locations: LocationBase[];
+  locations: LocationSummary[];
   onLocationMenuScrollToBottom?: () => void;
   isLoadingLocations?: boolean;
   onLocationCreated?: (location: LocationBase) => void;

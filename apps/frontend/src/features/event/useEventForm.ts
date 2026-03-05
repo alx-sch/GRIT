@@ -2,7 +2,7 @@ import { getEventImageUrl } from '@/lib/image_utils';
 import { type EventFormFields, EventFormSchema } from '@/schema/event';
 import { eventService } from '@/services/eventService';
 import { EventBase } from '@/types/event';
-import { LocationBase } from '@/types/location';
+import { LocationSummary } from '@/types/location';
 import { CreateEventSchema } from '@grit/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { isAxiosError } from 'axios';
@@ -15,7 +15,7 @@ import { DRAFT_KEY } from './EventForm';
 
 interface UseEventFormProps {
   initialData?: EventBase;
-  locations: LocationBase[];
+  locations: LocationSummary[];
 }
 
 export function useEventForm({ initialData, locations }: UseEventFormProps) {
@@ -58,7 +58,7 @@ export function useEventForm({ initialData, locations }: UseEventFormProps) {
 
   // Location
   const [showAddLocation, setShowAddLocation] = useState(false);
-  const [locationsList, setLocationsList] = useState<LocationBase[]>(locations);
+  const [locationsList, setLocationsList] = useState<LocationSummary[]>(locations);
 
   // Cover Image
   const [imageFile, setImageFile] = useState<File | null>(null);
