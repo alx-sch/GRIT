@@ -23,6 +23,7 @@ interface SocketData {
   userId: number;
   userName: string;
   userAvatarKey?: string;
+  isAdmin: boolean;
   conversationId?: string;
 }
 
@@ -96,6 +97,7 @@ export class ChatGateway {
         socket.data.userId = user.id;
         socket.data.userName = user.name;
         socket.data.userAvatarKey = user.avatarKey ?? undefined;
+        socket.data.isAdmin = user.isAdmin;
 
         next();
       })();
@@ -115,7 +117,8 @@ export class ChatGateway {
         },
       },
     });
-    if (!conversation) throw new WsException('You are not allowed to view this conversation');
+    if (!conversation && !client.data.isAdmin)
+      throw new WsException('You are not allowed to view this conversation');
     else await client.join(body.id);
 
     // We lock down which conversation this socket belongs to
@@ -124,6 +127,7 @@ export class ChatGateway {
     const rows = await this.chatService.loadMessages(body.id);
     // Serialization in Websocket context
     const history = rows.reverse().map((row) => ResChatMessageSchema.parse(row));
+    client.emit('user_info', { isAdmin: client.data.isAdmin });
     client.emit('history', history);
   }
 
@@ -184,5 +188,39 @@ export class ChatGateway {
 
     const messages = rows.reverse().map((row) => ResChatMessageSchema.parse(row));
     client.emit('history', messages);
+  }
+
+  @SubscribeMessage('delete_message')
+  async handleDeleteMessage(
+    @MessageBody() body: { messageId: string },
+    @ConnectedSocket() client: AppSocket
+  ) {
+    // Only admins can delete
+    if (!client.data.isAdmin) {
+      throw new WsException('Only admins can delete messages');
+    }
+
+    const conversationId = client.data.conversationId;
+    if (!conversationId) {
+      throw new WsException('Not in a conversation');
+    }
+
+    // Verify message exists in this conversation
+    const message = await this.prisma.chatMessage.findFirst({
+      where: {
+        id: body.messageId,
+        conversationId,
+      },
+    });
+
+    if (!message) {
+      throw new WsException('Message not found in this conversation');
+    }
+
+    // Delete it
+    await this.chatService.deleteMessage(body.messageId);
+
+    // Broadcast deletion to all users in the conversation
+    this.server.to(conversationId).emit('message_deleted', { messageId: body.messageId });
   }
 }

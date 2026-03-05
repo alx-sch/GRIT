@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 export function useChat(conversationId: string) {
   const socketRef = useRef<Socket | null>(null);
   const [messages, setMessages] = useState<ResChatMessage[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const token = useAuthStore((s) => s.token);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
@@ -24,12 +25,20 @@ export function useChat(conversationId: string) {
       socket.emit('join', { id: conversationId });
     });
 
+    socket.on('user_info', (data: { isAdmin: boolean }) => {
+      setIsAdmin(data.isAdmin);
+    });
+
     socket.on('message', (msg: ResChatMessage) => {
       setMessages((prev) => [...prev, msg]);
     });
 
     socket.on('history', (msgs: ResChatMessage[]) => {
       setMessages((prev) => [...msgs, ...prev]);
+    });
+
+    socket.on('message_deleted', (data: { messageId: string }) => {
+      setMessages((prev) => prev.filter((msg) => msg.id !== data.messageId));
     });
 
     socket.on('error', (err: { message: string }) => {
@@ -44,13 +53,17 @@ export function useChat(conversationId: string) {
     return () => {
       socket.disconnect();
     };
-  }, [conversationId]);
+  }, [conversationId, token]);
 
   const sendMessage = (text: string) => {
     if (!text.trim()) return;
     socketRef.current?.emit('message', {
       text,
     });
+  };
+
+  const deleteMessage = (messageId: string) => {
+    socketRef.current?.emit('delete_message', { messageId });
   };
 
   const loadMore = (cursor: { createdAt: Date; id: string }) => {
@@ -61,5 +74,5 @@ export function useChat(conversationId: string) {
     });
   };
 
-  return { messages, sendMessage, loadMore, hasMore, errorMessage };
+  return { messages, sendMessage, deleteMessage, loadMore, hasMore, errorMessage, isAdmin };
 }

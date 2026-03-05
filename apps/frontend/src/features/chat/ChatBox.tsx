@@ -5,10 +5,11 @@ import { useChat } from '@/features/chat/useChat';
 import { ChatBubble } from '@/features/chat/ChatBubble';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircleIcon } from 'lucide-react';
+import { AlertCircleIcon, MessagesSquare, Trash2 } from 'lucide-react';
 
 export const ChatBox = ({ conversationId }: { conversationId: string }) => {
-  const { messages, sendMessage, loadMore, hasMore, errorMessage } = useChat(conversationId);
+  const { messages, sendMessage, loadMore, deleteMessage, hasMore, errorMessage, isAdmin } =
+    useChat(conversationId);
   const [input, setInput] = useState('');
   const [isNearBottom, setIsNearBottom] = useState(true);
   const [hasNewMessages, setHasNewMessages] = useState(false);
@@ -97,14 +98,17 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
       viewport.scrollTop < 100 &&
       hasMore &&
       !isInitialLoad.current &&
-      !isLoadingMoreHistory.current
+      !isLoadingMoreHistory.current &&
+      messages.length > 0
     ) {
       isLoadingMoreHistory.current = true;
       const oldest = messages[0];
-      loadMore({
-        createdAt: oldest.createdAt,
-        id: oldest.id,
-      });
+      if (oldest) {
+        loadMore({
+          createdAt: oldest.createdAt,
+          id: oldest.id,
+        });
+      }
     }
 
     return () => {
@@ -126,10 +130,24 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
       <div className="relative">
         <div ref={viewportRef} className="h-75 overflow-y-auto border border-input px-4 mt-4 mb-4">
           {messages.map((message) => (
-            <ChatBubble key={message.id} message={message} />
+            <div key={message.id} className="group relative">
+              <ChatBubble message={message} />
+
+              {isAdmin && (
+                <button
+                  onClick={() => deleteMessage(message.id)}
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-destructive hover:text-destructive-foreground rounded"
+                  title="Delete message"
+                  aria-label="Delete message"
+                >
+                  <Trash2 size={16} />
+                </button>
+              )}
+            </div>
           ))}
           <div ref={bottomRef} />
         </div>
+
         {hasNewMessages && (
           <div className="absolute bottom-4 flex justify-center w-full">
             <Button
