@@ -1,4 +1,4 @@
-import { CreateEventSchema, ResEventBaseSchema } from '@grit/schema';
+import { CreateEventSchema, ResEventBaseSchema, PatchEventSchema } from '@grit/schema';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
@@ -46,19 +46,9 @@ export const ReqEventGetPublishedSchema = z.strictObject({
 export class ReqEventGetPublishedDto extends createZodDto(ReqEventGetPublishedSchema) {}
 
 // Patch an event (Update)
-export const ReqEventPatchSchema = z.strictObject({
-  content: z.string().optional(),
-  endAt: z.iso.datetime().optional(),
-  isPublic: z.boolean().optional(),
-  isPublished: z.boolean().optional(),
-  startAt: z.iso.datetime().optional(),
-  title: z.string().optional(),
-  imageKey: z.string().optional(),
-  locationId: z.number().nullable().optional(),
-});
-export class ReqEventPatchDto extends createZodDto(ReqEventPatchSchema) {}
+export class ReqEventPatchDto extends createZodDto(PatchEventSchema) {}
 export const ResEventPatchSchema = ResEventBaseSchema;
 
+//Post a new event (Create)
 export class ReqEventPostDraftDto extends createZodDto(CreateEventSchema) {}
-
 export const ResEventPostDraftSchema = ResEventBaseSchema;

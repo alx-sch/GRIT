@@ -1,6 +1,6 @@
 import api from '@/lib/api';
 import type { EventBase, EventResponse } from '@/types/event';
-import { CreateEventInput } from '@grit/schema';
+import { CreateEventInput, PatchEventInput } from '@grit/schema';
 
 interface GetEventsParams {
   search?: string;
@@ -40,6 +40,16 @@ export const eventService = {
     return response.data;
   },
 
+  patchEvent: async (id: string, data: PatchEventInput): Promise<EventBase> => {
+    const response = await api.patch<EventBase>(`/events/${id}`, data);
+    return response.data;
+  },
+
+  deleteEvent: async (id: string): Promise<EventBase> => {
+    const response = await api.delete<EventBase>(`/events/${id}`);
+    return response.data;
+  },
+
   uploadEventImage: async (
     eventId: number,
     file: File,
@@ -55,6 +65,33 @@ export const eventService = {
         headers: { 'Content-Type': 'multipart/form-data' },
         onUploadProgress: (e) => onProgress?.(Math.round((e.loaded * 100) / (e.total ?? 1))),
       }
+    );
+    return response.data;
+  },
+
+  deleteEventImage: async (eventId: number): Promise<EventBase> => {
+    const response = await api.delete<EventBase>(`/events/${String(eventId)}/image`);
+    return response.data;
+  },
+
+  uploadEventFile: async (
+    eventId: number,
+    file: File,
+    onProgress?: (progress: number) => void
+  ): Promise<EventBase> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await api.post<EventBase>(`/events/${String(eventId)}/files`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: (e) => onProgress?.(Math.round((e.loaded * 100) / (e.total ?? 1))),
+    });
+    return response.data;
+  },
+
+  deleteEventFile: async (eventId: number, fileId: number): Promise<EventBase> => {
+    const response = await api.delete<EventBase>(
+      `/events/${String(eventId)}/files/${String(fileId)}`
     );
     return response.data;
   },

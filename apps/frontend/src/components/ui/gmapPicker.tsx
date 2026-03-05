@@ -61,7 +61,7 @@ function extractAddress(components: google.maps.places.AddressComponent[]) {
  * MAIN CODE
  */
 
-export const GMap = ({
+export const GmapPicker = ({
   setValue,
   lng,
   lat,

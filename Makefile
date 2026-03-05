@@ -282,7 +282,6 @@ test-be-testdb-init: start-postgres
 test-be-testdb-remove:
 	@echo "$(BOLD)$(YELLOW)--- Removing Test Database ...$(RESET)"
 	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
-
 ## Frontend ##
 
 test-fe:
@@ -517,10 +516,10 @@ run-fe: kill-port-fe build-fe
 start: check-env db
 	@echo "$(BOLD)$(YELLOW)--- Launching Application Services...$(RESET)"
 	$(DC) up -d --build backend caddy
-	
+
 	@echo "$(BOLD)$(GREEN)Full stack is live!$(RESET)"
 	@echo "•   View live logs: '$(YELLOW)make logs$(RESET)'"
-	
+
 	@if [ -n "$(APP_BASE_URL)" ]; then \
 		echo "•   View app:       '$(YELLOW)$(APP_BASE_URL)$(RESET)'"; \
 	else \

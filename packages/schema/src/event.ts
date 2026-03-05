@@ -16,10 +16,19 @@ export const ResEventLocationSchema = z.object({
   name: z.string().nullable(),
   city: z.string().nullable().optional(),
   country: z.string().nullable().optional(),
+  address: z.string().nullable().optional(),
+  postalCode: z.string().nullable().optional(),
   longitude: z.number(),
   latitude: z.number(),
   isPublic: z.boolean(),
 });
+export const ResEventFileSchema = z.object({
+  id: z.number().int().positive(),
+  fileKey: z.string(),
+  fileName: z.string(),
+  mimeType: z.string(),
+});
+export type ResEventFile = z.infer<typeof ResEventFileSchema>;
 
 export const ResEventBaseSchema = z.object({
   id: z.number().int().positive(),
@@ -30,6 +39,7 @@ export const ResEventBaseSchema = z.object({
   createdAt: z.date(),
   endAt: z.date(),
   imageKey: z.string().nullable().optional(),
+  files: z.array(ResEventFileSchema).default([]),
   isPublished: z.boolean(),
   isPublic: z.boolean(),
   startAt: z.date(),
@@ -63,6 +73,9 @@ export const CreateEventSchema = z.object({
   startAt: z.iso.datetime(),
   endAt: z.iso.datetime(),
   imageKey: z.string().optional(),
-  locationId: z.number().int().positive().optional(),
+  locationId: z.number().int().positive().nullable().optional(),
 });
 export type CreateEventInput = z.infer<typeof CreateEventSchema>;
+
+export const PatchEventSchema = CreateEventSchema.partial();
+export type PatchEventInput = z.infer<typeof PatchEventSchema>;

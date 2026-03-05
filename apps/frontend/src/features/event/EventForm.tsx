@@ -6,22 +6,19 @@ import { FileUpload } from '@/components/ui/fileUpload';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
+import LocationForm from '@/features/event/LocationForm';
 import { useDebounce } from '@/hooks/useDebounce';
-import LocationForm from '@/pages/create/event/components/LocationForm';
-import { EventFormSchema, type EventFormFields } from '@/schema/event';
-import { eventService } from '@/services/eventService';
-import { LocationBase } from '@/types/location';
-import { CreateEventSchema } from '@grit/schema';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { isAxiosError } from 'axios';
+import { type EventFormFields } from '@/schema/event';
+import { EventBase } from '@/types/event';
+import { LocationBase, LocationSummary } from '@/types/location';
 import { AlertCircleIcon, PlusIcon, X } from 'lucide-react';
-import { useEffect, useState, useMemo } from 'react';
-import { Control, Controller, SubmitHandler, useForm, useWatch } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import { useEffect, useMemo } from 'react';
+import { Control, Controller, useWatch } from 'react-hook-form';
+import { useEventForm } from './useEventForm';
 
 // Key for localStorage
-const DRAFT_KEY = 'event-draft';
+export const DRAFT_KEY = 'event-draft';
+
 // Component to auto-save draft to localStorage
 function DraftSaver({ control }: { control: Control<EventFormFields> }) {
   const formValues = useWatch({ control });
@@ -35,42 +32,55 @@ function DraftSaver({ control }: { control: Control<EventFormFields> }) {
 }
 
 interface EventFormProps {
-  locations: LocationBase[];
+  initialData?: EventBase;
+  locations: LocationSummary[];
   onLocationMenuScrollToBottom?: () => void;
   isLoadingLocations?: boolean;
+  onLocationCreated?: (location: LocationBase) => void;
 }
 
 export default function EventForm({
+  initialData,
   locations,
   onLocationMenuScrollToBottom,
   isLoadingLocations,
+  onLocationCreated,
 }: EventFormProps) {
-  const navigate = useNavigate();
-
   const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
     control,
-    setError,
-    formState: { errors, isSubmitting, submitCount },
-  } = useForm<EventFormFields>({
-    resolver: zodResolver(EventFormSchema),
-    defaultValues: {
-      isPublic: false,
-      isPublished: false,
-      title: '',
-      content: '',
-      startAt: undefined,
-      endAt: undefined,
-      locationId: undefined,
-      imageKey: undefined,
-    },
-  });
-
-  //Locations set-up
-  const [showAddLocation, setShowAddLocation] = useState(false);
+    isEditMode,
+    isSubmitting,
+    register,
+    setValue,
+    handleSubmit,
+    onSubmit,
+    showAddLocation,
+    setShowAddLocation,
+    setImageFile,
+    setImageRemoved,
+    imageUploadProgress,
+    imageError,
+    setImageError,
+    setAdditionalFiles,
+    additionalFilesError,
+    setAdditionalFilesError,
+    filesUploadProgress,
+    existingFiles,
+    handleRemoveExistingFile,
+    startAtValue,
+    endAtValue,
+    getTimeFromDate,
+    handleStartTimeChange,
+    handleEndTimeChange,
+    errors,
+    showTitleError,
+    titleErrorMessage,
+    showDateError,
+    dateErrorMessage,
+    showRootError,
+    rootErrorMessage,
+    existingImageUrl,
+  } = useEventForm({ initialData, locations });
 
   const locationOptionsCombobox = useMemo(
     () => [
@@ -83,151 +93,10 @@ export default function EventForm({
     [locations]
   );
 
-  //image upload
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [imageError, setImageError] = useState<string | null>(null);
-
-  //Restore draft if exists
-  useEffect(() => {
-    const saved = localStorage.getItem(DRAFT_KEY);
-    if (saved) {
-      const draft = JSON.parse(saved) as Record<string, unknown>;
-      for (const [key, value] of Object.entries(draft)) {
-        if (key === 'startAt' || key === 'endAt') {
-          setValue(key, new Date(value as string));
-        } else {
-          setValue(key as keyof EventFormFields, value as EventFormFields[keyof EventFormFields]);
-        }
-      }
-    }
-  }, [setValue]);
-
-  const onSubmit: SubmitHandler<EventFormFields> = async (data) => {
-    try {
-      const payload = {
-        title: data.title,
-        isPublic: data.isPublic,
-        isPublished: data.isPublished,
-        startAt: data.startAt.toISOString(),
-        endAt: data.endAt.toISOString(),
-        content: data.content ?? undefined,
-        locationId: data.locationId ? Number(data.locationId) : undefined,
-      };
-      //Validating against shared schema
-      const parsed = CreateEventSchema.safeParse(payload);
-      if (!parsed.success) {
-        setError('root', { message: 'Invalid event data' });
-        return;
-      }
-
-      const result = await eventService.postEvent(payload);
-      if (imageFile) {
-        try {
-          await eventService.uploadEventImage(result.id, imageFile, setUploadProgress);
-        } catch (uploadError) {
-          console.error('Image upload failed:', uploadError);
-
-          toast.warning('Event created, but image upload failed');
-        }
-      }
-      localStorage.removeItem(DRAFT_KEY);
-      void navigate(`/events/${String(result.id)}`, { replace: true });
-    } catch (error) {
-      let message = 'Something went wrong. Please try again.';
-      if (isAxiosError(error)) {
-        const data = error.response?.data as { message?: string } | undefined;
-        if (data?.message) {
-          message = data.message;
-        }
-      }
-      setError('root', { message });
-    }
-  };
-
-  //eslint-disable-next-line react-hooks/incompatible-library
-  const startAtValue = watch('startAt') as Date | undefined;
-  const endAtValue = watch('endAt') as Date | undefined;
-
-  // Helper to extract time string from Date
-  const getTimeFromDate = (date: Date | undefined): string => {
-    if (!date) return '12:00';
-    return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-  };
-
-  // Helper to set time on a Date
-  const setTimeOnDate = (date: Date, time: string): Date => {
-    const [hours, minutes] = time.split(':').map(Number);
-    const newDate = new Date(date);
-    newDate.setHours(hours, minutes, 0, 0);
-    return newDate;
-  };
-
-  // Handlers to update form dates when time changes
-  const handleStartTimeChange = (time: string) => {
-    if (startAtValue) {
-      setValue('startAt', setTimeOnDate(startAtValue, time), { shouldValidate: true });
-    }
-  };
-
-  const handleEndTimeChange = (time: string) => {
-    if (endAtValue) {
-      setValue('endAt', setTimeOnDate(endAtValue, time), { shouldValidate: true });
-    }
-  };
-
-  // Auto-dismiss title errors after 15 seconds
-  const [showTitleError, setShowTitleError] = useState(false);
-  const titleErrorMessage = errors.title?.message;
-
-  useEffect(() => {
-    if (titleErrorMessage) {
-      setShowTitleError(true);
-      const timer = setTimeout(() => {
-        setShowTitleError(false);
-      }, 15000);
-      return () => {
-        clearTimeout(timer);
-      };
-    }
-  }, [titleErrorMessage, submitCount]);
-
-  // Auto-dismiss date errors after 15 seconds
-  const [showDateError, setShowDateError] = useState(false);
-  const dateErrorMessage = errors.startAt?.message ?? errors.endAt?.message;
-
-  useEffect(() => {
-    if (dateErrorMessage) {
-      setShowDateError(true);
-      const timer = setTimeout(() => {
-        setShowDateError(false);
-      }, 15000);
-      return () => {
-        clearTimeout(timer);
-      };
-    }
-  }, [dateErrorMessage, submitCount]);
-
-  // Auto-dismiss root errors after 15 seconds
-  const [showRootError, setShowRootError] = useState(false);
-  const rootErrorMessage = errors.root?.message;
-
-  useEffect(() => {
-    if (rootErrorMessage) {
-      setShowRootError(true);
-      const timer = setTimeout(() => {
-        setShowRootError(false);
-      }, 15000);
-      return () => {
-        clearTimeout(timer);
-      };
-    }
-  }, [rootErrorMessage, submitCount]);
-
   return (
     <>
       <form className="flex flex-col gap-8">
-        <DraftSaver control={control} />
+        {!isEditMode && <DraftSaver control={control} />}
         {/*Visibility*/}
         <div className="flex flex-col gap-4">
           <Controller
@@ -394,15 +263,43 @@ export default function EventForm({
           </label>
           <div className="items-center">
             <FileUpload
-              onChange={setImageFile}
-              progress={uploadProgress}
-              aspectRatio="square"
+              onChange={(files) => {
+                const file = files[0] ?? null;
+                setImageFile(file);
+                setImageRemoved(!file);
+              }}
+              progress={imageUploadProgress}
+              aspectRatio="rectangle"
               onError={setImageError}
+              value={existingImageUrl}
             />
             {imageError && (
               <Alert variant="destructive">
                 <AlertCircleIcon className="h-4 w-4" />
                 <AlertTitle className="text-sm">{imageError}</AlertTitle>
+              </Alert>
+            )}
+          </div>
+        </div>
+
+        {/* Documents Upload */}
+        <div className="flex flex-col gap-4">
+          <label htmlFor="image" className="font-heading">
+            Additionnal documents
+          </label>
+          <div className="items-center">
+            <FileUpload
+              multiple
+              onChange={setAdditionalFiles}
+              onError={setAdditionalFilesError}
+              progress={filesUploadProgress}
+              existingFiles={existingFiles}
+              onRemoveExisting={handleRemoveExistingFile}
+            />
+            {additionalFilesError && (
+              <Alert variant="destructive">
+                <AlertCircleIcon className="h-4 w-4" />
+                <AlertTitle className="text-sm">{additionalFilesError}</AlertTitle>
               </Alert>
             )}
           </div>
@@ -456,6 +353,7 @@ export default function EventForm({
           <LocationForm
             onSuccess={(location) => {
               setValue('locationId', String(location.id));
+              onLocationCreated?.(location);
               setShowAddLocation(false);
             }}
             onCancel={() => {
