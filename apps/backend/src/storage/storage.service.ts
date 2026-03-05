@@ -20,7 +20,7 @@ export class StorageService implements OnModuleInit {
   private readonly logger = new Logger(StorageService.name);
   private s3 = new S3Client({
     region: 'us-east-1',
-    endpoint: env.MINIO_ENDPOINT,
+    endpoint: env.MINIO_INTERNAL_URL,
     credentials: {
       accessKeyId: env.MINIO_USER,
       secretAccessKey: env.MINIO_PASSWORD,
@@ -34,6 +34,7 @@ export class StorageService implements OnModuleInit {
     this.logger.log('Initializing Storage Buckets...');
     await this.ensureBucket('user-avatars');
     await this.ensureBucket('event-images');
+    await this.ensureBucket('event-files');
   }
 
   // Raw buffer upload, used by to get avatas from Google (OAuth)

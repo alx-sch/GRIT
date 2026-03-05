@@ -1,4 +1,3 @@
-import { env } from '@/config/env';
 import { EventBase } from '@/types/event';
 
 interface EventImageInput {
@@ -11,12 +10,12 @@ export function getEventImageUrl(event: EventImageInput): string {
   if (!event.imageKey) {
     return generateImagePlaceholderEvent(event);
   }
-  return `${env.MINIO_URL}/event-images/${event.imageKey}`;
+  return `/s3/event-images/${event.imageKey}`;
 }
 
 export function getAvatarImageUrl(avatarFilename: string | undefined): string {
   if (!avatarFilename) return '';
-  return `${env.MINIO_URL}/user-avatars/${avatarFilename}`;
+  return `/s3/user-avatars/${avatarFilename}`;
 }
 
 function wrapLines(text: string, maxLen = 12, maxLines = 3): string[] {

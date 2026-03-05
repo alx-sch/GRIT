@@ -23,7 +23,7 @@ export const ReqUserGetAllSchema = z.strictObject({
 
 // Post a new user draft
 export const ReqUserPostSchema = z.object({
-  name: z.string().optional(),
+  name: z.string(),
   email: z.email(),
   password: z
     .string()
@@ -54,6 +54,9 @@ export const ReqUserGetByIdSchema = z.strictObject({
 });
 export class ReqUserGetByIdDto extends createZodDto(ReqUserGetByIdSchema) {}
 export const ResUserGetByIdSchema = ResUserBaseSchema;
+
+// Delete a user
+export const ResUserDeleteSchema = ResUserBaseSchema;
 
 // --- DTO classes ---
 export class ResUserBaseDto extends createZodDto(ResUserBaseSchema) {}

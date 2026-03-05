@@ -1,7 +1,7 @@
-import { defineConfig, loadEnv } from 'vite';
-import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import react from '@vitejs/plugin-react';
 import path from 'path';
+import { defineConfig, loadEnv } from 'vite';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, path.resolve(__dirname, '../../'), '');
@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => {
   const frontendPort = parseInt(env.FE_PORT || '5173');
 
   return {
-    envPrefix: ['VITE_', 'BE_', 'MINIO_'],
+    envPrefix: ['VITE_'],
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
@@ -24,6 +24,11 @@ export default defineConfig(({ mode }) => {
         ignored: ['**/node_modules/**', '**/dist/**'],
       },
       proxy: {
+        '/s3': {
+          target: 'http://localhost:9000',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/s3/, ''),
+        },
         '/api': {
           target: `http://localhost:${backendPort}`,
           changeOrigin: true,

@@ -1,5 +1,6 @@
 import { GetUser } from '@/auth/guards/get-user.decorator';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { ResEventBaseSchema, ResEventGetPublishedSchema } from '@grit/schema';
 import {
   Body,
   Controller,
@@ -9,6 +10,7 @@ import {
   MaxFileSizeValidator,
   Param,
   ParseFilePipe,
+  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -31,7 +33,6 @@ import {
   ResEventPatchSchema,
   ResEventPostDraftSchema,
 } from './event.schema';
-import { ResEventGetPublishedSchema, ResEventBaseSchema } from '@grit/schema';
 import { EventService } from './event.service';
 
 @Controller('events')
@@ -107,7 +108,7 @@ export class EventController {
   }
 
   // Delete event image
-  @Delete('id/delete-image')
+  @Delete(':id/image')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResEventBaseSchema)
@@ -115,6 +116,36 @@ export class EventController {
     return this.eventService.eventDeleteImage(param.id, userId);
   }
 
+  // Upload new documents (image or pdf)
+  @Post(':id/files')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  uploadEventFile(
+    @Param() param: ReqEventGetByIdDto,
+    @GetUser('id') userId: number,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 10 }),
+          new FileTypeValidator({ fileType: /(image\/.+|application\/pdf)/ }),
+        ],
+      })
+    )
+    file: Express.Multer.File
+  ) {
+    return this.eventService.eventUploadFile(param.id, userId, file);
+  }
+
+  // Delete documents (image or pdf)
+  @Delete(':id/files/:fileId')
+  @UseGuards(JwtAuthGuard)
+  deleteEventFile(
+    @Param('id', ParseIntPipe) eventId: number,
+    @Param('fileId', ParseIntPipe) fileId: number,
+    @GetUser('id') userId: number
+  ) {
+    return this.eventService.eventDeleteFile(eventId, userId, fileId);
+  }
   // Post a new event draft
   @Post()
   @ApiBearerAuth()

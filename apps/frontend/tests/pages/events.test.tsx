@@ -105,6 +105,7 @@ describe('Event Feed Page', () => {
       author: mockUsers.alice,
       authorId: 1,
       attendees: [mockUsers.bob, mockUsers.cindy],
+      files: [],
       location: mockLocations.gritHq,
     },
     {
@@ -120,6 +121,7 @@ describe('Event Feed Page', () => {
       author: mockUsers.bob,
       authorId: 2,
       attendees: [],
+      files: [],
     },
     {
       id: 3,
@@ -134,6 +136,7 @@ describe('Event Feed Page', () => {
       author: mockUsers.cindy,
       authorId: 3,
       attendees: [mockUsers.cindy],
+      files: [],
     },
   ];
 

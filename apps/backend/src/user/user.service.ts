@@ -366,4 +366,10 @@ export class UserService {
       location: e.location,
     }));
   }
+
+  async userDelete(id: number) {
+    return this.prisma.user.delete({
+      where: { id },
+    });
+  }
 }

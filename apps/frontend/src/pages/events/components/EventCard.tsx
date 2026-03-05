@@ -12,7 +12,6 @@ import { getEventImageUrl } from '@/lib/image_utils';
 import { userService } from '@/services/userService';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import { EventBase } from '@/types/event';
-import { LocationBase } from '@/types/location';
 import type { CurrentUser } from '@/types/user';
 import { format } from 'date-fns';
 import { User } from 'lucide-react';
@@ -22,10 +21,9 @@ import { toast } from 'sonner';
 
 interface EventCardProps {
   event: EventBase;
-  location?: LocationBase;
 }
 
-export function EventCard({ event, location }: EventCardProps) {
+export function EventCard({ event }: EventCardProps) {
   const [isAttending, setIsAttending] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const currentUser: CurrentUser | null = useCurrentUserStore((s) => s.user);
@@ -36,6 +34,8 @@ export function EventCard({ event, location }: EventCardProps) {
   useEffect(() => {
     if (currentUser) {
       setIsAttending(event.attendees.some((el) => el.id === currentUser.id));
+    } else {
+      setIsAttending(false);
     }
   }, [event.attendees, currentUser]);
 
@@ -88,9 +88,9 @@ export function EventCard({ event, location }: EventCardProps) {
           </CardTitle>
           <CardDescription
             className="font-heading font-medium text-xl line-clamp-2 min-w-0"
-            title={`${format(event.startAt, 'EEE, MMM d')} @ ${location?.name ?? 'TBA'}`}
+            title={`${format(event.startAt, 'EEE, MMM d')} @ ${event.location?.name ?? 'TBA'}`}
           >
-            {format(event.startAt, 'EEE, MMM d')} @ {location?.name ?? 'TBA'}
+            {format(event.startAt, 'EEE, MMM d')} @ {event.location?.name ?? 'TBA'}
           </CardDescription>
           <div className="flex items-center gap-2 text-base font-normal text-muted-foreground">
             <User className="h-5 w-5 text-primary" strokeWidth={2} />

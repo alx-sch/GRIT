@@ -1,6 +1,6 @@
 import { ReqLocationGetAllDto, ReqLocationPostDto } from '@/location/location.schema';
 import { PrismaService } from '@/prisma/prisma.service';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 
 import { locationCursorFilter, locationEncodeCursor } from './location.utils';
 
@@ -38,7 +38,14 @@ export class LocationService {
     };
   }
 
-  locationPost(data: ReqLocationPostDto & { authorId: number }) {
+  async locationPost(data: ReqLocationPostDto & { authorId: number }) {
+    const duplicate = await this.prisma.location.findFirst({
+      where: data,
+    });
+    if (duplicate) {
+      throw new BadRequestException(`Identical location already exists`);
+    }
+
     return this.prisma.location.create({
       data: {
         name: data.name,

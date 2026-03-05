@@ -37,14 +37,6 @@ coverage/
 .nyc_output/
 
 # =====================
-# Environment variables
-# =====================
-# Commented out for now, so it's easier using Codepsaces
-# .env
-# .env.*
-# !.env.example
-
-# =====================
 # Runtime data
 # =====================
 pids

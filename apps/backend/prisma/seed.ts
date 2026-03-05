@@ -22,7 +22,7 @@ const prisma = new PrismaClient({ adapter }); // Initialize the client WITH the 
 // Setup S3/minIO Client
 const s3 = new S3Client({
   region: 'us-east-1', // MinIO requires a region, even if ignored
-  endpoint: env.MINIO_ENDPOINT,
+  endpoint: env.MINIO_INTERNAL_URL,
   credentials: {
     accessKeyId: env.MINIO_USER,
     secretAccessKey: env.MINIO_PASSWORD,
@@ -131,7 +131,7 @@ async function main() {
         confirmationToken: null,
       },
     });
-    console.log(`👤 Processed User: ${user.name ?? 'Unknown'} (${String(user.id)})`);
+    console.log(`👤 Processed User: ${user.name} (${String(user.id)})`);
 
     // Upload Image (Only if one is provided)
     if (u.image && !user.avatarKey) {
@@ -149,7 +149,7 @@ async function main() {
         console.log(`   📝 Saved to DB: ${bucketKey}`);
       }
     } else if (u.image && user.avatarKey) {
-      console.log(`   ⏩ User ${user.name ?? 'Unknown'} already has an avatar. Skipping upload.`);
+      console.log(`   ⏩ User ${user.name} already has an avatar. Skipping upload.`);
     }
   }
 
@@ -240,8 +240,8 @@ async function main() {
       content: 'We’re all mad here!',
       isPublic: true,
       isPublished: true,
-      startAt: new Date('2026-02-15T10:00:00Z'),
-      endAt: new Date('2026-02-15T12:00:00Z'),
+      startAt: new Date('2027-02-15T10:00:00Z'),
+      endAt: new Date('2027-02-15T12:00:00Z'),
       image: null as string | null,
     },
   ];

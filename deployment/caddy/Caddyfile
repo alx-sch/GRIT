@@ -18,9 +18,15 @@ localhost:443, :443 {
 	# Use self-signed certs for local production
 	tls internal
 
-	# ---------------------
-	# API Proxy to Backend Services
-	# ---------------------
+	# --- S3 Storage Proxy ---
+	# This matches the MINIO_ENDPOINT (derivedFrontend/s3) we built in Zod.
+	# It takes a request for /s3/bucket/image.jpg and 
+	# sends it internally to minio:9000/bucket/image.jpg
+	handle_path /s3/* {
+		reverse_proxy minio:9000
+	}
+
+	# --- API Proxy ---
 	# Match requests starting with '/api' and strips the '/api' prefix.
 	# Example: Frontend requests '/api/users' -> Backend receives '/users'.
 	# This is required because the NestJS controller is mapped to 'users', not 'api/users'.
@@ -28,9 +34,7 @@ localhost:443, :443 {
 		reverse_proxy backend:3000
 	}
 
-	# ---------------------
-	# Frontend SPA
-	# ---------------------
+	# --- Frontend SPA ---
 	# Serve static files if no API route matched
 	handle {
 		root * /srv/dist
