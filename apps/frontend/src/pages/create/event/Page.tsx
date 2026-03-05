@@ -25,6 +25,7 @@ export default function CreateEventPage() {
     isLoading: isLoadingLocations,
     pagination: locationPagination,
     loadMore,
+    addItem: addLocation,
   } = useInfiniteScroll(initialLocations, initialPagination, async (cursor) => {
     const res = await locationService.getLocations({ cursor });
     return { data: res.data, pagination: res.pagination };
@@ -47,6 +48,7 @@ export default function CreateEventPage() {
         locations={locationItems}
         onLocationMenuScrollToBottom={handleLocationMenuScrollToBottom}
         isLoadingLocations={isLoadingLocations}
+        onLocationCreated={addLocation}
       />
     </Container>
   );
