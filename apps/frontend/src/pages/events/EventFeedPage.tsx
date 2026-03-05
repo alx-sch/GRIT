@@ -96,8 +96,6 @@ export default function EventFeedPage() {
     label: name ?? '',
   }));
 
-  const locationMap = new Map(locationItems.map((l) => [l.id, l]));
-
   useEffect(() => {
     if (!searchInput && debouncedSearch) {
       return;
@@ -233,11 +231,7 @@ export default function EventFeedPage() {
         <>
           <div className="grid gap-6 justify-start md:grid-cols-2 lg:grid-cols-3">
             {items.map((event) => (
-              <EventCard
-                key={event.id}
-                event={event}
-                location={event.location?.id ? locationMap.get(event.location.id) : undefined}
-              />
+              <EventCard key={event.id} event={event} />
             ))}
           </div>
           <div ref={sentinelRef} />

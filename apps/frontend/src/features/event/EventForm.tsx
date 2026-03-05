@@ -36,6 +36,7 @@ interface EventFormProps {
   locations: LocationBase[];
   onLocationMenuScrollToBottom?: () => void;
   isLoadingLocations?: boolean;
+  onLocationCreated?: (location: LocationBase) => void;
 }
 
 export default function EventForm({
@@ -43,6 +44,7 @@ export default function EventForm({
   locations,
   onLocationMenuScrollToBottom,
   isLoadingLocations,
+  onLocationCreated,
 }: EventFormProps) {
   const {
     control,
@@ -351,6 +353,7 @@ export default function EventForm({
           <LocationForm
             onSuccess={(location) => {
               setValue('locationId', String(location.id));
+              onLocationCreated?.(location);
               setShowAddLocation(false);
             }}
             onCancel={() => {
