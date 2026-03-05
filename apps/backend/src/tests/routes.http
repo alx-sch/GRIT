@@ -83,13 +83,16 @@ GET {{baseUrl}}/users/me/events
 Authorization: Bearer {{token}}
 ###
 
+
 # User attends an event
 PATCH {{baseUrl}}/users/me
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-	"attending": 2
+  "attending": {
+    "connect": [2]
+  }
 }
 ###
 
@@ -176,7 +179,7 @@ content-type: application/json
 ###
 
 # Delete event (using ID 4)
-DELETE {{baseUrl}}/events/1 HTTP/1.1
+DELETE {{baseUrl}}/events/2 HTTP/1.1
 Authorization: Bearer {{token}}
 ###
 
@@ -225,5 +228,25 @@ Authorization: Bearer {{token}}
 
 // ========== ADMIN ========== //
 
+# Delete event by id
+DELETE {{baseUrl}}/events/2 HTTP/1.1
+Authorization: Bearer {{token}}
+###
+
+# Delete a user by id
 DELETE {{baseUrl}}/users/4 HTTP/1.1
 Authorization: Bearer {{token}}
+###
+
+# Patch a user by id (name or "attending")
+PATCH {{baseUrl}}/users/3
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Not Bob",
+  "attending": {
+    "disconnect": [2]
+  }
+}
+###

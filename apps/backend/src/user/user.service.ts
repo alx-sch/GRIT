@@ -197,6 +197,13 @@ export class UserService {
     }
   }
 
+  async userPatchById(targetId: number, data: ReqUserPatchDto, user: User) {
+    if (user.id !== targetId && !user.isAdmin) {
+      throw new ForbiddenException('You do not have permission to modify this user');
+    }
+    return this.userPatch(targetId, data);
+  }
+
   async userPatch(userId: number, data: ReqUserPatchDto) {
     const newData: Prisma.UserUpdateInput = {};
     if (data.name !== undefined) newData.name = data.name;

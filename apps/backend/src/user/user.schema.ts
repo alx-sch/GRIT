@@ -45,7 +45,12 @@ export const ReqUserPatchSchema = z.strictObject({
     })
     .optional(),
 });
+// Delete a user
+export const ReqUserPatchByIdSchema = z.strictObject({
+  id: z.coerce.number().int().positive(),
+});
 export class ReqUserPatchDto extends createZodDto(ReqUserPatchSchema) {}
+export class ReqUserPatchByIdDto extends createZodDto(ReqUserPatchByIdSchema) {}
 export const ResUserPatchSchema = ResUserBaseSchema;
 
 // Get an individual user by id

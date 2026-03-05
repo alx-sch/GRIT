@@ -25,6 +25,7 @@ import {
   ReqUserPatchDto,
   ReqUserDeleteByIdDto,
   ResUserDeleteSchema,
+  ReqUserPatchByIdDto,
 } from '@/user/user.schema';
 import { UserService } from '@/user/user.service';
 import { ZodSerializerDto } from 'nestjs-zod';
@@ -57,8 +58,21 @@ export class UserController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResUserPatchSchema)
-  userPatch(@Body() data: ReqUserPatchDto, @GetUser('id') userId: number) {
+  userPatchMe(@Body() data: ReqUserPatchDto, @GetUser('id') userId: number) {
     return this.userService.userPatch(userId, data);
+  }
+
+  // ADMIN -> edit a user by id
+  @Patch(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(ResUserPatchSchema)
+  userPatchById(
+    @Param() param: ReqUserPatchByIdDto,
+    @Body() data: ReqUserPatchDto,
+    @GetUser() user: User
+  ) {
+    return this.userService.userPatchById(param.id, data, user);
   }
 
   // Delete logged in user
@@ -70,7 +84,7 @@ export class UserController {
     return this.userService.userDeleteMe(user);
   }
 
-  // Delete a user by id
+  // ADMIN -> delete a user by id
   @Delete(':id')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
