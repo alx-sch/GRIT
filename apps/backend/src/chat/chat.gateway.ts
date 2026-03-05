@@ -169,6 +169,7 @@ export class ChatGateway implements OnGatewayConnection {
     for (const conv of conversations) {
       await socket.join(conv.id);
     }
+    console.log('resynced. new rooms:', conversations);
 
     // build payload
     const payload: Record<string, unknown> = {};
@@ -181,7 +182,7 @@ export class ChatGateway implements OnGatewayConnection {
         lastReadAt: participant?.lastReadAt ?? null,
       };
     }
-
+    console.log('backend emits initialLastMessages with', payload);
     socket.emit('initialLastMessages', payload);
   }
 

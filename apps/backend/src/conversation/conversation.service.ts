@@ -49,8 +49,9 @@ export class ConversationService {
       include: { participants: true },
     });
 
-    // When we have created a new conversation we need to resync the rooms the user should have joined
+    // When we have created a new conversation we need to resync the rooms the user and his chat partner should have joined
     await this.chatGateway.resyncUserRooms(userId);
+    await this.chatGateway.resyncUserRooms(directId);
 
     return newConversation;
   }

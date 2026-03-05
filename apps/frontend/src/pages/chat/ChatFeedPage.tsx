@@ -13,5 +13,5 @@ export const ChatFeedPage = () => {
     }
   }, [conversations, navigate]);
 
-  return null;
+  return 'There are no chat messages yet. Join an event or message a friend.';
 };

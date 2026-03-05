@@ -40,7 +40,14 @@ export function Navbar() {
   const displayName = user?.name ?? user?.email ?? 'User';
 
   // Check if any conversations have an unread message
-  const hasUnread = chatStore((s) => s.hasUnread());
+  const conversations = chatStore((s) => s.conversations);
+
+  const hasUnread = Object.values(conversations).some((conv) => {
+    if (!conv.lastMessage) return false;
+    if (!conv.lastReadAt) return true;
+
+    return new Date(conv.lastReadAt) < new Date(conv.lastMessage.createdAt);
+  });
 
   if (isLoggedIn) {
     navConfig.push({ path: '/chat', label: 'Chat' });

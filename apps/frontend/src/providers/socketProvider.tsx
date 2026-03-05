@@ -26,22 +26,32 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       auth: { token },
     });
 
+    console.log('Socket created', newSocket);
+
     // We store the new socket in state to cause a rerender
     setSocket(newSocket);
 
     // On connect, the backend will send the last messages for all conversations the client is in
     newSocket.on('initialLastMessages', (messages: ResConversationsLastMessages) => {
+      console.log('Received last messages', messages);
       const store = chatStore.getState();
       store.resetConversations();
       store.setInitialConversations(messages);
+
+      /**
+       * Via the window event we can trigger the loader in ChatFeedLayout to run again to be able to render a potential new card in the chat
+       * which is particularly important if the user currently is looking at the chat
+       */
+
+      window.dispatchEvent(new Event('chat:conversationsChanged'));
     });
 
     // Listen for incoming messages
     newSocket.on('message', (message: ResChatMessage) => {
       console.log('Should have stored', message.text);
       const conversations = chatStore.getState().conversations;
-      console.log('current storage looks like', conversations);
       chatStore.getState().storeLastMessage(message);
+      console.log('after storing', chatStore.getState().conversations);
     });
 
     return () => {
