@@ -34,11 +34,11 @@ export class UserService {
 	const where: Prisma.UserWhereInput = {
 		AND: [cursorFilter, searchFilter],
 	};
-	
+
     const { limit } = input;
 
     const users = await this.prisma.user.findMany({
-      where: cursorFilter,
+      where: where,
       include: {
         attending: true,
       },

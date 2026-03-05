@@ -1,61 +1,97 @@
-import { useState, useMemo } from 'react';
-import { LoaderFunctionArgs } from 'react-router-dom';
-import { userService } from '@/services/userService';
 import { Container } from '@/components/layout/Container';
-import { Heading, Text } from '@/components/ui/typography';
 import { Input } from '@/components/ui/input';
-import { UserResponse } from '@/types/user';
-import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
+import { Heading, Text } from '@/components/ui/typography';
 import { UserCard } from '@/components/ui/userCard';
-import { FriendBase, FriendRequestBase, FriendRequestResponse, FriendResponse } from '@/types/friends';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
+import { friendService } from '@/services/friendService';
+import { userService } from '@/services/userService';
+import { FriendRequestResponse, FriendResponse } from '@/types/friends';
+import { ResUserPublic } from '@grit/schema';
+import { useEffect, useState } from 'react';
 
-export const friendsLoader = async ({ request }: LoaderFunctionArgs):Promise<UserResponse> => {
-  const url = new URL(request.url);
-  const limit = url.searchParams.get('limit') ?? undefined;
-  const cursor = url.searchParams.get('cursor') ?? undefined;
+type FriendsLoaderData = {
+  pendingIncoming: FriendRequestResponse;
+  pendingOutgoing: FriendRequestResponse;
+  friends: FriendResponse;
+};
 
-//  const [users, friends]
-  return userService.getUsers({ limit, cursor });
+export const friendsLoader = async (): Promise<FriendsLoaderData> => {
+  const [pendingIncoming, pendingOutgoing, friends] = await Promise.all([
+    friendService.listIncomingRequests({ limit: '100' }),
+    friendService.listOutgoingRequests({ limit: '100' }),
+    friendService.listFriends({ limit: '100' }),
+  ]);
+  return {
+    pendingIncoming,
+    pendingOutgoing,
+    friends,
+  };
 };
 
 export default function FriendsPage() {
-  const users = useTypedLoaderData<UserResponse>();
+  const friends = useTypedLoaderData<FriendsLoaderData>();
 
-  const [searchTerm, setSearchTerm] = useState('');
+  //Search input to add new friends
+  const [users, setUsers] = useState<ResUserPublic[]>([]);
+  const [searchInput, setSearchInput] = useState('');
+   const [fetchedFor, setFetchedFor] = useState<string | null>(null);
+  const debouncedSearch = useDebounce(searchInput, 500);
+  const searchDone = fetchedFor === debouncedSearch && debouncedSearch === searchInput;
 
-  const filteredUsers = useMemo(() => {
-    if (!searchTerm) return users.data;
-    return users.data.filter((user) =>
-      (user.name ?? '').toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [users, searchTerm]);
+  useEffect(() => {
+    if (!debouncedSearch) {
+      setUsers([]);
+	  setFetchedFor(null);
+      return;
+    }
+    userService
+      .getUsers({ search: debouncedSearch, limit: '50' })
+      .then((res) => {setUsers(res.data); setFetchedFor(debouncedSearch)});
+  }, [debouncedSearch]);
 
   return (
     <Container className="py-10 space-y-8">
       <div className="space-y-2">
-        <Heading level={1}>Users</Heading>
-        <Text className="text-muted-foreground">Manage your team members and permissions.</Text>
+        <Heading level={1}>My friends</Heading>
+        <Text className="text-muted-foreground">Manage your friends</Text>
       </div>
 
+	{/* User Search*/}
       <div className="flex flex-col gap-6">
         <Input
-          placeholder="Search users..."
+          placeholder="Search for new friends..."
           className="max-w-sm"
-          value={searchTerm}
+          value={searchInput}
           onChange={(e) => {
-            setSearchTerm(e.target.value);
+            setSearchInput(e.target.value);
           }}
         />
 
-        {filteredUsers.length > 0 ? (
+        {searchInput === '' ? null : !searchDone ? (
+			<Text className="text-muted-foreground">Searching...</Text>
+		) : users.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredUsers.map((user) => (
+            {users.map((user) => (
               <UserCard key={user.id} user={user} />
             ))}
           </div>
         ) : (
           <div className="py-12 text-center border-2 border-dashed border-muted-foreground/20">
-            <Text className="text-muted-foreground">No users found matching "{searchTerm}"</Text>
+            <Text className="text-muted-foreground">No users found matching "{searchInput}"</Text>
+          </div>
+        )}
+      </div>
+
+	  {/* Pending Friends requests*/}
+	  <div className="flex flex-col gap-6">
+
+
+     { friends.pendingIncoming.data.length > 0 && (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {friends.pendingIncoming.data.map((req) => (
+              <UserCard key={req.id} user={req.requester} />
+            ))}
           </div>
         )}
       </div>
