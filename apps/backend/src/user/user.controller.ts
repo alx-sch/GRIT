@@ -12,6 +12,7 @@ import {
   FileTypeValidator,
   UseGuards,
   Delete,
+  Param,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -22,6 +23,7 @@ import {
   ReqUserGetAllDto,
   ResUserPatchSchema,
   ReqUserPatchDto,
+  ReqUserDeleteByIdDto,
   ResUserDeleteSchema,
 } from '@/user/user.schema';
 import { UserService } from '@/user/user.service';
@@ -30,6 +32,7 @@ import { ApiConsumes, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { GetUser } from '@/auth/guards/get-user.decorator';
 import { ResUserGetAllSchema } from '@grit/schema';
+import { User } from '@/auth/interfaces/user.interface';
 
 @Controller('users')
 export class UserController {
@@ -58,13 +61,22 @@ export class UserController {
     return this.userService.userPatch(userId, data);
   }
 
-  // Delete a user
+  // Delete logged in user
   @Delete('me')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResUserDeleteSchema)
-  userDelete(@GetUser('id') id: number) {
-    return this.userService.userDelete(id);
+  userDeleteMe(@GetUser() user: User) {
+    return this.userService.userDeleteMe(user);
+  }
+
+  // Delete a user by id
+  @Delete(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(ResUserDeleteSchema)
+  userDelete(@Param() param: ReqUserDeleteByIdDto, @GetUser() user: User) {
+    return this.userService.userDelete(param.id, user);
   }
 
   // ADD IMAGE UPLOAD ROUTINE

@@ -39,7 +39,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-	"email": "alice@example.com",
+	"email": "cindy@example.com",
 	"password": "0123456789"
 }
 ###
@@ -225,5 +225,5 @@ Authorization: Bearer {{token}}
 
 // ========== ADMIN ========== //
 
-GET {{baseUrl}}/admin/users HTTP/1.1
+DELETE {{baseUrl}}/users/4 HTTP/1.1
 Authorization: Bearer {{token}}

@@ -56,6 +56,10 @@ export class ReqUserGetByIdDto extends createZodDto(ReqUserGetByIdSchema) {}
 export const ResUserGetByIdSchema = ResUserBaseSchema;
 
 // Delete a user
+export const ReqUserDeleteByIdSchema = z.strictObject({
+  id: z.coerce.number().int().positive(),
+});
+export class ReqUserDeleteByIdDto extends createZodDto(ReqUserDeleteByIdSchema) {}
 export const ResUserDeleteSchema = ResUserBaseSchema;
 
 // --- DTO classes ---

@@ -8,12 +8,17 @@ import {
   ResUserBaseDto,
   ResUserPostDto,
 } from '@/user/user.schema';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
-
 import { userCursorFilter, userEncodeCursor } from './user.utils';
+import { User } from '@/auth/interfaces/user.interface';
 
 @Injectable()
 export class UserService {
@@ -322,9 +327,25 @@ export class UserService {
     return user;
   }
 
-  async userDelete(id: number) {
+  async userDelete(targetId: number, user: User) {
+    if (user.id !== targetId) {
+      if (!user.isAdmin)
+        throw new ForbiddenException('You do not have permission to delete this user');
+    }
+    if (targetId === user.id && user.isAdmin) {
+      throw new ForbiddenException('You can not delete an admin user');
+    }
     return this.prisma.user.delete({
-      where: { id },
+      where: { id: targetId },
+    });
+  }
+
+  async userDeleteMe(user: User) {
+    if (user.isAdmin) {
+      throw new ForbiddenException('You can not delete an admin user');
+    }
+    return this.prisma.user.delete({
+      where: { id: user.id },
     });
   }
 }
