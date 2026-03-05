@@ -119,6 +119,10 @@ export function Navbar() {
                 <Calendar className="mr-2 h-4 w-4" />
                 My events
               </DropdownMenuItem>
+			  <DropdownMenuItem onClick={() => void navigate('/friends')}>
+                <Calendar className="mr-2 h-4 w-4" />
+                My friends
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">
                 <LogOut className="mr-2 h-4 w-4" />

@@ -1,7 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
-import { friendsCursorFilter, friendsEncodeCursor } from './friends.utils';
-import { ReqFriendsGetAllDto, ReqFriendRequestsGetAllDto } from './friends.schema';
+import {PrismaService} from '@/prisma/prisma.service';
+import {BadRequestException, Injectable} from '@nestjs/common';
+
+import {ReqFriendRequestsGetAllDto, ReqFriendsGetAllDto} from './friends.schema';
+import {friendsCursorFilter, friendsEncodeCursor} from './friends.utils';
 
 @Injectable()
 export class FriendsService {
@@ -10,12 +11,13 @@ export class FriendsService {
   async sendRequest(requesterId: number, receiverId: number) {
     // Prevent sending request to self
     if (requesterId === receiverId) {
-      throw new BadRequestException('You cannot send a friend request to yourself.');
+      throw new BadRequestException(
+          'You cannot send a friend request to yourself.');
     }
 
     // Checking if friend request receiver exists
     const userExist = await this.prisma.user.findUnique({
-      where: { id: receiverId },
+      where: {id: receiverId},
     });
 
     if (!userExist) {
@@ -26,22 +28,23 @@ export class FriendsService {
     const existingRequest = await this.prisma.friendRequest.findFirst({
       where: {
         OR: [
-          { requesterId, receiverId },
-          { requesterId: receiverId, receiverId: requesterId },
+          {requesterId, receiverId},
+          {requesterId: receiverId, receiverId: requesterId},
         ],
       },
     });
 
     if (existingRequest) {
-      throw new BadRequestException('A friend request already exists between these users.');
+      throw new BadRequestException(
+          'A friend request already exists between these users.');
     }
 
     // Check if users are already friends
     const alreadyFriends = await this.prisma.friends.findFirst({
       where: {
         OR: [
-          { userId: requesterId, friendId: receiverId },
-          { userId: receiverId, friendId: requesterId },
+          {userId: requesterId, friendId: receiverId},
+          {userId: receiverId, friendId: requesterId},
         ],
       },
     });
@@ -63,12 +66,16 @@ export class FriendsService {
 
   async listIncoming(id: number, input: ReqFriendRequestsGetAllDto) {
     const cursorFilter = friendsCursorFilter(input);
-    const { limit } = input;
+    const {limit} = input;
 
     const requests = await this.prisma.friendRequest.findMany({
-      where: { receiverId: id, ...cursorFilter },
-      orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+      where: {receiverId: id, ...cursorFilter},
+      orderBy: [{createdAt: 'desc'}, {id: 'asc'}],
       take: limit + 1,
+      include: {
+        requester: {select: {id: true, name: true, avatarKey: true}},
+        receiver: {select: {id: true, name: true, avatarKey: true}},
+      }
     });
 
     const hasMore = requests.length > limit;
@@ -77,12 +84,10 @@ export class FriendsService {
     return {
       data: slicedData,
       pagination: {
-        nextCursor: hasMore
-          ? friendsEncodeCursor(
-              slicedData[slicedData.length - 1].createdAt,
-              slicedData[slicedData.length - 1].id
-            )
-          : null,
+        nextCursor: hasMore ? friendsEncodeCursor(
+                                  slicedData[slicedData.length - 1].createdAt,
+                                  slicedData[slicedData.length - 1].id) :
+                              null,
         hasMore,
       },
     };
@@ -90,12 +95,17 @@ export class FriendsService {
 
   async listOutgoing(id: number, input: ReqFriendRequestsGetAllDto) {
     const cursorFilter = friendsCursorFilter(input);
-    const { limit } = input;
+    const {limit} = input;
 
     const requests = await this.prisma.friendRequest.findMany({
-      where: { requesterId: id, ...cursorFilter },
-      orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+      where: {requesterId: id, ...cursorFilter},
+      orderBy: [{createdAt: 'desc'}, {id: 'asc'}],
       take: limit + 1,
+      include: {
+        requester: {select: {id: true, name: true, avatarKey: true}},
+        receiver: {select: {id: true, name: true, avatarKey: true}},
+      }
+
     });
 
     const hasMore = requests.length > limit;
@@ -104,12 +114,10 @@ export class FriendsService {
     return {
       data: slicedData,
       pagination: {
-        nextCursor: hasMore
-          ? friendsEncodeCursor(
-              slicedData[slicedData.length - 1].createdAt,
-              slicedData[slicedData.length - 1].id
-            )
-          : null,
+        nextCursor: hasMore ? friendsEncodeCursor(
+                                  slicedData[slicedData.length - 1].createdAt,
+                                  slicedData[slicedData.length - 1].id) :
+                              null,
         hasMore,
       },
     };
@@ -117,12 +125,15 @@ export class FriendsService {
 
   async listFriends(id: number, input: ReqFriendsGetAllDto) {
     const cursorFilter = friendsCursorFilter(input);
-    const { limit } = input;
+    const {limit} = input;
 
     const friends = await this.prisma.friends.findMany({
-      where: { userId: id, ...cursorFilter },
-      orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+      where: {userId: id, ...cursorFilter},
+      orderBy: [{createdAt: 'desc'}, {id: 'asc'}],
       take: limit + 1,
+      include: {
+        friend: {select: {id: true, name: true, avatarKey: true}},
+      }
     });
 
     const hasMore = friends.length > limit;
@@ -131,12 +142,10 @@ export class FriendsService {
     return {
       data: slicedData,
       pagination: {
-        nextCursor: hasMore
-          ? friendsEncodeCursor(
-              slicedData[slicedData.length - 1].createdAt,
-              slicedData[slicedData.length - 1].id
-            )
-          : null,
+        nextCursor: hasMore ? friendsEncodeCursor(
+                                  slicedData[slicedData.length - 1].createdAt,
+                                  slicedData[slicedData.length - 1].id) :
+                              null,
         hasMore,
       },
     };
@@ -145,7 +154,7 @@ export class FriendsService {
   async acceptRequest(id: string, userId: number) {
     // Find friend request
     const friendRequest = await this.prisma.friendRequest.findFirst({
-      where: { id: id },
+      where: {id: id},
     });
 
     if (!friendRequest) {
@@ -153,7 +162,8 @@ export class FriendsService {
     }
 
     if (friendRequest.receiverId !== userId) {
-      throw new BadRequestException('You can only accept friend requests sent to you.');
+      throw new BadRequestException(
+          'You can only accept friend requests sent to you.');
     }
 
     // Create friendship for both users, and delete friend request
@@ -171,7 +181,7 @@ export class FriendsService {
         },
       }),
       this.prisma.friendRequest.delete({
-        where: { id },
+        where: {id},
       }),
     ]);
 
@@ -182,7 +192,7 @@ export class FriendsService {
   async declineRequest(id: string, userId: number) {
     // Find friend request
     const friendRequest = await this.prisma.friendRequest.findFirst({
-      where: { id: id },
+      where: {id: id},
     });
 
     if (!friendRequest) {
@@ -190,12 +200,13 @@ export class FriendsService {
     }
 
     if (friendRequest.receiverId !== userId) {
-      throw new BadRequestException('You can only decline friend requests sent to you.');
+      throw new BadRequestException(
+          'You can only decline friend requests sent to you.');
     }
 
     // Delete friend request
     return await this.prisma.friendRequest.delete({
-      where: { id },
+      where: {id},
     });
   }
 
@@ -211,14 +222,15 @@ export class FriendsService {
         friendId: friendId,
       },
     });
-    if (!friendship) throw new BadRequestException('Friendship does not exist.');
+    if (!friendship)
+      throw new BadRequestException('Friendship does not exist.');
 
     // Delete both friendship directions
     await this.prisma.friends.deleteMany({
       where: {
         OR: [
-          { userId: userId, friendId: friendId },
-          { userId: friendId, friendId: userId },
+          {userId: userId, friendId: friendId},
+          {userId: friendId, friendId: userId},
         ],
       },
     });

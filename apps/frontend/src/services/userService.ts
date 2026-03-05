@@ -4,6 +4,7 @@ import type { UserBase, UserResponse } from '@/types/user';
 interface GetUsersParams {
   limit?: string;
   cursor?: string;
+  search?: string;
 }
 
 export const userService = {
@@ -11,6 +12,7 @@ export const userService = {
     const queryParams = new URLSearchParams();
     if (params?.limit) queryParams.set('limit', params.limit);
     if (params?.cursor) queryParams.set('cursor', params.cursor);
+	if (params?.search) queryParams.set('search', params.search);
 
     const queryString = queryParams.toString();
     const url = queryString ? `users?${queryString}` : '/users';

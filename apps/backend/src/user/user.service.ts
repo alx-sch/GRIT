@@ -24,7 +24,17 @@ export class UserService {
   ) {}
 
   async userGet(input: ReqUserGetAllDto) {
+
+	const search = input.search?.trim();
     const cursorFilter = userCursorFilter(input);
+	const searchFilter: Prisma.UserWhereInput = search ? {
+		name: {contains: search, mode: 'insensitive'},
+	} : {};
+
+	const where: Prisma.UserWhereInput = {
+		AND: [cursorFilter, searchFilter],
+	};
+	
     const { limit } = input;
 
     const users = await this.prisma.user.findMany({
