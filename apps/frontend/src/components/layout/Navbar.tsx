@@ -69,6 +69,7 @@ export function Navbar() {
 
   const handleLogout = () => {
     useAuthStore.getState().clearAuthenticated();
+    useCurrentUserStore.getState().clearUser();
     void navigate('/login');
   };
 

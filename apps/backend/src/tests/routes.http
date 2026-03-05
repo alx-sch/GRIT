@@ -81,6 +81,11 @@ Content-Type: application/json
 }
 ###
 
+# Delete logged in user
+DELETE {{baseUrl}}/users/me
+Authorization: Bearer {{token}}
+###
+
 # ========== LOCATION ========== //
 
 # Get all locations
@@ -97,8 +102,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-	"authorId": 1,
-	"name": "Not secret Lair",
+	"name": "Test location",
 	"city": "Berlin",
 	"country": "Germany",
 	"longitude": 59.4748,

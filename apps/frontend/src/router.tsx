@@ -1,23 +1,21 @@
-import Home from '@/pages/home/Page';
-import Users, { usersLoader } from '@/pages/users/Page';
-import { eventsLoader } from '@/pages/events/EventFeedPage';
-import Design from '@/pages/design/Page';
-import ErrorPage from '@/pages/error/Page';
-import EventFeedPage from '@/pages/events/EventFeedPage';
-import { createBrowserRouter } from 'react-router-dom';
 import { DefaultLayout } from '@/components/layout/DefaultLayout';
-import { eventLoader } from '@/pages/events/EventPage';
-import { EventPage } from '@/pages/events/EventPage';
-import { eventCreationLoader } from '@/pages/create/event/Page';
-import { LoginPage, loginPageAction, loginPageLoader } from '@/pages/login/Page';
-import { RegisterPage, registerPageAction, registerPageLoader } from '@/pages/register/Page';
-import type { NavRoute } from '@/types/navroute';
-import { LogoutPage, logoutPageLoader } from '@/pages/logout/Page';
 import { ProtectedLayout, protectedLayoutLoader } from '@/components/layout/ProtectedLayout';
-import CreateEventPage from '@/pages/create/event/Page';
-import { ChatPage } from '@/pages/chat/ChatPage';
 import { ChatFeedPage } from '@/pages/chat/ChatFeedPage';
 import { ChatFeedLayout, ChatFeedLoader } from '@/features/chat/ChatFeedLayout';
+import { ChatPage } from '@/pages/chat/ChatPage';
+import CreateEventPage, { eventCreationLoader } from '@/pages/create/event/Page';
+import Design from '@/pages/design/Page';
+import ErrorPage from '@/pages/error/Page';
+import EventFeedPage, { eventsLoader } from '@/pages/events/EventFeedPage';
+import { eventLoader, EventPage } from '@/pages/events/EventPage';
+import Home from '@/pages/home/Page';
+import { LoginPage, loginPageAction, loginPageLoader } from '@/pages/login/Page';
+import { LogoutPage, logoutPageLoader } from '@/pages/logout/Page';
+import { RegisterPage, registerPageAction, registerPageLoader } from '@/pages/register/Page';
+import Users, { usersLoader } from '@/pages/users/Page';
+import type { NavRoute } from '@/types/navroute';
+import { createBrowserRouter } from 'react-router-dom';
+import EditEventPage, { editEventLoader } from './pages/events/EditEventPage';
 
 // NOTE: let's define single source of truth for our routes here
 export const baseNavConfig: NavRoute[] = [
@@ -110,6 +108,61 @@ export const router = createBrowserRouter([
             loader: eventCreationLoader,
           },
         ],
+      },
+      {
+        path: 'design',
+        Component: Design,
+        handle: { title: 'Design' },
+      },
+      {
+        path: 'events',
+        children: [
+          {
+            index: true,
+            Component: EventFeedPage,
+            loader: eventsLoader,
+            handle: { title: 'Events' },
+          },
+          {
+            path: ':id',
+            children: [
+              {
+                index: true,
+                Component: EventPage,
+                loader: eventLoader,
+              },
+              {
+                path: 'edit',
+                Component: ProtectedLayout,
+                loader: protectedLayoutLoader,
+                children: [
+                  {
+                    index: true,
+                    Component: EditEventPage,
+                    loader: editEventLoader,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        path: 'login',
+        Component: LoginPage,
+        action: loginPageAction,
+        loader: loginPageLoader,
+      },
+      {
+        path: 'logout',
+        Component: LogoutPage,
+        loader: logoutPageLoader,
+      },
+      {
+        path: 'users',
+        Component: Users,
+        loader: usersLoader,
+        handle: { title: 'Users' },
       },
     ],
   },
