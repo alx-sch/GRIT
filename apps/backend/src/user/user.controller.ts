@@ -12,6 +12,7 @@ import {
   FileTypeValidator,
   UseGuards,
   Delete,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -64,6 +65,9 @@ export class UserController {
   @ZodSerializerDto(ResUserBaseDto)
   async getMe(@GetUser('id') userId: number): Promise<ResUserBaseDto> {
     const user = await this.userService.userGetById(userId);
+    if (!user) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
     return user;
   }
 
@@ -74,12 +78,13 @@ export class UserController {
   @ZodSerializerDto(ResUserEventsDto)
   async getMyEvents(@GetUser('id') userId: number) {
     return await this.userService.userGetEvents(userId);
+  }
   // Delete a user
   @Delete('me')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResUserDeleteSchema)
-  userDelete(@GetUser('id') id: number) {
+  async userDelete(@GetUser('id') id: number) {
     return this.userService.userDelete(id);
   }
 

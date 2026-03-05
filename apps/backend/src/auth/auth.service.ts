@@ -28,7 +28,8 @@ export class AuthService {
   // Logic for verifying user credentials
   async validateUser(loginDto: LoginInput): Promise<ResAuthMeDto> {
     const user = await this.userService.userGetByEmail(loginDto.email);
-    if (!user || !user.password) {
+
+    if (!user?.password) {
       throw new UnauthorizedException('Invalid email or password');
     }
     // if (!user.isConfirmed) {

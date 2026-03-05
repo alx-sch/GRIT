@@ -45,7 +45,6 @@ export default function CreateEventPage() {
             Create Event
           </Heading>
         </div>
-        <EventForm locations={locations} />
       </div>
       <EventForm
         locations={locationItems}

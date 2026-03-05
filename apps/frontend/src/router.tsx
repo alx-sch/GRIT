@@ -1,8 +1,4 @@
 import { DefaultLayout } from '@/components/layout/DefaultLayout';
-import { ProtectedLayout, protectedLayoutLoader } from '@/components/layout/ProtectedLayout';
-import { ChatFeedPage } from '@/pages/chat/ChatFeedPage';
-import { ChatPage } from '@/pages/chat/ChatPage';
-import CreateEventPage, { eventCreationLoader } from '@/pages/create/event/Page';
 import Design from '@/pages/design/Page';
 import ErrorPage from '@/pages/error/Page';
 import EventFeedPage, { eventsLoader } from '@/pages/events/EventFeedPage';
@@ -11,7 +7,7 @@ import Home from '@/pages/home/Page';
 import { LoginPage, loginPageAction, loginPageLoader } from '@/pages/login/Page';
 import { LogoutPage, logoutPageLoader } from '@/pages/logout/Page';
 import { ProtectedLayout, protectedLayoutLoader } from '@/components/layout/ProtectedLayout';
-import CreateEventPage from '@/pages/create/event/Page';
+import CreateEventPage, { eventCreationLoader } from '@/pages/create/event/Page';
 import { ChatPage } from '@/pages/chat/ChatPage';
 import { ChatFeedPage } from '@/pages/chat/ChatFeedPage';
 import { Page as ProfilePage, profileLoader } from '@/pages/profile/Page';

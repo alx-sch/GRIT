@@ -1,5 +1,3 @@
-import { EventBase } from '@/types/event';
-
 interface EventImageInput {
   id: number;
   title: string;

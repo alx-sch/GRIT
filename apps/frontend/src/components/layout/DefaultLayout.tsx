@@ -43,7 +43,9 @@ export function DefaultLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
-      <Outlet />
+      <main>
+        <Outlet />
+      </main>
     </div>
   );
 }
