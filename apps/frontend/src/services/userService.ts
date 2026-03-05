@@ -56,4 +56,13 @@ export const userService = {
     });
     return response.data;
   },
+
+  removeAvatar: async (): Promise<UserBase> => {
+    const response = await api.delete<UserBase>('users/me/avatar');
+    return response.data;
+  },
+
+  deleteAccount: async (): Promise<void> => {
+    await api.delete('users/me');
+  },
 };

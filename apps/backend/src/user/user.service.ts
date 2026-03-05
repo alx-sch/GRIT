@@ -118,7 +118,6 @@ export class UserService {
         name: data.name,
         email: data.email,
         password: await bcrypt.hash(data.password, 10),
-        avatarKey: data.avatarKey,
         isConfirmed: false,
         confirmationToken: token,
       },
@@ -222,6 +221,48 @@ export class UserService {
       }
       throw error;
     }
+  }
+
+  async userDeleteAvatar(userId: number): Promise<ResUserBaseDto> {
+    const currentUser = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, avatarKey: true },
+    });
+
+    if (!currentUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (currentUser.avatarKey) {
+      try {
+        await this.storage.deleteFile(currentUser.avatarKey, 'user-avatars');
+      } catch (error) {
+        console.error(`Failed to delete old avatar: ${currentUser.avatarKey}`, error);
+      }
+    }
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: { avatarKey: null },
+      include: {
+        attending: {
+          include: {
+            event: true,
+          },
+        },
+      },
+    });
+
+    return {
+      ...updatedUser,
+      createdAt: updatedUser.createdAt.toISOString(),
+      attending: updatedUser.attending.map((a) => ({
+        id: a.event.id,
+        title: a.event.title,
+        startAt: a.event.startAt.toISOString(),
+        isOrganizer: a.event.authorId === updatedUser.id,
+      })),
+    };
   }
 
   async userPatch(userId: number, data: ReqUserPatchDto) {
@@ -368,8 +409,13 @@ export class UserService {
   }
 
   async userDelete(id: number) {
-    return this.prisma.user.delete({
+    const user = await this.prisma.user.delete({
       where: { id },
     });
+    return {
+      ...user,
+      createdAt: user.createdAt.toISOString(),
+      attending: [],
+    };
   }
 }

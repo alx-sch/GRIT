@@ -91,7 +91,6 @@ export class AuthService {
         googleId: providerId,
         isConfirmed: true,
         password: null, // No password for OAuth users
-        avatarKey: null,
       },
     });
 

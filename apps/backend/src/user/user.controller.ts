@@ -88,6 +88,15 @@ export class UserController {
     return this.userService.userDelete(id);
   }
 
+  // Delete avatar (reset to default)
+  @Delete('me/avatar')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(ResUserBaseDto)
+  async deleteAvatar(@GetUser('id') userId: number): Promise<ResUserBaseDto> {
+    return await this.userService.userDeleteAvatar(userId);
+  }
+
   // ADD IMAGE UPLOAD ROUTINE
   @Patch('me/upload-avatar')
   @ApiBearerAuth()

@@ -6,6 +6,7 @@ import { ProfileSidebar } from './components/ProfileSidebar';
 import { ProfileInfo } from './components/ProfileInfo';
 import { MyEvents } from './components/MyEvents';
 import { ThemeSettings } from './components/ThemeSettings';
+import { DangerZone } from './components/DangerZone';
 import type { CurrentUser } from '@/types/user';
 import { userService } from '@/services/userService';
 import { useLoaderData, useRevalidator } from 'react-router-dom';
@@ -60,6 +61,8 @@ export function Page() {
             <ThemeSettings />
 
             <MyEvents events={user.attending} />
+
+            <DangerZone />
           </div>
         </div>
       </div>

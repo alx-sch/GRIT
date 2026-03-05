@@ -1,12 +1,14 @@
 import { useState, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Text } from '@/components/ui/typography';
-import { Camera, Calendar, Ticket } from 'lucide-react';
+import { Calendar, Ticket, Trash2, Upload, Edit } from 'lucide-react';
 import { userService } from '@/services/userService';
 import { toast } from 'sonner';
 import type { CurrentUser } from '@/types/user';
 import { ImageCropDialog } from '@/components/ui/image-crop-dialog';
 import { validateImageFile, readFileAsDataURL } from '@/lib/image-crop-utils';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface ProfileSidebarProps {
   user: CurrentUser;
@@ -22,11 +24,18 @@ export function ProfileSidebar({
   onAvatarUpdate,
 }: ProfileSidebarProps) {
   const [isUploading, setIsUploading] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
   const [showCropDialog, setShowCropDialog] = useState(false);
+  const [showOptionsDialog, setShowOptionsDialog] = useState(false);
   const [selectedImageSrc, setSelectedImageSrc] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAvatarClick = () => {
+    setShowOptionsDialog(true);
+  };
+
+  const handleUploadClick = () => {
+    setShowOptionsDialog(false);
     fileInputRef.current?.click();
   };
 
@@ -76,11 +85,28 @@ export function ProfileSidebar({
     setSelectedImageSrc('');
   };
 
+  const handleRemoveAvatar = async () => {
+    setShowOptionsDialog(false);
+    setIsRemoving(true);
+    try {
+      const updatedUser = await userService.removeAvatar();
+      onAvatarUpdate(updatedUser);
+      toast.success('Profile picture reset to default');
+    } catch (error) {
+      console.error('Failed to remove avatar:', error);
+      toast.error('Failed to reset profile picture. Please try again.');
+    } finally {
+      setIsRemoving(false);
+    }
+  };
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   };
+
+  const hasCustomAvatar = user.avatarKey && !user.avatarKey.startsWith('default-');
 
   return (
     <div className="w-full md:w-80 md:border-r-2 md:border-primary md:pr-8 space-y-6">
@@ -88,7 +114,7 @@ export function ProfileSidebar({
         <div
           className="relative group cursor-pointer"
           onClick={handleAvatarClick}
-          title="Click to change profile picture"
+          title="Click to edit profile picture"
         >
           <Avatar className="w-32 h-32">
             <AvatarImage
@@ -100,13 +126,13 @@ export function ProfileSidebar({
           </Avatar>
           <div
             className={`absolute inset-0 bg-black/50 rounded-full transition-opacity flex items-center justify-center ${
-              isUploading ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+              isUploading || isRemoving ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
             }`}
           >
-            {isUploading ? (
-              <Text className="text-white text-sm">Uploading...</Text>
+            {isUploading || isRemoving ? (
+              <Text className="text-white text-sm">Saving...</Text>
             ) : (
-              <Camera className="w-10 h-10 text-white" />
+              <Edit className="w-10 h-10 text-white" />
             )}
           </div>
         </div>
@@ -146,6 +172,36 @@ export function ProfileSidebar({
         }}
         className="hidden"
       />
+
+      <Dialog open={showOptionsDialog} onOpenChange={setShowOptionsDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Profile Picture</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 py-4">
+            <Button
+              onClick={handleUploadClick}
+              className="w-full flex items-center justify-start gap-2"
+              variant="outline"
+            >
+              <Upload className="w-4 h-4" />
+              Upload New Picture
+            </Button>
+            {hasCustomAvatar && (
+              <Button
+                onClick={() => {
+                  void handleRemoveAvatar();
+                }}
+                className="w-full flex items-center justify-start gap-2"
+                variant="destructive"
+              >
+                <Trash2 className="w-4 h-4" />
+                Remove Current Picture
+              </Button>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <ImageCropDialog
         open={showCropDialog}
