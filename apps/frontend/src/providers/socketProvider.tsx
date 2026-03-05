@@ -26,14 +26,11 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       auth: { token },
     });
 
-    console.log('Socket created', newSocket);
-
     // We store the new socket in state to cause a rerender
     setSocket(newSocket);
 
     // On connect, the backend will send the last messages for all conversations the client is in
     newSocket.on('initialLastMessages', (messages: ResConversationsLastMessages) => {
-      console.log('Received last messages', messages);
       const store = chatStore.getState();
       store.resetConversations();
       store.setInitialConversations(messages);

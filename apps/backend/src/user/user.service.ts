@@ -323,8 +323,6 @@ export class UserService {
 
     // After updating the user we need to resync the chat rooms he is in
     await this.chatGateway.resyncUserRooms(userId);
-    console.log('resynced');
-
     return user;
   }
 

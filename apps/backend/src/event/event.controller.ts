@@ -103,7 +103,6 @@ export class EventController {
     )
     file: Express.Multer.File
   ) {
-    console.log('File received:', file.originalname);
     return await this.eventService.eventUpdateImage(param.id, userId, file);
   }
 

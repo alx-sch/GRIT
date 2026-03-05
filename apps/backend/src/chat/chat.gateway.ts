@@ -169,7 +169,6 @@ export class ChatGateway implements OnGatewayConnection {
     for (const conv of conversations) {
       await socket.join(conv.id);
     }
-    console.log('resynced. new rooms:', conversations);
 
     // build payload
     const payload: Record<string, unknown> = {};
@@ -182,7 +181,6 @@ export class ChatGateway implements OnGatewayConnection {
         lastReadAt: participant.lastReadAt ?? null,
       };
     }
-    console.log('backend emits initialLastMessages with', payload);
     socket.emit('initialLastMessages', payload);
   }
 
@@ -209,130 +207,6 @@ export class ChatGateway implements OnGatewayConnection {
       await this.syncSocketConversations(socket, userId);
     }
   }
-
-  // // We auto-join all conversations for the user in here and send the last message for each conversation
-  // async handleConnection(client: AppSocket) {
-  //   const userId = client.data.userId;
-
-  //   // When the socket connects, we store which user it belongs to
-  //   if (!this.userSockets.has(userId)) {
-  //     this.userSockets.set(userId, new Set());
-  //   }
-  //   this.userSockets.get(userId)?.add(client.id);
-
-  //   // Get the conversations from db
-  //   const conversations = await this.prisma.conversation.findMany({
-  //     where: {
-  //       participants: {
-  //         some: { userId },
-  //       },
-  //       OR: [
-  //         { event: null }, // allow non-event conversations
-  //         {
-  //           event: {
-  //             isPublished: true,
-  //           },
-  //         },
-  //       ],
-  //     },
-  //     select: {
-  //       id: true,
-  //       participants: {
-  //         where: { userId },
-  //         select: {
-  //           lastReadAt: true,
-  //         },
-  //       },
-  //       messages: {
-  //         orderBy: { createdAt: 'desc' },
-  //         take: 1,
-  //         select: {
-  //           id: true,
-  //           conversationId: true,
-  //           text: true,
-  //           createdAt: true,
-  //           author: {
-  //             select: {
-  //               id: true,
-  //               name: true,
-  //               avatarKey: true,
-  //             },
-  //           },
-  //         },
-  //       },
-  //     },
-  //   });
-
-  //   // Join all conversations
-  //   for (const conv of conversations) {
-  //     await client.join(conv.id);
-  //   }
-
-  //   // Send the last chat message for each conversation the client is in
-  //   const payload: Record<string, unknown> = {};
-  //   for (const conv of conversations) {
-  //     const participant = conv.participants[0];
-  //     payload[conv.id] = {
-  //       lastMessage: conv.messages[0] ?? null,
-  //       lastReadAt: participant.lastReadAt ?? null,
-  //     };
-  //   }
-
-  //   client.emit('initialLastMessages', payload);
-  // }
-
-  // // On client disconnection we remove the client from our user => client map
-  // handleDisconnect(client: AppSocket) {
-  //   const userId = client.data.userId;
-  //   this.userSockets.get(userId)?.delete(client.id);
-  // }
-
-  // // This is a function we can expose to other parts of a server to force a resync of joined rooms
-  // async resyncUserRooms(userId: number) {
-  //   const socketIds = this.userSockets.get(userId);
-  //   if (!socketIds) return;
-
-  //   const conversations = await this.prisma.conversation.findMany({
-  //     where: {
-  //       participants: { some: { userId } },
-  //     },
-  //     select: { id: true },
-  //   });
-  //   console.log('conversations now', conversations);
-
-  //   for (const socketId of socketIds) {
-  //     const socket = this.server.sockets.sockets.get(socketId);
-  //     if (!socket) continue;
-
-  //     // leave all rooms except the socket's own room
-  //     for (const room of socket.rooms) {
-  //       if (room !== socket.id) {
-  //         await socket.leave(room);
-  //       }
-  //     }
-
-  //     // rejoin all rooms the user should still be in
-  //     for (const conv of conversations) {
-  //       await socket.join(conv.id);
-  //       console.log('joined ', conv);
-  //     }
-  //   }
-  // }
-
-  /**
-   * SUBSCRIBING TO SOCKET EVENTS
-   */
-
-  // JOHCOMMENT
-  // // We need to handle manual joins for new conversations that are created after initial socket creation
-  // @SubscribeMessage('joinConversation')
-  // async handleJoinConversation(
-  //   @MessageBody() body: { conversationId: string },
-  //   @ConnectedSocket() client: AppSocket
-  // ) {
-  //   await this.assertUserInConversation(body.conversationId, client.data.userId);
-  //   client.join(body.conversationId);
-  // }
 
   @SubscribeMessage('getInitialHistory')
   async handGetHistory(

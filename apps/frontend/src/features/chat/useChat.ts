@@ -55,9 +55,7 @@ export function useChat(conversationId: string) {
   };
 
   const sendMessage = (text: string) => {
-    console.log('Sending message');
     if (!text.trim()) return;
-    console.log('Sending message 2 for conversationId', conversationId);
     socket?.emit('message', {
       text,
       conversationId,
