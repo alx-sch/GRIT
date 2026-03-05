@@ -5,7 +5,7 @@ import { useChat } from '@/features/chat/useChat';
 import { ChatBubble } from '@/features/chat/ChatBubble';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircleIcon, MessagesSquare, Trash2 } from 'lucide-react';
+import { AlertCircleIcon, Trash2 } from 'lucide-react';
 
 export const ChatBox = ({ conversationId }: { conversationId: string }) => {
   const { messages, sendMessage, loadMore, deleteMessage, hasMore, errorMessage, isAdmin } =
@@ -135,12 +135,14 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
 
               {isAdmin && (
                 <button
-                  onClick={() => deleteMessage(message.id)}
+                  onClick={() => {
+                    deleteMessage(message.id);
+                  }}
                   className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-destructive hover:text-destructive-foreground rounded"
                   title="Delete message"
                   aria-label="Delete message"
                 >
-                  <Trash2 size={16} />
+                  <Trash2 className="h-4 w-4" />
                 </button>
               )}
             </div>

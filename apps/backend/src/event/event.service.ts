@@ -31,42 +31,8 @@ export class EventService {
     if (!event) {
       throw new NotFoundException(`Event with id ${id.toString()} not found`);
     }
-<<<<<<< HEAD
     if (event.authorId !== userId && !isAdmin) {
-      throw new ForbiddenException('You can only delete your own events');
-=======
-    try {
-      const deleted = await this.prisma.event.delete({
-        where: {
-          id,
-          authorId: userId,
-        },
-        include: {
-          author: true,
-          location: true,
-          files: true,
-        },
-      });
-
-      if (deleted.imageKey) {
-        try {
-          await this.storage.deleteFile(deleted.imageKey, 'event-images');
-        } catch (error) {
-          console.error(`Failed to delete event image with key ${deleted.imageKey}:`, error);
-        }
-      }
-      for (const file of deleted.files) {
-        try {
-          await this.storage.deleteFile(file.fileKey, file.bucket);
-        } catch (error) {
-          console.error(`Failed to delete file ${file.fileKey}:`, error);
-        }
-      }
-
-      return deleted;
-    } catch {
       throw new UnauthorizedException(`No permission to delete event with id ${id.toString()}.`);
->>>>>>> main
     }
     const deleted = await this.prisma.event.delete({
       where: {
@@ -75,6 +41,7 @@ export class EventService {
       include: {
         author: true,
         location: true,
+        files: true,
       },
     });
 
@@ -85,6 +52,14 @@ export class EventService {
         console.error(`Failed to delete event image with key ${deleted.imageKey}:`, error);
       }
     }
+    for (const file of deleted.files) {
+      try {
+        await this.storage.deleteFile(file.fileKey, file.bucket);
+      } catch (error) {
+        console.error(`Failed to delete file ${file.fileKey}:`, error);
+      }
+    }
+
     return deleted;
   }
 
