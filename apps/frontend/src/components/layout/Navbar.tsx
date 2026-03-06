@@ -132,7 +132,7 @@ export function Navbar() {
                 <Calendar className="mr-2 h-4 w-4" />
                 My events
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => void navigate('/friends')}>
+              <DropdownMenuItem onClick={() => void navigate('/my-friends')}>
                 <Users className="mr-2 h-4 w-4" />
                 My friends
               </DropdownMenuItem>
