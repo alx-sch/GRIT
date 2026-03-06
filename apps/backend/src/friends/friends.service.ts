@@ -59,6 +59,10 @@ export class FriendsService {
         requesterId,
         receiverId,
       },
+      include: {
+        requester: {select: {id: true, name: true, avatarKey: true}},
+        receiver: {select: {id: true, name: true, avatarKey: true}},
+      }
     });
 
     return friendRequest;
@@ -155,6 +159,10 @@ export class FriendsService {
     // Find friend request
     const friendRequest = await this.prisma.friendRequest.findFirst({
       where: {id: id},
+      include: {
+        requester: {select: {id: true, name: true, avatarKey: true}},
+        receiver: {select: {id: true, name: true, avatarKey: true}},
+      },
     });
 
     if (!friendRequest) {
@@ -173,6 +181,7 @@ export class FriendsService {
           userId: userId,
           friendId: friendRequest.requesterId,
         },
+        include: {friend: {select: {id: true, name: true, avatarKey: true}}},
       }),
       this.prisma.friends.create({
         data: {
@@ -193,6 +202,10 @@ export class FriendsService {
     // Find friend request
     const friendRequest = await this.prisma.friendRequest.findFirst({
       where: {id: id},
+      include: {
+        requester: {select: {id: true, name: true, avatarKey: true}},
+        receiver: {select: {id: true, name: true, avatarKey: true}},
+      }
     });
 
     if (!friendRequest) {
@@ -221,6 +234,8 @@ export class FriendsService {
         userId: userId,
         friendId: friendId,
       },
+      include: {friend: {select: {id: true, name: true, avatarKey: true}}},
+
     });
     if (!friendship)
       throw new BadRequestException('Friendship does not exist.');

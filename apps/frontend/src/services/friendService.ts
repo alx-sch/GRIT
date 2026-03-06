@@ -13,9 +13,9 @@ interface getFriendRequestsParams {
 }
 
 export const friendService = {
-  sendRequest: async(receiverId: string): Promise<FriendRequestBase> => {
+  sendRequest: async(receiverId: number): Promise<FriendRequestBase> => {
     const response = await api.post<FriendRequestBase>(
-        '/users/me/friends/requests',  { receiverId: Number(receiverId) });
+        '/users/me/friends/requests', {receiverId});
     return response.data;
   },
 

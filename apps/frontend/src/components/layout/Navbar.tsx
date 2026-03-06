@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Sun, Moon, User, LogOut, Calendar, ChevronDown } from 'lucide-react';
+import { Menu, X, Sun, Moon, User, LogOut, Calendar, ChevronDown, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   NavigationMenu,
@@ -120,7 +120,7 @@ export function Navbar() {
                 My events
               </DropdownMenuItem>
 			  <DropdownMenuItem onClick={() => void navigate('/friends')}>
-                <Calendar className="mr-2 h-4 w-4" />
+                <Users className="mr-2 h-4 w-4" />
                 My friends
               </DropdownMenuItem>
               <DropdownMenuSeparator />

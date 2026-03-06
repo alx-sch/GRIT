@@ -1,14 +1,13 @@
-import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ResUserPublic } from '@grit/schema';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { getAvatarImageUrl } from '@/lib/image_utils';
+import { conversationService } from '@/services/conversationService';
+import { useCurrentUserStore } from '@/store/currentUserStore';
+import { ResUserPublic, type ConversationRes } from '@grit/schema';
 import { MessageCircleMore } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { conversationService } from '@/services/conversationService';
-import { type ConversationRes } from '@grit/schema';
-import { useCurrentUserStore } from '@/store/currentUserStore';
 
-export const UserCard = ({ user }: { user: ResUserPublic }) => {
+export const UserCard = ({ user, actions }: { user: ResUserPublic; actions?: React.ReactNode }) => {
   const displayName = user.name ?? 'User';
   const navigate = useNavigate();
   function startChat() {
@@ -40,9 +39,10 @@ export const UserCard = ({ user }: { user: ResUserPublic }) => {
             <div className="overflow-hidden">
               <CardTitle className="text-base truncate">{displayName}</CardTitle>
             </div>
-            {currentUser && currentUser?.id !== user.id && (
-              <MessageCircleMore className="cursor-pointer" onClick={startChat} />
-            )}
+            {actions ??
+              (currentUser && currentUser?.id !== user.id && (
+                <MessageCircleMore className="cursor-pointer" onClick={startChat} />
+              ))}
           </div>
         </CardHeader>
       </Card>
