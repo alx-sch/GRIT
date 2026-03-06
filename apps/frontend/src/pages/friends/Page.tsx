@@ -11,15 +11,16 @@ import { userService } from '@/services/userService';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import { FriendRequestResponse, FriendResponse } from '@/types/friends';
 import { ResUserPublic, type ConversationRes } from '@grit/schema';
-import { MessageCircleMore, UserPlus, UserRoundX, Check, X} from 'lucide-react';
+import { Check, MessageCircleMore, UserPlus, UserX, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useRevalidator } from 'react-router-dom';
+import { toast } from 'sonner';
 
-type FriendsLoaderData = {
+interface FriendsLoaderData {
   pendingIncoming: FriendRequestResponse;
   pendingOutgoing: FriendRequestResponse;
   friendsList: FriendResponse;
-};
+}
 
 export const friendsLoader = async (): Promise<FriendsLoaderData> => {
   const [pendingIncoming, pendingOutgoing, friendsList] = await Promise.all([
@@ -58,15 +59,14 @@ export default function FriendsPage() {
   const [searchInput, setSearchInput] = useState('');
   const [fetchedFor, setFetchedFor] = useState<string | null>(null);
   const debouncedSearch = useDebounce(searchInput, 500);
-  const searchDone = fetchedFor === debouncedSearch && debouncedSearch === searchInput;
+  const searchDone =
+    !!debouncedSearch && fetchedFor === debouncedSearch && debouncedSearch === searchInput;
 
   useEffect(() => {
     if (!debouncedSearch) {
-      setUsers([]);
-      setFetchedFor(null);
       return;
     }
-    userService.getUsers({ search: debouncedSearch, limit: '50' }).then((res) => {
+    void userService.getUsers({ search: debouncedSearch, limit: '50' }).then((res) => {
       setUsers(res.data);
       setFetchedFor(debouncedSearch);
     });
@@ -74,7 +74,7 @@ export default function FriendsPage() {
 
   //Filter out current user from search results
   const currentUser = useCurrentUserStore((s) => s.user);
-  const filteredUsers = users.filter((u) => u.id !== currentUser?.id);
+  const filteredUsers = users.filter((u) => u.id !== currentUser?.id && !friendIds.has(u.id));
 
   //Start chat action
   const navigate = useNavigate();
@@ -90,8 +90,8 @@ export default function FriendsPage() {
       });
 
       void navigate(`/chat/${res.id}`);
-    } catch (err) {
-      console.error(err);
+    } catch {
+      toast.error('Failed to start chat');
     }
   }
 
@@ -100,8 +100,8 @@ export default function FriendsPage() {
     try {
       await friendService.sendRequest(userId);
       void revalidate();
-    } catch (err) {
-      console.error(err);
+    } catch {
+      toast.error('Failed to send friend request');
     }
   }
 
@@ -110,8 +110,8 @@ export default function FriendsPage() {
     try {
       await friendService.acceptRequest(requestId);
       void revalidate();
-    } catch (err) {
-      console.error(err);
+    } catch {
+      toast.error('Failed to accept friend request');
     }
   }
 
@@ -120,8 +120,8 @@ export default function FriendsPage() {
     try {
       await friendService.declineRequest(requestId);
       void revalidate();
-    } catch (err) {
-      console.error(err);
+    } catch {
+      toast.error('Failed to decline friend request');
     }
   }
 
@@ -130,52 +130,53 @@ export default function FriendsPage() {
     try {
       await friendService.removeFriend(friendId);
       void revalidate();
-    } catch (err) {
-      console.error(err);
+    } catch {
+      toast.error('Failed to remove friend');
     }
   }
 
   return (
     <Container className="py-10 space-y-8">
-      {/*<div className="space-y-2">*/}
-      {/*<Heading level={1}>My friends</Heading>
-        <Text className="text-muted-foreground">Manage your friends</Text>
-      </div>*/}
-
       {/* User Search*/}
       <div className="flex flex-col gap-6">
-        <Input
-          placeholder="Search for new friends..."
-          className="max-w-sm"
-          value={searchInput}
-          onChange={(e) => {
-            setSearchInput(e.target.value);
-          }}
-        />
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <Input
+            placeholder="Search for new friends..."
+            className="max-w-sm"
+            value={searchInput}
+            onChange={(e) => {
+              setSearchInput(e.target.value);
+            }}
+          />
+        </div>
 
         {searchInput === '' ? null : !searchDone ? (
           <Text className="text-muted-foreground">Searching...</Text>
         ) : filteredUsers.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredUsers.map((user) => {
-              const isFriend = friendIds.has(user.id);
               const isPending = outgoingIds.has(user.id);
               const requestedMe = incomingIds.has(user.id);
 
               let action: React.ReactNode;
-              if (isFriend) {
+              if (isPending || requestedMe) {
                 action = (
-                  <MessageCircleMore
-                    className="cursor-pointer"
-                    onClick={() => {
-                      startChat(user);
-                    }}
-                  />
+                  <span className="inline-flex items-center text-xs text-muted-foreground">
+                    Pending
+                  </span>
                 );
-              } else if (isPending || requestedMe) {
-                action = <span className="text-xs text-muted-foreground">Pending</span>;
               } else {
-                action = <UserPlus onClick={() => sendRequest(user.id)} />;
+                action = (
+                  <Button
+                    variant="default"
+                    title="Send friend request"
+                    onClick={() => {
+                      void sendRequest(user.id);
+                    }}
+                  >
+                    <UserPlus />
+                  </Button>
+                );
               }
               return <UserCard key={user.id} user={user} actions={action} />;
             })}
@@ -191,7 +192,7 @@ export default function FriendsPage() {
 
       {friends.pendingIncoming.data.length > 0 && (
         <div className="flex flex-col gap-4">
-          <Heading level={2}>Pending Friends Requests</Heading>
+          <Heading level={3}>Pending Requests</Heading>
 
           <div className="flex flex-col gap-6">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -201,9 +202,21 @@ export default function FriendsPage() {
                   user={req.requester}
                   actions={
                     <>
-                      <Check  onClick={() => accept(req.id)} />
-                      <X  onClick={() => decline(req.id)}>
-                      </X>
+                      <Button
+                        onClick={() => {
+                          void accept(req.id);
+                        }}
+                      >
+                        <Check />
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        onClick={() => {
+                          void decline(req.id);
+                        }}
+                      >
+                        <X />
+                      </Button>
                     </>
                   }
                 />
@@ -214,9 +227,9 @@ export default function FriendsPage() {
       )}
 
       {/* List of Friends */}
-      {friends.friendsList.data.length > 0 && (
+      {friends.friendsList.data.length > 0 ? (
         <div className="flex flex-col gap-4">
-          <Heading level={2}>Your friends</Heading>
+          <Heading level={3}>Your friends</Heading>
           <div className="flex flex-col gap-6">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {friends.friendsList.data.map((friend) => (
@@ -225,24 +238,36 @@ export default function FriendsPage() {
                   user={friend.friend}
                   actions={
                     <>
-                      <MessageCircleMore
-                        className="cursor-pointer"
+                      <Button
+                        variant="default"
+                        title="Chat"
                         onClick={() => {
                           startChat(friend.friend);
                         }}
-                      />
-                      <UserRoundX
-                        className="cursor-point"
+                      >
+                        <MessageCircleMore />
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        title="Remove friend"
                         onClick={() => {
-                          remove(friend.friendId);
+                          void remove(friend.friendId);
                         }}
-                      />
+                      >
+                        <UserX />
+                      </Button>
                     </>
                   }
                 />
               ))}
             </div>
           </div>
+        </div>
+      ) : (
+        <div className="py-12 text-center border-2 border-dashed border-muted-foreground/20">
+          <Text className="text-muted-foreground">
+            You don't have any friends yet. Search for new friends to add!
+          </Text>
         </div>
       )}
     </Container>

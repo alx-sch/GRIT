@@ -12,7 +12,7 @@ export const userService = {
     const queryParams = new URLSearchParams();
     if (params?.limit) queryParams.set('limit', params.limit);
     if (params?.cursor) queryParams.set('cursor', params.cursor);
-	if (params?.search) queryParams.set('search', params.search);
+    if (params?.search) queryParams.set('search', params.search);
 
     const queryString = queryParams.toString();
     const url = queryString ? `users?${queryString}` : '/users';

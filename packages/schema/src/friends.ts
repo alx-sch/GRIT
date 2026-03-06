@@ -1,5 +1,4 @@
-import {z} from 'zod';
-
+import { z } from 'zod';
 
 // ========== REQUEST SCHEMAS ==========
 
@@ -26,7 +25,7 @@ const ResFriendUserSchema = z.object({
   id: z.number().int().positive(),
   name: z.string(),
   avatarKey: z.string().nullable().optional(),
-})
+});
 
 // ========== RESPONSE SCHEMAS ==========
 
