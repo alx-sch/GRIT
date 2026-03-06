@@ -12,15 +12,16 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
-
 import { userCursorFilter, userEncodeCursor } from './user.utils';
+import { ChatGateway } from '@/chat/chat.gateway';
 
 @Injectable()
 export class UserService {
   constructor(
     private prisma: PrismaService,
     private storage: StorageService,
-    private mailService: MailService
+    private mailService: MailService,
+    private readonly chatGateway: ChatGateway
   ) {}
 
   async userGet(input: ReqUserGetAllDto) {
@@ -319,6 +320,9 @@ export class UserService {
         title: a.event.title,
       })),
     };
+
+    // After updating the user we need to resync the chat rooms he is in
+    await this.chatGateway.resyncUserRooms(userId);
     return user;
   }
 

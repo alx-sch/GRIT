@@ -5,6 +5,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Container } from '@/components/layout/Container';
 import { env } from '@/config/env';
 import { useRouteToasts } from '@/hooks/useRouteToast';
+import { SocketProvider } from '@/providers/socketProvider';
 
 NProgress.configure({ showSpinner: false, speed: 400 });
 
@@ -43,10 +44,12 @@ export function DefaultLayout() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Navbar />
-      <Container as="main" className="py-6">
-        <Outlet />
-      </Container>
+      <SocketProvider>
+        <Navbar />
+        <Container as="main" className="py-6">
+          <Outlet />
+        </Container>
+      </SocketProvider>
     </div>
   );
 }

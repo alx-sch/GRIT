@@ -1,6 +1,7 @@
 import { DefaultLayout } from '@/components/layout/DefaultLayout';
 import { ProtectedLayout, protectedLayoutLoader } from '@/components/layout/ProtectedLayout';
 import { ChatFeedPage } from '@/pages/chat/ChatFeedPage';
+import { ChatFeedLayout, ChatFeedLoader } from '@/features/chat/ChatFeedLayout';
 import { ChatPage } from '@/pages/chat/ChatPage';
 import CreateEventPage, { eventCreationLoader } from '@/pages/create/event/Page';
 import Design from '@/pages/design/Page';
@@ -81,7 +82,10 @@ export const router = createBrowserRouter([
       },
       {
         path: 'chat',
+        id: 'chat-feed',
         handle: { title: 'Chat' },
+        Component: ChatFeedLayout,
+        loader: ChatFeedLoader,
         children: [
           {
             index: true,

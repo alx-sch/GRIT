@@ -13,10 +13,10 @@ if (!rootElement) {
 }
 
 ReactDOM.createRoot(rootElement).render(
-  <React.StrictMode>
-    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-      <Toaster position="bottom-right" richColors />
-      <RouterProvider router={router} />
-    </ThemeProvider>
-  </React.StrictMode>
+  // <React.StrictMode>
+  <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+    <Toaster position="bottom-right" richColors />
+    <RouterProvider router={router} />
+  </ThemeProvider>
+  // </React.StrictMode>
 );

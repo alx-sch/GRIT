@@ -53,7 +53,8 @@ export default tseslint.config(
       '@typescript-eslint/only-throw-error': 'off',
       // Too many stupid false positives
       '@typescript-eslint/no-unnecessary-condition': 'off',
-
+      // What the actual f*ck. ${isActive && 'bg-secondary'} is not allowed?
+      '@typescript-eslint/restrict-template-expressions': 'off',
       // Disable react-compiler rules (not using React Compiler)
       'react-compiler/react-compiler': 'off',
     },

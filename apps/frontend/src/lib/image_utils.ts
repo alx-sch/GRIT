@@ -1,3 +1,4 @@
+import { env } from '@/config/env';
 import { EventBase } from '@/types/event';
 
 export function getEventImageUrl(event: EventBase): string {
@@ -5,6 +6,10 @@ export function getEventImageUrl(event: EventBase): string {
     return generateImagePlaceholderEvent(event);
   }
   return `/s3/event-images/${event.imageKey}`;
+}
+
+export function getEventImageUrlByKey(evenImageFilenam: string) {
+  return `${env.MINIO_URL}/event-images/${evenImageFilenam}`;
 }
 
 export function getAvatarImageUrl(avatarFilename: string | undefined): string {
