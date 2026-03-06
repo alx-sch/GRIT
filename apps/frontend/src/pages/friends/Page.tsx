@@ -10,11 +10,12 @@ import { friendService } from '@/services/friendService';
 import { userService } from '@/services/userService';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import { FriendRequestResponse, FriendResponse } from '@/types/friends';
-import { ResUserPublic, type ConversationRes } from '@grit/schema';
+import { ResUserPublic } from '@grit/schema';
 import { Check, MessageCircleMore, UserPlus, UserX, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useRevalidator } from 'react-router-dom';
 import { toast } from 'sonner';
+import { ResConversationSingleId } from '@grit/schema';
 
 interface FriendsLoaderData {
   pendingIncoming: FriendRequestResponse;
@@ -84,7 +85,8 @@ export default function FriendsPage() {
 
   async function startChatAsync(friend: { id: number }) {
     try {
-      const res: ConversationRes = await conversationService.getConversation({
+      // This will either get an existing conversation or create it
+      const res: ResConversationSingleId = await conversationService.getConversation({
         type: 'DIRECT',
         directId: friend.id,
       });
