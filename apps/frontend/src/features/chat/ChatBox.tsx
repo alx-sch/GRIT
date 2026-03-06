@@ -175,7 +175,10 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
   return (
     <>
       <div className="relative">
-        <div ref={viewportRef} className="h-[60vh] overflow-y-auto border border-input px-4 mb-4">
+        <div
+          ref={viewportRef}
+          className="h-[calc(95vh-350px)] overflow-y-auto border border-input px-4 mb-4"
+        >
           {messages.map((message) => (
             <ChatBubble key={message.id} message={message} />
           ))}
