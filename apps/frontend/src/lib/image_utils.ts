@@ -1,10 +1,19 @@
-import { EventBase } from '@/types/event';
+import { env } from '@/config/env';
 
-export function getEventImageUrl(event: EventBase): string {
+interface EventImageInput {
+  id: number;
+  title: string;
+  imageKey?: string | null;
+}
+export function getEventImageUrl(event: EventImageInput): string {
   if (!event.imageKey) {
     return generateImagePlaceholderEvent(event);
   }
   return `/s3/event-images/${event.imageKey}`;
+}
+
+export function getEventImageUrlByKey(evenImageFilenam: string) {
+  return `${env.MINIO_URL}/event-images/${evenImageFilenam}`;
 }
 
 export function getAvatarImageUrl(avatarFilename: string | undefined): string {
@@ -40,7 +49,7 @@ function wrapLines(text: string, maxLen = 12, maxLines = 3): string[] {
   return lines;
 }
 
-export function generateImagePlaceholderEvent(event: EventBase) {
+export function generateImagePlaceholderEvent(event: { id: number; title: string }) {
   const colors = ['oklch(0.68 0.22 45)', 'oklch(0 0 0)', 'oklch(0.4 0 0)'];
   const bgColor = colors[event.id % colors.length];
   let title = event.title.trim() || 'Great Event';

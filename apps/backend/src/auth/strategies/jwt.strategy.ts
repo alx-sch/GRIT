@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { env } from '@/config/env';
@@ -40,10 +40,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   // If the token is valid, this function runs. Verifies if user (still) exists in DB before allowing request to proceed.
   async validate(payload: JwtPayload) {
     const user = await this.userService.userGetById(payload.sub);
-
-    if (!user) {
-      throw new UnauthorizedException('User does not exist');
-    }
 
     return user;
   }

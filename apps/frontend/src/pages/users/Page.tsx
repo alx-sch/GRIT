@@ -28,7 +28,7 @@ export default function Users() {
   }, [users, searchTerm]);
 
   return (
-    <Container className="py-10 space-y-8">
+    <Container className="py-10 space-y-6">
       <div className="space-y-2">
         <Heading level={1}>Users</Heading>
         <Text className="text-muted-foreground">Manage your team members and permissions.</Text>

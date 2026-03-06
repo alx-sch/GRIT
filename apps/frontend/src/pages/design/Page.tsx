@@ -68,7 +68,7 @@ export default function Design() {
   };
 
   return (
-    <Container className="py-10 space-y-12">
+    <Container className="py-10 space-y-6">
       <section className="space-y-4">
         <Heading level={2}>1. Typography System</Heading>
 

@@ -4,5 +4,5 @@ export * from './location.js';
 export * from './chat.js';
 export * from './env.js';
 export * from './user.js';
-export * from './conversation.js';
+export * from './conversationSchema.js';
 export * from './friends.js';
