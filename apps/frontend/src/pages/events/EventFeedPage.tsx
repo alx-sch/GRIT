@@ -173,7 +173,7 @@ export default function EventFeedPage() {
   };
 
   return (
-    <Container className="py-10 space-y-8 p-0 md:px-0">
+    <Container className="py-10 space-y-8">
       <div className="space-y-2">
         <Heading level={1} className="text-3xl md:text-4xl">
           Upcoming events

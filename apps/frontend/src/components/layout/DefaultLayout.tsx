@@ -2,10 +2,10 @@ import { useEffect } from 'react';
 import { Outlet, useMatches, useNavigation } from 'react-router-dom';
 import NProgress from 'nprogress';
 import { Navbar } from '@/components/layout/Navbar';
-import { Container } from '@/components/layout/Container';
 import { env } from '@/config/env';
 import { useRouteToasts } from '@/hooks/useRouteToast';
 import { SocketProvider } from '@/providers/socketProvider';
+import { Container } from './Container';
 
 NProgress.configure({ showSpinner: false, speed: 400 });
 
