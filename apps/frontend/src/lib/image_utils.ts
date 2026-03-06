@@ -1,14 +1,20 @@
+import { env } from '@/config/env';
+import { EventBase } from '@/types/event';
+
 interface EventImageInput {
   id: number;
   title: string;
   imageKey?: string | null;
 }
-
 export function getEventImageUrl(event: EventImageInput): string {
   if (!event.imageKey) {
     return generateImagePlaceholderEvent(event);
   }
   return `/s3/event-images/${event.imageKey}`;
+}
+
+export function getEventImageUrlByKey(evenImageFilenam: string) {
+  return `${env.MINIO_URL}/event-images/${evenImageFilenam}`;
 }
 
 export function getAvatarImageUrl(avatarFilename: string | undefined): string {
