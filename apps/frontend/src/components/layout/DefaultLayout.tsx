@@ -5,6 +5,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { env } from '@/config/env';
 import { useRouteToasts } from '@/hooks/useRouteToast';
 import { SocketProvider } from '@/providers/socketProvider';
+import { Container } from './Container';
 
 NProgress.configure({ showSpinner: false, speed: 400 });
 

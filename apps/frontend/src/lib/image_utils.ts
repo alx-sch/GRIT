@@ -1,5 +1,4 @@
 import { env } from '@/config/env';
-import { EventBase } from '@/types/event';
 
 interface EventImageInput {
   id: number;
