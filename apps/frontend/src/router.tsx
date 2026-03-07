@@ -1,15 +1,18 @@
 import { DefaultLayout } from '@/components/layout/DefaultLayout';
 import { ProtectedLayout, protectedLayoutLoader } from '@/components/layout/ProtectedLayout';
+import { ChatFeedLayout, ChatFeedLoader } from '@/features/chat/ChatFeedLayout';
 import { ChatFeedPage } from '@/pages/chat/ChatFeedPage';
 import { ChatPage } from '@/pages/chat/ChatPage';
 import CreateEventPage, { eventCreationLoader } from '@/pages/create/event/Page';
 import Design from '@/pages/design/Page';
 import ErrorPage from '@/pages/error/Page';
 import EventFeedPage, { eventsLoader } from '@/pages/events/EventFeedPage';
-import { eventLoader, EventPage } from '@/pages/events/EventPage';
+import { EventPage, eventLoader } from '@/pages/events/EventPage';
 import Home from '@/pages/home/Page';
 import { LoginPage, loginPageAction, loginPageLoader } from '@/pages/login/Page';
 import { LogoutPage, logoutPageLoader } from '@/pages/logout/Page';
+import { Page as MyEventsPage, myEventsLoader } from '@/pages/my-events/Page';
+import { Page as ProfilePage, profileLoader } from '@/pages/profile/Page';
 import { RegisterPage, registerPageAction, registerPageLoader } from '@/pages/register/Page';
 import Users, { usersLoader } from '@/pages/users/Page';
 import type { NavRoute } from '@/types/navroute';
@@ -81,7 +84,10 @@ export const router = createBrowserRouter([
       },
       {
         path: 'chat',
+        id: 'chat-feed',
         handle: { title: 'Chat' },
+        Component: ChatFeedLayout,
+        loader: ChatFeedLoader,
         children: [
           {
             index: true,
@@ -90,6 +96,32 @@ export const router = createBrowserRouter([
           {
             path: ':id',
             Component: ChatPage,
+          },
+        ],
+      },
+      {
+        path: 'profile',
+        Component: ProtectedLayout,
+        loader: protectedLayoutLoader,
+        children: [
+          {
+            index: true,
+            Component: ProfilePage,
+            loader: profileLoader,
+            handle: { title: 'Profile' },
+          },
+        ],
+      },
+      {
+        path: 'my-events',
+        Component: ProtectedLayout,
+        loader: protectedLayoutLoader,
+        children: [
+          {
+            index: true,
+            Component: MyEventsPage,
+            loader: myEventsLoader,
+            handle: { title: 'My Events' },
           },
         ],
       },

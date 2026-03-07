@@ -144,9 +144,10 @@ model Conversation {
 
 // Explicit join table to track which user is part of which conversation.
 model ConversationParticipant {
-  conversationId String
-  userId         Int
+  conversationId  String
+  userId          Int
 
+  lastReadAt      DateTime?
   conversation   Conversation   @relation(fields: [conversationId], references: [id], onDelete: Cascade) // On delete cascade = Delete join entry when conversation is deleted
   user           User           @relation(fields: [userId], references: [id], onDelete: Cascade) // If user is deleted, ConversationParticipant is deleted.
 

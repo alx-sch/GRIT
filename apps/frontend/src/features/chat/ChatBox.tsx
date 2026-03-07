@@ -6,10 +6,21 @@ import { ChatBubble } from '@/features/chat/ChatBubble';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircleIcon, Trash2 } from 'lucide-react';
+import { useSocket } from '@/providers/socketProvider';
+import { chatStore } from '@/store/chatStore';
 
 export const ChatBox = ({ conversationId }: { conversationId: string }) => {
-  const { messages, sendMessage, loadMore, deleteMessage, hasMore, errorMessage, isAdmin } =
-    useChat(conversationId);
+  const {
+    messages,
+    getHistory,
+    sendMessage,
+    loadMore,
+    deleteMessage,
+    sendNewLastReadAt,
+    hasMore,
+    errorMessage,
+    isAdmin,
+  } = useChat(conversationId);
   const [input, setInput] = useState('');
   const [isNearBottom, setIsNearBottom] = useState(true);
   const [hasNewMessages, setHasNewMessages] = useState(false);
@@ -18,17 +29,40 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
   const currentUserId = useCurrentUserStore((s) => s.user?.id);
   const isLoadingMoreHistory = useRef(false);
   const isInitialLoad = useRef(true);
+  const socket = useSocket();
+  const messagesRef = useRef(messages);
 
-  // Every time a new messages arrive we check if we need to scroll to the message or how to handle the ui
+  // We are creating a stable reference to the updated messages so that event listeners don't work on outdated data.
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  // Helper for updating the last read at
+  const updateLastReadAt = () => {
+    if (!conversationId) return;
+    sendNewLastReadAt(conversationId);
+    chatStore.getState().setLastReadAt(conversationId);
+  };
+
+  // At first mount we update that the user has read the conversation
+  useEffect(() => {
+    updateLastReadAt();
+  }, [conversationId]);
+
+  // Every time a new messages arrives we check if we need to scroll to the message or how to handle the ui
   useEffect(() => {
     if (!messages.length) return;
     const lastMessage = messages[messages.length - 1];
 
     // If this is the initial page load we want to scroll to the bottom
     if (isInitialLoad.current) {
-      bottomRef.current?.scrollIntoView({ behavior: 'auto' });
+      viewportRef.current?.scrollTo({
+        top: viewportRef.current.scrollHeight,
+        behavior: 'auto',
+      });
       // wait for 1 frame until scroll has settled
       requestAnimationFrame(() => (isInitialLoad.current = false));
+      updateLastReadAt();
     }
     // If the messages array changed from loading more chat history, don't scroll but set the isLoadingMoreHistory flag to false
     else if (isLoadingMoreHistory.current) {
@@ -39,15 +73,17 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
       // If we are close to the bottom or the last message was one of our own, scroll down
       const isOwnMessage = lastMessage.author?.id === currentUserId;
       if (isOwnMessage || isNearBottom) {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+        viewportRef.current?.scrollTo({
+          top: viewportRef.current.scrollHeight,
+          behavior: 'smooth',
+        });
         requestAnimationFrame(() => {
-          // Too silence that bitch of a linter
           setHasNewMessages(false);
+          updateLastReadAt();
         });
       } else {
         // otherwise we set a flag which will cause the display of a "new messages" notification but don't scroll down.
         requestAnimationFrame(() => {
-          // Too silence that bitch of a linter
           setHasNewMessages(true);
         });
       }
@@ -57,12 +93,16 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
   // We implement a scroll position based event handling for loading more of the chat history.
   useEffect(() => {
     const viewport = viewportRef.current;
-    if (!viewport) return;
+    if (!viewport) {
+      return;
+    }
 
     // Event handler
     const onScroll = () => {
       // Don't do anything while we are in the initial loading phase
-      if (isInitialLoad.current) return;
+      if (isInitialLoad.current) {
+        return;
+      }
 
       // Calcs
       const distanceFromBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight;
@@ -70,7 +110,10 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
       setIsNearBottom(nearBottom);
 
       // If we are near the bottom we remove any new message notification that might be present
-      if (nearBottom) setHasNewMessages(false);
+      if (nearBottom) {
+        setHasNewMessages(false);
+        updateLastReadAt();
+      }
 
       // If we scroll close to the top and there are no other reasons not to, we load more chat history
       if (
@@ -80,7 +123,10 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
         !isLoadingMoreHistory.current
       ) {
         isLoadingMoreHistory.current = true;
-        const oldest = messages[0];
+        const currentMessages = messagesRef.current;
+        if (!currentMessages.length) return;
+
+        const oldest = currentMessages[0];
         loadMore({
           createdAt: oldest.createdAt,
           id: oldest.id,
@@ -116,6 +162,19 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
     };
   }, [messages, hasMore]);
 
+  // We request initial chat history on component mount
+  useEffect(() => {
+    if (!socket) return;
+
+    if (socket.connected) {
+      getHistory();
+    } else {
+      socket.once('connect', () => {
+        getHistory();
+      });
+    }
+  }, [socket, conversationId]);
+
   if (errorMessage) {
     return (
       <Alert variant={'destructive'}>
@@ -128,7 +187,10 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
   return (
     <>
       <div className="relative">
-        <div ref={viewportRef} className="h-75 overflow-y-auto border border-input px-4 mt-4 mb-4">
+        <div
+          ref={viewportRef}
+          className="h-[calc(95vh-350px)] overflow-y-auto border border-input px-4 mb-4"
+        >
           {messages.map((message) => (
             <div key={message.id} className="group relative">
               <ChatBubble message={message} />
@@ -156,7 +218,10 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
               size="sm"
               className="shadow-lg"
               onClick={() => {
-                bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+                viewportRef.current?.scrollTo({
+                  top: viewportRef.current.scrollHeight,
+                  behavior: 'smooth',
+                });
                 setHasNewMessages(false);
               }}
             >
@@ -181,15 +246,16 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
           }
         }}
       />
-
-      <Button
-        onClick={() => {
-          sendMessage(input);
-          setInput('');
-        }}
-      >
-        Send
-      </Button>
+      <div className="flex justify-end">
+        <Button
+          onClick={() => {
+            sendMessage(input);
+            setInput('');
+          }}
+        >
+          Send
+        </Button>
+      </div>
     </>
   );
 };

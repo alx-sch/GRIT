@@ -28,7 +28,8 @@ export class AuthService {
   // Logic for verifying user credentials
   async validateUser(loginDto: LoginInput): Promise<ResAuthMeDto> {
     const user = await this.userService.userGetByEmail(loginDto.email);
-    if (!user || !user.password) {
+
+    if (!user?.password) {
       throw new UnauthorizedException('Invalid email or password');
     }
     // if (!user.isConfirmed) {
@@ -45,6 +46,7 @@ export class AuthService {
       email: user.email,
       name: user.name,
       avatarKey: user.avatarKey,
+      isConfirmed: user.isConfirmed,
       isAdmin: user.isAdmin,
     } as ResAuthMeDto;
   }
@@ -92,7 +94,6 @@ export class AuthService {
         googleId: providerId,
         isConfirmed: true,
         password: null, // No password for OAuth users
-        avatarKey: null,
       },
     });
 

@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Sun, Moon, User, LogOut, Calendar, ChevronDown } from 'lucide-react';
+import { Menu, X, User, LogOut, Calendar, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   NavigationMenu,
@@ -24,13 +24,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useTheme } from '@/providers/theme-provider';
 import { baseNavConfig } from '@/router';
 import { useAuthStore } from '@/store/authStore';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import type { NavRoute } from '@/types/navroute';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import { getAvatarImageUrl } from '@/lib/image_utils';
+import { chatStore } from '@/store/chatStore';
 
 export function Navbar() {
   const navConfig: NavRoute[] = [...baseNavConfig];
@@ -38,18 +38,26 @@ export function Navbar() {
   const user = useCurrentUserStore((s) => s.user);
   const displayName = user?.name ?? user?.email ?? 'User';
 
+  // Check if any conversations have an unread message
+  const conversations = chatStore((s) => s.conversations);
+
+  const hasUnread = Object.values(conversations).some((conv) => {
+    if (!conv.lastMessage) return false;
+    if (!conv.lastReadAt) return true;
+
+    return new Date(conv.lastReadAt) < new Date(conv.lastMessage.createdAt);
+  });
+
+  if (isLoggedIn) {
+    navConfig.push({ path: '/chat', label: 'Chat' });
+  }
   if (!isLoggedIn) {
     navConfig.push({ path: '/login', label: 'Login' });
   }
 
   const location = useLocation();
-  const { setTheme, resolvedTheme } = useTheme();
 
   const isActive = (path: string) => location.pathname === path;
-
-  const toggleTheme = () => {
-    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
-  };
 
   const navigate = useNavigate();
 
@@ -72,7 +80,7 @@ export function Navbar() {
               .filter((link) => link.label !== 'Login')
               .map((link) => (
                 <NavigationMenuItem key={link.label}>
-                  <NavigationMenuLink asChild className="p-0">
+                  <NavigationMenuLink asChild className="p-0 relative">
                     <Link
                       to={link.path}
                       className={cn(
@@ -84,6 +92,11 @@ export function Navbar() {
                           : 'border-transparent hover:border-foreground/50'
                       )}
                     >
+                      {link.label === 'Chat' && hasUnread ? (
+                        <div className="bg-primary w-1.5 h-1.5 rounded-full absolute top-1 right-1"></div>
+                      ) : (
+                        ''
+                      )}
                       {link.label}
                     </Link>
                   </NavigationMenuLink>
@@ -93,13 +106,13 @@ export function Navbar() {
         </NavigationMenu>
         {!isLoggedIn && (
           <Link to="/login">
-            <Button>Login</Button>
+            <Button className="text-base font-bold">Login</Button>
           </Link>
         )}
         {isLoggedIn && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2 h-auto py-2 px-3">
+              <Button variant="ghost" className="flex items-center gap-2 h-10 px-3">
                 <Avatar className="h-8 w-8">
                   <AvatarImage
                     src={user?.avatarKey ? getAvatarImageUrl(user.avatarKey) : undefined}
@@ -107,7 +120,7 @@ export function Navbar() {
                   />
                   <AvatarFallback name={displayName} />
                 </Avatar>
-                <span className="normal-case">{displayName}</span>
+                <span className="normal-case text-base font-bold">{displayName}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
@@ -127,24 +140,9 @@ export function Navbar() {
             </DropdownMenuContent>
           </DropdownMenu>
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleTheme}
-          className="hover:bg-accent hover:text-accent-foreground"
-        >
-          <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Toggle theme</span>
-        </Button>
       </div>
 
       <div className="md:hidden flex items-center gap-2">
-        <Button variant="ghost" size="icon" onClick={toggleTheme} className="hover:bg-accent">
-          <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-        </Button>
-
         {!isLoggedIn && (
           <Link to="/login">
             <Button className="h-10">Login</Button>

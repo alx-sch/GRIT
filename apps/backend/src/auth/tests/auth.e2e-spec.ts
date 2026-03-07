@@ -67,6 +67,7 @@ describe('Auth E2E', () => {
         name: 'Test User',
         password: await bcrypt.hash('Password123', 10),
         isConfirmed: true,
+        isAdmin: false,
       },
       include: {
         attending: true,
@@ -126,10 +127,9 @@ describe('Auth E2E', () => {
         avatarKey: user.avatarKey,
         email: user.email,
         id: user.id,
+        isAdmin: user.isAdmin,
         name: user.name,
         isConfirmed: true,
-        attending: [],
-        isAdmin: user.isAdmin,
       });
     });
 

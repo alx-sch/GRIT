@@ -13,17 +13,18 @@ import {
   UseGuards,
   Delete,
   Param,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ResUserBaseDto,
   ResUserPostDto,
   ReqUserPostDto,
-  ResUserEventsDto,
   ReqUserGetAllDto,
   ResUserPatchSchema,
   ReqUserPatchDto,
   ReqUserDeleteByIdDto,
+  ResUserEventsDto,
   ResUserDeleteSchema,
   ReqUserPatchByIdDto,
 } from '@/user/user.schema';
@@ -62,17 +63,26 @@ export class UserController {
     return this.userService.userPatch(userId, data);
   }
 
-  // ADMIN -> edit a user by id
-  @Patch(':id')
+  // Get user
+  @Get('me')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @ZodSerializerDto(ResUserPatchSchema)
-  userPatchById(
-    @Param() param: ReqUserPatchByIdDto,
-    @Body() data: ReqUserPatchDto,
-    @GetUser() user: User
-  ) {
-    return this.userService.userPatchById(param.id, data, user);
+  @ZodSerializerDto(ResUserBaseDto)
+  async getMe(@GetUser('id') userId: number): Promise<ResUserBaseDto> {
+    const user = await this.userService.userGetById(userId);
+    if (!user) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+    return user;
+  }
+
+  // Get user events
+  @Get('me/events')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(ResUserEventsDto)
+  async getMyEvents(@GetUser('id') userId: number) {
+    return await this.userService.userGetEvents(userId);
   }
 
   // Delete logged in user
@@ -84,13 +94,13 @@ export class UserController {
     return this.userService.userDeleteMe(user);
   }
 
-  // ADMIN -> delete a user by id
-  @Delete(':id')
+  // Delete avatar (reset to default)
+  @Delete('me/avatar')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @ZodSerializerDto(ResUserDeleteSchema)
-  userDelete(@Param() param: ReqUserDeleteByIdDto, @GetUser() user: User) {
-    return this.userService.userDelete(param.id, user);
+  @ZodSerializerDto(ResUserBaseDto)
+  async deleteAvatar(@GetUser('id') userId: number): Promise<ResUserBaseDto> {
+    return await this.userService.userDeleteAvatar(userId);
   }
 
   // ADD IMAGE UPLOAD ROUTINE
@@ -125,13 +135,36 @@ export class UserController {
     return await this.userService.userUpdateAvatar(userId, file);
   }
 
-  @Get('me/events')
+  /*
+  // ADMIN -> delete avatar (reset to default)
+  @Delete('me/avatar')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @ZodSerializerDto(ResUserEventsDto)
-  async getMyEvents(@GetUser('id') userId: number): Promise<ResUserEventsDto> {
-    const events = await this.userService.userGetEvents(userId);
+  @ZodSerializerDto(ResUserBaseDto)
+  async deleteAvatar(@GetUser('id') userId: number): Promise<ResUserBaseDto> {
+    return await this.userService.userDeleteAvatar(userId);
+  }
+  */
 
-    return ResUserEventsDto.create(events);
+  // ADMIN -> edit a user by id
+  @Patch(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(ResUserPatchSchema)
+  userPatchById(
+    @Param() param: ReqUserPatchByIdDto,
+    @Body() data: ReqUserPatchDto,
+    @GetUser() user: User
+  ) {
+    return this.userService.userPatchById(param.id, data, user);
+  }
+
+  // ADMIN -> delete a user by id
+  @Delete(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(ResUserDeleteSchema)
+  userDelete(@Param() param: ReqUserDeleteByIdDto, @GetUser() user: User) {
+    return this.userService.userDelete(param.id, user);
   }
 }

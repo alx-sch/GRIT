@@ -2,21 +2,20 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ConversationType } from '@prisma/client';
 import { ForbiddenException } from '@nestjs/common';
+import { ReqConversationCreate } from '@grit/schema';
+import { ChatGateway } from '@/chat/chat.gateway';
 
 @Injectable()
 export class ConversationService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly chatGateway: ChatGateway
+  ) {}
 
-  async conversationGetOrCreate(
-    data: {
-      type: string;
-      directId: number;
-      groupIds: number[];
-    },
-    userId: number
-  ) {
-    // Note that event conversations are created automatically during event creation and are passed in the event object to fe
-    if (data.type === 'DIRECT') return this.conversationGetOrCreateForDirect(data.directId, userId);
+  // Note that event conversations are created automatically during event creation and are passed in the event object to fe
+  async conversationGetOrCreate(data: ReqConversationCreate, userId: number) {
+    if (data.type === 'DIRECT' && data.directId)
+      return this.conversationGetOrCreateForDirect(data.directId, userId);
     // if (data.type === 'GROUP') return this.conversationGetOrCreateForGroup(data.groupIds, userId);
     throw new Error('Data problem');
   }
@@ -34,9 +33,9 @@ export class ConversationService {
           { participants: { some: { userId: userId } } },
         ],
       },
-      include: { participants: true },
+      select: { id: true, participants: true },
     });
-    if (existing && existing.participants.length === 2) return existing;
+    if (existing?.participants.length === 2) return existing;
 
     // Otherwise create the DIRECT conversation
     const newConversation = await this.prisma.conversation.create({
@@ -49,8 +48,62 @@ export class ConversationService {
       },
       include: { participants: true },
     });
+
+    // When we have created a new conversation we need to resync the rooms the user and his chat partner should have joined
+    await this.chatGateway.resyncUserRooms(userId);
+    await this.chatGateway.resyncUserRooms(directId);
+
     return newConversation;
   }
 
   // async conversationGetOrCreateForGroup(groupIds: number[], userId: number) {}
+
+  async conversationGetMany(userId: number) {
+    const conversations = await this.prisma.conversation.findMany({
+      where: {
+        participants: {
+          some: {
+            userId,
+          },
+        },
+        OR: [
+          { event: null },
+          {
+            event: {
+              isPublished: true,
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        type: true,
+        title: true,
+        updatedAt: true,
+        participants: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                avatarKey: true,
+                name: true,
+              },
+            },
+          },
+        },
+        event: {
+          select: {
+            startAt: true,
+            id: true,
+            imageKey: true,
+            title: true,
+          },
+        },
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    });
+    return conversations;
+  }
 }

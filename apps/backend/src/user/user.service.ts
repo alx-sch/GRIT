@@ -19,13 +19,15 @@ import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { userCursorFilter, userEncodeCursor } from './user.utils';
 import { User } from '@/auth/interfaces/user.interface';
+import { ChatGateway } from '@/chat/chat.gateway';
 
 @Injectable()
 export class UserService {
   constructor(
     private prisma: PrismaService,
     private storage: StorageService,
-    private mailService: MailService
+    private mailService: MailService,
+    private readonly chatGateway: ChatGateway
   ) {}
 
   async userGet(input: ReqUserGetAllDto) {
@@ -58,42 +60,61 @@ export class UserService {
   }
 
   async userGetById(id: number) {
-    return await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { id },
-      include: { attending: true },
-    });
-  }
-
-  async userGetByEmail(email: string) {
-    return await this.prisma.user.findUnique({
-      where: { email },
-      include: { attending: true },
-    });
-  }
-
-  async userGetEvents(userId: number) {
-    return this.prisma.event.findMany({
-      where: {
-        attendees: {
-          some: {
-            userId: userId,
+      include: {
+        attending: {
+          include: {
+            event: {
+              include: { location: true },
+            },
           },
         },
       },
     });
+
+    if (!user) {
+      return null;
+    }
+
+    return {
+      ...user,
+      createdAt: user.createdAt.toISOString(),
+      attending: user.attending.map((a) => ({
+        id: a.event.id,
+        title: a.event.title,
+        startAt: a.event.startAt.toISOString(),
+        isOrganizer: a.event.authorId === user.id,
+        imageKey: a.event.imageKey,
+        location: a.event.location,
+      })),
+    };
   }
 
-  async userIsAttendingEvent(userId: number, eventId: number): Promise<boolean> {
-    const attendance = await this.prisma.eventAttendee.findUnique({
-      where: {
-        eventId_userId: {
-          eventId,
-          userId,
+  async userGetByEmail(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      include: {
+        attending: {
+          include: { event: true },
         },
       },
     });
 
-    return !!attendance;
+    if (!user) {
+      return null;
+    }
+
+    return {
+      ...user,
+      createdAt: user.createdAt.toISOString(),
+      attending: user.attending.map((a) => ({
+        id: a.event.id,
+        title: a.event.title,
+        startAt: a.event.startAt.toISOString(),
+        isOrganizer: a.event.authorId === user.id,
+      })),
+    };
   }
 
   async userPost(data: ReqUserPostDto): Promise<ResUserPostDto> {
@@ -104,7 +125,6 @@ export class UserService {
         name: data.name,
         email: data.email,
         password: await bcrypt.hash(data.password, 10),
-        avatarKey: data.avatarKey,
         isConfirmed: false,
         confirmationToken: token,
       },
@@ -113,7 +133,6 @@ export class UserService {
       },
     });
 
-    // Send confirmation email
     try {
       await this.mailService.sendConfirmationEmail(user.email, token);
     } catch (error) {
@@ -122,6 +141,7 @@ export class UserService {
 
     return {
       ...user,
+      createdAt: user.createdAt.toISOString(),
       attending: [],
       message: 'Registration successful. Please check your email to confirm your account.',
     };
@@ -136,33 +156,43 @@ export class UserService {
       throw new NotFoundException('Invalid or expired confirmation token.');
     }
 
-    return await this.prisma.user.update({
+    const updatedUser = await this.prisma.user.update({
       where: { id: user.id },
       data: {
         isConfirmed: true,
-        confirmationToken: null, // Token is one-time use
+        confirmationToken: null,
       },
       include: {
-        attending: true,
+        attending: {
+          include: { event: true },
+        },
       },
     });
+
+    return {
+      ...updatedUser,
+      createdAt: updatedUser.createdAt.toISOString(),
+      attending: updatedUser.attending.map((a) => ({
+        id: a.event.id,
+        title: a.event.title,
+        startAt: a.event.startAt.toISOString(),
+        isOrganizer: a.event.authorId === updatedUser.id,
+      })),
+    };
   }
 
   async userUpdateAvatar(userId: number, file: Express.Multer.File): Promise<ResUserBaseDto> {
     const bucket = 'user-avatars';
     let newBucketKey: string | null = null;
 
-    // Find the current user to check for an existing avatar
     const currentUser = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { avatarKey: true },
     });
 
     try {
-      // Upload the new file to MinIO
       newBucketKey = await this.storage.uploadFile(file, bucket);
 
-      // Update the database with the new key
       const updatedUser = await this.prisma.user.update({
         where: { id: userId },
         data: { avatarKey: newBucketKey },
@@ -175,7 +205,6 @@ export class UserService {
         },
       });
 
-      // Cleanup: If there was an old avatar, delete it from MinIO
       if (currentUser?.avatarKey && currentUser.avatarKey !== newBucketKey) {
         try {
           await this.storage.deleteFile(currentUser.avatarKey, bucket);
@@ -185,23 +214,62 @@ export class UserService {
       }
       return {
         ...updatedUser,
-        attending: updatedUser.attending.map((a) => a.event),
+        createdAt: updatedUser.createdAt.toISOString(),
+        attending: updatedUser.attending.map((a) => ({
+          id: a.event.id,
+          title: a.event.title,
+          startAt: a.event.startAt.toISOString(),
+          isOrganizer: a.event.authorId === updatedUser.id,
+        })),
       };
     } catch (error) {
-      // ROLLBACKL: If file uploaded, but DP update failed, delete orphaned file
       if (newBucketKey) {
-        console.warn(`DB Update failed. Rolling back storage: deleting ${newBucketKey}`);
         await this.storage.deleteFile(newBucketKey, bucket);
       }
       throw error;
     }
   }
 
-  async userPatchById(targetId: number, data: ReqUserPatchDto, user: User) {
-    if (user.id !== targetId && !user.isAdmin) {
-      throw new ForbiddenException('You do not have permission to modify this user');
+  async userDeleteAvatar(userId: number): Promise<ResUserBaseDto> {
+    const currentUser = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, avatarKey: true },
+    });
+
+    if (!currentUser) {
+      throw new NotFoundException('User not found');
     }
-    return this.userPatch(targetId, data);
+
+    if (currentUser.avatarKey) {
+      try {
+        await this.storage.deleteFile(currentUser.avatarKey, 'user-avatars');
+      } catch (error) {
+        console.error(`Failed to delete old avatar: ${currentUser.avatarKey}`, error);
+      }
+    }
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: { avatarKey: null },
+      include: {
+        attending: {
+          include: {
+            event: true,
+          },
+        },
+      },
+    });
+
+    return {
+      ...updatedUser,
+      createdAt: updatedUser.createdAt.toISOString(),
+      attending: updatedUser.attending.map((a) => ({
+        id: a.event.id,
+        title: a.event.title,
+        startAt: a.event.startAt.toISOString(),
+        isOrganizer: a.event.authorId === updatedUser.id,
+      })),
+    };
   }
 
   async userPatch(userId: number, data: ReqUserPatchDto) {
@@ -209,16 +277,10 @@ export class UserService {
     if (data.name !== undefined) newData.name = data.name;
 
     if (data.attending) {
-      /**
-       * Define operations we want to execute. These are types from the prisma client. The shape of the operations
-       * include connect and delete keys which will be executed as commands
-       */
       const attendingOps: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput = {};
       const membershipOps: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput = {};
 
-      // If data attending has information for connecting (attending). Naming is historical, we actually create now.
       if (data.attending.connect?.length) {
-        // Get event data
         const events = await this.prisma.event.findMany({
           where: { id: { in: data.attending.connect } },
           select: {
@@ -227,7 +289,6 @@ export class UserService {
           },
         });
 
-        // Making sure that events and their conversation data exists
         if (events.length !== data.attending.connect.length) {
           throw new NotFoundException('One or more events not found');
         }
@@ -238,15 +299,10 @@ export class UserService {
           }
         }
 
-        // Storing the changes in the operation objects
         attendingOps.create = events.map((e) => ({
           eventId: e.id,
         }));
 
-        /***
-         * connectOrCreate: If for some reason the user is not yet participating on the event but is already part of the conversation we connect.
-         * Otherwise we create.
-         */
         membershipOps.connectOrCreate = events.map((e) => ({
           where: {
             conversationId_userId: {
@@ -262,7 +318,6 @@ export class UserService {
         }));
       }
 
-      // If data attending has information for disconnecting (de-attending). Naming is historical, we actually create now.
       if (data.attending.disconnect?.length) {
         const events = await this.prisma.event.findMany({
           where: { id: { in: data.attending.disconnect } },
@@ -272,7 +327,6 @@ export class UserService {
           },
         });
 
-        // Making sure that events and their conversation data exists
         if (events.length !== data.attending.disconnect.length) {
           throw new NotFoundException('One or more events not found');
         }
@@ -283,7 +337,6 @@ export class UserService {
           }
         }
 
-        // Storing the changes in the operation objects
         attendingOps.deleteMany = data.attending.disconnect.map((eventId) => ({
           eventId,
           userId,
@@ -314,24 +367,78 @@ export class UserService {
       data: newData,
       include: {
         attending: {
-          select: {
+          include: {
             event: {
-              select: {
-                title: true,
-              },
+              include: { location: true },
             },
           },
         },
       },
     });
 
-    const user = {
+    // After updating the user we need to resync the chat rooms he is in
+    await this.chatGateway.resyncUserRooms(userId);
+
+    return {
       ...user_raw,
+      createdAt: user_raw.createdAt.toISOString(),
       attending: user_raw.attending.map((a) => ({
+        id: a.event.id,
         title: a.event.title,
+        startAt: a.event.startAt.toISOString(),
+        isOrganizer: a.event.authorId === userId,
+        imageKey: a.event.imageKey,
+        location: a.event.location,
       })),
     };
-    return user;
+  }
+
+  async userGetEvents(userId: number) {
+    const events = await this.prisma.event.findMany({
+      where: {
+        attendees: {
+          some: { userId: userId },
+        },
+      },
+      include: {
+        location: true,
+      },
+      orderBy: {
+        startAt: 'asc',
+      },
+    });
+
+    return events.map((e) => ({
+      id: e.id,
+      title: e.title,
+      startAt: e.startAt.toISOString(),
+      isOrganizer: e.authorId === userId,
+      imageKey: e.imageKey,
+      location: e.location,
+    }));
+  }
+
+  async userDeleteMe(user: User) {
+    if (user.isAdmin) {
+      throw new ForbiddenException('You can not delete an admin user');
+    }
+    const targetUser = await this.prisma.user.delete({
+      where: { id: user.id },
+    });
+    return {
+      ...targetUser,
+      createdAt: targetUser.createdAt.toISOString(),
+      attending: [],
+    };
+  }
+
+  // ====== ADMIN SERVICES ======= //
+
+  async userPatchById(targetId: number, data: ReqUserPatchDto, user: User) {
+    if (user.id !== targetId && !user.isAdmin) {
+      throw new ForbiddenException('You do not have permission to modify this user');
+    }
+    return this.userPatch(targetId, data);
   }
 
   async userDelete(targetId: number, user: User) {
@@ -342,17 +449,13 @@ export class UserService {
     if (targetId === user.id && user.isAdmin) {
       throw new ForbiddenException('You can not delete an admin user');
     }
-    return this.prisma.user.delete({
+    const targetUser = await this.prisma.user.delete({
       where: { id: targetId },
     });
-  }
-
-  async userDeleteMe(user: User) {
-    if (user.isAdmin) {
-      throw new ForbiddenException('You can not delete an admin user');
-    }
-    return this.prisma.user.delete({
-      where: { id: user.id },
-    });
+    return {
+      ...targetUser,
+      createdAt: targetUser.createdAt.toISOString(),
+      attending: [],
+    };
   }
 }
