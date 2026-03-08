@@ -19,6 +19,7 @@ export const ReqUserConfirmSchema = z.strictObject({
 export const ReqUserGetAllSchema = z.strictObject({
   limit: z.coerce.number().int().positive().max(100).default(20),
   cursor: z.string().optional(),
+  search: z.string().min(1).optional(),
 });
 
 // Post a new user draft

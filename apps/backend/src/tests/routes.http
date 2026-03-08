@@ -176,7 +176,7 @@ Authorization: Bearer {{token}}
 content-type: application/json
 
 {
-	"receiverId": 3
+	"receiverId": 2
 
 }
 ###
