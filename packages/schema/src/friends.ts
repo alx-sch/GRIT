@@ -19,6 +19,14 @@ export const ReqFriendsGetAllSchema = z.strictObject({
   cursor: z.string().optional(),
 });
 
+//  ========== SUB-SCHEMAS ==========
+
+const ResFriendUserSchema = z.object({
+  id: z.number().int().positive(),
+  name: z.string(),
+  avatarKey: z.string().nullable().optional(),
+});
+
 // ========== RESPONSE SCHEMAS ==========
 
 // Friend request -> response schema
@@ -27,7 +35,11 @@ export const ResFriendRequestSchema = z.strictObject({
   requesterId: z.coerce.number().int().positive(),
   receiverId: z.coerce.number().int().positive(),
   createdAt: z.date(),
+  requester: ResFriendUserSchema,
+  receiver: ResFriendUserSchema,
 });
+
+export type ResFriendRequest = z.infer<typeof ResFriendRequestSchema>;
 
 // List incoming/outgoing friend requests with pagination
 export const ResListFriendRequestSchema = z.strictObject({
@@ -38,13 +50,18 @@ export const ResListFriendRequestSchema = z.strictObject({
   }),
 });
 
+export type ResListFriendRequest = z.infer<typeof ResListFriendRequestSchema>;
+
 // Friend -> response schema
 export const ResFriendSchema = z.strictObject({
   id: z.string().uuid({}),
   userId: z.coerce.number().int().positive(),
   friendId: z.coerce.number().int().positive(),
   createdAt: z.date(),
+  friend: ResFriendUserSchema,
 });
+
+export type ResFriendBase = z.infer<typeof ResFriendSchema>;
 
 // List friends with pagination
 export const ResListFriendSchema = z.strictObject({
@@ -54,3 +71,5 @@ export const ResListFriendSchema = z.strictObject({
     hasMore: z.boolean(),
   }),
 });
+
+export type ResListFriend = z.infer<typeof ResListFriendSchema>;
