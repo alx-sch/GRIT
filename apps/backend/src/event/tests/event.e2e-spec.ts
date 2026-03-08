@@ -56,6 +56,8 @@ describe('Events E2E', () => {
     jwtService = app.get(JwtService);
   });
 
+  const hashedPassword = bcrypt.hashSync('Password123', 10);
+
   // Happens before each test (deletes and reseeds database).
   beforeEach(async () => {
     await cleanDb(prisma);
@@ -64,7 +66,7 @@ describe('Events E2E', () => {
       data: {
         email: 'test@example.com',
         name: 'Test User',
-        password: await bcrypt.hash('Password123', 10),
+        password: hashedPassword,
       },
       include: {
         attending: true,
@@ -356,8 +358,7 @@ describe('Events E2E', () => {
 
   // Cleaning up the database and closes the app when tests are finished.
   afterAll(async () => {
-    await prisma.event.deleteMany();
-    await prisma.user.deleteMany();
+    await prisma.$transaction([prisma.event.deleteMany(), prisma.user.deleteMany()]);
     await app.close();
   });
 });
