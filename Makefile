@@ -79,7 +79,7 @@ endif
 # TARGETS
 # ---------------------------------------------------
 
-all:	start-local
+all:	start-prod
 
 #######################
 ## 🛡️ ENV VALIDATION ##
