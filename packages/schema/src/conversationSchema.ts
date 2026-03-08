@@ -20,7 +20,7 @@ const messageSchema = z.object({
   conversationId: z.uuid(),
   text: z.string(),
   createdAt: z.iso.datetime(),
-  author: user,
+  author: user.nullable(),
 });
 
 const participants = z.array(
@@ -64,7 +64,7 @@ export const ResConversationSingleSchema = z.object({
   title: z.string().optional().nullable(),
   type: conversationTypes,
   updatedAt: z.iso.datetime(),
-  event: event,
+  event: event.nullable(),
   participants: participants,
 });
 export type ResConversationSingle = z.infer<typeof ResConversationSingleSchema>;

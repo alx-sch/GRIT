@@ -25,7 +25,9 @@ const ResFriendUserSchema = z.object({
   id: z.number().int().positive(),
   name: z.string(),
   avatarKey: z.string().nullable().optional(),
+  onlineStatus: z.boolean().nullable().optional(),
 });
+export type ResFriendUser = z.infer<typeof ResFriendUserSchema>;
 
 // ========== RESPONSE SCHEMAS ==========
 
