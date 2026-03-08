@@ -2,7 +2,7 @@ import { ReqEventGetPublishedDto } from './event.schema';
 import { Prisma } from '@prisma/client';
 import { BadRequestException } from '@nestjs/common';
 import slugify from 'slugify';
-import { nanoid } from 'nanoid';
+import { customAlphabet } from 'nanoid';
 import { removeStopwords, eng, deu, fra, spa } from 'stopword';
 
 /**
@@ -95,6 +95,11 @@ export function eventCursorFilter(input: ReqEventGetPublishedDto) {
  * ==================================================
  */
 
+const generateNanoId = customAlphabet(
+  '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
+  6
+);
+
 /**
  * Generates a unique, URL-friendly slug for an event.
  * Combines the title with a random suffix to support anonymous sharing and prevent URL guessing.
@@ -128,5 +133,5 @@ export function eventGenerateSlug(title: string): string {
 
   // nanoid(6) gives ~68 billion possibilities, plenty for uniqueness
   // and makes the "anonymous link" secure enough.
-  return `${prefix}-${nanoid(6)}`;
+  return `${prefix}-${generateNanoId()}`;
 }

@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/typography';
-import { FaFacebook, FaTelegram, FaWhatsapp, FaXTwitter } from 'react-icons/fa6';
+import { FaFacebook, FaTelegram, FaWhatsapp, FaXTwitter, FaSlack } from 'react-icons/fa6';
 
 interface EventPageActionsProps {
   isAttending: boolean | null;
@@ -14,6 +14,8 @@ interface EventPageActionsProps {
   onChat: () => void;
   onCopyLink: () => void;
   eventTitle: string;
+  shareText: string;
+  shareUrl: string;
 }
 
 export const EventPageActions = ({
@@ -26,6 +28,8 @@ export const EventPageActions = ({
   onChat,
   onCopyLink,
   eventTitle,
+  shareText,
+  shareUrl,
 }: EventPageActionsProps) => {
   return (
     <>
@@ -71,22 +75,23 @@ export const EventPageActions = ({
               {
                 icon: <FaWhatsapp size={34} color="#25D366" />,
                 label: 'WhatsApp',
-                href: `https://wa.me/?text=${encodeURIComponent('Check out this event on Grit: ' + '"' + eventTitle + '"' + ' ' + window.location.href)}`,
+                href: `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`,
               },
               {
                 icon: <FaTelegram size={34} color="#26A5E4" />,
                 label: 'Telegram',
-                href: `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent('Check out this event on Grit: ' + '"' + eventTitle + '"')}`,
+                href: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`,
               },
               {
+                // Facebook doesn't support pre-filling text in share dialogs
                 icon: <FaFacebook size={34} color="#1877F2" />,
                 label: 'Facebook',
-                href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`,
+                href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
               },
               {
                 icon: <FaXTwitter size={34} color="currentColor" />,
                 label: 'X',
-                href: `https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent('Check out this event on Grit: ' + '"' + eventTitle + '"')}`,
+                href: `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`,
               },
             ].map(({ icon, label, href }) => (
               <a

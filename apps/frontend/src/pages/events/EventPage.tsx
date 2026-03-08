@@ -56,6 +56,8 @@ export const EventPage = () => {
     handleGoing,
     handleDelete,
     navigate,
+    shareText,
+    shareUrl,
   } = useEventPage();
 
   return (
@@ -202,6 +204,8 @@ export const EventPage = () => {
                 void handleCopyLink();
               }}
               eventTitle={event.title}
+              shareText={shareText}
+              shareUrl={shareUrl}
             />
 
             {/* Event image */}

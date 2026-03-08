@@ -56,25 +56,17 @@ export const useEventPage = () => {
     });
   };
 
+  const shareUrl = window.location.href;
+  const inviterName = currentUser?.name ?? 'A friend';
+  const shareText = `${inviterName} wants to invite you to "${event.title}"! Check it out on GRIT:`;
+
   const handleShare = () => {
-    if (navigator.share) {
-      void navigator
-        .share({
-          title: event.title,
-          text: 'Check out this event on Grit!',
-          url: window.location.href,
-        })
-        .catch(() => {
-          // Share cancelled by user
-        });
-    } else {
-      setShareOpen(true);
-    }
+    setShareOpen(true);
   };
 
   const handleCopyLink = async () => {
-    await navigator.clipboard.writeText(window.location.href);
-    toast.info('Link copied');
+    await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+    toast.info('Invitation link copied');
     setShareOpen(false);
   };
 
@@ -158,5 +150,7 @@ export const useEventPage = () => {
     handleGoing,
     handleDelete,
     navigate,
+    shareText,
+    shareUrl,
   };
 };
