@@ -126,15 +126,16 @@ install-be: build-schema
 install-fe: build-schema
 	@echo "$(BOLD)$(YELLOW)--- Installing Frontend Dependencies...$(RESET)"
 	@pnpm --filter @grit/frontend install
+	@echo "$(BOLD)$(GREEN)Frontend dependencies installed.$(RESET)"
+
+install-playwright:
+	@echo "$(BOLD)$(BLUE)--- Ensuring Playwright is ready...$(RESET)"
 ifeq ($(OS), Linux)
 	@if ! ldconfig -p | grep -q libatk-1.0.so.0; then \
-		echo "$(BOLD)$(BLUE)--- Playwright dependencies missing. Installing...$(RESET)"; \
 		pnpm --filter @grit/frontend exec playwright install-deps; \
-	else \
-		echo "$(BOLD)$(BLUE)--- Playwright dependencies already satisfied. Skipping.$(RESET)"; \
 	fi
 endif
-	@echo "$(BOLD)$(GREEN)Frontend dependencies installed.$(RESET)"
+	@pnpm --filter @grit/frontend exec playwright install
 
 # -- CLEANUP TARGETS --
 
@@ -231,7 +232,6 @@ typecheck: install
 
 lint: install
 	@echo "$(BOLD)$(YELLOW)--- Linting...$(RESET)"
-	@rm -rf /tmp/turbod/*
 	@turbo lint --no-update-notifier;
 	@echo "$(BOLD)$(GREEN)Linting complete.$(RESET)"
 
@@ -308,7 +308,7 @@ test-fe-integration: install-fe
 	@echo "$(BOLD)$(YELLOW)--- Running Frontend Integration Tests ...$(RESET)"
 	@NODE_ENV=test turbo test:integration --filter=@grit/frontend --no-update-notifier
 
-test-fe-e2e: install-fe
+test-fe-e2e: install-fe install-playwright
 	@echo "$(BOLD)$(YELLOW)--- Running Frontend E2E Tests ...$(RESET)"
 	@pnpm --filter @grit/frontend exec playwright install
 	@pnpm --filter @grit/frontend exec playwright test

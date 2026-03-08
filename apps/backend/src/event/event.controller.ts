@@ -30,10 +30,8 @@ import {
   ReqEventPatchDto,
   ReqEventPostDraftDto,
   ResEventDeleteSchema,
-  ResEventGetByIdSchema,
   ResEventPatchSchema,
   ResEventPostDraftSchema,
-  ReqEventGetBySlugDto,
   ResEventInviteSchema,
   ReqEventInviteDto,
 } from './event.schema';
@@ -52,18 +50,27 @@ export class EventController {
     return this.eventService.eventDelete(param.id, userId);
   }
 
-  // Get an individual event by id
-  @Get(':id')
-  @ZodSerializerDto(ResEventGetByIdSchema)
-  eventGetById(@Param() param: ReqEventGetByIdDto) {
-    return this.eventService.eventGetById(param.id);
-  }
-
   // Get all published events or search published events
   @Get()
   @ZodSerializerDto(ResEventGetPublishedSchema)
   eventGetPublished(@Query() query: ReqEventGetPublishedDto) {
     return this.eventService.eventGetPublished(query);
+  }
+
+  // Get event by ID (numeric) OR by Slug (string)
+  @Get(':identifier')
+  @ZodSerializerDto(ResEventBaseSchema)
+  async getEventByIdOrSlug(
+    @Param('identifier') identifier: string,
+    @GetUser('id') userId?: number
+  ) {
+    // Check if the identifier is strictly numbers (e.g., "42")
+    if (/^\d+$/.test(identifier)) {
+      return this.eventService.eventGetById(parseInt(identifier, 10));
+    }
+
+    // Otherwise, treat it as a slug (e.g., "summer-party-x7y2z9")
+    return await this.eventService.eventGetBySlug(identifier, userId);
   }
 
   // Patch an event (Update)
@@ -156,13 +163,6 @@ export class EventController {
   @ZodSerializerDto(ResEventPostDraftSchema)
   eventCreateDraft(@Body() data: ReqEventPostDraftDto, @GetUser('id') userId: number) {
     return this.eventService.eventPostDraft(Object.assign(data, { authorId: userId }));
-  }
-
-  // Get an individual event by slug (for anonymous/public links)
-  @Get('join/:slug')
-  @ZodSerializerDto(ResEventBaseSchema)
-  async getBySlug(@Param() param: ReqEventGetBySlugDto, @GetUser('id') userId?: number) {
-    return await this.eventService.eventGetBySlug(param.slug, userId);
   }
 
   // Bulk invite users to an event

@@ -58,15 +58,6 @@ export const ResEventGetPublishedSchema = z.object({
 export type ResEventGetPublished = z.infer<typeof ResEventGetPublishedSchema>;
 
 /**
- * Schema for retrieving an event using its unique, unguessable slug.
- * Used primarily for anonymous invite links (e.g., /join/my-event-x8k2n1).
- */
-export const ReqEventGetBySlugSchema = z.strictObject({
-  slug: z.string(),
-});
-export type ReqEventGetBySlug = z.infer<typeof ReqEventGetBySlugSchema>;
-
-/**
  * Schema for bulk-inviting specific users to an event.
  * Validates that at least one user ID is provided and that all IDs are positive integers.
  */

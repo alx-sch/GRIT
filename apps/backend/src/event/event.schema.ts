@@ -2,7 +2,6 @@ import {
   CreateEventSchema,
   ResEventBaseSchema,
   PatchEventSchema,
-  ReqEventGetBySlugSchema,
   ReqEventInviteSchema,
 } from '@grit/schema';
 import { createZodDto } from 'nestjs-zod';
@@ -58,10 +57,6 @@ export const ResEventPatchSchema = ResEventBaseSchema;
 //Post a new event (Create)
 export class ReqEventPostDraftDto extends createZodDto(CreateEventSchema) {}
 export const ResEventPostDraftSchema = ResEventBaseSchema;
-
-// Get an individual event by slug (for anonymous links)
-export class ReqEventGetBySlugDto extends createZodDto(ReqEventGetBySlugSchema) {}
-export const ResEventGetBySlugSchema = ResEventBaseSchema;
 
 // Bulk invite users to an event
 export class ReqEventInviteDto extends createZodDto(ReqEventInviteSchema) {}

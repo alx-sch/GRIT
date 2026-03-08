@@ -1,0 +1,36 @@
+# --- Dependencies ---
+# Don't lint external packages; they are huge and not my code
+node_modules/
+.pnpm-store/
+
+# --- Build & Output ---
+# Ignore compiled code and build artifacts to save RAM
+dist/
+.next/
+out/
+build/
+coverage/
+.turbo/
+
+# --- IDE & System ---
+# Local editor settings and logs don't need linting
+.vscode/
+.github/
+*.log
+*.lock
+pnpm-lock.yaml
+
+# --- Static Assets ---
+# Images, SVGs, and fonts are binary or non-JS files
+public/
+*.svg
+*.png
+*.jpg
+*.jpeg
+*.ico
+*.pdf
+
+# --- Data & Documentation ---
+# Large JSON or Markdown files can slow down the parser significantly
+*.json
+*.md

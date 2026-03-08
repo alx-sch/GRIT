@@ -118,7 +118,7 @@ export function eventGenerateSlug(title: string): string {
     trim: true,
   });
 
-  // Limit the "text" part to 30 chars to keep URL managable, cut at hyphen
+  // Limit the "text" part to 40 chars to keep URL managable, cut at hyphen
   if (base.length > 40) {
     base = base.substring(0, 40).replace(/-+$/, '');
   }

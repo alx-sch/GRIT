@@ -4,6 +4,12 @@
   // Debian OS with Node.js 20 and TypeScript
   "image": "mcr.microsoft.com/devcontainers/javascript-node:24-bookworm",
 
+  // Give Node.js more RAM
+  "remoteEnv": {
+    "NODE_OPTIONS": "--max-old-space-size=4096"
+  },
+  //
+
   "features": {
     // Docker inside the dev container
     "ghcr.io/devcontainers/features/docker-in-docker:2": {}
