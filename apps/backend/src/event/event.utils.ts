@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { BadRequestException } from '@nestjs/common';
 import slugify from 'slugify';
 import { nanoid } from 'nanoid';
+import { removeStopwords, eng, deu, fra, spa } from 'stopword';
 
 /**
  * ==================================================
@@ -96,15 +97,31 @@ export function eventCursorFilter(input: ReqEventGetPublishedDto) {
 
 /**
  * Generates a unique, URL-friendly slug for an event.
- * Combines the title with a random suffix to support anonymous sharing
- * and prevent URL guessing.
+ * Combines the title with a random suffix to support anonymous sharing and prevent URL guessing.
+ *
+ * Example:
+ * - Title: "   💕 A cool Valentine's Party for Singles and more in Berlin!! 💕"
+ * - Slug: "cool-valentines-party-singles-berlin-Ua9tkY"
  */
 export function eventGenerateSlug(title: string): string {
-  const base = slugify(title, {
+  const words = title.split(/\s+/);
+
+  // Remove common words (a, the and so on; multiple languages)
+  const languagePack = [...eng, ...deu, ...fra, ...spa];
+  const filteredWords = removeStopwords(words, languagePack);
+
+  // Rejoin and create base slug
+  const cleanTitle = filteredWords.join(' ');
+  let base = slugify(cleanTitle, {
     lower: true,
-    strict: true,
+    strict: true, // Strips emojis/symbols
     trim: true,
   });
+
+  // Limit the "text" part to 30 chars to keep URL managable, cut at hyphen
+  if (base.length > 40) {
+    base = base.substring(0, 40).replace(/-+$/, '');
+  }
 
   // Use a fallback if the title was only special characters/emojis
   const prefix = base || 'event';

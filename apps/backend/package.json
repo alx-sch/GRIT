@@ -54,6 +54,7 @@
     "rxjs": "^7.8.1",
     "slugify": "^1.6.6",
     "socket.io": "^4.8.3",
+    "stopword": "^3.1.5",
     "zod": "^4.2.1"
   },
   "devDependencies": {
