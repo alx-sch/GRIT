@@ -204,6 +204,8 @@ export const EventPage = () => {
                 void handleCopyLink();
               }}
               eventTitle={event.title}
+              eventDate={formattedDate}
+              eventLocation={location?.name ?? 'TBA'}
               shareText={shareText}
               shareUrl={shareUrl}
             />

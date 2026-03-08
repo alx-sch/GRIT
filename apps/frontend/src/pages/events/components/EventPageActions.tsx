@@ -1,8 +1,15 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Text } from '@/components/ui/typography';
-import { FaFacebook, FaTelegram, FaWhatsapp, FaXTwitter, FaSlack } from 'react-icons/fa6';
+import { FaFacebook, FaTelegram, FaWhatsapp, FaXTwitter } from 'react-icons/fa6';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface EventPageActionsProps {
   isAttending: boolean | null;
@@ -13,9 +20,11 @@ interface EventPageActionsProps {
   onShare: () => void;
   onChat: () => void;
   onCopyLink: () => void;
-  eventTitle: string;
   shareText: string;
   shareUrl: string;
+  eventTitle: string;
+  eventDate: string;
+  eventLocation: string;
 }
 
 export const EventPageActions = ({
@@ -27,9 +36,11 @@ export const EventPageActions = ({
   onShare,
   onChat,
   onCopyLink,
-  eventTitle,
   shareText,
   shareUrl,
+  eventTitle,
+  eventDate,
+  eventLocation,
 }: EventPageActionsProps) => {
   return (
     <>
@@ -68,29 +79,73 @@ export const EventPageActions = ({
       <Dialog open={shareOpen} onOpenChange={onShareOpenChange}>
         <DialogContent className="max-w-sm flex flex-col gap-3">
           <DialogHeader>
-            <DialogTitle>Share this event</DialogTitle>
+            {/* Label: Inter font, tracked out */}
+            <DialogTitle className="text-[12px] uppercase tracking-[0.3em] opacity-50 font-sans font-bold mb-4">
+              Share this event
+            </DialogTitle>
+
+            <div className="flex flex-col gap-1 mb-4">
+              {/* Title: Space Grotesk, tight tracking, extra bold */}
+              <Text className="text-3xl font-heading font-black uppercase leading-[0.9] tracking-tighter">
+                {eventTitle}
+              </Text>
+
+              {/* Metadata: Inter font, bold, spaced out */}
+              <div className="flex flex-col gap-0.5 mt-2 opacity-80">
+                <Text className="text-[15px] font-sans font-bold uppercase tracking-[0.15em]">
+                  {eventDate}
+                </Text>
+                <Text className="text-[15px] font-sans font-bold uppercase tracking-[0.15em] truncate">
+                  {eventLocation}
+                </Text>
+              </div>
+            </div>
+
+            <DialogDescription className="sr-only">
+              Scan the QR code or choose a social platform to invite your friends to an event.
+            </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-4 gap-3 pt-2">
+
+          <div className="flex flex-col items-center justify-center bg-white p-4 rounded-xl shadow-inner">
+            <QRCodeSVG
+              value={shareUrl}
+              size={180}
+              level="H" // High error correction allows for a logo in the center
+              marginSize={4}
+              imageSettings={{
+                src: '/GRIT-logo.png', // USE REAL LOGO, fine to be just 400 x 400 px
+                x: undefined,
+                y: undefined,
+                height: 40,
+                width: 40,
+                excavate: true,
+              }}
+            />
+            <Text className="text-[10px] text-black/50 font-bold uppercase mt-2 tracking-widest">
+              Scan to join
+            </Text>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 p-4 mt-2">
             {[
               {
-                icon: <FaWhatsapp size={34} color="#25D366" />,
+                icon: <FaWhatsapp size={28} />,
                 label: 'WhatsApp',
                 href: `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`,
               },
               {
-                icon: <FaTelegram size={34} color="#26A5E4" />,
+                icon: <FaTelegram size={28} />,
                 label: 'Telegram',
                 href: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`,
               },
               {
-                // Facebook doesn't support pre-filling text in share dialogs
-                icon: <FaFacebook size={34} color="#1877F2" />,
+                icon: <FaFacebook size={28} />,
                 label: 'Facebook',
                 href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
               },
               {
-                icon: <FaXTwitter size={34} color="currentColor" />,
-                label: 'X',
+                icon: <FaXTwitter size={28} />,
+                label: 'X (Twitter)',
                 href: `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`,
               },
             ].map(({ icon, label, href }) => (
@@ -98,13 +153,19 @@ export const EventPageActions = ({
                 key={label}
                 href={href}
                 target="_blank"
-                className="flex flex-col items-center p-3 gap-1.5 rounded-xl hover:bg-muted transition-colors"
                 rel="noreferrer"
+                className="flex flex-col items-center justify-center p-5 gap-2 rounded-2xl border bg-muted hover:bg-accent hover:border-accent transition-colors group text-center"
               >
-                {icon}
+                <div className="flex items-center justify-center text-muted-foreground group-hover:text-foreground">
+                  {icon}
+                </div>
+                <Text className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-foreground">
+                  {label}
+                </Text>
               </a>
             ))}
           </div>
+
           <Button
             onClick={() => {
               onCopyLink();

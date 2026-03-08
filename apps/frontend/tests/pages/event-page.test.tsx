@@ -312,42 +312,39 @@ describe('EventPage', () => {
 
   // ----------------------------------------------------------------
   describe('Share Button', () => {
-    it('calls navigator.share when available', async () => {
-      const shareMock = vi.fn().mockResolvedValue(undefined);
-      Object.defineProperty(navigator, 'share', { value: shareMock, writable: true });
+    it('opens the custom share dialog when share is clicked', async () => {
       renderEventPage();
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /share/i })).toBeInTheDocument();
-      });
-      await user.click(screen.getByRole('button', { name: /share/i }));
-      expect(shareMock).toHaveBeenCalledWith(expect.objectContaining({ title: 'Test Event' }));
-    });
 
-    it('opens share dialog when navigator.share is unavailable', async () => {
-      Object.defineProperty(navigator, 'share', { value: undefined, writable: true });
-      renderEventPage();
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /share/i })).toBeInTheDocument();
       });
+
       await user.click(screen.getByRole('button', { name: /share/i }));
-      await waitFor(() => {
-        expect(screen.getByRole('heading', { name: /share this event/i })).toBeInTheDocument();
-      });
+
+      // Verify Dialog Content
+      expect(screen.getByText(/share this event/i)).toBeInTheDocument();
+      expect(screen.getByText(/scan to join/i)).toBeInTheDocument();
+      expect(screen.getByText(/whatsapp/i)).toBeInTheDocument();
     });
 
     it('copies link when Copy link is clicked in the share dialog', async () => {
       const { toast } = await import('sonner');
-      Object.defineProperty(navigator, 'share', { value: undefined, writable: true });
       renderEventPage();
+
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /share/i })).toBeInTheDocument();
       });
+
       await user.click(screen.getByRole('button', { name: /share/i }));
+
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /copy link/i })).toBeInTheDocument();
       });
+
       await user.click(screen.getByRole('button', { name: /copy link/i }));
-      expect(toast.info).toHaveBeenCalledWith('Link copied');
+
+      // Matches the new 'Invitation link copied' text
+      expect(toast.info).toHaveBeenCalledWith('Invitation link copied');
     });
   });
 

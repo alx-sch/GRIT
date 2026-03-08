@@ -5,6 +5,7 @@ import type { CurrentUser } from '@/types/user';
 import { useEffect, useState } from 'react';
 import { useLoaderData, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
 
 import type { eventLoader } from './EventPage';
 
@@ -23,10 +24,7 @@ export const useEventPage = () => {
   const [shareOpen, setShareOpen] = useState(false);
   const navigate = useNavigate();
 
-  const formattedDate = new Date(event.startAt).toLocaleString(undefined, {
-    dateStyle: 'long',
-    timeStyle: 'short',
-  });
+  const formattedDate = format(new Date(event.startAt), 'MMMM d, yyyy | p');
 
   const location = event.location;
   const cityPostal = [location?.postalCode, location?.city].map((s) => s?.trim()).filter(Boolean);
