@@ -10,7 +10,6 @@ import {
   MaxFileSizeValidator,
   Param,
   ParseFilePipe,
-  ParseIntPipe,
   Patch,
   Post,
   Query,
