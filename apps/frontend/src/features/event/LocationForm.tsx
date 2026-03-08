@@ -1,17 +1,17 @@
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { GmapPicker } from '@/components/ui/gmapPicker';
 import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/useDebounce';
 import { locationService } from '@/services/locationService';
 import { LocationBase } from '@/types/location';
 import { CreateLocationInput, CreateLocationSchema } from '@grit/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { APIProvider } from '@vis.gl/react-google-maps';
 import { isAxiosError } from 'axios';
 import { AlertCircleIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { Control, Controller, SubmitHandler, useForm, useWatch } from 'react-hook-form';
-import { APIProvider } from '@vis.gl/react-google-maps';
-import { GMap } from '@/components/ui/gmap';
 
 //Key for local Storage
 const DRAFT_KEY = 'location-draft';
@@ -42,6 +42,7 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
     control,
     setError,
     reset,
+    clearErrors,
     formState: { errors, isSubmitting },
   } = useForm<CreateLocationInput>({
     resolver: zodResolver(CreateLocationSchema),
@@ -68,6 +69,12 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
       reset(draft);
     }
   }, [reset]);
+
+  useEffect(() => {
+    if (longitude && latitude && errors.root) {
+      clearErrors('root');
+    }
+  }, [latitude, longitude, errors.root, clearErrors]);
 
   const onSubmit: SubmitHandler<CreateLocationInput> = async (data) => {
     if (!data.longitude || !data.latitude) {
@@ -142,7 +149,7 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
         {/* Map component */}
         <label className="font-heading">Set a location pin</label>
         <APIProvider apiKey={apiKey}>
-          <GMap setValue={setValue} lng={longitude} lat={latitude} />
+          <GmapPicker setValue={setValue} lng={longitude} lat={latitude} />
         </APIProvider>
 
         {/* Address/PostCode */}

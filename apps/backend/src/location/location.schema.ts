@@ -23,7 +23,7 @@ export const ResLocationGetAllSchema = z.object({
 export class ReqLocationPostDto extends createZodDto(CreateLocationSchema) {}
 export const ResLocationPostSchema = z.object({}).loose(); // return everything
 
-// Delete an event
+// Delete a location
 export const ReqLocationDeleteSchema = z.strictObject({
   id: z.coerce.number().int().positive(),
 });

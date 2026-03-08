@@ -7,6 +7,7 @@ import { UserBase } from '@/types/user';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { format } from 'date-fns';
 import { vi } from 'vitest';
 
 /* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
@@ -105,6 +106,7 @@ describe('Event Feed Page', () => {
       author: mockUsers.alice,
       authorId: 1,
       attendees: [mockUsers.bob, mockUsers.cindy],
+      files: [],
       location: mockLocations.gritHq,
     },
     {
@@ -121,6 +123,7 @@ describe('Event Feed Page', () => {
       author: mockUsers.bob,
       authorId: 2,
       attendees: [],
+      files: [],
     },
     {
       id: 3,
@@ -136,6 +139,7 @@ describe('Event Feed Page', () => {
       author: mockUsers.cindy,
       authorId: 3,
       attendees: [mockUsers.cindy],
+      files: [],
     },
   ];
 
@@ -251,7 +255,7 @@ describe('Event Feed Page', () => {
       await waitFor(() => {
         expect(eventService.getEvents).toHaveBeenCalledWith({
           search: undefined,
-          startFrom: new Date().toISOString().split('T')[0], // Should default to today's date
+          startFrom: format(new Date(), 'yyyy-MM-dd'), // Should default to today's date
           startUntil: undefined,
           locationId: '1',
           authorId: undefined,
@@ -326,7 +330,7 @@ describe('Event Feed Page', () => {
       // Verify initial call (no search param)
       expect(eventService.getEvents).toHaveBeenCalledWith({
         search: undefined,
-        startFrom: new Date().toISOString().split('T')[0],
+        startFrom: format(new Date(), 'yyyy-MM-dd'),
         startUntil: undefined,
         locationId: undefined,
         authorId: undefined,
@@ -347,7 +351,7 @@ describe('Event Feed Page', () => {
       // Verify service was called with search param
       expect(eventService.getEvents).toHaveBeenCalledWith({
         search: 'beer',
-        startFrom: new Date().toISOString().split('T')[0],
+        startFrom: format(new Date(), 'yyyy-MM-dd'),
         startUntil: undefined,
         locationId: undefined,
         authorId: undefined,
@@ -381,7 +385,7 @@ describe('Event Feed Page', () => {
       // Verify initial call (no search param)
       expect(eventService.getEvents).toHaveBeenCalledWith({
         search: undefined,
-        startFrom: new Date().toISOString().split('T')[0],
+        startFrom: format(new Date(), 'yyyy-MM-dd'),
         startUntil: undefined,
         locationId: undefined,
         authorId: undefined,

@@ -1,4 +1,4 @@
-export const timestampToLocalTime = (timestamp: Date): string => {
+export const timestampToLocalTime = (timestamp: string): string => {
   const date = new Date(timestamp);
   const time = date.toLocaleTimeString([], {
     month: '2-digit',

@@ -288,6 +288,8 @@ test-be-testdb-init: start-postgres
 	@echo "$(BOLD)$(YELLOW)--- Creating Test Database ...$(RESET)"
 	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
 	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
+	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
+	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
 	@NODE_ENV=test pnpm --filter @grit/backend exec prisma db push
 
 test-be-testdb-remove:
@@ -528,10 +530,10 @@ run-fe: kill-port-fe build-fe
 start: check-env db
 	@echo "$(BOLD)$(YELLOW)--- Launching Application Services...$(RESET)"
 	$(DC) up -d --build backend caddy
-	
+
 	@echo "$(BOLD)$(GREEN)Full stack is live!$(RESET)"
 	@echo "•   View live logs: '$(YELLOW)make logs$(RESET)'"
-	
+
 	@if [ -n "$(APP_BASE_URL)" ]; then \
 		echo "•   View app:       '$(YELLOW)$(APP_BASE_URL)$(RESET)'"; \
 	else \

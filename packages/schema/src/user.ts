@@ -1,6 +1,15 @@
 import { z } from 'zod';
+import { ResEventLocationSchema } from './event.js';
 
-export const ResUserEventSchema = z.object({ title: z.string() });
+export const ResUserEventSchema = z.object({
+  id: z.number().int().positive(),
+  startAt: z.iso.datetime(),
+  isOrganizer: z.boolean(),
+  imageKey: z.string().nullable().optional(),
+  location: ResEventLocationSchema.nullable().optional(),
+  title: z.string(),
+  conversationId: z.string().optional(),
+});
 export const ResUserEventsSchema = z.array(ResUserEventSchema);
 export type ResUserEvents = z.infer<typeof ResUserEventsSchema>;
 
@@ -11,6 +20,7 @@ export const ResUserBaseSchema = z.object({
   avatarKey: z.string().nullable().optional(),
   isConfirmed: z.boolean().default(false),
   attending: z.array(ResUserEventSchema).default([]),
+  createdAt: z.iso.datetime(),
 });
 export type ResUserBase = z.infer<typeof ResUserBaseSchema>;
 

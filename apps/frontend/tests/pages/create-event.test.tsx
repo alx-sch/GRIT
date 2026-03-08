@@ -81,6 +81,7 @@ describe('Event Creation Page', () => {
     createdAt: new Date().toISOString(),
     imageKey: '',
     attendees: [],
+    files: [],
   };
 
   beforeEach(() => {

@@ -2,7 +2,14 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { RegisterSchema, LoginSchema, ResUserBaseSchema } from '@grit/schema';
 
-// --- Registration ---
+export const ResAuthMeSchema = z.object({
+  id: z.number().int().positive(),
+  email: z.email(),
+  name: z.string().nullable(),
+  avatarKey: z.string().nullable().optional(),
+  isConfirmed: z.boolean().default(false),
+});
+
 export class ReqRegisterDto extends createZodDto(RegisterSchema) {}
 
 export const ResRegisterSchema = ResUserBaseSchema.extend({
@@ -10,25 +17,21 @@ export const ResRegisterSchema = ResUserBaseSchema.extend({
 });
 export class ResRegisterDto extends createZodDto(ResRegisterSchema) {}
 
-// --- Confirmation (click link in email) ---
 export const ReqConfirmEmailSchema = z.strictObject({
   token: z.string().min(1, 'Token is required'),
 });
 export class ReqConfirmEmailDto extends createZodDto(ReqConfirmEmailSchema) {}
 
-// --- Login ---
 export class ReqLoginDto extends createZodDto(LoginSchema) {}
 
 export const ResLoginSchema = z.object({
   accessToken: z.string(),
-  user: ResUserBaseSchema,
+  user: ResAuthMeSchema,
 });
 export class ResLoginDto extends createZodDto(ResLoginSchema) {}
 
-// --- Me / Auth Status ---
-export class ResAuthMeDto extends createZodDto(ResUserBaseSchema) {}
+export class ResAuthMeDto extends createZodDto(ResAuthMeSchema) {}
 
-// --- Google OAuth Profile ---
 export const GoogleProfileSchema = z.object({
   email: z.email(),
   firstName: z.string(),

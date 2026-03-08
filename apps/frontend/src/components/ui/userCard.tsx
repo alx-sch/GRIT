@@ -1,27 +1,32 @@
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ResUserPublic } from '@grit/schema';
+import { ResConversationSingleId, ResUserPublic } from '@grit/schema';
 import { getAvatarImageUrl } from '@/lib/image_utils';
 import { MessageCircleMore } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { conversationService } from '@/services/conversationService';
-import { type ConversationRes } from '@grit/schema';
 import { useCurrentUserStore } from '@/store/currentUserStore';
+// import { useSocket } from '@/providers/socketProvider';
 
 export const UserCard = ({ user }: { user: ResUserPublic }) => {
   const displayName = user.name ?? 'User';
   const navigate = useNavigate();
+  const currentUser = useCurrentUserStore((s) => s.user);
+  // const socket = useSocket();
+
+  // To make fucking linting happy
   function startChat() {
     void startChatAsync();
   }
-  const currentUser = useCurrentUserStore((s) => s.user);
-
   async function startChatAsync() {
     try {
-      const res: ConversationRes = await conversationService.getConversation({
+      // This will either get an existing conversation or create it
+      const res: ResConversationSingleId = await conversationService.getConversation({
         type: 'DIRECT',
         directId: user.id,
       });
+      // In case we created a new conversation, our client socket needs to join the created room
+      // socket?.emit('joinConversation', { conversationId: res.id });
 
       void navigate(`/chat/${res.id}`);
     } catch (err) {

@@ -128,7 +128,6 @@ describe('Auth E2E', () => {
         id: user.id,
         name: user.name,
         isConfirmed: true,
-        attending: [],
       });
     });
 

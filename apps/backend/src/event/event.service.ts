@@ -1,3 +1,9 @@
+import { ConversationService } from '@/conversation/conversation.service';
+import {
+  ReqEventGetPublishedDto,
+  ReqEventPatchDto,
+  ReqEventPostDraftDto,
+} from '@/event/event.schema';
 import {
   eventCursorFilter,
   eventEncodeCursor,
@@ -14,12 +20,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConversationType, Prisma } from '@prisma/client';
-import {
-  ReqEventGetPublishedDto,
-  ReqEventPatchDto,
-  ReqEventPostDraftDto,
-} from '@/event/event.schema';
-import { ConversationService } from '@/conversation/conversation.service';
 
 @Injectable()
 export class EventService {
@@ -45,6 +45,7 @@ export class EventService {
         include: {
           author: true,
           location: true,
+          files: true,
         },
       });
 
@@ -55,6 +56,14 @@ export class EventService {
           console.error(`Failed to delete event image with key ${deleted.imageKey}:`, error);
         }
       }
+      for (const file of deleted.files) {
+        try {
+          await this.storage.deleteFile(file.fileKey, file.bucket);
+        } catch (error) {
+          console.error(`Failed to delete file ${file.fileKey}:`, error);
+        }
+      }
+
       return deleted;
     } catch {
       throw new UnauthorizedException(`No permission to delete event with id ${id.toString()}.`);
@@ -72,7 +81,7 @@ export class EventService {
       'date-dsc': [{ startAt: 'desc' }, { id: 'desc' }],
       'alpha-asc': [{ title: 'asc' }, { startAt: 'asc' }, { id: 'asc' }],
       'alpha-dsc': [{ title: 'desc' }, { startAt: 'asc' }, { id: 'asc' }],
-      popularity: [{ attending: { _count: 'desc' } }, { startAt: 'asc' }, { id: 'asc' }],
+      popularity: [{ attendees: { _count: 'desc' } }, { startAt: 'asc' }, { id: 'asc' }],
     };
     const orderBy = orderByMap[sort ?? 'date-asc'];
 
@@ -82,6 +91,7 @@ export class EventService {
       include: {
         author: true,
         location: true,
+        files: true,
         attendees: {
           select: {
             user: {
@@ -124,6 +134,7 @@ export class EventService {
       include: {
         author: true,
         location: true,
+        files: true,
         attendees: {
           select: {
             user: {
@@ -212,6 +223,7 @@ export class EventService {
         include: {
           author: true,
           location: true,
+          files: true,
         },
       });
     } catch {
@@ -242,9 +254,15 @@ export class EventService {
         include: {
           author: true,
           location: true,
+          files: true,
           attendees: {
-            include: {
-              user: true,
+            select: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
             },
           },
         },
@@ -258,7 +276,10 @@ export class EventService {
           console.error(`Failed to cleanup old event image: ${event.imageKey}`, error);
         }
       }
-      return updatedEvent;
+      return {
+        ...updatedEvent,
+        attendees: updatedEvent.attendees.map((a) => a.user),
+      };
     } catch (error) {
       // Rollback: delete file if DB update failed
       if (newBucketKey) {
@@ -279,22 +300,139 @@ export class EventService {
     if (!event.imageKey) throw new BadRequestException('Event has no image');
 
     await this.storage.deleteFile(event.imageKey, 'event-images');
-    return this.prisma.event.update({
+    const updatedEvent = await this.prisma.event.update({
       where: { id: eventId },
       data: { imageKey: null },
       include: {
         author: true,
         location: true,
+        files: true,
         attendees: {
-          include: {
-            user: true,
+          select: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
         },
       },
     });
+    return {
+      ...updatedEvent,
+      attendees: updatedEvent.attendees.map((a) => a.user),
+    };
+  }
+
+  async eventUploadFile(eventId: number, userId: number, file: Express.Multer.File) {
+    const bucket = 'event-files';
+    let newFileKey: string | null = null;
+
+    // Verify ownership
+    const event = await this.prisma.event.findUnique({
+      where: { id: eventId },
+      select: { authorId: true },
+    });
+    if (!event) throw new NotFoundException('Event not found');
+    if (event.authorId !== userId) throw new UnauthorizedException();
+
+    try {
+      // Upload new file
+      newFileKey = await this.storage.uploadFile(file, bucket);
+      await this.prisma.eventFile.create({
+        data: {
+          fileKey: newFileKey,
+          bucket: bucket,
+          mimeType: file.mimetype,
+          fileName: file.originalname,
+          eventId: eventId,
+        },
+      });
+
+      // Update the database with the new key
+      const updatedEvent = await this.prisma.event.findUniqueOrThrow({
+        where: { id: eventId },
+        include: {
+          author: true,
+          location: true,
+          files: true,
+          conversation: { select: { id: true } },
+          attendees: {
+            select: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      });
+      return {
+        ...updatedEvent,
+        attendees: updatedEvent.attendees.map((a) => a.user),
+      };
+    } catch (error) {
+      // Rollback: delete file if DB update failed
+      if (newFileKey) {
+        await this.storage.deleteFile(newFileKey, bucket);
+      }
+      throw error;
+    }
+  }
+
+  async eventDeleteFile(eventId: number, userId: number, fileId: number) {
+    // Verify ownership
+    const event = await this.prisma.event.findUnique({
+      where: { id: eventId },
+      select: { authorId: true },
+    });
+    if (!event) throw new NotFoundException('Event not found');
+    if (event.authorId !== userId) throw new UnauthorizedException();
+
+    // Verify file exists and belongs to this event
+    const file = await this.prisma.eventFile.findUnique({
+      where: { id: fileId },
+    });
+    if (file?.eventId !== eventId) throw new NotFoundException('File not found');
+
+    await this.storage.deleteFile(file.fileKey, file.bucket);
+    await this.prisma.eventFile.delete({ where: { id: fileId } });
+
+    const updatedEvent = await this.prisma.event.findUniqueOrThrow({
+      where: { id: eventId },
+      include: {
+        author: true,
+        location: true,
+        files: true,
+        conversation: { select: { id: true } },
+        attendees: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    return {
+      ...updatedEvent,
+      attendees: updatedEvent.attendees.map((a) => a.user),
+    };
   }
 
   async eventPostDraft(data: ReqEventPostDraftDto & { authorId: number }) {
+    const duplicate = await this.prisma.event.findFirst({
+      where: data,
+    });
+    if (duplicate) {
+      throw new BadRequestException(`Identical event already exists`);
+    }
     const slug = eventGenerateSlug(data.title);
     const createdEvent = await this.prisma.event.create({
       data: {

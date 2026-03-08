@@ -13,7 +13,7 @@ export const ChatBubble = ({ message }: { message: ResChatMessage }) => {
   return (
     <>
       <div className={`${align} flex my-4`}>
-        <div className={`border border-input p-2 max-w-4/5 flex`}>
+        <div className={`border border-input p-2 px-3 max-w-9/10 md:max-w-4/5 lg:max-w-3/5 flex`}>
           {!isFromCurrentUser && (
             <Avatar className="mr-2 w-6 h-6">
               <AvatarImage
@@ -27,7 +27,7 @@ export const ChatBubble = ({ message }: { message: ResChatMessage }) => {
               <AvatarFallback name={initials} />
             </Avatar>
           )}
-          <div>
+          <div className="text-sm">
             {!isFromCurrentUser && <div className="font-bold uppercase text-xs">{author.name}</div>}
             {message.text}
             <div className="text-right text-xs mt-1">{timestampToLocalTime(message.createdAt)}</div>

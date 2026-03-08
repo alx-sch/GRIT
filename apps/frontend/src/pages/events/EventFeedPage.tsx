@@ -16,32 +16,32 @@ import { ArrowUpDown, MapPinIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { DateRange } from 'react-day-picker';
 import { LoaderFunctionArgs, useSearchParams } from 'react-router-dom';
+import { Pagination, useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+
+const buildEventQuery = (searchParams: URLSearchParams, cursor?: string | null) => ({
+  search: searchParams.get('search') ?? undefined,
+  startFrom: searchParams.get('start_from') ?? format(new Date(), 'yyyy-MM-dd'),
+  startUntil: searchParams.get('start_until') ?? undefined,
+  locationId: searchParams.get('location_id') ?? undefined,
+  limit: searchParams.get('limit') ?? undefined,
+  authorId: searchParams.get('authorId') ?? undefined,
+  cursor: cursor ?? undefined,
+  sort: searchParams.get('sort') ?? 'date-asc',
+});
 
 export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
-  const search = url.searchParams.get('search') ?? undefined;
-  const startFrom = url.searchParams.get('start_from') ?? format(new Date(), 'yyyy-MM-dd');
-  const startUntil = url.searchParams.get('start_until') ?? undefined;
-  const locationId = url.searchParams.get('location_id') ?? undefined;
-  const limit = url.searchParams.get('limit') ?? undefined;
-  const authorId = url.searchParams.get('authorId') ?? undefined;
-  const cursor = url.searchParams.get('cursor') ?? undefined;
-  const sort = url.searchParams.get('sort') ?? 'date-asc';
+  const query = buildEventQuery(url.searchParams);
 
   const [events, locationsResponse] = await Promise.all([
-    eventService.getEvents({
-      search,
-      startFrom,
-      startUntil,
-      locationId,
-      limit,
-      authorId,
-      cursor,
-      sort,
-    }),
+    eventService.getEvents(query),
     locationService.getLocations(),
   ]);
-  return { events, locations: locationsResponse.data };
+  return {
+    events,
+    locations: locationsResponse.data,
+    locationsPagination: locationsResponse.pagination,
+  };
 };
 
 //Sorting Options
@@ -54,22 +54,47 @@ const sortOptions: ComboboxOptions[] = [
 ];
 
 export default function EventFeedPage() {
-  const { events, locations } = useTypedLoaderData<{
+  const { events, locations, locationsPagination } = useTypedLoaderData<{
     events: EventResponse;
     locations: LocationBase[];
+    locationsPagination: Pagination;
   }>();
-
-  const locationOptionsCombobox: ComboboxOptions[] = locations.map(({ id, name }) => ({
-    value: String(id),
-    label: name ?? '',
-  }));
-
-  const locationMap = new Map(locations.map((l) => [l.id, l]));
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '');
 
   const debouncedSearch = useDebounce(searchInput, 500);
+
+  // Events infinite scroll
+  const {
+    items,
+    isLoading: isLoadingMore,
+    sentinelRef,
+  } = useInfiniteScroll(
+    events.data,
+    events.pagination,
+    async (cursor) => {
+      const res = await eventService.getEvents(buildEventQuery(searchParams, cursor));
+      return { data: res.data, pagination: res.pagination };
+    },
+    [searchParams]
+  );
+
+  // Locations infinite scroll
+  const {
+    items: locationItems,
+    isLoading: isLoadingLocations,
+    pagination: locationPagination,
+    loadMore: loadMore,
+  } = useInfiniteScroll(locations, locationsPagination, async (cursor) => {
+    const res = await locationService.getLocations({ cursor });
+    return { data: res.data, pagination: res.pagination };
+  });
+
+  const locationOptionsCombobox: ComboboxOptions[] = locationItems.map(({ id, name }) => ({
+    value: String(id),
+    label: name ?? '',
+  }));
 
   useEffect(() => {
     if (!searchInput && debouncedSearch) {
@@ -123,13 +148,20 @@ export default function EventFeedPage() {
     setSearchParams(searchParams);
   };
 
-  const handleLocationChange = (locationId: string) => {
-    if (locationId) {
-      searchParams.set('location_id', locationId);
+  const handleLocationChange = (value: string) => {
+    if (value) {
+      searchParams.set('location_id', value);
     } else {
       searchParams.delete('location_id');
     }
     setSearchParams(searchParams);
+  };
+
+  // User scrolls in locations dropdown -> this function is called
+  const handleLocationMenuScrollToBottom = () => {
+    if (locationPagination.hasMore && !isLoadingLocations) {
+      void loadMore();
+    }
   };
 
   //Sorting
@@ -141,7 +173,7 @@ export default function EventFeedPage() {
   };
 
   return (
-    <Container className="py-10 space-y-8 p-0 md:px-0">
+    <Container className="py-10 space-y-8">
       <div className="space-y-2">
         <Heading level={1} className="text-3xl md:text-4xl">
           Upcoming events
@@ -162,10 +194,12 @@ export default function EventFeedPage() {
             value={selectedLocation ?? undefined}
             onChange={handleLocationChange}
             placeholder="Location"
-            searchPlaceholder="Search"
-            emptyMessage="No location found"
+            searchPlaceholder="Search locations..."
+            emptyMessage="No locations found"
             variant="ghost"
             icon={MapPinIcon}
+            onMenuScrollToBottom={handleLocationMenuScrollToBottom} // When close to reaching the end of dropdown
+            isLoading={isLoadingLocations}
             className="w-auto min-w-0 md:min-w-32 md:flex-none text-xs md:text-base max-w-xs truncate font-normal max-w-[33%] md:shrink"
           />
 
@@ -193,16 +227,18 @@ export default function EventFeedPage() {
           />
         </div>
       </div>
-      {events.data.length > 0 ? (
-        <div className="grid gap-6 justify-start md:grid-cols-2 lg:grid-cols-3">
-          {events.data.map((event) => (
-            <EventCard
-              key={event.id}
-              event={event}
-              location={event.location?.id ? locationMap.get(event.location.id) : undefined}
-            />
-          ))}
-        </div>
+      {items.length > 0 ? (
+        <>
+          <div className="grid gap-6 justify-start md:grid-cols-2 lg:grid-cols-3">
+            {items.map((event) => (
+              <EventCard key={event.id} event={event} />
+            ))}
+          </div>
+          <div ref={sentinelRef} />
+          {isLoadingMore && (
+            <div className="py-8 text-center text-muted-foreground">Loading more events…</div>
+          )}
+        </>
       ) : (
         <div className="flex flex-col items-center justify-center py-20 px-4 border-2 border-dashed border-border text-center bg-card">
           <Heading level={3} className="uppercase tracking-tight">

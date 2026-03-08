@@ -1,4 +1,3 @@
-import { AuthService } from '@/auth/auth.service';
 import {
   ConnectedSocket,
   MessageBody,
@@ -6,18 +5,18 @@ import {
   WebSocketServer,
   WebSocketGateway,
   WsException,
+  OnGatewayConnection,
 } from '@nestjs/websockets';
 import { Server, Socket, type DefaultEventsMap } from 'socket.io';
-import { UserService } from '@/user/user.service';
 import { ChatService } from '@/chat/chat.service';
 import { randomUUID } from 'crypto';
-import { ReqChatMessagePostDto, ReqChatJoinDto } from '@/chat/chat.schema';
+import { ReqChatMessagePostDto } from '@/chat/chat.schema';
 import { ResChatMessageSchema, ReqSocketAuthSchema } from '@grit/schema';
-import { ConversationService } from '@/conversation/conversation.service';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { ArgumentsHost, Catch, UseFilters, UsePipes, WsExceptionFilter } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { env } from '@/config/env';
+import { JwtService } from '@nestjs/jwt';
 
 interface SocketData {
   userId: number;
@@ -35,16 +34,14 @@ export class AllWsExceptionsFilter implements WsExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const client = host.switchToWs().getClient<AppSocket>();
 
-    let message = 'Validation failed';
-
-    if (exception instanceof WsException) {
-      const error = exception.getError();
-      message = typeof error === 'string' ? error : JSON.stringify(error);
-    } else if (exception instanceof Error) {
-      message = exception.message;
+    if (exception instanceof Error) {
+      console.error('[WS ERROR]', exception.stack ?? exception.message);
+    } else {
+      console.error('[WS ERROR]', exception);
     }
-
-    client.emit('error', { message });
+    client.emit('error', {
+      message: 'Bad request',
+    });
   }
 }
 
@@ -57,74 +54,169 @@ export class AllWsExceptionsFilter implements WsExceptionFilter {
     credentials: true,
   },
 })
-export class ChatGateway {
+export class ChatGateway implements OnGatewayConnection {
+  // In userSockets we will store which socket belongs to which user id
+  private userSockets = new Map<number, Set<string>>();
+
   // With the WebSocketServer decorator we get an instance of the server. This is the same as the io object from raw Socket.IO.
   @WebSocketServer()
   private server!: Server;
 
   constructor(
-    private readonly authService: AuthService,
+    private readonly jwtService: JwtService,
     private readonly chatService: ChatService,
-    private readonly userService: UserService,
-    private readonly conversation: ConversationService,
     private readonly prisma: PrismaService
   ) {}
 
   // afterInit runs ONCE when the gateway is initialized. We can install middleware in here.
   afterInit(server: Server) {
-    // This registers a Socket.IO middleware. It does not run immediately but for every incoming connection attempt. socket will be the client that tries to connect
-    server.use((socket: AppSocket, next) => {
-      const parsed_token = ReqSocketAuthSchema.safeParse(socket.handshake.auth);
+    // This registers a Socket.IO middleware. It does not run immediately but for every incoming connection attempt.
+    server.use((client: AppSocket, next) => {
+      const parsed_token = ReqSocketAuthSchema.safeParse(client.handshake.auth);
       if (!parsed_token.success) {
         next(new Error('Unauthorized'));
         return;
       }
       void (async () => {
         const token = parsed_token.data.token;
-        const userId = this.authService.verifyToken(token);
+        let userId;
+        try {
+          userId = this.jwtService.verify<{ sub: number }>(token).sub;
+        } catch {
+          return null;
+        }
         if (!userId) {
           next(new Error('Unauthorized'));
           return;
         }
 
-        const user = await this.userService.userGetById(userId);
+        const user = await this.prisma.user.findUnique({
+          where: { id: userId },
+        });
         if (!user) {
           next(new Error('Unauthorized'));
           return;
         }
 
-        socket.data.userId = user.id;
-        socket.data.userName = user.name;
-        socket.data.userAvatarKey = user.avatarKey ?? undefined;
+        client.data.userId = user.id;
+        client.data.userName = user.name;
+        client.data.userAvatarKey = user.avatarKey ?? undefined;
 
         next();
       })();
     });
   }
 
-  @SubscribeMessage('join')
-  async handleJoin(@MessageBody() body: ReqChatJoinDto, @ConnectedSocket() client: AppSocket) {
-    // Check if the current user is allowed to join the room for the conversation id
-    const conversation = await this.prisma.conversation.findFirst({
+  // Helper function to check that the user may read messages from a room
+  private async assertUserInConversation(conversationId: string, userId: number) {
+    const exists = await this.prisma.conversationParticipant.findUnique({
       where: {
-        id: body.id,
+        conversationId_userId: {
+          conversationId,
+          userId,
+        },
+      },
+      select: { conversationId: true },
+    });
+    if (!exists) throw new WsException('User is not allowed to access this conversation');
+  }
+
+  async syncSocketConversations(socket: AppSocket, userId: number) {
+    const conversations = await this.prisma.conversation.findMany({
+      where: {
+        participants: { some: { userId } },
+        OR: [
+          { event: null },
+          {
+            event: { isPublished: true },
+          },
+        ],
+      },
+      select: {
+        id: true,
         participants: {
-          some: {
-            userId: client.data.userId,
+          where: { userId },
+          select: { lastReadAt: true },
+        },
+        messages: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: {
+            id: true,
+            conversationId: true,
+            text: true,
+            createdAt: true,
+            author: {
+              select: {
+                id: true,
+                name: true,
+                avatarKey: true,
+              },
+            },
           },
         },
       },
     });
-    if (!conversation) throw new WsException('You are not allowed to view this conversation');
-    else await client.join(body.id);
 
-    // We lock down which conversation this socket belongs to
-    client.data.conversationId = body.id;
-    // Get message history to prefill chat
-    const rows = await this.chatService.loadMessages(body.id);
-    // Serialization in Websocket context
-    const history = rows.reverse().map((row) => ResChatMessageSchema.parse(row));
-    client.emit('history', history);
+    // leave old rooms
+    for (const room of socket.rooms) {
+      if (room !== socket.id) {
+        await socket.leave(room);
+      }
+    }
+
+    // join correct rooms
+    for (const conv of conversations) {
+      await socket.join(conv.id);
+    }
+
+    // build payload
+    const payload: Record<string, unknown> = {};
+
+    for (const conv of conversations) {
+      const participant = conv.participants[0];
+
+      payload[conv.id] = {
+        lastMessage: conv.messages[0] ?? null,
+        lastReadAt: participant.lastReadAt ?? null,
+      };
+    }
+    socket.emit('initialLastMessages', payload);
+  }
+
+  async handleConnection(client: AppSocket) {
+    const userId = client.data.userId;
+
+    if (!this.userSockets.has(userId)) {
+      this.userSockets.set(userId, new Set());
+    }
+
+    this.userSockets.get(userId)?.add(client.id);
+
+    await this.syncSocketConversations(client, userId);
+  }
+
+  async resyncUserRooms(userId: number) {
+    const socketIds = this.userSockets.get(userId);
+    if (!socketIds) return;
+
+    for (const socketId of socketIds) {
+      const socket = this.server.sockets.sockets.get(socketId) as AppSocket | undefined;
+      if (!socket) continue;
+
+      await this.syncSocketConversations(socket, userId);
+    }
+  }
+
+  @SubscribeMessage('getInitialHistory')
+  async handGetHistory(
+    @MessageBody() body: { conversationId: string },
+    @ConnectedSocket() client: AppSocket
+  ) {
+    await this.assertUserInConversation(body.conversationId, client.data.userId);
+    const rows = await this.chatService.loadMessages(body.conversationId);
+    const history = rows.reverse();
+    client.emit('initialHistory', history);
   }
 
   @SubscribeMessage('message')
@@ -132,16 +224,11 @@ export class ChatGateway {
     @MessageBody() body: ReqChatMessagePostDto,
     @ConnectedSocket() client: AppSocket
   ) {
-    const conversationId = client.data.conversationId;
-    // Client must have joined an event room
-    if (!conversationId) {
-      client.disconnect();
-      return null;
-    }
+    await this.assertUserInConversation(body.conversationId, client.data.userId);
+    const { conversationId } = body;
     const id = randomUUID();
-
     // Emit immediately (realtime first)
-    const res = {
+    const message = ResChatMessageSchema.parse({
       id,
       conversationId,
       text: body.text,
@@ -150,9 +237,8 @@ export class ChatGateway {
         name: client.data.userName,
         avatarKey: client.data.userAvatarKey,
       },
-      createdAt: new Date(),
-    };
-    const message = ResChatMessageSchema.parse(res);
+      createdAt: new Date().toISOString(),
+    });
     this.server.to(conversationId).emit('message', message);
 
     // Persist asynchronously (durability second)
@@ -164,25 +250,54 @@ export class ChatGateway {
     });
   }
 
-  @SubscribeMessage('load_more')
+  @SubscribeMessage('loadMoreHistory')
   async handleLoadMore(
-    @MessageBody() body: { cursorSentAt: string; cursorId: string },
+    @MessageBody() body: { cursorSentAt: string; cursorId: string; conversationId: string },
     @ConnectedSocket() client: AppSocket
   ) {
-    const conversationId = client.data.conversationId;
-    if (!conversationId) return null;
+    await this.assertUserInConversation(body.conversationId, client.data.userId);
 
-    const rows = await this.chatService.loadMessages(conversationId, 5, {
+    const rows = await this.chatService.loadMessages(body.conversationId, 5, {
       createdAt: new Date(body.cursorSentAt),
       id: body.cursorId,
     });
 
     if (rows.length === 0) {
-      client.emit('history_end');
+      client.emit('historyEnd');
       return;
     }
 
-    const messages = rows.reverse().map((row) => ResChatMessageSchema.parse(row));
-    client.emit('history', messages);
+    const messages = rows.reverse().map((row) =>
+      ResChatMessageSchema.parse({
+        ...row,
+        createdAt: row.createdAt.toISOString(),
+      })
+    );
+    client.emit('moreHistory', messages);
+  }
+
+  // This is sent from client to update which conversation was read when the last time
+  @SubscribeMessage('conversationRead')
+  async handleNewLastReadAt(
+    @ConnectedSocket() client: AppSocket,
+    @MessageBody() body: { conversationId: string }
+  ) {
+    await this.assertUserInConversation(body.conversationId, client.data.userId);
+    const userId = client.data.userId;
+    const { conversationId } = body;
+
+    if (!conversationId) return;
+
+    await this.prisma.conversationParticipant.update({
+      where: {
+        conversationId_userId: {
+          conversationId,
+          userId,
+        },
+      },
+      data: {
+        lastReadAt: new Date(), // backend authoritative time
+      },
+    });
   }
 }
