@@ -79,7 +79,7 @@ endif
 # TARGETS
 # ---------------------------------------------------
 
-all:	start-prod
+all:	start-local
 
 #######################
 ## 🛡️ ENV VALIDATION ##
@@ -582,7 +582,7 @@ stop:
 		start-prod \
 		start-postgres \
 		start-minio \
-		stop
+		stop \
 		stop-db \
 		stop-dev-processes \
 		test-be \
@@ -592,5 +592,5 @@ stop:
 		vol-backup \
 		vol-inspect \
 		vol-ls \
-		vol-restore \
+		vol-restore
 
