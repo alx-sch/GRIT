@@ -66,7 +66,7 @@ export class EventController {
   ) {
     // Check if the identifier is strictly numbers (e.g., "42")
     if (/^\d+$/.test(identifier)) {
-      return this.eventService.eventGetById(parseInt(identifier, 10));
+      return this.eventService.eventGetById(identifier);
     }
 
     // Otherwise, treat it as a slug (e.g., "summer-party-x7y2z9")
@@ -154,7 +154,7 @@ export class EventController {
     @Param('fileId', ParseIntPipe) fileId: number,
     @GetUser('id') userId: number
   ) {
-    return this.eventService.eventDeleteFile(eventId, userId, fileId);
+    return this.eventService.eventDeleteFile(String(eventId), userId, fileId);
   }
   // Post a new event draft
   @Post()

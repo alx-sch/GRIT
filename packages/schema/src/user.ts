@@ -8,6 +8,7 @@ export const ResUserEventSchema = z.object({
   imageKey: z.string().nullable().optional(),
   location: ResEventLocationSchema.nullable().optional(),
   title: z.string(),
+  slug: z.string(),
   conversationId: z.string().optional(),
 });
 export const ResUserEventsSchema = z.array(ResUserEventSchema);

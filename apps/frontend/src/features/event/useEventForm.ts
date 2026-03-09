@@ -140,7 +140,7 @@ export function useEventForm({ initialData, locations }: UseEventFormProps) {
         }
       }
       localStorage.removeItem(DRAFT_KEY);
-      void navigate(`/events/${String(result.id)}`, { replace: true });
+      void navigate(`/events/${result.slug}`, { replace: true });
     } catch (error) {
       let message = 'Something went wrong. Please try again.';
       if (isAxiosError(error)) {

@@ -13,14 +13,14 @@ import { z } from 'zod';
 
 // Delete an event
 export const ReqEventDeleteSchema = z.strictObject({
-  id: z.coerce.number().int().positive(),
+  id: z.string().min(1),
 });
 export class ReqEventDeleteDto extends createZodDto(ReqEventDeleteSchema) {}
 export const ResEventDeleteSchema = ResEventBaseSchema;
 
 // Get an individual event by id
 export const ReqEventGetByIdSchema = z.strictObject({
-  id: z.coerce.number().int().positive(),
+  id: z.string().min(1),
 });
 export class ReqEventGetByIdDto extends createZodDto(ReqEventGetByIdSchema) {}
 export const ResEventGetByIdSchema = ResEventBaseSchema;
