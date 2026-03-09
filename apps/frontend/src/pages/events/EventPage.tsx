@@ -66,7 +66,7 @@ export const EventPage = () => {
       <Container className="py-10 space-y-8 p-0 md:px-0">
         <button
           onClick={() => {
-            void navigate(-1);
+            void navigate('/events');
           }}
           className="flex items-center gap-1 uppercase text-primary font-heading text-lg hover:text-foreground transition-color w-fit"
         >

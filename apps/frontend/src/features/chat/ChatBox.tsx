@@ -226,7 +226,9 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogAction
-                      onClick={() => deleteMessage(message.id)}
+                      onClick={() => {
+                        deleteMessage(message.id);
+                      }}
                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     >
                       Delete

@@ -145,7 +145,7 @@ export function useEventForm({ initialData, locations, onSuccess }: UseEventForm
       if (isEditMode) {
         toast.success('Event updated');
         onSuccess?.();
-        navigate(-1, { replace: true });
+        void navigate('../', { replace: true });
       } else {
         void navigate(`/events/${result.slug}`, { replace: true });
       }

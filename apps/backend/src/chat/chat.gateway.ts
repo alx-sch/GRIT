@@ -338,7 +338,7 @@ export class ChatGateway implements OnGatewayConnection {
   }
 
   @SubscribeMessage('requestUserInfo')
-  async handleRequestUserInfo(@ConnectedSocket() client: AppSocket) {
+  handleRequestUserInfo(@ConnectedSocket() client: AppSocket) {
     client.emit('user_info', { isAdmin: client.data.isAdmin });
   }
 }

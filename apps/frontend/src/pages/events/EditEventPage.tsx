@@ -67,7 +67,9 @@ export default function EditEventPage() {
         onLocationMenuScrollToBottom={handleLocationMenuScrollToBottom}
         isLoadingLocations={isLoadingLocations}
         onLocationCreated={addLocation}
-        onSuccess={() => revalidator.revalidate()}
+        onSuccess={() => {
+          void revalidator.revalidate();
+        }}
       />
     </Container>
   );

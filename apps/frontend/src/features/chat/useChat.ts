@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { type ResChatMessage } from '@grit/schema';
 import { useSocket } from '@/providers/socketProvider';
 import { chatStore } from '@/store/chatStore';
