@@ -38,7 +38,7 @@ export default function CreateEventPage() {
   };
 
   return (
-    <Container className="py-10">
+    <Container className="py-10 space-y-8">
       <div className="space-y-6">
         <div className="space-y-2">
           <Heading level={1} className="text-3xl md:text-4xl">

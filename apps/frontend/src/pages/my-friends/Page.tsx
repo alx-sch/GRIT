@@ -1,4 +1,15 @@
 import { Container } from '@/components/layout/Container';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Heading, Text } from '@/components/ui/typography';
@@ -11,10 +22,10 @@ import { userService } from '@/services/userService';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import { FriendRequestResponse, FriendResponse } from '@/types/friends';
 import {
+  ResConversationSingleId,
   ResFriendBase,
   ResFriendRequest,
   ResUserPublic,
-  ResConversationSingleId,
 } from '@grit/schema';
 import { Check, MessageCircleMore, UserPlus, UserX, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -260,13 +271,32 @@ function FriendsSection({ friends, onChat, onRemove }: FriendsSectionProps) {
                 >
                   <MessageCircleMore />
                 </Button>
-                <Button
-                  variant="secondary"
-                  title="Remove friend"
-                  onClick={() => void onRemove(friend.friendId)}
-                >
-                  <UserX />
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="secondary">
+                      <UserX />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Remove this friend?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will remove {friend.friend.name} from
+                        your friends.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => {
+                          void onRemove(friend.friendId);
+                        }}
+                      >
+                        Remove friend
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </>
             }
           />

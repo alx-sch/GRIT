@@ -180,15 +180,15 @@ export default function EventFeedPage() {
         </Heading>
       </div>
 
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-2">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center md:gap-2">
         <Input
           placeholder="Search events..."
-          className="w-full md:w-sm md:shrink-0"
+          className="w-full lg:w-sm lg:shrink-0"
           value={searchInput}
           onChange={handleSearchChange}
         />
 
-        <div className="flex items-center justify-between md:justify-end gap-1 md:gap-2 md:flex-1 min-w-0">
+        <div className="flex flex-wrap lg:flex-nowrap items-center justify-between lg:justify-end gap-0 lg:gap-2 lg:flex-1 min-w-0">
           <Combobox
             options={locationOptionsCombobox}
             value={selectedLocation ?? undefined}
@@ -200,7 +200,7 @@ export default function EventFeedPage() {
             icon={MapPinIcon}
             onMenuScrollToBottom={handleLocationMenuScrollToBottom} // When close to reaching the end of dropdown
             isLoading={isLoadingLocations}
-            className="w-auto min-w-0 md:min-w-32 md:flex-none text-xs md:text-base max-w-xs truncate font-normal max-w-[33%] md:shrink"
+            className="w-auto min-w-0 md:min-w-32 md:flex-none text-xs md:text-base max-w-xs truncate font-normal md:shrink"
           />
 
           <div className="w-[1.5px] h-5 bg-border/60 shrink-0 dark:bg-white/20" />
@@ -210,7 +210,7 @@ export default function EventFeedPage() {
             onSelect={handleDateSelect}
             placeholder="Date"
             variant="ghost"
-            className="min-w-0 md:flex-none text-xs md:text-base truncate font-normal max-w-[33%] md:shrink-0"
+            className="min-w-0 md:flex-none text-xs md:text-base truncate font-normal md:shrink-0"
           ></DatePicker>
 
           <div className="w-[1.5px] h-5 bg-border/60 shrink-0 dark:bg-white/20" />
@@ -223,7 +223,7 @@ export default function EventFeedPage() {
             variant="ghost"
             icon={ArrowUpDown}
             showSearch={false}
-            className="w-auto min-w-0 md:flex-none text-xs md:text-base font-normal max-w-[33%] md:shrink-0"
+            className="w-auto min-w-0 md:flex-none text-xs md:text-base font-normal md:shrink-0"
           />
         </div>
       </div>
