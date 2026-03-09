@@ -16,8 +16,11 @@ export const UserCard = ({ user, actions }: { user: ResFriendUser; actions?: Rea
           ) : (
             <div className="bg-gray-700 w-1.5 h-1.5 rounded-full absolute top-4 left-3"></div>
           )}
-          <Avatar className="h-12 w-12 border-2 border-black relative">
-            <AvatarImage src={getAvatarImageUrl(user.avatarKey ?? undefined)} />
+          <Avatar className="h-12 w-12 border-2 border-black">
+            <AvatarImage
+              src={user?.avatarKey ? getAvatarImageUrl(user.avatarKey) : undefined}
+              seed={user?.id?.toString() ?? 'user'}
+            />
             <AvatarFallback name={displayName} />
           </Avatar>
           <div className="flex flex-1 items-center justify-between">

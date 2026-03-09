@@ -88,6 +88,7 @@ export class UserService {
       attending: user.attending.map((a) => ({
         id: a.event.id,
         title: a.event.title,
+        slug: a.event.slug,
         startAt: a.event.startAt.toISOString(),
         isOrganizer: a.event.authorId === user.id,
         imageKey: a.event.imageKey,
@@ -116,6 +117,7 @@ export class UserService {
       attending: user.attending.map((a) => ({
         id: a.event.id,
         title: a.event.title,
+        slug: a.event.slug,
         startAt: a.event.startAt.toISOString(),
         isOrganizer: a.event.authorId === user.id,
       })),
@@ -180,6 +182,7 @@ export class UserService {
       attending: updatedUser.attending.map((a) => ({
         id: a.event.id,
         title: a.event.title,
+        slug: a.event.slug,
         startAt: a.event.startAt.toISOString(),
         isOrganizer: a.event.authorId === updatedUser.id,
       })),
@@ -223,6 +226,7 @@ export class UserService {
         attending: updatedUser.attending.map((a) => ({
           id: a.event.id,
           title: a.event.title,
+          slug: a.event.slug,
           startAt: a.event.startAt.toISOString(),
           isOrganizer: a.event.authorId === updatedUser.id,
         })),
@@ -271,6 +275,7 @@ export class UserService {
       attending: updatedUser.attending.map((a) => ({
         id: a.event.id,
         title: a.event.title,
+        slug: a.event.slug,
         startAt: a.event.startAt.toISOString(),
         isOrganizer: a.event.authorId === updatedUser.id,
       })),
@@ -390,6 +395,7 @@ export class UserService {
       attending: user_raw.attending.map((a) => ({
         id: a.event.id,
         title: a.event.title,
+        slug: a.event.slug,
         startAt: a.event.startAt.toISOString(),
         isOrganizer: a.event.authorId === userId,
         imageKey: a.event.imageKey,
@@ -416,6 +422,7 @@ export class UserService {
     return events.map((e) => ({
       id: e.id,
       title: e.title,
+      slug: e.slug,
       startAt: e.startAt.toISOString(),
       isOrganizer: e.authorId === userId,
       imageKey: e.imageKey,

@@ -9,6 +9,7 @@ import { getEventImageUrl } from '@/lib/image_utils';
 interface MyEventsProps {
   events: {
     id: number;
+    slug: string;
     title: string;
     startAt: string;
     isOrganizer: boolean;
@@ -84,7 +85,7 @@ export function MyEvents({ events }: MyEventsProps) {
               {displayedEvents.map((event) => (
                 <div
                   key={event.id}
-                  onClick={() => void navigate(`/events/${String(event.id)}`)}
+                  onClick={() => void navigate(`/events/${event.slug}`)}
                   className="flex items-center justify-between p-3 rounded-lg border hover:bg-accent transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-4">
