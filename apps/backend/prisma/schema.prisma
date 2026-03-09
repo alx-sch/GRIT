@@ -32,8 +32,6 @@ model User {
   // Time Stamps
   createdAt              DateTime                  @default(now())
   updatedAt              DateTime                  @updatedAt
-  invitesReceived        EventInvite[]             @relation("Invitee")
-  invitesSent            EventInvite[]             @relation("Inviter")
 }
 
 model Location {
@@ -95,7 +93,6 @@ model Event {
   // Time Stamps
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
-  eventInvites EventInvite[]
 }
 
 enum ConversationType {
@@ -192,19 +189,4 @@ model Friends {
   createdAt DateTime @default(now())
 
   @@unique([userId, friendId])
-}
-
-model EventInvite {
-  id        Int      @id @default(autoincrement())
-  eventId   Int
-  inviteeId Int
-  inviterId Int
-  status    String   @default("pending") // "pending", "accepted", "declined"
-  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  invitee   User     @relation("Invitee", fields: [inviteeId], references: [id], onDelete: Cascade)
-  inviter   User     @relation("Inviter", fields: [inviterId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([eventId, inviteeId]) // Prevents inviting the same person twice to the same event
 }

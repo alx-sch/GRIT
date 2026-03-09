@@ -57,15 +57,6 @@ export const ResEventGetPublishedSchema = z.object({
 });
 export type ResEventGetPublished = z.infer<typeof ResEventGetPublishedSchema>;
 
-/**
- * Schema for bulk-inviting specific users to an event.
- * Validates that at least one user ID is provided and that all IDs are positive integers.
- */
-export const ReqEventInviteSchema = z.strictObject({
-  userIds: z.array(z.number().int().positive()).min(1, 'Select at least one user to invite'),
-});
-export type ReqEventInvite = z.infer<typeof ReqEventInviteSchema>;
-
 // Shared event schema for creating an event
 export const CreateEventSchema = z.object({
   isPublic: z.boolean(),

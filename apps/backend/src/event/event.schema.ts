@@ -1,9 +1,4 @@
-import {
-  CreateEventSchema,
-  ResEventBaseSchema,
-  PatchEventSchema,
-  ReqEventInviteSchema,
-} from '@grit/schema';
+import { CreateEventSchema, ResEventBaseSchema, PatchEventSchema } from '@grit/schema';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
@@ -57,9 +52,3 @@ export const ResEventPatchSchema = ResEventBaseSchema;
 //Post a new event (Create)
 export class ReqEventPostDraftDto extends createZodDto(CreateEventSchema) {}
 export const ResEventPostDraftSchema = ResEventBaseSchema;
-
-// Bulk invite users to an event
-export class ReqEventInviteDto extends createZodDto(ReqEventInviteSchema) {}
-export const ResEventInviteSchema = z.object({
-  count: z.number().describe('The number of invites successfully sent'),
-});

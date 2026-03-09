@@ -477,44 +477,4 @@ export class EventService {
     });
     return !!event;
   }
-
-  async eventInviteUsers(
-    eventId: number,
-    userIds: number[],
-    inviterId: number
-  ): Promise<{ count: number }> {
-    // Security Check: Only the event author can invite others
-    const event = await this.prisma.event.findUnique({
-      where: { id: eventId },
-      select: { authorId: true },
-    });
-
-    if (!event) throw new NotFoundException('Event not found');
-    if (event.authorId !== inviterId) {
-      throw new UnauthorizedException('Only the host can invite users to this event');
-    }
-
-    // Filter out the inviterId just in case they are in the list (can't invite yourself)
-    const inviteData = userIds
-      .filter((id) => id !== inviterId)
-      .map((id) => ({
-        eventId,
-        inviteeId: id,
-        inviterId,
-        status: 'pending',
-      }));
-
-    if (inviteData.length === 0) {
-      return { count: 0 };
-    }
-
-    // Execute bulk insert
-    // skipDuplicates: true ensures that if someone is already invited, the query doesn't crash.
-    const result = await this.prisma.eventInvite.createMany({
-      data: inviteData,
-      skipDuplicates: true,
-    });
-
-    return { count: result.count };
-  }
 }
