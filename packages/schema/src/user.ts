@@ -30,6 +30,7 @@ export const ResUserPublicSchema = z.object({
   id: z.number().int().positive(),
   name: z.string(),
   avatarKey: z.string().nullable().optional(),
+  isAdmin: z.boolean().default(false),
 });
 export type ResUserPublic = z.infer<typeof ResUserPublicSchema>;
 

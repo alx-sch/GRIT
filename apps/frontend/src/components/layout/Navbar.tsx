@@ -24,7 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { baseNavConfig } from '@/router';
+import { useBaseNavConfig } from '@/router';
 import { useAuthStore } from '@/store/authStore';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import type { NavRoute } from '@/types/navroute';
@@ -33,7 +33,7 @@ import { getAvatarImageUrl } from '@/lib/image_utils';
 import { chatStore } from '@/store/chatStore';
 
 export function Navbar() {
-  const navConfig: NavRoute[] = [...baseNavConfig];
+  const navConfig: NavRoute[] = [...useBaseNavConfig()];
   const isLoggedIn = useAuthStore((s) => !!s.token);
   const user = useCurrentUserStore((s) => s.user);
   const displayName = user?.name ?? user?.email ?? 'User';

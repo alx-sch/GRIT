@@ -19,15 +19,28 @@ import type { NavRoute } from '@/types/navroute';
 import { createBrowserRouter } from 'react-router-dom';
 import EditEventPage, { editEventLoader } from './pages/events/EditEventPage';
 import FriendsPage, { friendsLoader } from './pages/my-friends/Page';
+import AdminPage, { adminLoader } from '@/pages/admin/Page';
+import { useCurrentUserStore } from '@/store/currentUserStore';
 
-// NOTE: let's define single source of truth for our routes here
-export const baseNavConfig: NavRoute[] = [
-  { path: '/', label: 'Home' },
-  { path: '/design', label: 'Design' },
-  { path: '/users', label: 'Users' },
-  { path: '/events', label: 'Events' },
-  { path: '/create/event', label: 'Add Event' },
-] as const;
+export const useBaseNavConfig = (): NavRoute[] => {
+  const user = useCurrentUserStore((s) => s.user);
+
+  // NOTE: let's define single source of truth for our routes here
+  const baseConfig: NavRoute[] = [
+    { path: '/', label: 'Home' },
+    { path: '/design', label: 'Design' },
+    { path: '/users', label: 'Users' },
+    { path: '/events', label: 'Events' },
+    { path: '/create/event', label: 'Add Event' },
+  ];
+
+  // Only show admin tab if user is admin
+  if (user?.isAdmin) {
+    baseConfig.push({ path: '/admin', label: 'Admin' });
+  }
+
+  return baseConfig;
+};
 
 export const router = createBrowserRouter([
   {
@@ -43,6 +56,12 @@ export const router = createBrowserRouter([
         path: 'design',
         Component: Design,
         handle: { title: 'Design' },
+      },
+      {
+        path: 'admin',
+        Component: AdminPage,
+        loader: adminLoader,
+        handle: { title: 'Admin Dashboard' },
       },
       {
         path: 'users',

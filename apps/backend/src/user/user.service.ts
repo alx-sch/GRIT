@@ -13,6 +13,7 @@ import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
@@ -438,7 +439,7 @@ export class UserService {
 
   async userDeleteMe(user: User) {
     if (user.isAdmin) {
-      throw new UnauthorizedException('You can not delete an admin user');
+      throw new ForbiddenException('You can not delete an admin user');
     }
     const targetUser = await this.prisma.user.delete({
       where: { id: user.id },
@@ -472,7 +473,7 @@ export class UserService {
         throw new UnauthorizedException('You do not have permission to delete this user');
     }
     if (targetId === user.id && user.isAdmin) {
-      throw new UnauthorizedException('You can not delete an admin user');
+      throw new ForbiddenException('You can not delete an admin user');
     }
     const targetUser = await this.prisma.user.delete({
       where: { id: targetId },
