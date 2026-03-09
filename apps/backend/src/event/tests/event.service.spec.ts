@@ -10,6 +10,7 @@ import { ConversationService } from '@/conversation/conversation.service';
 describe('Event / Service / Unit Tests', () => {
   const prismaServiceMock = {
     event: {
+      findFirst: jest.fn(),
       findUnique: jest.fn(),
       update: jest.fn(),
     },
@@ -27,6 +28,7 @@ describe('Event / Service / Unit Tests', () => {
   let testEventService: EventService;
   beforeEach(async () => {
     jest.clearAllMocks();
+    prismaServiceMock.event.findFirst.mockResolvedValue({ id: 1 });
     const moduleRef: TestingModule = await Test.createTestingModule({
       controllers: [],
       providers: [
@@ -57,8 +59,8 @@ describe('Event / Service / Unit Tests', () => {
     });
 
     it('throws NotFoundException when event does not exit', async () => {
-      prismaServiceMock.event.findUnique.mockResolvedValue(null);
-      await expect(testEventService.eventUpdateImage(999, 1, mockFile)).rejects.toThrow(
+      prismaServiceMock.event.findFirst.mockResolvedValue(null);
+      await expect(testEventService.eventUpdateImage('999', 1, mockFile)).rejects.toThrow(
         NotFoundException
       );
     });
@@ -69,7 +71,7 @@ describe('Event / Service / Unit Tests', () => {
         authorId: 2,
         imageKey: null,
       });
-      await expect(testEventService.eventUpdateImage(1, 1, mockFile)).rejects.toThrow(
+      await expect(testEventService.eventUpdateImage('1', 1, mockFile)).rejects.toThrow(
         UnauthorizedException
       );
     });
@@ -86,7 +88,7 @@ describe('Event / Service / Unit Tests', () => {
         imageKey: 'new-image-key.jpg',
         attendees: [],
       });
-      const result = await testEventService.eventUpdateImage(1, 1, mockFile);
+      const result = await testEventService.eventUpdateImage('1', 1, mockFile);
 
       expect(storageServiceMock.uploadFile).toHaveBeenCalledWith(mockFile, 'event-images');
       /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -111,7 +113,7 @@ describe('Event / Service / Unit Tests', () => {
         attendees: [],
       });
 
-      await testEventService.eventUpdateImage(1, 1, mockFile);
+      await testEventService.eventUpdateImage('1', 1, mockFile);
 
       expect(storageServiceMock.deleteFile).toHaveBeenCalledWith(
         'old-image-key.jpg',
@@ -130,9 +132,9 @@ describe('Event / Service / Unit Tests', () => {
     });
 
     it('throws NotFoundException when event does not exist', async () => {
-      prismaServiceMock.event.findUnique.mockResolvedValue(null);
+      prismaServiceMock.event.findFirst.mockResolvedValue(null);
 
-      await expect(testEventService.eventDeleteImage(999, 1)).rejects.toThrow(NotFoundException);
+      await expect(testEventService.eventDeleteImage('999', 1)).rejects.toThrow(NotFoundException);
     });
 
     it('throws UnauthorizedException when user does not own the event', async () => {
@@ -142,7 +144,9 @@ describe('Event / Service / Unit Tests', () => {
         imageKey: 'some-key.jpg',
       });
 
-      await expect(testEventService.eventDeleteImage(1, 1)).rejects.toThrow(UnauthorizedException);
+      await expect(testEventService.eventDeleteImage('1', 1)).rejects.toThrow(
+        UnauthorizedException
+      );
     });
 
     it('throws BadRequestException when event has no image', async () => {
@@ -152,7 +156,7 @@ describe('Event / Service / Unit Tests', () => {
         imageKey: null,
       });
 
-      await expect(testEventService.eventDeleteImage(1, 1)).rejects.toThrow(BadRequestException);
+      await expect(testEventService.eventDeleteImage('1', 1)).rejects.toThrow(BadRequestException);
     });
 
     it('deletes image from storage and updates database', async () => {
@@ -167,7 +171,7 @@ describe('Event / Service / Unit Tests', () => {
         attendees: [],
       });
 
-      await testEventService.eventDeleteImage(1, 1);
+      await testEventService.eventDeleteImage('1', 1);
 
       expect(storageServiceMock.deleteFile).toHaveBeenCalledWith(
         'image-to-delete.jpg',
@@ -183,8 +187,8 @@ describe('Event / Service / Unit Tests', () => {
 
   describe('Error Handling', () => {
     it('throws NotFoundException when event does not exist', async () => {
-      prismaServiceMock.event.findUnique.mockResolvedValue(null);
-      await expect(testEventService.eventGetById(42)).rejects.toThrow(NotFoundException);
+      prismaServiceMock.event.findFirst.mockResolvedValue(null);
+      await expect(testEventService.eventGetById('42')).rejects.toThrow(NotFoundException);
     });
   });
 });

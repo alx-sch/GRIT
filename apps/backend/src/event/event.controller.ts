@@ -1,5 +1,6 @@
 import { GetUser } from '@/auth/guards/get-user.decorator';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { JwtAuthOptionalGuard } from '@/auth/guards/jwt-auth-optional.guard';
 import { ResEventBaseSchema, ResEventGetPublishedSchema } from '@grit/schema';
 import {
   Body,
@@ -59,18 +60,13 @@ export class EventController {
 
   // Get event by ID (numeric) OR by Slug (string)
   @Get(':identifier')
+  @UseGuards(JwtAuthOptionalGuard)
   @ZodSerializerDto(ResEventBaseSchema)
   async getEventByIdOrSlug(
     @Param('identifier') identifier: string,
     @GetUser('id') userId?: number
   ) {
-    // Check if the identifier is strictly numbers (e.g., "42")
-    if (/^\d+$/.test(identifier)) {
-      return this.eventService.eventGetById(identifier);
-    }
-
-    // Otherwise, treat it as a slug (e.g., "summer-party-x7y2z9")
-    return await this.eventService.eventGetBySlug(identifier, userId);
+    return this.eventService.eventGetById(identifier, userId);
   }
 
   // Patch an event (Update)

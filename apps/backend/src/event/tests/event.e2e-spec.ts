@@ -123,7 +123,7 @@ describe('Events E2E', () => {
 
       expect(res.body).toStrictEqual({
         statusCode: 404,
-        message: 'Event with id 200 not found',
+        message: 'Event "200" not found',
         error: 'Not Found',
       });
     });
@@ -154,8 +154,105 @@ describe('Events E2E', () => {
 
       expect(res.body).toStrictEqual({
         statusCode: 404,
-        message: 'Event with id 200 not found',
+        message: 'Event "200" not found',
         error: 'Not Found',
+      });
+    });
+
+    it('allows organizer to access their own draft event by ID', async () => {
+      // Create a draft event
+      const draftEvent = await prisma.event.create({
+        data: {
+          author: { connect: { id: user.id } },
+          content: 'Draft content',
+          endAt: new Date('2025-01-01T20:00:00.000Z'),
+          isPublished: false, // Draft mode
+          isPublic: true,
+          startAt: new Date('2025-01-01T20:00:00.000Z'),
+          title: 'Draft Event',
+          slug: 'draft-event-123',
+        },
+      });
+
+      const res = await request(app.getHttpServer())
+        .get(`/events/${String(draftEvent.id)}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(res.body).toMatchObject({
+        id: draftEvent.id,
+        authorId: user.id,
+        title: 'Draft Event',
+        isPublished: false,
+      });
+    });
+
+    it('returns 404 when non-organizer tries to access draft event by ID', async () => {
+      // Create a different user
+      const anotherUser = await prisma.user.create({
+        data: {
+          email: 'another@example.com',
+          name: 'Another User',
+          password: hashedPassword,
+        },
+      });
+
+      // Create a draft event
+      const draftEvent = await prisma.event.create({
+        data: {
+          author: { connect: { id: user.id } },
+          content: 'Draft content',
+          endAt: new Date('2025-01-01T20:00:00.000Z'),
+          isPublished: false, // Draft mode
+          isPublic: true,
+          startAt: new Date('2025-01-01T20:00:00.000Z'),
+          title: 'Draft Event',
+          slug: 'draft-event-456',
+        },
+      });
+
+      const anotherToken = jwtService.sign(
+        { sub: anotherUser.id, email: anotherUser.email },
+        { expiresIn: '7d' }
+      );
+
+      const res = await request(app.getHttpServer())
+        .get(`/events/${String(draftEvent.id)}`)
+        .set('Authorization', `Bearer ${anotherToken}`)
+        .expect(404);
+
+      expect(res.body).toStrictEqual({
+        statusCode: 404,
+        message: 'Event not found',
+        error: 'Not Found',
+      });
+    });
+
+    it('allows organizer to access their own draft event by slug', async () => {
+      // Create a draft event
+      const draftEvent = await prisma.event.create({
+        data: {
+          author: { connect: { id: user.id } },
+          content: 'Draft content',
+          endAt: new Date('2025-01-01T20:00:00.000Z'),
+          isPublished: false, // Draft mode
+          isPublic: true,
+          startAt: new Date('2025-01-01T20:00:00.000Z'),
+          title: 'Draft Event by Slug',
+          slug: 'draft-event-by-slug-789',
+        },
+      });
+
+      const res = await request(app.getHttpServer())
+        .get(`/events/${draftEvent.slug}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(res.body).toMatchObject({
+        id: draftEvent.id,
+        authorId: user.id,
+        title: 'Draft Event by Slug',
+        isPublished: false,
       });
     });
   });

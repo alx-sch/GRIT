@@ -143,7 +143,7 @@ export class EventService {
     };
   }
 
-  async eventGetById(idOrSlug: string) {
+  async eventGetById(idOrSlug: string, userId?: number) {
     const eventId = await this.resolveEventId(idOrSlug);
 
     const event_raw = await this.prisma.event.findUnique({
@@ -159,43 +159,14 @@ export class EventService {
       },
     });
 
-    if (!event_raw) throw new NotFoundException('Event not found');
+    if (!event_raw || (!event_raw.isPublished && event_raw.authorId !== userId)) {
+      throw new NotFoundException('Event not found');
+    }
 
     return {
       ...event_raw,
       attendees: event_raw.attendees.map((a) => a.user),
     };
-  }
-
-  async eventGetBySlug(slug: string, userId?: number) {
-    const event_raw = await this.prisma.event.findUnique({
-      where: { slug },
-      include: {
-        author: true,
-        location: true,
-        attendees: {
-          select: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-        conversation: {
-          select: { id: true },
-        },
-      },
-    });
-    if (!event_raw || (!event_raw.isPublished && event_raw.authorId !== userId)) {
-      throw new NotFoundException(`Event "${slug}" not found`);
-    }
-    const event = {
-      ...event_raw,
-      attendees: event_raw.attendees.map((a) => a.user),
-    };
-    return event;
   }
 
   async eventPatch(idOrSlug: string, data: ReqEventPatchDto, userId: number) {
@@ -230,7 +201,7 @@ export class EventService {
       select: { authorId: true },
     });
 
-    if (!event || event.authorId !== userId) {
+    if (event?.authorId !== userId) {
       throw new NotFoundException(`Event not found or no permission to update it.`);
     }
 
