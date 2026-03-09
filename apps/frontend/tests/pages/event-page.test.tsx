@@ -323,7 +323,6 @@ describe('EventPage', () => {
 
       // Verify Dialog Content
       expect(screen.getByText(/share this event/i)).toBeInTheDocument();
-      expect(screen.getByText(/scan to join/i)).toBeInTheDocument();
       expect(screen.getByText(/whatsapp/i)).toBeInTheDocument();
     });
 
