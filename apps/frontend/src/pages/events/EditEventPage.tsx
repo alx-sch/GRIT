@@ -8,7 +8,7 @@ import { locationService } from '@/services/locationService';
 import { EventBase } from '@/types/event';
 import { LocationBase } from '@/types/location';
 import { useMemo } from 'react';
-import { LoaderFunctionArgs } from 'react-router-dom';
+import { LoaderFunctionArgs, useRevalidator } from 'react-router-dom';
 
 export const editEventLoader = async ({ params }: LoaderFunctionArgs) => {
   if (!params.id) throw new Response('Not Found', { status: 404 });
@@ -18,6 +18,8 @@ export const editEventLoader = async ({ params }: LoaderFunctionArgs) => {
 };
 
 export default function EditEventPage() {
+  const revalidator = useRevalidator();
+
   const {
     event,
     locations: { data: initialLocations, pagination: initialPagination },
@@ -65,6 +67,7 @@ export default function EditEventPage() {
         onLocationMenuScrollToBottom={handleLocationMenuScrollToBottom}
         isLoadingLocations={isLoadingLocations}
         onLocationCreated={addLocation}
+        onSuccess={() => revalidator.revalidate()}
       />
     </Container>
   );

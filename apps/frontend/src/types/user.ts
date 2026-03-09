@@ -10,4 +10,5 @@ export interface CurrentUser {
   avatarKey?: string | null;
   name?: string | null;
   createdAt?: string;
+  isAdmin: boolean;
 }

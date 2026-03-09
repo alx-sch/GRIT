@@ -33,7 +33,7 @@ export const EventPage = () => {
 
   const {
     event,
-    isAuthor,
+    canEdit,
     isAttending,
     countAttending,
     isLoading,
@@ -80,14 +80,14 @@ export const EventPage = () => {
             </Heading>
           </div>
           <div className="flex flex-row gap-2">
-            {isAuthor && (
+            {canEdit && (
               <Button variant="outline" size="sm">
                 <Link to="edit">
                   <Pencil className="h-4 w-4" />
                 </Link>
               </Button>
             )}
-            {isAuthor && (
+            {canEdit && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="default" size="sm">

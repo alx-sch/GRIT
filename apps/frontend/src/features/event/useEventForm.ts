@@ -16,9 +16,10 @@ import { DRAFT_KEY } from './EventForm';
 interface UseEventFormProps {
   initialData?: EventBase;
   locations: LocationSummary[];
+  onSuccess?: () => void;
 }
 
-export function useEventForm({ initialData, locations }: UseEventFormProps) {
+export function useEventForm({ initialData, locations, onSuccess }: UseEventFormProps) {
   const isEditMode = !!initialData;
   const navigate = useNavigate();
 
@@ -140,7 +141,14 @@ export function useEventForm({ initialData, locations }: UseEventFormProps) {
         }
       }
       localStorage.removeItem(DRAFT_KEY);
-      void navigate(`/events/${result.slug}`, { replace: true });
+
+      if (isEditMode) {
+        toast.success('Event updated');
+        onSuccess?.();
+        navigate(-1, { replace: true });
+      } else {
+        void navigate(`/events/${result.slug}`, { replace: true });
+      }
     } catch (error) {
       let message = 'Something went wrong. Please try again.';
       if (isAxiosError(error)) {
