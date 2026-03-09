@@ -167,11 +167,13 @@ export const EventPage = () => {
 
               {/* Host */}
               <div className="flex flex-row md:flex-col gap-2 order-3 md:order-2 items-center md:items-start">
-                <HomeIcon className="h-6 w-6 text-primary md:hidden" />
+                <HomeIcon className="h-6 w-6 text-primary md:hidden flex-shrink-0" />
                 <Heading level={4} className="uppercase hidden md:block">
                   Host
                 </Heading>
-                {event.author?.name && <Text className="text-lg">{event.author.name}</Text>}
+                {event.author?.name && (
+                  <Text className="text-lg truncate">{event.author.name}</Text>
+                )}
               </div>
 
               {/* Going */}
