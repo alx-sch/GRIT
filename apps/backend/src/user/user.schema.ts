@@ -46,27 +46,29 @@ export const ReqUserPatchSchema = z.strictObject({
     })
     .optional(),
 });
-// Delete a user
+
+// Patch a user
 export const ReqUserPatchByIdSchema = z.strictObject({
   id: z.coerce.number().int().positive(),
 });
-export class ReqUserPatchDto extends createZodDto(ReqUserPatchSchema) {}
-export class ReqUserPatchByIdDto extends createZodDto(ReqUserPatchByIdSchema) {}
 export const ResUserPatchSchema = ResUserBaseSchema;
 
 // Get an individual user by id
 export const ReqUserGetByIdSchema = z.strictObject({
   id: z.coerce.number().int().positive(),
 });
-export class ReqUserGetByIdDto extends createZodDto(ReqUserGetByIdSchema) {}
 export const ResUserGetByIdSchema = ResUserBaseSchema;
 
 // Delete a user
 export const ReqUserDeleteByIdSchema = z.strictObject({
   id: z.coerce.number().int().positive(),
 });
-export class ReqUserDeleteByIdDto extends createZodDto(ReqUserDeleteByIdSchema) {}
 export const ResUserDeleteSchema = ResUserBaseSchema;
+
+// Delete a user's avatar
+export const ReqUserDeleteAvatarSchema = z.strictObject({
+  id: z.coerce.number().int().positive(),
+});
 
 // --- DTO classes ---
 export class ResUserBaseDto extends createZodDto(ResUserBaseSchema) {}
@@ -75,3 +77,8 @@ export class ResUserPostDto extends createZodDto(ResUserPostSchema) {}
 export class ReqUserPostDto extends createZodDto(ReqUserPostSchema) {}
 export class ResUserEventsDto extends createZodDto(ResUserEventsSchema) {}
 export class ReqUserConfirmDto extends createZodDto(ReqUserConfirmSchema) {}
+export class ReqUserGetByIdDto extends createZodDto(ReqUserGetByIdSchema) {}
+export class ReqUserDeleteAvatarDto extends createZodDto(ReqUserDeleteAvatarSchema) {}
+export class ReqUserDeleteByIdDto extends createZodDto(ReqUserDeleteByIdSchema) {}
+export class ReqUserPatchDto extends createZodDto(ReqUserPatchSchema) {}
+export class ReqUserPatchByIdDto extends createZodDto(ReqUserPatchByIdSchema) {}

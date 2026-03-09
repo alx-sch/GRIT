@@ -27,6 +27,7 @@ import {
   ResUserEventsDto,
   ResUserDeleteSchema,
   ReqUserPatchByIdDto,
+  ReqUserDeleteAvatarDto,
 } from '@/user/user.schema';
 import { UserService } from '@/user/user.service';
 import { ZodSerializerDto } from 'nestjs-zod';
@@ -135,16 +136,17 @@ export class UserController {
     return await this.userService.userUpdateAvatar(userId, file);
   }
 
-  /*
   // ADMIN -> delete avatar (reset to default)
-  @Delete('me/avatar')
+  @Delete(':id/avatar')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResUserBaseDto)
-  async deleteAvatar(@GetUser('id') userId: number): Promise<ResUserBaseDto> {
-    return await this.userService.userDeleteAvatar(userId);
+  async deleteAvatarById(
+    @Param() param: ReqUserDeleteAvatarDto,
+    @GetUser() user: User
+  ): Promise<ResUserBaseDto> {
+    return await this.userService.userDeleteAvatarById(param.id, user);
   }
-  */
 
   // ADMIN -> edit a user by id
   @Patch(':id')

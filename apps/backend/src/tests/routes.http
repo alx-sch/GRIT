@@ -222,31 +222,58 @@ Authorization: Bearer {{token}}
 ###
 
 # Remove friend
-DELETE {{baseUrl}}/users/me/friends/1 HTTP/1.1
+DELETE {{baseUrl}}/users/me/friends/2 HTTP/1.1
 Authorization: Bearer {{token}}
 ###
 
 // ========== ADMIN ========== //
 
-# Delete event by id
-DELETE {{baseUrl}}/events/1 HTTP/1.1
+# Update event by event id
+PATCH {{baseUrl}}/events/1 HTTP/1.1
+Authorization: Bearer {{token}}
+content-type: application/json
+
+{
+	"endAt": "2025-01-02T02:00:33Z",
+	"locationId": 2
+}
+###
+
+# Delete event image by event id
+DELETE {{baseUrl}}/events/1/image HTTP/1.1
 Authorization: Bearer {{token}}
 ###
 
-# Delete a user by id
+# Delete event file by event id and file id
+DELETE {{baseUrl}}/events/1/files/1 HTTP/1.1
+Authorization: Bearer {{token}}
+###
+
+# Delete event by event id
+DELETE {{baseUrl}}/events/3 HTTP/1.1
+Authorization: Bearer {{token}}
+###
+
+# Delete a user by user id
 DELETE {{baseUrl}}/users/3 HTTP/1.1
 Authorization: Bearer {{token}}
 ###
 
-# Patch a user by id (name or "attending")
-PATCH {{baseUrl}}/users/4
+# Delete a user avatar by user id
+DELETE {{baseUrl}}/users/2/avatar HTTP/1.1
+Authorization: Bearer {{token}}
+###
+
+# Patch a user by user id (name or "attending")
+PATCH {{baseUrl}}/users/2
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "name": "Bob",
+  "name": "Cindy",
   "attending": {
     "disconnect": [3]
   }
 }
 ###
+
