@@ -12,6 +12,7 @@ import { LocationService } from '@/location/location.service';
 import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { User } from '@/auth/interfaces/user.interface';
 
 @Controller('locations')
 export class LocationController {
@@ -38,7 +39,7 @@ export class LocationController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResLocationDeleteSchema)
-  eventDelete(@Param() param: ReqLocationDeleteDto) {
-    return this.locationService.locationDelete({ id: param.id });
+  eventDelete(@Param() param: ReqLocationDeleteDto, @GetUser() user: User) {
+    return this.locationService.locationDelete({ id: param.id }, user);
   }
 }
