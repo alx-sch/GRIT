@@ -4,6 +4,7 @@ BACKEND_FOLDER :=	apps/backend
 FRONTEND_FOLDER :=	apps/frontend
 
 TIMESTAMP :=	$(shell date +%Y%m%d_%H%M%S)
+OS :=			$(shell uname)
 
 PROJECT_ROOT :=	$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 export PATH :=	$(PROJECT_ROOT)/node_modules/.bin:$(PATH)
@@ -127,6 +128,15 @@ install-fe: build-schema
 	@pnpm --filter @grit/frontend install
 	@echo "$(BOLD)$(GREEN)Frontend dependencies installed.$(RESET)"
 
+install-playwright:
+	@echo "$(BOLD)$(BLUE)--- Ensuring Playwright is ready...$(RESET)"
+ifeq ($(OS), Linux)
+	@if ! ldconfig -p | grep -q libatk-1.0.so.0; then \
+		pnpm --filter @grit/frontend exec playwright install-deps; \
+	fi
+endif
+	@pnpm --filter @grit/frontend exec playwright install
+
 # -- CLEANUP TARGETS --
 
 # Forcibly stops all project-related processes
@@ -222,7 +232,6 @@ typecheck: install
 
 lint: install
 	@echo "$(BOLD)$(YELLOW)--- Linting...$(RESET)"
-	@rm -rf /tmp/turbod/*
 	@turbo lint --no-update-notifier;
 	@echo "$(BOLD)$(GREEN)Linting complete.$(RESET)"
 
@@ -234,6 +243,8 @@ lint-fix: install
 format: clean install
 	@echo "$(BOLD)$(YELLOW)--- Formating...$(RESET)"
 	pnpm run format;
+	-pnpm --filter @grit/backend exec prisma format
+	-caddy fmt --overwrite deployment/caddy/Caddyfile
 	@echo "$(BOLD)$(GREEN)Formating complete.$(RESET)"
 
 # Shows live logs of Docker services running (in the background)
@@ -277,11 +288,14 @@ test-be-testdb-init: start-postgres
 	@echo "$(BOLD)$(YELLOW)--- Creating Test Database ...$(RESET)"
 	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
 	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
+	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
+	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
 	@NODE_ENV=test pnpm --filter @grit/backend exec prisma db push
 
 test-be-testdb-remove:
 	@echo "$(BOLD)$(YELLOW)--- Removing Test Database ...$(RESET)"
 	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
+
 ## Frontend ##
 
 test-fe:
@@ -294,7 +308,7 @@ test-fe-integration: install-fe
 	@echo "$(BOLD)$(YELLOW)--- Running Frontend Integration Tests ...$(RESET)"
 	@NODE_ENV=test turbo test:integration --filter=@grit/frontend --no-update-notifier
 
-test-fe-e2e: install-fe
+test-fe-e2e: install-fe install-playwright
 	@echo "$(BOLD)$(YELLOW)--- Running Frontend E2E Tests ...$(RESET)"
 	@pnpm --filter @grit/frontend exec playwright install
 	@pnpm --filter @grit/frontend exec playwright test

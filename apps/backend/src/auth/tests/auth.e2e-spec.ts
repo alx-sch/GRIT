@@ -57,6 +57,8 @@ describe('Auth E2E', () => {
     authService = moduleRef.get(AuthService);
   });
 
+  const hashedPassword = bcrypt.hashSync('Password123', 10);
+
   // Happens before each test (deletes and reseeds database).
   beforeEach(async () => {
     await prisma.user.deleteMany();
@@ -65,7 +67,7 @@ describe('Auth E2E', () => {
       data: {
         email: 'test@example.com',
         name: 'Test User',
-        password: await bcrypt.hash('Password123', 10),
+        password: hashedPassword,
         isConfirmed: true,
       },
       include: {

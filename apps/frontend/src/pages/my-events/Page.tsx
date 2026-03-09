@@ -93,7 +93,7 @@ export function Page() {
                 size="sm"
                 className="w-full sm:w-auto shrink-0 mt-2 sm:mt-0"
                 onClick={() => {
-                  void navigate(`/events/${String(event.id)}`);
+                  void navigate(`/events/${event.slug}`);
                 }}
               >
                 Details

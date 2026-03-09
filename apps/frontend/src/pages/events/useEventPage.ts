@@ -5,6 +5,7 @@ import type { CurrentUser } from '@/types/user';
 import { useEffect, useState } from 'react';
 import { useLoaderData, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
 
 import type { eventLoader } from './EventPage';
 
@@ -21,12 +22,10 @@ export const useEventPage = () => {
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
 
-  const formattedDate = new Date(event.startAt).toLocaleString(undefined, {
-    dateStyle: 'long',
-    timeStyle: 'short',
-  });
+  const formattedDate = format(new Date(event.startAt), 'MMMM d, yyyy | p');
 
   const location = event.location;
   const cityPostal = [location?.postalCode, location?.city].map((s) => s?.trim()).filter(Boolean);
@@ -56,26 +55,22 @@ export const useEventPage = () => {
     });
   };
 
+  const shareUrl = window.location.href;
+  const inviterName = currentUser?.name ?? 'A friend';
+  const shareText = `${inviterName} wants to invite you to "${event.title}"! Check it out on GRIT:`;
+
   const handleShare = () => {
-    if (navigator.share) {
-      void navigator
-        .share({
-          title: event.title,
-          text: 'Check out this event on Grit!',
-          url: window.location.href,
-        })
-        .catch(() => {
-          // Share cancelled by user
-        });
-    } else {
-      setShareOpen(true);
-    }
+    setShareOpen(true);
   };
 
   const handleCopyLink = async () => {
-    await navigator.clipboard.writeText(window.location.href);
-    toast.info('Link copied');
-    setShareOpen(false);
+    await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+    toast.info('Invitation link copied');
+    setCopied(true);
+    setTimeout(() => {
+      setCopied(false);
+    }, 2000);
+    // setShareOpen(false);
   };
 
   const handleChat = () => {
@@ -158,5 +153,8 @@ export const useEventPage = () => {
     handleGoing,
     handleDelete,
     navigate,
+    shareText,
+    shareUrl,
+    copied,
   };
 };
