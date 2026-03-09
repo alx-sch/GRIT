@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { type ResChatMessage } from '@grit/schema';
 import { useSocket } from '@/providers/socketProvider';
 import { chatStore } from '@/store/chatStore';
@@ -44,13 +44,15 @@ export function useChat(conversationId: string) {
       setMessages((prev) => {
         const updated = prev.filter((msg) => msg.id !== data.messageId);
 
-        // Update chat store when messages change
-        if (updated.length === 0) {
-          chatStore.getState().clearLastMessage(conversationId);
-        } else {
-          const newLastMessage = updated[updated.length - 1];
-          chatStore.getState().setLastMessage(conversationId, newLastMessage);
-        }
+        // Defer chatStore updates to avoid React warning
+        setTimeout(() => {
+          if (updated.length === 0) {
+            chatStore.getState().clearLastMessage(conversationId);
+          } else {
+            const newLastMessage = updated[updated.length - 1];
+            chatStore.getState().setLastMessage(conversationId, newLastMessage);
+          }
+        }, 0);
 
         return updated;
       });
@@ -63,6 +65,8 @@ export function useChat(conversationId: string) {
     socket.on('error', handleError);
     socket.on('user_info', handleUserInfo);
     socket.on('message_deleted', handleMessageDeleted);
+
+    socket.emit('requestUserInfo');
 
     // Deregister handlers once component dismounts
     return () => {

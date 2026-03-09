@@ -184,7 +184,6 @@ export class ChatGateway implements OnGatewayConnection {
       };
     }
     socket.emit('initialLastMessages', payload);
-    socket.emit('user_info', { isAdmin: socket.data.isAdmin });
   }
 
   async handleConnection(client: AppSocket) {
@@ -336,5 +335,10 @@ export class ChatGateway implements OnGatewayConnection {
 
     // Broadcast deletion to all users in the conversation
     this.server.to(body.conversationId).emit('message_deleted', { messageId: body.messageId });
+  }
+
+  @SubscribeMessage('requestUserInfo')
+  async handleRequestUserInfo(@ConnectedSocket() client: AppSocket) {
+    client.emit('user_info', { isAdmin: client.data.isAdmin });
   }
 }

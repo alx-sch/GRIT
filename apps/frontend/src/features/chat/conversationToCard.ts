@@ -52,9 +52,13 @@ export function mapConversationToCard(
 
   // Last Message Author
   let lastMessageAuthorNameLong;
-  if (conversationState?.lastMessage?.author?.id === currentUser.id)
+  if (!conversationState?.lastMessage) {
+    lastMessageAuthorNameLong = undefined;
+  } else if (conversationState.lastMessage.author?.id === currentUser.id) {
     lastMessageAuthorNameLong = 'You';
-  else lastMessageAuthorNameLong = conversationState?.lastMessage?.author.name;
+  } else {
+    lastMessageAuthorNameLong = conversationState.lastMessage.author?.name ?? 'Unknown';
+  }
   const lastMessageAuthor = lastMessageAuthorNameLong
     ? trimText(lastMessageAuthorNameLong, 10)
     : undefined;
