@@ -22,6 +22,7 @@ export const useEventPage = () => {
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
 
   const formattedDate = format(new Date(event.startAt), 'MMMM d, yyyy | p');
@@ -65,7 +66,11 @@ export const useEventPage = () => {
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
     toast.info('Invitation link copied');
-    setShareOpen(false);
+    setCopied(true);
+    setTimeout(() => {
+      setCopied(false);
+    }, 2000);
+    // setShareOpen(false);
   };
 
   const handleChat = () => {
@@ -150,5 +155,6 @@ export const useEventPage = () => {
     navigate,
     shareText,
     shareUrl,
+    copied,
   };
 };

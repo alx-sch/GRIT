@@ -10,6 +10,7 @@ import {
 import { Text } from '@/components/ui/typography';
 import { FaFacebook, FaTelegram, FaWhatsapp, FaXTwitter } from 'react-icons/fa6';
 import { QRCodeSVG } from 'qrcode.react';
+import { cn } from '@/lib/utils';
 
 interface EventPageActionsProps {
   isAttending: boolean | null;
@@ -25,6 +26,7 @@ interface EventPageActionsProps {
   eventTitle: string;
   eventDate: string;
   eventLocation: string;
+  copied: boolean;
 }
 
 export const EventPageActions = ({
@@ -41,6 +43,7 @@ export const EventPageActions = ({
   eventTitle,
   eventDate,
   eventLocation,
+  copied,
 }: EventPageActionsProps) => {
   return (
     <>
@@ -167,13 +170,13 @@ export const EventPageActions = ({
           </div>
 
           <Button
-            onClick={() => {
-              onCopyLink();
-            }}
-            className="text-sm text-left hover:underline"
-            variant="secondary"
+            onClick={onCopyLink}
+            className={cn(
+              'w-full uppercase font-bold transition-all',
+              copied ? 'bg-green-600 hover:bg-green-600' : ''
+            )}
           >
-            Copy link
+            {copied ? 'Copied!' : 'Copy link'}
           </Button>
         </DialogContent>
       </Dialog>

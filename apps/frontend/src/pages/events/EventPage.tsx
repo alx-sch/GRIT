@@ -58,6 +58,7 @@ export const EventPage = () => {
     navigate,
     shareText,
     shareUrl,
+    copied,
   } = useEventPage();
 
   return (
@@ -203,6 +204,7 @@ export const EventPage = () => {
               onCopyLink={() => {
                 void handleCopyLink();
               }}
+              copied={copied}
               eventTitle={event.title}
               eventDate={formattedDate}
               eventLocation={location?.name ?? 'TBA'}
