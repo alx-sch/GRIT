@@ -43,7 +43,7 @@ export function EventCard({ event }: EventCardProps) {
     e.preventDefault(); //Prevent Link navigation
 
     if (!currentUser) {
-      void navigate('/login?redirect=' + encodeURIComponent(`/events/${String(event.id)}`));
+      void navigate('/login?redirect=' + encodeURIComponent(`/events/${event.slug}`));
       return;
     }
     setIsLoading(true);
@@ -73,7 +73,7 @@ export function EventCard({ event }: EventCardProps) {
   };
 
   return (
-    <Link to={event.id.toString()}>
+    <Link to={event.slug}>
       <Card className="w-full h-full flex flex-col rounded border-3 mx-auto hover:-translate-y-1 transition-transform duration-200 max-w-100">
         <CardHeader>
           <img
@@ -99,9 +99,9 @@ export function EventCard({ event }: EventCardProps) {
         </CardContent>
 
         <CardFooter className="p-4 pt-0 pb-2 gap-2 mt-auto flex flex-col">
-          {/* Friends interested section */}
+          {/*Friends interested section
           <div className="flex items-center gap-1 w-full pb-2">
-            {/*{event.interestedFriends && event.interestedFriends.length > 0 && (
+            {event.interestedFriends && event.interestedFriends.length > 0 && (
             <div className="flex -space-x-3">
             {event.interestedFriends.slice(0, 3).map((friend, index) => (
               <Avatar
@@ -120,8 +120,8 @@ export function EventCard({ event }: EventCardProps) {
               {event.interestedFriends &&
               event.interestedFriends.length > 3 &&
               ` + ${(event.interestedFriends.length - 3).toLocaleString()} friends are interested`}
-              </Text>*/}
-          </div>
+              </Text>
+          </div>*/}
 
           {/* Action buttons */}
           <div className="flex items-center gap-2 w-full">

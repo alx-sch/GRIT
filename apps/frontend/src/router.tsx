@@ -18,6 +18,7 @@ import Users, { usersLoader } from '@/pages/users/Page';
 import type { NavRoute } from '@/types/navroute';
 import { createBrowserRouter } from 'react-router-dom';
 import EditEventPage, { editEventLoader } from './pages/events/EditEventPage';
+import FriendsPage, { friendsLoader } from './pages/my-friends/Page';
 
 // NOTE: let's define single source of truth for our routes here
 export const baseNavConfig: NavRoute[] = [
@@ -122,6 +123,19 @@ export const router = createBrowserRouter([
             Component: MyEventsPage,
             loader: myEventsLoader,
             handle: { title: 'My Events' },
+          },
+        ],
+      },
+      {
+        path: 'my-friends',
+        Component: ProtectedLayout,
+        loader: protectedLayoutLoader,
+        children: [
+          {
+            index: true,
+            Component: FriendsPage,
+            loader: friendsLoader,
+            handle: { title: 'My Friends' },
           },
         ],
       },

@@ -1,5 +1,6 @@
 import { GetUser } from '@/auth/guards/get-user.decorator';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { JwtAuthOptionalGuard } from '@/auth/guards/jwt-auth-optional.guard';
 import { ResEventBaseSchema, ResEventGetPublishedSchema } from '@grit/schema';
 import {
   Body,
@@ -10,11 +11,11 @@ import {
   MaxFileSizeValidator,
   Param,
   ParseFilePipe,
-  ParseIntPipe,
   Patch,
   Post,
   Query,
   UploadedFile,
+  ParseIntPipe,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -28,7 +29,6 @@ import {
   ReqEventPatchDto,
   ReqEventPostDraftDto,
   ResEventDeleteSchema,
-  ResEventGetByIdSchema,
   ResEventPatchSchema,
   ResEventPostDraftSchema,
 } from './event.schema';
@@ -48,18 +48,22 @@ export class EventController {
     return this.eventService.eventDelete(param.id, user.id, user.isAdmin);
   }
 
-  // Get an individual event by id
-  @Get(':id')
-  @ZodSerializerDto(ResEventGetByIdSchema)
-  eventGetById(@Param() param: ReqEventGetByIdDto) {
-    return this.eventService.eventGetById(param.id);
-  }
-
   // Get all published events or search published events
   @Get()
   @ZodSerializerDto(ResEventGetPublishedSchema)
   eventGetPublished(@Query() query: ReqEventGetPublishedDto) {
     return this.eventService.eventGetPublished(query);
+  }
+
+  // Get event by ID (numeric) OR by Slug (string)
+  @Get(':identifier')
+  @UseGuards(JwtAuthOptionalGuard)
+  @ZodSerializerDto(ResEventBaseSchema)
+  async getEventByIdOrSlug(
+    @Param('identifier') identifier: string,
+    @GetUser('id') userId?: number
+  ) {
+    return this.eventService.eventGetById(identifier, userId);
   }
 
   // Patch an event (Update)
@@ -121,7 +125,7 @@ export class EventController {
   @UseInterceptors(FileInterceptor('file'))
   uploadEventFile(
     @Param() param: ReqEventGetByIdDto,
-    @GetUser('id') userId: number,
+    @GetUser() user: User,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -132,7 +136,7 @@ export class EventController {
     )
     file: Express.Multer.File
   ) {
-    return this.eventService.eventUploadFile(param.id, userId, file);
+    return this.eventService.eventUploadFile(param.id, user.id, user.isAdmin, file);
   }
 
   // Delete documents (image or pdf)
@@ -141,10 +145,11 @@ export class EventController {
   deleteEventFile(
     @Param('id', ParseIntPipe) eventId: number,
     @Param('fileId', ParseIntPipe) fileId: number,
-    @GetUser('id') userId: number
+    @GetUser() user: User
   ) {
-    return this.eventService.eventDeleteFile(eventId, userId, fileId);
+    return this.eventService.eventDeleteFile(String(eventId), user.id, user.isAdmin, fileId);
   }
+
   // Post a new event draft
   @Post()
   @ApiBearerAuth()

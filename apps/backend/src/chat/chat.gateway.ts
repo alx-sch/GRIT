@@ -306,7 +306,7 @@ export class ChatGateway implements OnGatewayConnection {
 
   @SubscribeMessage('delete_message')
   async handleDeleteMessage(
-    @MessageBody() body: { messageId: string; conversationId: string }, // <-- Add conversationId
+    @MessageBody() body: { messageId: string; conversationId: string },
     @ConnectedSocket() client: AppSocket
   ) {
     // Only admins can delete

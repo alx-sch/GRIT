@@ -1,5 +1,6 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { User } from '@/auth/interfaces/user.interface';
+import { Request } from 'express';
 
 /**
  * GET USER DECORATOR
@@ -26,9 +27,14 @@ interface RequestWithUser {
 
 export const GetUser = createParamDecorator((data: string | undefined, ctx: ExecutionContext) => {
   // Cast the request to interface
-  const request = ctx.switchToHttp().getRequest<RequestWithUser>();
-  const user = request.user;
+  const request = ctx.switchToHttp().getRequest<Request>();
+  const user = request.user as RequestWithUser['user'] | undefined;
 
-  // If @GetUser('email') is used, return just that property
+  // Safety check for anonymous requests
+  if (!user) {
+    return undefined;
+  }
+
+  // Return the specific property or the whole user
   return data ? user[data as keyof typeof user] : user;
 });

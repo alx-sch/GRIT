@@ -1,6 +1,9 @@
 import { ReqEventGetPublishedDto } from './event.schema';
 import { Prisma } from '@prisma/client';
 import { BadRequestException } from '@nestjs/common';
+import slugify from 'slugify';
+import { customAlphabet } from 'nanoid';
+import { removeStopwords, eng, deu, fra, spa } from 'stopword';
 
 /**
  * ==================================================
@@ -84,4 +87,51 @@ export function eventCursorFilter(input: ReqEventGetPublishedDto) {
     }
   }
   return cursorFilter;
+}
+
+/**
+ * ==================================================
+ * HELPER FUNCTIONS (GENERAL)
+ * ==================================================
+ */
+
+const generateNanoId = customAlphabet(
+  '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
+  6
+);
+
+/**
+ * Generates a unique, URL-friendly slug for an event.
+ * Combines the title with a random suffix to support anonymous sharing and prevent URL guessing.
+ *
+ * Example:
+ * - Title: "   💕 A cool Valentine's Party for Singles and more in Berlin!! 💕"
+ * - Slug: "cool-valentines-party-singles-berlin-Ua9tkY"
+ */
+export function eventGenerateSlug(title: string): string {
+  const words = title.split(/\s+/);
+
+  // Remove common words (a, the and so on; multiple languages)
+  const languagePack = [...eng, ...deu, ...fra, ...spa];
+  const filteredWords = removeStopwords(words, languagePack);
+
+  // Rejoin and create base slug
+  const cleanTitle = filteredWords.join(' ');
+  let base = slugify(cleanTitle, {
+    lower: true,
+    strict: true, // Strips emojis/symbols
+    trim: true,
+  });
+
+  // Limit the "text" part to 40 chars to keep URL managable, cut at hyphen
+  if (base.length > 40) {
+    base = base.substring(0, 40).replace(/-+$/, '');
+  }
+
+  // Use a fallback if the title was only special characters/emojis
+  const prefix = base || 'event';
+
+  // nanoid(6) gives ~68 billion possibilities, plenty for uniqueness
+  // and makes the "anonymous link" secure enough.
+  return `${prefix}-${generateNanoId()}`;
 }
