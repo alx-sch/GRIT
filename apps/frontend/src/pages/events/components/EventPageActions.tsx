@@ -80,9 +80,8 @@ export const EventPageActions = ({
       </Card>
 
       <Dialog open={shareOpen} onOpenChange={onShareOpenChange}>
-        <DialogContent className="max-w-sm flex flex-col gap-3">
+        <DialogContent className="max-w-sm flex flex-col gap-2 p-4 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            {/* Label: Inter font, tracked out */}
             <DialogTitle className="text-[12px] uppercase tracking-[0.3em] opacity-50 font-sans font-bold mb-4">
               Share this event
             </DialogTitle>
@@ -109,7 +108,8 @@ export const EventPageActions = ({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex flex-col items-center justify-center bg-white p-4 rounded-xl shadow-inner">
+          {/* QR CODE */}
+          <div className="mx-auto w-48 p-2 bg-white border-2 border-black shadow-grit">
             <QRCodeSVG
               value={shareUrl}
               size={180}
@@ -124,12 +124,21 @@ export const EventPageActions = ({
                 excavate: true,
               }}
             />
-            <Text className="text-[10px] text-black/50 font-bold uppercase mt-2 tracking-widest">
-              Scan to join
-            </Text>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 p-4 mt-2">
+          {/* COPY LINK BUTTON */}
+          <Button
+            onClick={onCopyLink}
+            className={cn(
+              'w-full uppercase font-bold transition-all',
+              copied ? 'bg-green-600 hover:bg-green-600' : ''
+            )}
+          >
+            {copied ? 'Copied!' : 'Copy link'}
+          </Button>
+
+          {/* SOCIAL GRID */}
+          <div className="grid grid-cols-2 gap-2 p-1 mt-2">
             {[
               {
                 icon: <FaWhatsapp size={28} />,
@@ -168,16 +177,6 @@ export const EventPageActions = ({
               </a>
             ))}
           </div>
-
-          <Button
-            onClick={onCopyLink}
-            className={cn(
-              'w-full uppercase font-bold transition-all',
-              copied ? 'bg-green-600 hover:bg-green-600' : ''
-            )}
-          >
-            {copied ? 'Copied!' : 'Copy link'}
-          </Button>
         </DialogContent>
       </Dialog>
     </>
