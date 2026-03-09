@@ -1,7 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
+import { BadRequestException, Injectable } from '@nestjs/common';
+
+import { ReqFriendRequestsGetAllDto, ReqFriendsGetAllDto } from './friends.schema';
 import { friendsCursorFilter, friendsEncodeCursor } from './friends.utils';
-import { ReqFriendsGetAllDto, ReqFriendRequestsGetAllDto } from './friends.schema';
 
 @Injectable()
 export class FriendsService {
@@ -56,6 +57,10 @@ export class FriendsService {
         requesterId,
         receiverId,
       },
+      include: {
+        requester: { select: { id: true, name: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, avatarKey: true } },
+      },
     });
 
     return friendRequest;
@@ -69,6 +74,10 @@ export class FriendsService {
       where: { receiverId: id, ...cursorFilter },
       orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
       take: limit + 1,
+      include: {
+        requester: { select: { id: true, name: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, avatarKey: true } },
+      },
     });
 
     const hasMore = requests.length > limit;
@@ -96,6 +105,10 @@ export class FriendsService {
       where: { requesterId: id, ...cursorFilter },
       orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
       take: limit + 1,
+      include: {
+        requester: { select: { id: true, name: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, avatarKey: true } },
+      },
     });
 
     const hasMore = requests.length > limit;
@@ -123,6 +136,9 @@ export class FriendsService {
       where: { userId: id, ...cursorFilter },
       orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
       take: limit + 1,
+      include: {
+        friend: { select: { id: true, name: true, avatarKey: true } },
+      },
     });
 
     const hasMore = friends.length > limit;
@@ -146,6 +162,10 @@ export class FriendsService {
     // Find friend request
     const friendRequest = await this.prisma.friendRequest.findFirst({
       where: { id: id },
+      include: {
+        requester: { select: { id: true, name: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, avatarKey: true } },
+      },
     });
 
     if (!friendRequest) {
@@ -163,6 +183,7 @@ export class FriendsService {
           userId: userId,
           friendId: friendRequest.requesterId,
         },
+        include: { friend: { select: { id: true, name: true, avatarKey: true } } },
       }),
       this.prisma.friends.create({
         data: {
@@ -183,6 +204,10 @@ export class FriendsService {
     // Find friend request
     const friendRequest = await this.prisma.friendRequest.findFirst({
       where: { id: id },
+      include: {
+        requester: { select: { id: true, name: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, avatarKey: true } },
+      },
     });
 
     if (!friendRequest) {
@@ -196,6 +221,10 @@ export class FriendsService {
     // Delete friend request
     return await this.prisma.friendRequest.delete({
       where: { id },
+      include: {
+        requester: { select: { id: true, name: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, avatarKey: true } },
+      },
     });
   }
 
@@ -210,6 +239,7 @@ export class FriendsService {
         userId: userId,
         friendId: friendId,
       },
+      include: { friend: { select: { id: true, name: true, avatarKey: true } } },
     });
     if (!friendship) throw new BadRequestException('Friendship does not exist.');
 

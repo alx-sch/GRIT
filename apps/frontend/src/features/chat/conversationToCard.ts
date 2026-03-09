@@ -1,7 +1,7 @@
-import { CurrentUser } from '@/types/user';
-import { ResConversationOverview, ResConversationState } from '@grit/schema';
 import { getAvatarImageUrl, getEventImageUrlByKey } from '@/lib/image_utils';
 import { trimText } from '@/lib/utils';
+import { CurrentUser } from '@/types/user';
+import { ResConversationOverview, ResConversationState } from '@grit/schema';
 
 export function mapConversationToCard(
   conversation: ResConversationOverview[number],
@@ -31,7 +31,7 @@ export function mapConversationToCard(
   const getImageFallback = () => {
     if (conversation.type === 'DIRECT') return otherUser?.name?.trim().slice(0, 2).toUpperCase();
     if (conversation.type === 'EVENT')
-      return conversation.event.title.trim().slice(0, 2).toUpperCase();
+      return conversation.event?.title?.trim().slice(0, 2).toUpperCase() ?? '?';
     return '';
   };
   const imageFallback = getImageFallback();
@@ -40,7 +40,7 @@ export function mapConversationToCard(
   const findTitle = () => {
     if (conversation.type === 'DIRECT') return otherUser?.name;
     else if (conversation.type === 'GROUP') return conversation.title;
-    else if (conversation.type === 'EVENT') return conversation.event.title;
+    else if (conversation.type === 'EVENT') return conversation.event?.title ?? 'Event';
     else return 'Conversation';
   };
   const titleLong = findTitle();
@@ -87,7 +87,8 @@ export function mapConversationToCard(
 
   // If there are no messages, there cannot be unred messages
   if (!lastMessage) hasUnread = false;
-  // Otherwise there must be messages and lastread being null means we have unread
+  // Otherwise there must be messages and lastread being null means we have
+  // unread
   else if (!lastReadAt) hasUnread = true;
   // Otherwise we must compage
   else hasUnread = new Date(lastMessage.createdAt).getTime() > new Date(lastReadAt).getTime();
