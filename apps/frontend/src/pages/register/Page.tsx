@@ -6,7 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import { authService } from '@/services/authService';
 import { ActionFormError } from '@/types/actionFormError';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
@@ -82,7 +82,7 @@ export const RegisterPage = () => {
     register,
     setError,
     clearErrors,
-    watch,
+    control,
     formState: { errors, isValid },
   } = useForm<LocalRegisterInput>({
     resolver: zodResolver(LocalRegisterSchema),
@@ -91,7 +91,7 @@ export const RegisterPage = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const password = watch('password') || '';
+  const password = useWatch({ control, name: 'password' }) ?? '';
 
   const actionData = useActionData<ActionFormError | undefined>();
 

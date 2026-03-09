@@ -43,7 +43,7 @@ export function EventCard({ event }: EventCardProps) {
     e.preventDefault(); //Prevent Link navigation
 
     if (!currentUser) {
-      void navigate('/login?redirect=' + encodeURIComponent(`/events/${String(event.id)}`));
+      void navigate('/login?redirect=' + encodeURIComponent(`/events/${event.slug}`));
       return;
     }
     setIsLoading(true);
@@ -73,7 +73,7 @@ export function EventCard({ event }: EventCardProps) {
   };
 
   return (
-    <Link to={event.id.toString()}>
+    <Link to={event.slug}>
       <Card className="w-full h-full flex flex-col rounded border-3 mx-auto hover:-translate-y-1 transition-transform duration-200 max-w-100">
         <CardHeader>
           <img

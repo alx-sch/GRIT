@@ -70,6 +70,7 @@ describe('Event Creation Page', () => {
   const mockCreatedEvent: EventBase = {
     id: 1,
     title: 'Test Event',
+    slug: 'test-event-slug-345677',
     content: 'Test description',
     startAt: '2026-06-15T12:00:00.000Z',
     endAt: '2026-06-16T12:00:00.000Z',

@@ -9,15 +9,22 @@ export const ChatBubble = ({ message }: { message: ResChatMessage }) => {
   const author = message.author ?? { id: null, name: '[DELETED USER]', avatarKey: null };
   const isFromCurrentUser = currentUser?.id === author.id;
   const align = isFromCurrentUser ? 'justify-end' : 'justify-start';
-  const initials = author.name?.trim().slice(0, 2).toUpperCase();
+  const initials = author.name?.trim().slice(0, 2).toUpperCase() ?? '??';
   return (
     <>
       <div className={`${align} flex my-4`}>
         <div className={`border border-input p-2 px-3 max-w-9/10 md:max-w-4/5 lg:max-w-3/5 flex`}>
           {!isFromCurrentUser && (
             <Avatar className="mr-2 w-6 h-6">
-              <AvatarImage src={getAvatarImageUrl(author.avatarKey ?? undefined)} />
-              <AvatarFallback>{initials}</AvatarFallback>
+              <AvatarImage
+                src={
+                  message.author?.avatarKey
+                    ? getAvatarImageUrl(message.author.avatarKey)
+                    : undefined
+                }
+                seed={message.author?.id?.toString() ?? 'user'}
+              />
+              <AvatarFallback name={initials} />
             </Avatar>
           )}
           <div className="text-sm">
