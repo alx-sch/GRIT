@@ -109,7 +109,7 @@ export const EventPageActions = ({
           </DialogHeader>
 
           {/* QR CODE */}
-          <div className="mx-auto w-48 p-2 bg-white border-2 border-black shadow-grit">
+          <div className="mx-auto w-48 p-1 bg-white border-2 border-black shadow-grit">
             <QRCodeSVG
               value={shareUrl}
               size={180}
@@ -129,6 +129,7 @@ export const EventPageActions = ({
           {/* COPY LINK BUTTON */}
           <Button
             onClick={onCopyLink}
+            variant="default"
             className={cn(
               'w-full uppercase font-bold transition-all',
               copied ? 'bg-green-600 hover:bg-green-600' : ''
@@ -141,40 +142,37 @@ export const EventPageActions = ({
           <div className="grid grid-cols-2 gap-2 p-1 mt-2">
             {[
               {
-                icon: <FaWhatsapp size={28} />,
+                icon: <FaWhatsapp />,
                 label: 'WhatsApp',
                 href: `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`,
               },
               {
-                icon: <FaTelegram size={28} />,
+                icon: <FaTelegram />,
                 label: 'Telegram',
                 href: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`,
               },
               {
-                icon: <FaFacebook size={28} />,
+                icon: <FaFacebook />,
                 label: 'Facebook',
                 href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
               },
               {
-                icon: <FaXTwitter size={28} />,
+                icon: <FaXTwitter />,
                 label: 'X (Twitter)',
                 href: `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`,
               },
             ].map(({ icon, label, href }) => (
-              <a
+              <Button
                 key={label}
-                href={href}
-                target="_blank"
-                rel="noreferrer"
-                className="flex flex-col items-center justify-center p-5 gap-2 rounded-2xl border bg-muted hover:bg-accent hover:border-accent transition-colors group text-center"
+                asChild
+                variant="secondary"
+                className="h-auto p-5 flex flex-col items-center justify-center gap-2 [&_svg]:w-7 [&_svg]:h-7"
               >
-                <div className="flex items-center justify-center text-muted-foreground group-hover:text-foreground">
-                  {icon}
-                </div>
-                <Text className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-foreground">
-                  {label}
-                </Text>
-              </a>
+                <a href={href} target="_blank" rel="noreferrer">
+                  <div>{icon}</div>
+                  <Text className="text-[10px] font-bold uppercase tracking-widest">{label}</Text>
+                </a>
+              </Button>
             ))}
           </div>
         </DialogContent>
