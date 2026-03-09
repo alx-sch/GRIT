@@ -5,9 +5,11 @@ import { DatePicker } from '@/components/ui/datepicker';
 import { Input } from '@/components/ui/input';
 import { Heading, Text } from '@/components/ui/typography';
 import { useDebounce } from '@/hooks/useDebounce';
+import { Pagination, useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { EventCard } from '@/pages/events/components/EventCard';
 import { eventService } from '@/services/eventService';
+import { friendService } from '@/services/friendService';
 import { locationService } from '@/services/locationService';
 import { EventResponse } from '@/types/event';
 import { LocationBase } from '@/types/location';
@@ -16,7 +18,6 @@ import { ArrowUpDown, MapPinIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { DateRange } from 'react-day-picker';
 import { LoaderFunctionArgs, useSearchParams } from 'react-router-dom';
-import { Pagination, useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 
 const buildEventQuery = (searchParams: URLSearchParams, cursor?: string | null) => ({
   search: searchParams.get('search') ?? undefined,
@@ -33,14 +34,19 @@ export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const query = buildEventQuery(url.searchParams);
 
-  const [events, locationsResponse] = await Promise.all([
+  const [events, locationsResponse, friendsData] = await Promise.all([
     eventService.getEvents(query),
     locationService.getLocations(),
+    friendService.listFriends({ limit: '100' }).catch(() => null),
   ]);
+
+  const friendsIds = new Set(friendsData?.data.map((f) => f.friend.id) ?? []);
+
   return {
     events,
     locations: locationsResponse.data,
     locationsPagination: locationsResponse.pagination,
+	friendsIds,
   };
 };
 
@@ -54,10 +60,11 @@ const sortOptions: ComboboxOptions[] = [
 ];
 
 export default function EventFeedPage() {
-  const { events, locations, locationsPagination } = useTypedLoaderData<{
+  const { events, locations, locationsPagination, friendsIds } = useTypedLoaderData<{
     events: EventResponse;
     locations: LocationBase[];
     locationsPagination: Pagination;
+	friendsIds: Set<number>;
   }>();
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -229,9 +236,9 @@ export default function EventFeedPage() {
       </div>
       {items.length > 0 ? (
         <>
-          <div className="grid gap-6 justify-start md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {items.map((event) => (
-              <EventCard key={event.id} event={event} />
+              <EventCard key={event.id} event={event} friendsIds={friendsIds} />
             ))}
           </div>
           <div ref={sentinelRef} />

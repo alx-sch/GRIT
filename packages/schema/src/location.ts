@@ -47,7 +47,7 @@ export const CreateLocationSchema = z.object({
   country: z.string().optional(),
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
-  isPublic: z.boolean().optional(),
+  isPublic: z.boolean().default(true),
   address: z.string().optional(),
   postalCode: z.string().optional(),
 });

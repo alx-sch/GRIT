@@ -1,9 +1,10 @@
-import { ReqEventGetPublishedDto } from './event.schema';
-import { Prisma } from '@prisma/client';
-import { BadRequestException } from '@nestjs/common';
+import {BadRequestException} from '@nestjs/common';
+import {Prisma} from '@prisma/client';
+import {customAlphabet} from 'nanoid';
 import slugify from 'slugify';
-import { customAlphabet } from 'nanoid';
-import { removeStopwords, eng, deu, fra, spa } from 'stopword';
+import {deu, eng, fra, removeStopwords, spa} from 'stopword';
+
+import {ReqEventGetPublishedDto} from './event.schema';
 
 /**
  * ==================================================
@@ -12,7 +13,8 @@ import { removeStopwords, eng, deu, fra, spa } from 'stopword';
  *
  * Cursors are encoded to a single Base64 string to:
  * 1. Hide raw database values (startAt dates and IDs) from the URL.
- * 2. Prevent users from accidentally modifying the cursor and breaking pagination.
+ * 2. Prevent users from accidentally modifying the cursor and breaking
+ * pagination.
  *
  * Example WITHOUT encoding:
  * GET /events?limit=20&cursor=2025-01-22T10:00:00.000Z|41
@@ -26,9 +28,10 @@ export function eventEncodeCursor(startAt: Date, id: number) {
   return Buffer.from(str).toString('base64');
 }
 
-export function eventDecodeCursor(cursor: string): { startAt: Date; id: number } {
-  const [startAtStr, idStr] = Buffer.from(cursor, 'base64').toString('utf-8').split('|');
-  return { startAt: new Date(startAtStr), id: parseInt(idStr, 10) };
+export function eventDecodeCursor(cursor: string): {startAt: Date; id: number} {
+  const [startAtStr, idStr] =
+      Buffer.from(cursor, 'base64').toString('utf-8').split('|');
+  return {startAt: new Date(startAtStr), id: parseInt(idStr, 10)};
 }
 
 /**
@@ -38,13 +41,24 @@ export function eventDecodeCursor(cursor: string): { startAt: Date; id: number }
  */
 
 // For filtering the events by start time, author id, search keywords etc.
-export function eventSearchFilter(input: ReqEventGetPublishedDto) {
-  const where: Prisma.EventWhereInput = { isPublished: true };
+export function eventSearchFilter(
+    input: ReqEventGetPublishedDto, userId?: number) {
+  const visibilityFilter: Prisma.EventWhereInput = userId ? {
+    OR: [
+      {isPublic: true},
+      {authorId: userId},
+      {attendees: {some: {userId}}},
+    ],
+  } :
+                                                            {isPublic: true};
+
+  const where:
+      Prisma.EventWhereInput = {isPublished: true, AND: [visibilityFilter]};
 
   if (input.search) {
     where.OR = [
-      { title: { contains: input.search, mode: 'insensitive' } },
-      { content: { contains: input.search, mode: 'insensitive' } },
+      {title: {contains: input.search, mode: 'insensitive'}},
+      {content: {contains: input.search, mode: 'insensitive'}},
     ];
   }
   if (input.author_id) where.authorId = input.author_id;
@@ -70,17 +84,18 @@ export function eventSearchFilter(input: ReqEventGetPublishedDto) {
  * query resumes fetching events after the last event seen.
  * */
 export function eventCursorFilter(input: ReqEventGetPublishedDto) {
-  const { cursor } = input;
+  const {cursor} = input;
   let cursorFilter = {};
 
   if (cursor) {
     try {
-      const { startAt, id } = eventDecodeCursor(cursor);
-      if (!(startAt instanceof Date) || isNaN(startAt.getTime()) || typeof id !== 'number') {
+      const {startAt, id} = eventDecodeCursor(cursor);
+      if (!(startAt instanceof Date) || isNaN(startAt.getTime()) ||
+          typeof id !== 'number') {
         throw new Error('Invalid cursor');
       }
       cursorFilter = {
-        OR: [{ startAt: { gt: startAt } }, { startAt, id: { gt: id } }],
+        OR: [{startAt: {gt: startAt}}, {startAt, id: {gt: id}}],
       };
     } catch {
       throw new BadRequestException('Invalid cursor provided');
@@ -96,13 +111,12 @@ export function eventCursorFilter(input: ReqEventGetPublishedDto) {
  */
 
 const generateNanoId = customAlphabet(
-  '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
-  6
-);
+    '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 6);
 
 /**
  * Generates a unique, URL-friendly slug for an event.
- * Combines the title with a random suffix to support anonymous sharing and prevent URL guessing.
+ * Combines the title with a random suffix to support anonymous sharing and
+ * prevent URL guessing.
  *
  * Example:
  * - Title: "   💕 A cool Valentine's Party for Singles and more in Berlin!! 💕"
@@ -119,7 +133,7 @@ export function eventGenerateSlug(title: string): string {
   const cleanTitle = filteredWords.join(' ');
   let base = slugify(cleanTitle, {
     lower: true,
-    strict: true, // Strips emojis/symbols
+    strict: true,  // Strips emojis/symbols
     trim: true,
   });
 

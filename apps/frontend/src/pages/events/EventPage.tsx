@@ -81,7 +81,7 @@ export const EventPage = () => {
           </div>
           <div className="flex flex-row gap-2">
             {isAuthor && (
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" asChild>
                 <Link to="edit">
                   <Pencil className="h-4 w-4" />
                 </Link>

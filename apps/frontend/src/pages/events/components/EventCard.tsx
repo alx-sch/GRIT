@@ -1,3 +1,4 @@
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -8,7 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Text } from '@/components/ui/typography';
-import { getEventImageUrl } from '@/lib/image_utils';
+import { getAvatarImageUrl, getEventImageUrl } from '@/lib/image_utils';
 import { userService } from '@/services/userService';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import { EventBase } from '@/types/event';
@@ -21,14 +22,16 @@ import { toast } from 'sonner';
 
 interface EventCardProps {
   event: EventBase;
+  friendsIds: Set<number>;
 }
 
-export function EventCard({ event }: EventCardProps) {
+export function EventCard({ event, friendsIds }: EventCardProps) {
   const [isAttending, setIsAttending] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const currentUser: CurrentUser | null = useCurrentUserStore((s) => s.user);
   const navigate = useNavigate();
   const [countAttending, setCountAttending] = useState(event.attendees.length);
+  const friendsGoing = event.attendees.filter((a) => friendsIds.has(a.id));
 
   //Check if user is attending
   useEffect(() => {
@@ -99,29 +102,33 @@ export function EventCard({ event }: EventCardProps) {
         </CardContent>
 
         <CardFooter className="p-4 pt-0 pb-2 gap-2 mt-auto flex flex-col">
-          {/*Friends interested section
-          <div className="flex items-center gap-1 w-full pb-2">
-            {event.interestedFriends && event.interestedFriends.length > 0 && (
-            <div className="flex -space-x-3">
-            {event.interestedFriends.slice(0, 3).map((friend, index) => (
-              <Avatar
-              key={index}
-              className="h-8 w-8 border-2 border-background bg-muted"
-              style={{ zIndex: 3 - index }}
-              >
-              <AvatarImage seed={friend.name} />
-
-              <AvatarFallback>{friend.name[0]}</AvatarFallback>
-              </Avatar>
-              ))}
+          {/*Friends interested section*/}
+          <div className="flex items-center gap-2 w-full pb-2">
+            {friendsGoing && friendsGoing.length > 0 && (
+              <div className="flex -space-x-3">
+                {friendsGoing.slice(0, 3).map((friend, index) => (
+                  <Avatar
+                    className="h-8 w-8 border-2 border-background bg-muted"
+                    key={index}
+                    style={{ zIndex: 3 - index }}
+                  >
+                    <AvatarImage
+                      src={friend?.avatarKey ? getAvatarImageUrl(friend.avatarKey) : undefined}
+                      seed={friend?.id?.toString() ?? 'user'}
+                    />
+                    <AvatarFallback name={friend.name} />
+                  </Avatar>
+                ))}
               </div>
-              )}
-              <Text className="text-muted-foreground">
-              {event.interestedFriends &&
-              event.interestedFriends.length > 3 &&
-              ` + ${(event.interestedFriends.length - 3).toLocaleString()} friends are interested`}
-              </Text>
-          </div>*/}
+            )}
+            <Text className="text-muted-foreground">
+              {friendsGoing && friendsGoing.length > 0 && friendsGoing.length < 2 && `  is going`}
+              {friendsGoing && friendsGoing.length > 1 && friendsGoing.length < 4 && `  are going`}
+              {friendsGoing &&
+                friendsGoing.length > 3 &&
+                ` + ${(friendsGoing.length - 3).toLocaleString()} friends are going`}
+            </Text>
+          </div>
 
           {/* Action buttons */}
           <div className="flex items-center gap-2 w-full">

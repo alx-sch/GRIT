@@ -52,7 +52,7 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
       country: '',
       latitude: undefined,
       longitude: undefined,
-      isPublic: undefined,
+      isPublic: true,
       address: '',
       postalCode: '',
     },
@@ -192,7 +192,7 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
           </label>
           <Input id="country" type="text" {...register('country')} placeholder='e.g "Germany"' />
         </div>
-        {/* Visibility */}
+        {/*Visibility
         <fieldset className="flex flex-col gap-4">
           <legend className="font-heading mb-2"> Choose your location visibility </legend>
           <Controller
@@ -223,7 +223,7 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
               </div>
             )}
           />
-        </fieldset>
+        </fieldset>*/}
 
         {errors.root?.message && (
           <Alert variant="destructive" className="mt-1.5">
