@@ -126,7 +126,7 @@ export function Page() {
         <EmptyState />
       ) : (
         <Tabs defaultValue="upcoming" className="w-full">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-2">
+          <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center md:gap-2">
             <TabsList variant="brutalist" className="w-full md:w-auto">
               <TabsTrigger value="upcoming" variant="brutalist" className="text-xs md:text-sm">
                 Upcoming ({upcomingEvents.length})

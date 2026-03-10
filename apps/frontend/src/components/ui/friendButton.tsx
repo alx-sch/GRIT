@@ -1,12 +1,13 @@
 import { Button } from '@/components/ui/button';
 import type { FriendshipStatus } from '@/types/friends';
-import { Clock, UserCheck, UserPlus } from 'lucide-react';
+import { Clock, UserCheck, UserMinus, UserPlus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface FriendButtonProps {
   friendshipStatus: FriendshipStatus;
   isLoading: boolean;
   onAddFriend: () => void;
+  onRemoveFriend?: () => void;
   size?: 'default' | 'sm';
   acceptHref?: string;
 }
@@ -15,6 +16,7 @@ export function FriendButton({
   friendshipStatus,
   isLoading,
   onAddFriend,
+  onRemoveFriend,
   size = 'default',
   acceptHref,
 }: FriendButtonProps) {
@@ -58,6 +60,14 @@ export function FriendButton({
   }
 
   if (friendshipStatus === 'friends') {
+    if (onRemoveFriend) {
+      return (
+        <Button variant="destructive" size={size} disabled={isLoading} onClick={onRemoveFriend}>
+          <UserMinus className={isIconOnly ? 'h-4 w-4' : 'mr-2 h-4 w-4'} />
+          {!isIconOnly && 'Unfriend'}
+        </Button>
+      );
+    }
     return (
       <Button variant="outline" size={size} disabled>
         <UserCheck className={isIconOnly ? 'h-4 w-4' : 'mr-2 h-4 w-4'} />

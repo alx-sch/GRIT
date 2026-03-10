@@ -12,6 +12,7 @@ interface ProfileHeaderProps {
   isLoading?: boolean;
   showFriendButton?: boolean;
   onAddFriend?: () => void;
+  onRemoveFriend?: () => void;
 }
 
 export function ProfileHeader({
@@ -20,6 +21,7 @@ export function ProfileHeader({
   isLoading = false,
   showFriendButton = false,
   onAddFriend,
+  onRemoveFriend,
 }: ProfileHeaderProps) {
   const avatarUrl = user.avatarKey ? getAvatarImageUrl(user.avatarKey) : undefined;
   const memberSince = format(new Date(user.createdAt), 'MMMM yyyy');
@@ -47,6 +49,7 @@ export function ProfileHeader({
               friendshipStatus={friendshipStatus}
               isLoading={isLoading}
               onAddFriend={onAddFriend}
+              onRemoveFriend={onRemoveFriend}
             />
           )}
         </div>

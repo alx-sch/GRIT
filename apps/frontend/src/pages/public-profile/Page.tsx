@@ -71,6 +71,22 @@ export default function PublicProfilePage() {
     }
   };
 
+  const handleRemoveFriend = async () => {
+    if (!isLoggedIn) return;
+
+    setIsLoading(true);
+    try {
+      await friendService.removeFriend(data.user.id);
+      setFriendshipStatus('none');
+      toast.success('Friend removed');
+    } catch (error) {
+      console.error('Failed to remove friend:', error);
+      toast.error('Failed to remove friend');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (isPrivateProfile && !isViewingSelf) {
     return (
       <PrivateProfileView
@@ -80,6 +96,9 @@ export default function PublicProfilePage() {
         isLoggedIn={isLoggedIn}
         onAddFriend={() => {
           void handleFriendAction();
+        }}
+        onRemoveFriend={() => {
+          void handleRemoveFriend();
         }}
       />
     );
@@ -95,6 +114,9 @@ export default function PublicProfilePage() {
         showFriendButton={isLoggedIn && !isViewingSelf}
         onAddFriend={() => {
           void handleFriendAction();
+        }}
+        onRemoveFriend={() => {
+          void handleRemoveFriend();
         }}
       />
       <ProfileTabs user={data.user} events={data.events} />
