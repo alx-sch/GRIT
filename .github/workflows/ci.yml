@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
       - name: Cache Turbo
         uses: actions/cache@v5
         with:
@@ -18,8 +18,8 @@ jobs:
           key: ${{ runner.os }}-turbo-${{ github.job }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-turbo-${{ github.job }}-
-      - uses: pnpm/action-setup@v5
-      - uses: actions/setup-node@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: 'pnpm'
@@ -38,7 +38,7 @@ jobs:
     needs: quality
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
         name: Check out code
 
       - name: Cache Turbo
@@ -48,8 +48,8 @@ jobs:
           key: ${{ runner.os }}-turbo-${{ github.job }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-turbo-${{ github.job }}-
-      - uses: pnpm/action-setup@v5
-      - uses: actions/setup-node@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: 'pnpm'
@@ -63,7 +63,7 @@ jobs:
     needs: quality
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
         name: Check out code
 
       - name: Cache Turbo
@@ -74,8 +74,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-${{ github.job }}-
 
-      - uses: pnpm/action-setup@v5
-      - uses: actions/setup-node@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: 'pnpm'
@@ -97,7 +97,7 @@ jobs:
       POSTGRES_PASSWORD: password
       DATABASE_URL: postgresql://postgres:password@127.0.0.1:5432/grit_test
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
       - name: Cache Playwright browsers
         uses: actions/cache@v5
         with:
@@ -105,8 +105,8 @@ jobs:
           key: ${{ runner.os }}-playwright-${{ hashFiles('**/package.json') }}
           restore-keys: |
             ${{ runner.os }}-playwright-
-      - uses: pnpm/action-setup@v5
-      - uses: actions/setup-node@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: 'pnpm'
@@ -123,7 +123,7 @@ jobs:
         run: make test-fe-e2e
 
       - name: Upload Playwright report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: playwright-report
