@@ -1,4 +1,3 @@
-import { getAvatarImageUrl, getEventImageUrlByKey } from '@/lib/image_utils';
 import { trimText } from '@/lib/utils';
 import { CurrentUser } from '@/types/user';
 import { ResConversationOverview, ResConversationState } from '@grit/schema';
@@ -15,26 +14,6 @@ export function mapConversationToCard(
       : undefined;
 
   const isEvent = conversation.type === 'EVENT';
-
-  // Image
-  const findImageUrl = () => {
-    if (conversation.type === 'DIRECT')
-      return otherUser?.avatarKey ? getAvatarImageUrl(otherUser.avatarKey) : undefined;
-    if (conversation.type === 'EVENT')
-      return conversation.event?.imageKey
-        ? getEventImageUrlByKey(conversation.event.imageKey)
-        : undefined;
-  };
-  const imageUrl = findImageUrl();
-
-  // Image Fallback
-  const getImageFallback = () => {
-    if (conversation.type === 'DIRECT') return otherUser?.name?.trim().slice(0, 2).toUpperCase();
-    if (conversation.type === 'EVENT')
-      return conversation.event?.title?.trim().slice(0, 2).toUpperCase() ?? '?';
-    return '';
-  };
-  const imageFallback = getImageFallback();
 
   // Title
   const findTitle = () => {
@@ -100,8 +79,6 @@ export function mapConversationToCard(
   return {
     isEvent,
     title,
-    imageUrl,
-    imageFallback,
     lastMessageText,
     lastMessageAuthor,
     lastMessageCreatedAt,

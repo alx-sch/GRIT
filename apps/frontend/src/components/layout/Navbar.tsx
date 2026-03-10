@@ -28,9 +28,8 @@ import { useBaseNavConfig } from '@/router';
 import { useAuthStore } from '@/store/authStore';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import type { NavRoute } from '@/types/navroute';
-import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
+import { UserAvatar } from '../ui/user-avatar';
 import { AnimatedUnderline } from '../ui/animatedUnderline';
-import { getAvatarImageUrl } from '@/lib/image_utils';
 import { chatStore } from '@/store/chatStore';
 import { useState } from 'react';
 import { Container } from './Container';
@@ -141,13 +140,7 @@ export function Navbar() {
                         isActive('/profile') ? 'text-foreground' : ''
                       )}
                     >
-                      <Avatar className="h-6 w-6">
-                        <AvatarImage
-                          src={user?.avatarKey ? getAvatarImageUrl(user.avatarKey) : undefined}
-                          seed={user?.id?.toString() ?? 'user'}
-                        />
-                        <AvatarFallback name={displayName} />
-                      </Avatar>
+                      <UserAvatar user={user ?? {}} size="xs" />
                       <span className="normal-case">{displayName}</span>
                     </button>
                     <AnimatedUnderline
@@ -206,13 +199,7 @@ export function Navbar() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <div className="flex items-center gap-3 pb-4 mb-4 border-b border-border cursor-pointer">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage
-                          src={user?.avatarKey ? getAvatarImageUrl(user.avatarKey) : undefined}
-                          seed={user?.id?.toString() ?? 'user'}
-                        />
-                        <AvatarFallback name={displayName} />
-                      </Avatar>
+                      <UserAvatar user={user ?? {}} size="sm" />
                       <div className="flex flex-col flex-1">
                         <span className="font-semibold">{displayName}</span>
                       </div>

@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { UserAvatar } from '@/components/ui/user-avatar';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/typography';
 import { Camera } from 'lucide-react';
@@ -13,11 +13,10 @@ import { validateImageFile, readFileAsDataURL } from '@/lib/image-crop-utils';
 interface ProfileAvatarProps {
   user: CurrentUser;
   avatarUrl?: string;
-  initials: string;
   onAvatarUpdate: (updatedUser: CurrentUser) => void;
 }
 
-export function ProfileAvatar({ user, avatarUrl, initials, onAvatarUpdate }: ProfileAvatarProps) {
+export function ProfileAvatar({ user, avatarUrl, onAvatarUpdate }: ProfileAvatarProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [showCropDialog, setShowCropDialog] = useState(false);
   const [selectedImageSrc, setSelectedImageSrc] = useState<string>('');
@@ -85,10 +84,13 @@ export function ProfileAvatar({ user, avatarUrl, initials, onAvatarUpdate }: Pro
         </CardHeader>
         <CardContent className="flex items-center gap-6">
           <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
-            <Avatar className="w-24 h-24">
-              <AvatarImage src={avatarUrl} alt={user.name ?? 'User avatar'} />
-              <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              user={user}
+              src={avatarUrl}
+              size="lg"
+              alt={user.name ?? 'User avatar'}
+              fallbackClassName="text-2xl"
+            />
             <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
               <Camera className="w-8 h-8 text-white" />
             </div>
