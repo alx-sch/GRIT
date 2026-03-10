@@ -1,5 +1,6 @@
 import { Field, FieldGroup, FieldLabel, FieldSet, FieldError } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Button } from '@/components/ui/button';
 import { Form, redirect, useNavigation, useActionData, Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
@@ -8,7 +9,7 @@ import { authService } from '@/services/authService';
 import { ActionFormError } from '@/types/actionFormError';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import axios from 'axios';
 import z from 'zod';
 import { type LoginInput } from '@grit/schema';
@@ -20,7 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 const LocalLoginSchema = z.object({
   email: z.email('Please enter a valid email address'),
@@ -112,8 +113,6 @@ export const LoginPage = () => {
     mode: 'onChange',
   });
 
-  const [showPassword, setShowPassword] = useState(false);
-
   /**
    * ERROR HANDLING FOR FORM SUBMISSIONS
    */
@@ -180,25 +179,12 @@ export const LoginPage = () => {
 
                 <Field>
                   <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      autoComplete="current-password"
-                      error={!!errors.password}
-                      {...register('password')}
-                      className="pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowPassword(!showPassword);
-                      }}
-                      className="absolute right-5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
+                  <PasswordInput
+                    id="password"
+                    autoComplete="current-password"
+                    error={!!errors.password}
+                    {...register('password')}
+                  />
                   <FieldError errors={[errors.password]} />
                 </Field>
 

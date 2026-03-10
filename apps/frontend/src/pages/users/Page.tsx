@@ -1,12 +1,14 @@
 import { useState, useMemo } from 'react';
-import { LoaderFunctionArgs } from 'react-router-dom';
+import { LoaderFunctionArgs, Link } from 'react-router-dom';
 import { userService } from '@/services/userService';
 import { Heading } from '@/components/ui/typography';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/emptyState';
 import { UserResponse } from '@/types/user';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { UserCard } from '@/components/ui/userCard';
+import { Eye } from 'lucide-react';
 
 export const usersLoader = async ({ request }: LoaderFunctionArgs): Promise<UserResponse> => {
   const url = new URL(request.url);
@@ -48,7 +50,18 @@ export default function Users() {
         {filteredUsers.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredUsers.map((user) => (
-              <UserCard key={user.id} user={user} />
+              <UserCard
+                key={user.id}
+                user={user}
+                actions={
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to={`/users/${user.id}`}>
+                      <Eye className="h-4 w-4" />
+                      View
+                    </Link>
+                  </Button>
+                }
+              />
             ))}
           </div>
         ) : (

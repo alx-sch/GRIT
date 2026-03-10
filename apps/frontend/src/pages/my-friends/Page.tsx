@@ -17,9 +17,9 @@ import {
   ResUserPublic,
   ResConversationSingleId,
 } from '@grit/schema';
-import { Check, MessageCircleMore, UserPlus, UserX, X } from 'lucide-react';
+import { Check, MessageCircleMore, UserPlus, UserX, X, Eye } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate, useRevalidator } from 'react-router-dom';
+import { useNavigate, useRevalidator, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
 interface FriendsLoaderData {
@@ -179,19 +179,27 @@ function FriendSearch({ friendIds, outgoingIds, incomingIds, onSendRequest }: Fr
                 key={user.id}
                 user={user}
                 actions={
-                  isPending ? (
-                    <span className="inline-flex items-center text-xs text-muted-foreground">
-                      Pending
-                    </span>
-                  ) : (
-                    <Button
-                      variant="default"
-                      title="Send friend request"
-                      onClick={() => void onSendRequest(user.id)}
-                    >
-                      <UserPlus />
+                  <>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link to={`/users/${user.id}`}>
+                        <Eye className="h-4 w-4" />
+                      </Link>
                     </Button>
-                  )
+                    {isPending ? (
+                      <span className="inline-flex items-center text-xs text-muted-foreground">
+                        Pending
+                      </span>
+                    ) : (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        title="Send friend request"
+                        onClick={() => void onSendRequest(user.id)}
+                      >
+                        <UserPlus className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </>
                 }
               />
             );
@@ -231,11 +239,16 @@ function PendingSection({ requests, onAccept, onDecline }: PendingSectionProps) 
             user={req.requester}
             actions={
               <>
-                <Button onClick={() => void onAccept(req.id)}>
-                  <Check />
+                <Button variant="outline" size="sm" asChild>
+                  <Link to={`/users/${req.requester.id}`}>
+                    <Eye className="h-4 w-4" />
+                  </Link>
                 </Button>
-                <Button variant="secondary" onClick={() => void onDecline(req.id)}>
-                  <X />
+                <Button size="sm" onClick={() => void onAccept(req.id)}>
+                  <Check className="h-4 w-4" />
+                </Button>
+                <Button variant="secondary" size="sm" onClick={() => void onDecline(req.id)}>
+                  <X className="h-4 w-4" />
                 </Button>
               </>
             }
@@ -271,19 +284,26 @@ function FriendsSection({ friends, onChat, onRemove }: FriendsSectionProps) {
             user={friend.friend}
             actions={
               <>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to={`/users/${friend.friend.id}`}>
+                    <Eye className="h-4 w-4" />
+                  </Link>
+                </Button>
                 <Button
                   variant="default"
+                  size="sm"
                   title="Chat"
                   onClick={() => void onChat(friend.friend.id)}
                 >
-                  <MessageCircleMore />
+                  <MessageCircleMore className="h-4 w-4" />
                 </Button>
                 <Button
-                  variant="secondary"
+                  variant="destructive"
+                  size="sm"
                   title="Remove friend"
                   onClick={() => void onRemove(friend.friendId)}
                 >
-                  <UserX />
+                  <UserX className="h-4 w-4" />
                 </Button>
               </>
             }

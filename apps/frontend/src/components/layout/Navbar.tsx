@@ -110,27 +110,36 @@ export function Navbar() {
           )}
           {isLoggedIn && (
             <>
-              <Link to="/chat" className="relative group">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="relative rounded-none border-0 hover:bg-transparent pb-1"
+              <div className="relative group">
+                <Link
+                  to="/chat"
+                  className={cn(
+                    navigationMenuTriggerStyle(),
+                    'relative bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent',
+                    'rounded-none text-base font-bold h-auto px-4 pb-1',
+                    'flex items-center justify-center',
+                    isActive('/chat') ? 'text-foreground' : ''
+                  )}
                   aria-label="Chat"
                 >
                   <MessageSquare className="h-6 w-6" strokeWidth={2.5} />
                   {hasUnread && (
                     <div className="absolute top-1 right-1 bg-primary w-2 h-2 rounded-full border border-card"></div>
                   )}
-                </Button>
+                </Link>
                 <AnimatedUnderline isActive={location.pathname.startsWith('/chat')} />
-              </Link>
+              </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <div className="relative group">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="flex items-center gap-2 h-10 w-auto px-3 rounded-none border-0 hover:bg-transparent pb-1"
+                    <button
+                      className={cn(
+                        navigationMenuTriggerStyle(),
+                        'relative bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent',
+                        'rounded-none text-base font-bold h-auto px-4 pb-1',
+                        'flex items-center gap-2 cursor-pointer',
+                        isActive('/profile') ? 'text-foreground' : ''
+                      )}
                     >
                       <Avatar className="h-6 w-6">
                         <AvatarImage
@@ -139,8 +148,8 @@ export function Navbar() {
                         />
                         <AvatarFallback name={displayName} />
                       </Avatar>
-                      <span className="normal-case text-base font-bold">{displayName}</span>
-                    </Button>
+                      <span className="normal-case">{displayName}</span>
+                    </button>
                     <AnimatedUnderline
                       isActive={location.pathname.startsWith('/profile')}
                       className="pointer-events-none"
@@ -256,10 +265,10 @@ export function Navbar() {
               <SheetHeader className="flex flex-row items-center justify-between pb-4 mb-4 space-y-0 text-left -mt-2">
                 <SheetTitle className="font-bold uppercase tracking-wider">Menu</SheetTitle>
                 <SheetClose asChild>
-                  <button className="focus:outline-none hover:opacity-70 transition-opacity">
-                    <X className="h-8 w-8 text-foreground" strokeWidth={3} />
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <X className="h-8 w-8" strokeWidth={3} />
                     <span className="sr-only">Close</span>
-                  </button>
+                  </Button>
                 </SheetClose>
               </SheetHeader>
 

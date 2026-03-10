@@ -345,10 +345,10 @@ export default function EventForm({
           <SheetHeader className="flex flex-row items-center justify-between border-b-2 border-border pb-4 mb-2 space-y-0 text-left">
             <SheetTitle className="font-bold uppercase tracking-wider">Add New Location</SheetTitle>
             <SheetClose asChild>
-              <button className="focus:outline-none hover:opacity-70 transition-opacity">
-                <X className="h-8 w-8 text-foreground" strokeWidth={3} />
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <X className="h-8 w-8" strokeWidth={3} />
                 <span className="sr-only">Close</span>
-              </button>
+              </Button>
             </SheetClose>
           </SheetHeader>
           <LocationForm
