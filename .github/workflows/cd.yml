@@ -3,7 +3,7 @@ name: Deploy to Production
 on:
   workflow_dispatch:
   push:
-    branches: [joh/fea/deployment]
+    branches: [main]
 
 jobs:
   deploy:
@@ -21,7 +21,7 @@ jobs:
 
             echo "Pulling latest changes..."
             git fetch origin
-            git reset --hard origin/joh/fea/deployment
+            git reset --hard origin/main
 
             echo "Rebuilding containers..."
             make stop
