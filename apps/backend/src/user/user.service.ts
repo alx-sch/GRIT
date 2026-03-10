@@ -51,7 +51,15 @@ export class UserService {
     const hasMore = users.length > limit;
     const slicedData = hasMore ? users.slice(0, limit) : users;
     return {
-      data: slicedData,
+      data: slicedData.map((user) => ({
+        id: user.id,
+        name: user.name,
+        avatarKey: user.avatarKey,
+        bio: user.bio,
+        city: user.city,
+        country: user.country,
+        createdAt: user.createdAt.toISOString(),
+      })),
       pagination: {
         nextCursor: hasMore
           ? userEncodeCursor(
@@ -104,6 +112,9 @@ export class UserService {
         id: true,
         name: true,
         avatarKey: true,
+        bio: true,
+        city: true,
+        country: true,
         createdAt: true,
       },
     });
@@ -360,6 +371,9 @@ export class UserService {
   async userPatch(userId: number, data: ReqUserPatchDto) {
     const newData: Prisma.UserUpdateInput = {};
     if (data.name !== undefined) newData.name = data.name;
+    if (data.bio !== undefined) newData.bio = data.bio;
+    if (data.city !== undefined) newData.city = data.city;
+    if (data.country !== undefined) newData.country = data.country;
 
     if (data.attending) {
       const attendingOps: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput = {};

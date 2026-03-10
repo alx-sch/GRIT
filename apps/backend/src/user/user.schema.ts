@@ -39,6 +39,9 @@ export const ReqUserPostSchema = z.object({
 // verifications)
 export const ReqUserPatchSchema = z.strictObject({
   name: z.string().optional(),
+  bio: z.string().max(150).optional(),
+  city: z.string().optional(),
+  country: z.string().optional(),
   attending: z
     .strictObject({
       connect: z.array(z.number().int().positive()).optional(),

@@ -8,7 +8,7 @@ import { friendService } from '@/services/friendService';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import { LoaderFunctionArgs, useLoaderData } from 'react-router-dom';
 import { format } from 'date-fns';
-import { UserPlus, UserCheck, Clock } from 'lucide-react';
+import { UserPlus, UserCheck, Clock, MapPin } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import type { FriendshipStatus } from '@/types/friends';
@@ -120,7 +120,15 @@ export default function PublicProfilePage() {
               )}
             </div>
 
-            <Text className="text-muted-foreground">Member since {memberSince}</Text>
+            <div className="flex flex-col gap-1">
+              {(data.user.city ?? data.user.country) && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <MapPin className="w-4 h-4" />
+                  <Text>{[data.user.city, data.user.country].filter(Boolean).join(', ')}</Text>
+                </div>
+              )}
+              <Text className="text-muted-foreground">Member since {memberSince}</Text>
+            </div>
           </div>
         </div>
 
@@ -131,8 +139,17 @@ export default function PublicProfilePage() {
           </TabsList>
 
           <TabsContent value="info" className="mt-6">
-            <div className="bg-card rounded-lg border p-6">
-              <Text className="text-muted-foreground">This user hasn't added any bio yet.</Text>
+            <div className="bg-card rounded-lg border p-6 space-y-4">
+              {data.user.bio ? (
+                <div>
+                  <Heading level={4} className="mb-2">
+                    About
+                  </Heading>
+                  <Text>{data.user.bio}</Text>
+                </div>
+              ) : (
+                <Text className="text-muted-foreground">This user hasn't added a bio yet.</Text>
+              )}
             </div>
           </TabsContent>
 

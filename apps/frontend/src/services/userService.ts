@@ -48,7 +48,12 @@ export const userService = {
     return response.data;
   },
 
-  updateMe: async (data: { name?: string }): Promise<UserBase> => {
+  updateMe: async (data: {
+    name?: string;
+    bio?: string | null;
+    city?: string | null;
+    country?: string | null;
+  }): Promise<UserBase> => {
     const response = await api.patch<UserBase>('users/me', data);
     return response.data;
   },

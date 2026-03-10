@@ -14,6 +14,9 @@ model User {
   password               String?
   name                   String
   avatarKey              String?
+  bio                    String?
+  city                   String?
+  country                String?
   confirmationToken      String?                   @unique
   googleId               String?
   // Status Flags

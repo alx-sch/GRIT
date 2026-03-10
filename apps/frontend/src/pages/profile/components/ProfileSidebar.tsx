@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Text } from '@/components/ui/typography';
-import { Calendar, Ticket, Trash2, Upload, Edit } from 'lucide-react';
+import { Calendar, Ticket, Trash2, Upload, Edit, MapPin } from 'lucide-react';
 import { userService } from '@/services/userService';
 import { toast } from 'sonner';
 import type { CurrentUser } from '@/types/user';
@@ -140,6 +140,14 @@ export function ProfileSidebar({
         <div className="text-center space-y-1">
           <Text className="text-xl font-semibold">{user.name ?? 'Anonymous'}</Text>
           <Text className="text-sm text-muted-foreground">{user.email ?? ''}</Text>
+          {(user.city ?? user.country) && (
+            <div className="flex items-center justify-center gap-1 text-muted-foreground">
+              <MapPin className="w-3 h-3" />
+              <Text className="text-sm">
+                {[user.city, user.country].filter(Boolean).join(', ')}
+              </Text>
+            </div>
+          )}
         </div>
       </div>
 

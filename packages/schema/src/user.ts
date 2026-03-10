@@ -19,6 +19,9 @@ export const ResUserBaseSchema = z.object({
   name: z.string(),
   email: z.email(),
   avatarKey: z.string().nullable().optional(),
+  bio: z.string().max(150).nullable().optional(),
+  city: z.string().nullable().optional(),
+  country: z.string().nullable().optional(),
   isConfirmed: z.boolean().default(false),
   attending: z.array(ResUserEventSchema).default([]),
   createdAt: z.iso.datetime(),
@@ -29,6 +32,9 @@ export const ResUserPublicSchema = z.object({
   id: z.number().int().positive(),
   name: z.string(),
   avatarKey: z.string().nullable().optional(),
+  bio: z.string().max(150).nullable().optional(),
+  city: z.string().nullable().optional(),
+  country: z.string().nullable().optional(),
   createdAt: z.iso.datetime(),
 });
 export type ResUserPublic = z.infer<typeof ResUserPublicSchema>;

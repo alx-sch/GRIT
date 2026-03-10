@@ -9,5 +9,8 @@ export interface CurrentUser {
   email: string;
   avatarKey?: string | null;
   name?: string | null;
+  bio?: string | null;
+  city?: string | null;
+  country?: string | null;
   createdAt?: string;
 }
