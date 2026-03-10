@@ -1,3 +1,4 @@
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Text, Heading } from '@/components/ui/typography';
 import { getAvatarImageUrl } from '@/lib/image_utils';
 import type { FriendshipStatus } from '@/types/friends';
@@ -28,17 +29,10 @@ export function ProfileHeader({
 
   return (
     <div className="flex flex-col md:flex-row gap-6 items-start">
-      <div className="w-32 h-32 rounded-full overflow-hidden bg-muted shrink-0">
-        {avatarUrl ? (
-          <img src={avatarUrl} alt={user.name} className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-primary/10">
-            <Text className="text-4xl font-semibold text-primary">
-              {user.name.charAt(0).toUpperCase()}
-            </Text>
-          </div>
-        )}
-      </div>
+      <Avatar className="w-32 h-32 shrink-0">
+        <AvatarImage src={avatarUrl} seed={user.name} alt={user.name} />
+        <AvatarFallback name={user.name} className="text-4xl" />
+      </Avatar>
 
       <div className="flex-1 space-y-2">
         <div className="flex flex-col md:flex-row md:items-center gap-4 justify-between">
