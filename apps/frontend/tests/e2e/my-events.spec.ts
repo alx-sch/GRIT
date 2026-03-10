@@ -300,35 +300,6 @@ test.describe('My Events Page', () => {
     expect(await editButtons.count()).toBe(2);
   });
 
-  test('should show Details button for all events', async ({ page }) => {
-    await page.goto('/profile/my-events');
-
-    // Check attending event in Upcoming tab
-    await expect(page.getByText("Event I'm Attending")).toBeVisible();
-
-    // Switch to Organizing tab
-    await page.getByRole('tab', { name: /organizing/i }).click();
-
-    await expect(page.getByText('My Draft Event')).toBeVisible();
-
-    // Should have Details button for each organizer event (2 events in this tab)
-    const detailsButtons = page.getByRole('button', { name: 'Details' });
-    expect(await detailsButtons.count()).toBeGreaterThanOrEqual(2);
-  });
-
-  test('should make event title clickable', async ({ page }) => {
-    await page.goto('/profile/my-events');
-
-    // Switch to Organizing tab
-    await page.getByRole('tab', { name: /organizing/i }).click();
-
-    await expect(page.getByText('My Draft Event')).toBeVisible();
-
-    // Title should be in a button
-    const titleButton = page.locator('button', { hasText: 'My Draft Event' });
-    await expect(titleButton).toBeVisible();
-  });
-
   test('should open map dialog when location is clicked', async ({ page }) => {
     // Mock Google Maps API
     await page.addInitScript(() => {

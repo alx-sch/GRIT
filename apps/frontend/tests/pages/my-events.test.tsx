@@ -192,11 +192,12 @@ describe('My Events Page', () => {
       expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument();
     });
 
-    it('should show Details button for all events', async () => {
+    it('should make entire card clickable for viewing details', async () => {
       await renderPage([mockDraftEvent]);
 
-      const detailsButtons = screen.getAllByRole('button', { name: /details/i });
-      expect(detailsButtons.length).toBeGreaterThan(0);
+      // The card itself should be clickable (has cursor-pointer and onClick)
+      const card = screen.getByText('Draft Event').closest('[class*="cursor-pointer"]');
+      expect(card).toBeInTheDocument();
     });
 
     it('should not show Edit button for non-organizer events', async () => {
@@ -336,20 +337,40 @@ describe('My Events Page', () => {
   });
 
   describe('Clickable Elements', () => {
-    it('should make event title clickable', async () => {
+    it('should make entire card clickable for navigation', async () => {
       await renderPage([mockDraftEvent]);
 
-      const titleButton = screen.getByText('Draft Event').closest('button');
-      expect(titleButton).toBeInTheDocument();
+      // Click on Organizing tab to see the draft event
+      const organizingTab = screen.getByRole('tab', { name: /organizing/i });
+      await user.click(organizingTab);
+
+      await waitFor(() => {
+        expect(screen.getByText('Draft Event')).toBeInTheDocument();
+      });
+
+      // Find the card by locating the title and going up to the clickable card
+      const card = screen.getByText('Draft Event').closest('[class*="cursor-pointer"]');
+      expect(card).toBeInTheDocument();
+      expect(card).toHaveClass('cursor-pointer');
     });
 
-    it('should make event image clickable', async () => {
+    it('should have clickable event image as part of the card', async () => {
       await renderPage([mockDraftEvent]);
+
+      // Click on Organizing tab to see the draft event
+      const organizingTab = screen.getByRole('tab', { name: /organizing/i });
+      await user.click(organizingTab);
+
+      await waitFor(() => {
+        expect(screen.getByText('Draft Event')).toBeInTheDocument();
+      });
 
       const images = screen.getAllByAltText('Draft Event');
       expect(images.length).toBeGreaterThan(0);
-      const imageButton = images[0]?.closest('button');
-      expect(imageButton).toBeInTheDocument();
+
+      // The image is now part of the clickable card, not a separate button
+      const card = images[0]?.closest('[class*="cursor-pointer"]');
+      expect(card).toBeInTheDocument();
     });
   });
 

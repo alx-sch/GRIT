@@ -76,28 +76,26 @@ export function MyEventCard({
   return (
     <>
       <Card
+        onClick={() => {
+          onViewDetails(event.slug);
+        }}
         className={cn(
-          'hover:shadow-md transition-shadow',
+          'hover:shadow-md transition-shadow overflow-hidden cursor-pointer',
           isDraft && 'border-dashed border-red-500/40'
         )}
       >
         <CardContent className="p-0">
-          <div className="flex flex-col md:flex-row items-center">
-            <button
-              onClick={() => {
-                onViewDetails(event.slug);
-              }}
-              className="w-full md:w-40 md:h-40 shrink-0 p-4 md:p-3 hover:opacity-80 transition-opacity cursor-pointer"
-            >
+          <div className="flex flex-col md:flex-row items-stretch min-w-0">
+            <div className="w-full md:w-40 md:h-40 shrink-0 p-4 md:p-3">
               <img
                 src={getEventImageUrl(event)}
                 alt={event.title}
                 className="w-full h-full aspect-square object-cover rounded mx-auto"
               />
-            </button>
+            </div>
 
-            <div className="flex-1 p-4 md:p-6 flex flex-col md:flex-row md:gap-4">
-              <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 p-4 md:p-6 flex flex-col md:flex-row md:gap-4 overflow-hidden">
+              <div className="flex-1 min-w-0 overflow-hidden">
                 <div className="flex flex-wrap items-center gap-2 mb-2">
                   {badges.map((badge) => (
                     <Badge key={badge.label} variant={badge.variant} className="shrink-0">
@@ -107,23 +105,23 @@ export function MyEventCard({
                   ))}
                 </div>
 
-                <button
-                  onClick={() => {
-                    onViewDetails(event.slug);
-                  }}
-                  className="text-left hover:underline mb-3 block w-full cursor-pointer"
-                >
-                  <Text className="font-semibold text-lg wrap-break-word">{event.title}</Text>
-                </button>
+                <Text className="font-semibold text-lg break-words mb-3">{event.title}</Text>
 
-                <Text className="text-sm text-muted-foreground mb-2">
+                <Text className="text-sm text-muted-foreground mb-2 truncate">
                   {formatEventDate(event.startAt)}
                 </Text>
 
-                <LocationButton location={event.location} />
+                <div className="min-w-0 overflow-hidden">
+                  <LocationButton location={event.location} />
+                </div>
               </div>
 
-              <div className="flex flex-row md:flex-col gap-2 mt-4 md:mt-0 md:shrink-0 md:self-center">
+              <div
+                className="flex flex-row md:flex-col gap-2 mt-4 md:mt-0 md:shrink-0 md:self-center"
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+              >
                 {isDraft && (
                   <Button
                     variant="default"
@@ -163,17 +161,6 @@ export function MyEventCard({
                     <span>Edit</span>
                   </Button>
                 )}
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 md:flex-none md:w-auto md:min-w-35"
-                  onClick={() => {
-                    onViewDetails(event.slug);
-                  }}
-                >
-                  Details
-                </Button>
               </div>
             </div>
           </div>

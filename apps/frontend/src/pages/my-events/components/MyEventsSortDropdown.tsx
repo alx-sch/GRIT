@@ -23,10 +23,10 @@ export function MyEventsSortDropdown({ value, onChange }: MyEventsSortDropdownPr
         onChange(v as SortMode);
       }}
       placeholder="Sort"
-      variant="outline"
+      variant="ghost"
       icon={ArrowUpDown}
       showSearch={false}
-      className="w-full md:w-auto md:min-w-40 text-sm font-normal"
+      className="w-auto min-w-0 md:flex-none text-xs md:text-base font-normal"
     />
   );
 }

@@ -126,15 +126,15 @@ export function Page() {
         <EmptyState />
       ) : (
         <Tabs defaultValue="upcoming" className="w-full">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <TabsList className="w-full md:w-auto grid grid-cols-3 md:flex">
-              <TabsTrigger value="upcoming" className="text-xs md:text-sm">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-2">
+            <TabsList variant="brutalist" className="w-full md:w-auto">
+              <TabsTrigger value="upcoming" variant="brutalist" className="text-xs md:text-sm">
                 Upcoming ({upcomingEvents.length})
               </TabsTrigger>
-              <TabsTrigger value="past" className="text-xs md:text-sm">
+              <TabsTrigger value="past" variant="brutalist" className="text-xs md:text-sm">
                 Past ({pastEvents.length})
               </TabsTrigger>
-              <TabsTrigger value="organizing" className="text-xs md:text-sm">
+              <TabsTrigger value="organizing" variant="brutalist" className="text-xs md:text-sm">
                 Organizing ({organizingEvents.length})
               </TabsTrigger>
             </TabsList>

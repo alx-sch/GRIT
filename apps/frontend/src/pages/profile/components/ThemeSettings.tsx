@@ -1,8 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
+import { RadioCard } from '@/components/ui/radio-card';
 import { useTheme } from '@/providers/theme-provider';
 import { Moon, Sun, Monitor } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 export function ThemeSettings() {
   const { theme, setTheme } = useTheme();
@@ -10,21 +9,21 @@ export function ThemeSettings() {
   const themeOptions = [
     {
       value: 'light' as const,
-      label: 'Light',
+      label: 'Light Mode',
       icon: Sun,
-      description: 'Light mode',
+      description: 'Use light theme with bright backgrounds',
     },
     {
       value: 'dark' as const,
-      label: 'Dark',
+      label: 'Dark Mode',
       icon: Moon,
-      description: 'Dark mode',
+      description: 'Use dark theme with dark backgrounds',
     },
     {
       value: 'system' as const,
-      label: 'System',
+      label: 'System Preference',
       icon: Monitor,
-      description: 'Use system preference',
+      description: 'Automatically match your system theme',
     },
   ];
 
@@ -32,32 +31,21 @@ export function ThemeSettings() {
     <Card>
       <CardHeader>
         <CardTitle>Theme Preferences</CardTitle>
-        <CardDescription>Choose your preferred theme</CardDescription>
+        <CardDescription>Choose your preferred appearance</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <Label>Appearance</Label>
-          <div className="grid grid-cols-3 gap-3">
-            {themeOptions.map((option) => {
-              const Icon = option.icon;
-              const isSelected = theme === option.value;
-              return (
-                <Button
-                  key={option.value}
-                  type="button"
-                  variant={isSelected ? 'selected' : 'outline'}
-                  className="flex flex-col items-center justify-center h-auto py-4 px-3"
-                  onClick={() => {
-                    setTheme(option.value);
-                  }}
-                >
-                  <Icon className="h-6 w-6 mb-2" />
-                  <span className="text-sm font-bold">{option.label}</span>
-                </Button>
-              );
-            })}
-          </div>
-        </div>
+      <CardContent className="space-y-4">
+        {themeOptions.map((option) => (
+          <RadioCard
+            key={option.value}
+            selected={theme === option.value}
+            icon={option.icon}
+            label={option.label}
+            description={option.description}
+            onClick={() => {
+              setTheme(option.value);
+            }}
+          />
+        ))}
       </CardContent>
     </Card>
   );

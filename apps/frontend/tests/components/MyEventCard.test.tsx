@@ -107,10 +107,10 @@ describe('MyEventCard', () => {
       expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument();
     });
 
-    it('should always show Details button', () => {
-      render(<MyEventCard event={mockEvent} {...mockHandlers} />);
-      const detailsButtons = screen.getAllByRole('button', { name: /details/i });
-      expect(detailsButtons.length).toBeGreaterThan(0);
+    it('should make whole card clickable for viewing details', () => {
+      const { container } = render(<MyEventCard event={mockEvent} {...mockHandlers} />);
+      const card = container.querySelector('.cursor-pointer');
+      expect(card).toBeInTheDocument();
     });
 
     it('should not show Edit button for non-organizer events', () => {
@@ -201,24 +201,22 @@ describe('MyEventCard', () => {
       expect(mockHandlers.onEdit).toHaveBeenCalledWith('test-event');
     });
 
-    it('should call onViewDetails when Details button is clicked', async () => {
-      render(<MyEventCard event={mockEvent} {...mockHandlers} />);
+    it('should call onViewDetails when card is clicked', async () => {
+      const { container } = render(<MyEventCard event={mockEvent} {...mockHandlers} />);
 
-      const detailsButtons = screen.getAllByRole('button', { name: /details/i });
-      if (detailsButtons[0]) {
-        await user.click(detailsButtons[0]);
+      const card = container.querySelector('.cursor-pointer');
+      if (card) {
+        await user.click(card as HTMLElement);
       }
 
       expect(mockHandlers.onViewDetails).toHaveBeenCalledWith('test-event');
     });
 
-    it('should call onViewDetails when title is clicked', async () => {
+    it('should call onViewDetails when title text is clicked', async () => {
       render(<MyEventCard event={mockEvent} {...mockHandlers} />);
 
-      const titleButton = screen.getByText('Test Event').closest('button');
-      if (titleButton) {
-        await user.click(titleButton);
-      }
+      const title = screen.getByText('Test Event');
+      await user.click(title);
 
       expect(mockHandlers.onViewDetails).toHaveBeenCalledWith('test-event');
     });
@@ -226,10 +224,8 @@ describe('MyEventCard', () => {
     it('should call onViewDetails when image is clicked', async () => {
       render(<MyEventCard event={mockEvent} {...mockHandlers} />);
 
-      const imageButton = screen.getByAltText('Test Event').closest('button');
-      if (imageButton) {
-        await user.click(imageButton);
-      }
+      const image = screen.getByAltText('Test Event');
+      await user.click(image);
 
       expect(mockHandlers.onViewDetails).toHaveBeenCalledWith('test-event');
     });

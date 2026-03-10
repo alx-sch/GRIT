@@ -27,7 +27,8 @@ export function LocationButton({ location }: LocationButtonProps) {
   return (
     <>
       <button
-        onClick={() => {
+        onClick={(e) => {
+          e.stopPropagation();
           setIsMapOpen(true);
         }}
         type="button"
