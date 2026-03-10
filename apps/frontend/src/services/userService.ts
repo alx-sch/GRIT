@@ -11,6 +11,7 @@ interface GetUsersParams {
   limit?: string;
   cursor?: string;
   search?: string;
+  signal?: AbortSignal;
 }
 
 export const userService = {
@@ -22,7 +23,7 @@ export const userService = {
 
     const queryString = queryParams.toString();
     const url = queryString ? `users?${queryString}` : '/users';
-    const response = await api.get<UserResponse>(url);
+    const response = await api.get<UserResponse>(url, { signal: params?.signal });
     return response.data;
   },
 

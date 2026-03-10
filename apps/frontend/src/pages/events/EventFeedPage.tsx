@@ -68,7 +68,7 @@ export default function EventFeedPage() {
   // Sync input when URL param changes externally (e.g. navigated here from GlobalSearch)
   useEffect(() => {
     const urlSearch = searchParams.get('search') ?? '';
-    if (urlSearch !== searchInput && urlSearch !== debouncedSearch) {
+    if (urlSearch !== searchInput) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSearchInput(urlSearch);
     }

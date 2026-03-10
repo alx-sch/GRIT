@@ -88,8 +88,16 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     abortRef.current = controller;
 
     Promise.all([
-      eventService.getEvents({ search: debouncedQuery, limit: String(RESULT_LIMIT) }),
-      userService.getUsers({ search: debouncedQuery, limit: String(RESULT_LIMIT) }),
+      eventService.getEvents({
+        search: debouncedQuery,
+        limit: String(RESULT_LIMIT),
+        signal: controller.signal,
+      }),
+      userService.getUsers({
+        search: debouncedQuery,
+        limit: String(RESULT_LIMIT),
+        signal: controller.signal,
+      }),
     ])
       .then(([eventsRes, usersRes]) => {
         if (controller.signal.aborted) return;

@@ -21,7 +21,8 @@ export const usersLoader = async ({ request }: LoaderFunctionArgs): Promise<User
   const url = new URL(request.url);
   const limit = url.searchParams.get('limit') ?? undefined;
   const cursor = url.searchParams.get('cursor') ?? undefined;
-  const users = await userService.getUsers({ limit, cursor });
+  const search = url.searchParams.get('search') ?? undefined;
+  const users = await userService.getUsers({ limit, cursor, search });
 
   const friendshipStatuses: Record<number, FriendshipStatus> = {};
   try {
