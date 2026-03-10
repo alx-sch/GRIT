@@ -1,6 +1,5 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { UserAvatar } from '@/components/ui/user-avatar';
 import { Text, Heading } from '@/components/ui/typography';
-import { getAvatarImageUrl } from '@/lib/image_utils';
 import type { FriendshipStatus } from '@/types/friends';
 import type { ResUserPublic } from '@grit/schema';
 import { format } from 'date-fns';
@@ -24,15 +23,11 @@ export function ProfileHeader({
   onAddFriend,
   onRemoveFriend,
 }: ProfileHeaderProps) {
-  const avatarUrl = user.avatarKey ? getAvatarImageUrl(user.avatarKey) : undefined;
   const memberSince = format(new Date(user.createdAt), 'MMMM yyyy');
 
   return (
     <div className="flex flex-col md:flex-row gap-6 items-start">
-      <Avatar className="w-32 h-32 shrink-0">
-        <AvatarImage src={avatarUrl} seed={user.name} alt={user.name} />
-        <AvatarFallback name={user.name} className="text-4xl" />
-      </Avatar>
+      <UserAvatar user={user} size="xl" alt={user.name} className="shrink-0" />
 
       <div className="flex-1 space-y-2">
         <div className="flex flex-col md:flex-row md:items-center gap-4 justify-between">

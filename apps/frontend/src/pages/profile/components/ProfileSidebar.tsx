@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { UserAvatar } from '@/components/ui/user-avatar';
 import { Text } from '@/components/ui/typography';
 import { Ticket, Trash2, Upload, Edit, MapPin, Users, Eye } from 'lucide-react';
 import { userService } from '@/services/userService';
@@ -124,14 +124,7 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
           onClick={handleAvatarClick}
           title="Click to edit profile picture"
         >
-          <Avatar className="w-32 h-32">
-            <AvatarImage
-              src={avatarUrl}
-              seed={user.email ?? 'user'}
-              alt={user.name ?? 'User avatar'}
-            />
-            <AvatarFallback name={user.name ?? user.email ?? 'User'} className="text-4xl" />
-          </Avatar>
+          <UserAvatar user={user} src={avatarUrl} size="xl" alt={user.name ?? 'User avatar'} />
           <div
             className={`absolute inset-0 bg-black/50 rounded-full transition-opacity flex items-center justify-center ${
               isUploading || isRemoving ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
