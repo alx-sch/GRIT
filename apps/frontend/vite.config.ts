@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
   const frontendPort = parseInt(env.FE_PORT || '5173');
 
   return {
+    envDir: path.resolve(__dirname, '../../'),
     envPrefix: ['VITE_'],
     plugins: [react(), tailwindcss()],
     resolve: {
