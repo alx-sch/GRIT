@@ -6,6 +6,7 @@ const event = z.object({
   id: z.number().int().positive(),
   startAt: z.iso.datetime(),
   title: z.string(),
+  slug: z.string(),
   imageKey: z.string().optional().nullable(),
 });
 

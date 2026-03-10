@@ -1,9 +1,15 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { getAvatarImageUrl } from '@/lib/image_utils';
-import { ResUserPublic } from '@grit/schema';
 
-export const UserCard = ({ user, actions }: { user: ResUserPublic; actions?: React.ReactNode }) => {
+interface UserCardUser {
+  id: number;
+  name: string;
+  avatarKey?: string | null;
+  createdAt?: string;
+}
+
+export const UserCard = ({ user, actions }: { user: UserCardUser; actions?: React.ReactNode }) => {
   const displayName = user.name ?? 'User';
 
   return (

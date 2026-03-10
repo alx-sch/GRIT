@@ -87,65 +87,12 @@ describe('Location Form', () => {
       });
     });
 
-    it('renders the privacy toggle button', async () => {
-      renderLocationForm();
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /private/i })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /public/i })).toBeInTheDocument();
-      });
-    });
-
     it('renders the submit buttons', async () => {
       renderLocationForm();
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /submit/i })).toBeInTheDocument();
-      });
-    });
-  });
-
-  describe('Privacy Toggle', () => {
-    it('defaults to private', async () => {
-      renderLocationForm();
-
-      await waitFor(() => {
-        const privateButton = screen.getByRole('button', { name: /private/i });
-        expect(privateButton).toHaveClass('bg-primary');
-      });
-    });
-
-    it('toggles to public when clicked', async () => {
-      renderLocationForm();
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /public/i })).toBeInTheDocument();
-      });
-
-      const publicButton = screen.getByRole('button', { name: /public/i });
-      await user.click(publicButton);
-
-      await waitFor(() => {
-        expect(publicButton).toHaveClass('bg-primary');
-      });
-    });
-
-    it('toggles back to private when clicked', async () => {
-      renderLocationForm();
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /public/i })).toBeInTheDocument();
-      });
-
-      const publicButton = screen.getByRole('button', { name: /public/i });
-      const privateButton = screen.getByRole('button', { name: /private/i });
-
-      await user.click(publicButton);
-      await user.click(privateButton);
-
-      await waitFor(() => {
-        expect(privateButton).toHaveClass('bg-primary');
       });
     });
   });

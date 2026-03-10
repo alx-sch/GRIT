@@ -1,6 +1,11 @@
 import api from '@/lib/api';
 import type { UserBase, UserResponse } from '@/types/user';
-import { ResUserEvents } from '@grit/schema';
+import {
+  ResMyEvents,
+  ResUserPublicSchema,
+  ResUserPublicEventsSchema,
+  ResFriendshipStatusSchema,
+} from '@grit/schema';
 
 interface GetUsersParams {
   limit?: string;
@@ -26,8 +31,8 @@ export const userService = {
     return response.data;
   },
 
-  getMyEvents: async (): Promise<ResUserEvents> => {
-    const response = await api.get<ResUserEvents>('users/me/events');
+  getMyEvents: async (): Promise<ResMyEvents> => {
+    const response = await api.get<ResMyEvents>('users/me/events');
     return response.data;
   },
 
@@ -43,7 +48,13 @@ export const userService = {
     return response.data;
   },
 
-  updateMe: async (data: { name?: string }): Promise<UserBase> => {
+  updateMe: async (data: {
+    name?: string;
+    bio?: string | null;
+    city?: string | null;
+    country?: string | null;
+    isProfilePublic?: boolean;
+  }): Promise<UserBase> => {
     const response = await api.patch<UserBase>('users/me', data);
     return response.data;
   },
@@ -66,5 +77,21 @@ export const userService = {
 
   deleteAccount: async (): Promise<void> => {
     await api.delete('users/me');
+  },
+
+  getUserById: async (id: number) => {
+    const response = await api.get(`/users/${id}`);
+    return ResUserPublicSchema.parse(response.data);
+  },
+
+  getUserEvents: async (id: number) => {
+    const response = await api.get(`/users/${id}/events`);
+    return ResUserPublicEventsSchema.parse(response.data);
+  },
+
+  getFriendshipStatus: async (id: number) => {
+    const response = await api.get(`/users/me/friends/status/${id}`);
+    const parsed = ResFriendshipStatusSchema.parse(response.data);
+    return parsed.status;
   },
 };

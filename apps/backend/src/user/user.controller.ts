@@ -1,36 +1,39 @@
+import { GetUser } from '@/auth/guards/get-user.decorator';
+import { JwtAuthOptionalGuard } from '@/auth/guards/jwt-auth-optional.guard';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import {
-  Body,
-  Query,
-  Controller,
-  Get,
-  Post,
-  Patch,
-  UseInterceptors,
-  UploadedFile,
-  ParseFilePipe,
-  MaxFileSizeValidator,
-  FileTypeValidator,
-  UseGuards,
-  Delete,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import {
-  ResUserBaseDto,
-  ResUserPostDto,
-  ReqUserPostDto,
   ReqUserGetAllDto,
-  ResUserPatchSchema,
   ReqUserPatchDto,
-  ResUserEventsDto,
+  ReqUserPostDto,
+  ResMyEventsDto,
+  ResUserBaseDto,
   ResUserDeleteSchema,
+  ResUserPatchSchema,
+  ResUserPostDto,
 } from '@/user/user.schema';
 import { UserService } from '@/user/user.service';
-import { ZodSerializerDto } from 'nestjs-zod';
-import { ApiConsumes, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
-import { GetUser } from '@/auth/guards/get-user.decorator';
 import { ResUserGetAllSchema } from '@grit/schema';
+import {
+  Body,
+  Controller,
+  Delete,
+  FileTypeValidator,
+  Get,
+  MaxFileSizeValidator,
+  NotFoundException,
+  Param,
+  ParseFilePipe,
+  Patch,
+  Post,
+  Query,
+  UnauthorizedException,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('users')
 export class UserController {
@@ -75,7 +78,7 @@ export class UserController {
   @Get('me/events')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @ZodSerializerDto(ResUserEventsDto)
+  @ZodSerializerDto(ResMyEventsDto)
   async getMyEvents(@GetUser('id') userId: number) {
     return await this.userService.userGetEvents(userId);
   }
@@ -127,5 +130,33 @@ export class UserController {
   ): Promise<ResUserBaseDto> {
     console.log('File received:', file.originalname);
     return await this.userService.userUpdateAvatar(userId, file);
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthOptionalGuard)
+  async getUserById(@Param('id') id: string, @GetUser('id') requestingUserId?: number) {
+    const userId = parseInt(id, 10);
+    if (isNaN(userId)) {
+      throw new NotFoundException('User not found');
+    }
+    const user = await this.userService.userGetPublic(userId, requestingUserId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
+  }
+
+  @Get(':id/events')
+  @UseGuards(JwtAuthOptionalGuard)
+  async getUserEvents(@Param('id') id: string, @GetUser('id') requestingUserId?: number) {
+    const userId = parseInt(id, 10);
+    if (isNaN(userId)) {
+      throw new NotFoundException('User not found');
+    }
+    const events = await this.userService.userGetPublicEvents(userId, requestingUserId);
+    if (events === null) {
+      throw new NotFoundException('User not found');
+    }
+    return events;
   }
 }

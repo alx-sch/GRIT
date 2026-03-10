@@ -52,7 +52,7 @@ export class EventController {
   @Get()
   @UseGuards(JwtAuthOptionalGuard)
   @ZodSerializerDto(ResEventGetPublishedSchema)
-  eventGetPublished(@Query() query: ReqEventGetPublishedDto, @GetUser('id') userId:number) {
+  eventGetPublished(@Query() query: ReqEventGetPublishedDto, @GetUser('id') userId?: number) {
     return this.eventService.eventGetPublished(query, userId);
   }
 
@@ -131,7 +131,10 @@ export class EventController {
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 10 }),
-          new FileTypeValidator({ fileType: /(image\/.+|application\/pdf)/, fallbackToMimetype: true }),
+          new FileTypeValidator({
+            fileType: /(image\/.+|application\/pdf)/,
+            fallbackToMimetype: true,
+          }),
         ],
       })
     )

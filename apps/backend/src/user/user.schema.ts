@@ -1,4 +1,4 @@
-import { ResUserBaseSchema, ResUserEventsSchema } from '@grit/schema';
+import { ResUserBaseSchema, ResUserEventsSchema, ResMyEventsSchema } from '@grit/schema';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
@@ -39,6 +39,23 @@ export const ReqUserPostSchema = z.object({
 // verifications)
 export const ReqUserPatchSchema = z.strictObject({
   name: z.string().optional(),
+  bio: z
+    .string()
+    .trim()
+    .max(150)
+    .transform((v) => (v === '' ? null : v))
+    .optional(),
+  city: z
+    .string()
+    .trim()
+    .transform((v) => (v === '' ? null : v))
+    .optional(),
+  country: z
+    .string()
+    .trim()
+    .transform((v) => (v === '' ? null : v))
+    .optional(),
+  isProfilePublic: z.boolean().optional(),
   attending: z
     .strictObject({
       connect: z.array(z.number().int().positive()).optional(),
@@ -65,4 +82,5 @@ export class ReqUserGetAllDto extends createZodDto(ReqUserGetAllSchema) {}
 export class ResUserPostDto extends createZodDto(ResUserPostSchema) {}
 export class ReqUserPostDto extends createZodDto(ReqUserPostSchema) {}
 export class ResUserEventsDto extends createZodDto(ResUserEventsSchema) {}
+export class ResMyEventsDto extends createZodDto(ResMyEventsSchema) {}
 export class ReqUserConfirmDto extends createZodDto(ReqUserConfirmSchema) {}

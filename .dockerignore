@@ -3,7 +3,8 @@ dist*
 .git
 .env
 deployment
-!deployment/caddy/Caddyfile
+!deployment/caddy/Caddyfile.local
+!deployment/caddy/Caddyfile.prod
 backups
 storage
 *.tsbuildinfo

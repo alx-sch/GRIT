@@ -1,10 +1,10 @@
-import {BadRequestException} from '@nestjs/common';
-import {Prisma} from '@prisma/client';
-import {customAlphabet} from 'nanoid';
+import { BadRequestException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import { customAlphabet } from 'nanoid';
 import slugify from 'slugify';
-import {deu, eng, fra, removeStopwords, spa} from 'stopword';
+import { deu, eng, fra, removeStopwords, spa } from 'stopword';
 
-import {ReqEventGetPublishedDto} from './event.schema';
+import { ReqEventGetPublishedDto } from './event.schema';
 
 /**
  * ==================================================
@@ -28,10 +28,9 @@ export function eventEncodeCursor(startAt: Date, id: number) {
   return Buffer.from(str).toString('base64');
 }
 
-export function eventDecodeCursor(cursor: string): {startAt: Date; id: number} {
-  const [startAtStr, idStr] =
-      Buffer.from(cursor, 'base64').toString('utf-8').split('|');
-  return {startAt: new Date(startAtStr), id: parseInt(idStr, 10)};
+export function eventDecodeCursor(cursor: string): { startAt: Date; id: number } {
+  const [startAtStr, idStr] = Buffer.from(cursor, 'base64').toString('utf-8').split('|');
+  return { startAt: new Date(startAtStr), id: parseInt(idStr, 10) };
 }
 
 /**
@@ -41,24 +40,30 @@ export function eventDecodeCursor(cursor: string): {startAt: Date; id: number} {
  */
 
 // For filtering the events by start time, author id, search keywords etc.
-export function eventSearchFilter(
-    input: ReqEventGetPublishedDto, userId?: number) {
-  const visibilityFilter: Prisma.EventWhereInput = userId ? {
-    OR: [
-      {isPublic: true},
-      {authorId: userId},
-      {attendees: {some: {userId}}},
-    ],
-  } :
-                                                            {isPublic: true};
+export function eventSearchFilter(input: ReqEventGetPublishedDto, userId?: number) {
+  // Base filter: published events that are either:
+  // 1. Public events (visible to everyone)
+  // 2. Private events where the user is the author
+  // 3. Private events where the user is attending
+  const visibilityFilter: Prisma.EventWhereInput = userId
+    ? {
+        OR: [{ isPublic: true }, { authorId: userId }, { attendees: { some: { userId } } }],
+      }
+    : { isPublic: true };
 
-  const where:
-      Prisma.EventWhereInput = {isPublished: true, AND: [visibilityFilter]};
+  const where: Prisma.EventWhereInput = {
+    isPublished: true,
+    ...visibilityFilter,
+  };
 
   if (input.search) {
-    where.OR = [
-      {title: {contains: input.search, mode: 'insensitive'}},
-      {content: {contains: input.search, mode: 'insensitive'}},
+    where.AND = [
+      {
+        OR: [
+          { title: { contains: input.search, mode: 'insensitive' } },
+          { content: { contains: input.search, mode: 'insensitive' } },
+        ],
+      },
     ];
   }
   if (input.author_id) where.authorId = input.author_id;
@@ -84,18 +89,17 @@ export function eventSearchFilter(
  * query resumes fetching events after the last event seen.
  * */
 export function eventCursorFilter(input: ReqEventGetPublishedDto) {
-  const {cursor} = input;
+  const { cursor } = input;
   let cursorFilter = {};
 
   if (cursor) {
     try {
-      const {startAt, id} = eventDecodeCursor(cursor);
-      if (!(startAt instanceof Date) || isNaN(startAt.getTime()) ||
-          typeof id !== 'number') {
+      const { startAt, id } = eventDecodeCursor(cursor);
+      if (!(startAt instanceof Date) || isNaN(startAt.getTime()) || typeof id !== 'number') {
         throw new Error('Invalid cursor');
       }
       cursorFilter = {
-        OR: [{startAt: {gt: startAt}}, {startAt, id: {gt: id}}],
+        OR: [{ startAt: { gt: startAt } }, { startAt, id: { gt: id } }],
       };
     } catch {
       throw new BadRequestException('Invalid cursor provided');
@@ -111,7 +115,9 @@ export function eventCursorFilter(input: ReqEventGetPublishedDto) {
  */
 
 const generateNanoId = customAlphabet(
-    '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 6);
+  '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
+  6
+);
 
 /**
  * Generates a unique, URL-friendly slug for an event.
@@ -133,7 +139,7 @@ export function eventGenerateSlug(title: string): string {
   const cleanTitle = filteredWords.join(' ');
   let base = slugify(cleanTitle, {
     lower: true,
-    strict: true,  // Strips emojis/symbols
+    strict: true, // Strips emojis/symbols
     trim: true,
   });
 

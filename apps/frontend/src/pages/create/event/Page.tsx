@@ -1,10 +1,10 @@
-import { Container } from '@/components/layout/Container';
+import { BackButton } from '@/components/ui/backButton';
 import { Heading } from '@/components/ui/typography';
+import EventForm from '@/features/event/EventForm';
+import { Pagination, useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { locationService } from '@/services/locationService';
 import { LocationBase } from '@/types/location';
-import EventForm from '@/features/event/EventForm';
-import { useInfiniteScroll, Pagination } from '@/hooks/useInfiniteScroll';
 
 export const eventCreationLoader = async () => {
   const response = await locationService.getLocations();
@@ -38,7 +38,8 @@ export default function CreateEventPage() {
   };
 
   return (
-    <Container className="py-10 space-y-8">
+    <div className="space-y-8">
+      <BackButton />
       <div className="space-y-6">
         <div className="space-y-2">
           <Heading level={1} className="text-3xl md:text-4xl">
@@ -52,6 +53,6 @@ export default function CreateEventPage() {
         isLoadingLocations={isLoadingLocations}
         onLocationCreated={addLocation}
       />
-    </Container>
+    </div>
   );
 }

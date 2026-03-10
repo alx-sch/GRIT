@@ -9,7 +9,11 @@ export const EVENT_CONFIG = {
 
 // Sub-schemas for nested objects in event response
 export const ResEventAuthorSchema = z.object({ id: z.number(), name: z.string() });
-export const ResEventAttendeeSchema = z.object({ id: z.number(), name: z.string(), avatarKey: z.string().nullable() });
+export const ResEventAttendeeSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  avatarKey: z.string().nullable(),
+});
 export const ResEventLocationSchema = z.object({
   id: z.number().int().positive(),
   authorId: z.number().int().positive().nullable(),
@@ -63,7 +67,7 @@ export const CreateEventSchema = z.object({
   isPublished: z.boolean(),
   title: z
     .string()
-	.trim()
+    .trim()
     .min(EVENT_CONFIG.TITLE_MIN_LENGTH, 'Name is required')
     .max(
       EVENT_CONFIG.TITLE_MAX_LENGTH,

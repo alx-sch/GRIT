@@ -25,6 +25,9 @@ function Textarea({ className, ...props }: React.ComponentProps<'textarea'>) {
         'focus-visible:shadow-grit',
         'dark:focus-visible:shadow-none',
         'transition-all duration-200',
+
+        // 6. DISABLED STATE
+        'disabled:cursor-not-allowed disabled:opacity-50',
         className
       )}
       {...props}
