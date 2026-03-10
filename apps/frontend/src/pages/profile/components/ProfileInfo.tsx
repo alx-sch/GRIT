@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Text } from '@/components/ui/typography';
 import { Mail, User, MapPin, FileText } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { userService } from '@/services/userService';
@@ -35,7 +35,7 @@ export function ProfileInfo({ user, onProfileUpdate }: ProfileInfoProps) {
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
-    watch,
+    control,
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -52,7 +52,7 @@ export function ProfileInfo({ user, onProfileUpdate }: ProfileInfoProps) {
     },
   });
 
-  const bioValue = watch('bio') ?? '';
+  const bioValue = useWatch({ control, name: 'bio' }) ?? '';
 
   const onSubmit = async (data: ProfileFormData) => {
     try {

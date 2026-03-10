@@ -1,6 +1,5 @@
 import { useRouteError, isRouteErrorResponse } from 'react-router-dom';
 import { isAxiosError } from 'axios';
-import { Container } from '@/components/layout/Container';
 import { Button } from '@/components/ui/button';
 import { FileQuestion, AlertTriangle, Lock } from 'lucide-react';
 
