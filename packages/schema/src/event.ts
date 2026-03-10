@@ -63,14 +63,14 @@ export const CreateEventSchema = z.object({
   isPublished: z.boolean(),
   title: z
     .string()
+	.trim()
     .min(EVENT_CONFIG.TITLE_MIN_LENGTH, 'Name is required')
     .max(
       EVENT_CONFIG.TITLE_MAX_LENGTH,
       `Name must be at most ${EVENT_CONFIG.TITLE_MAX_LENGTH} characters
   long`
-    )
-    .trim(),
-  content: z.string().max(EVENT_CONFIG.CONTENT_MAX_LENGTH).optional(),
+    ),
+  content: z.string().trim().max(EVENT_CONFIG.CONTENT_MAX_LENGTH).optional(),
   startAt: z.iso.datetime(),
   endAt: z.iso.datetime(),
   imageKey: z.string().optional(),

@@ -1,4 +1,4 @@
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/typography';
 import { FileTypeIcon, getEventFileUrl } from '@/lib/file_utils';
 import type { EventFile } from '@/types/event';
@@ -73,6 +73,9 @@ export const EventPageFiles = ({
         }}
       >
         <DialogContent className="max-w-3xl p-2">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Image preview</DialogTitle>
+          </DialogHeader>
           {(() => {
             const file = selectedImageIndex !== null ? imageFiles[selectedImageIndex] : null;
             if (!file) return null;
