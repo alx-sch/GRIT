@@ -536,7 +536,7 @@ export class UserService {
       where: { id: targetId },
       select: { isAdmin: true },
     });
-    if (isTargetAdmin) {
+    if (isTargetAdmin?.isAdmin) {
       throw new ForbiddenException('You can not delete an admin user');
     }
 
