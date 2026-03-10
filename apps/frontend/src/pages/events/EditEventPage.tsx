@@ -1,4 +1,4 @@
-import { Container } from '@/components/layout/Container';
+import { BackButton } from '@/components/ui/backButton';
 import { Heading } from '@/components/ui/typography';
 import EventForm from '@/features/event/EventForm';
 import { Pagination, useInfiniteScroll } from '@/hooks/useInfiniteScroll';
@@ -55,7 +55,8 @@ export default function EditEventPage() {
   };
 
   return (
-    <Container className="py-10 space-y-8 p-0 md:px-0">
+    <div className="space-y-8">
+      <BackButton label="Back to Event" />
       <div className="space-y-2">
         <Heading level={1} className="text-3xl md:text-4xl">
           Edit Event
@@ -71,6 +72,6 @@ export default function EditEventPage() {
           void revalidator.revalidate();
         }}
       />
-    </Container>
+    </div>
   );
 }

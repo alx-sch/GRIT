@@ -2,7 +2,7 @@ import { Card, CardHeader } from '@/components/ui/card';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import { ResConversationSingle } from '@grit/schema';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { chatStore } from '@/store/chatStore';
 import { mapConversationToCard } from './conversationToCard';
 
@@ -33,6 +33,15 @@ export const ConversationCard = ({ conversation, isActive }: ConversationCardPro
     isEvent,
   } = mapConversationToCard(conversation, conversationState, currentUser);
 
+  const otherUser =
+    conversation.type === 'DIRECT'
+      ? conversation.participants.find((el) => el.user.id !== currentUser.id)?.user
+      : undefined;
+
+  const isDirect = conversation.type === 'DIRECT';
+  const eventSlug = conversation.event?.slug;
+  const hasEvent = isEvent && eventSlug;
+
   return (
     <>
       <Card
@@ -53,15 +62,51 @@ export const ConversationCard = ({ conversation, isActive }: ConversationCardPro
                 </div>
               )}
             </div>
-            <Avatar className={`h-12 w-12 ${isEvent && 'rounded-[3px]'}`}>
-              {imageUrl && <AvatarImage src={imageUrl} />}
-              <AvatarFallback className={`h-12 w-12 ${isEvent && 'rounded-[3px]'}`}>
-                {imageFallback}
-              </AvatarFallback>
-            </Avatar>
+            {isDirect && otherUser ? (
+              <Link to={`/users/${otherUser.id}`}>
+                <Avatar className={`h-12 w-12 ${isEvent && 'rounded-[3px]'}`}>
+                  {imageUrl && <AvatarImage src={imageUrl} />}
+                  <AvatarFallback className={`h-12 w-12 ${isEvent && 'rounded-[3px]'}`}>
+                    {imageFallback}
+                  </AvatarFallback>
+                </Avatar>
+              </Link>
+            ) : hasEvent ? (
+              <Link to={`/events/${eventSlug}`}>
+                <Avatar className={`h-12 w-12 ${isEvent && 'rounded-[3px]'}`}>
+                  {imageUrl && <AvatarImage src={imageUrl} />}
+                  <AvatarFallback className={`h-12 w-12 ${isEvent && 'rounded-[3px]'}`}>
+                    {imageFallback}
+                  </AvatarFallback>
+                </Avatar>
+              </Link>
+            ) : (
+              <Avatar className={`h-12 w-12 ${isEvent && 'rounded-[3px]'}`}>
+                {imageUrl && <AvatarImage src={imageUrl} />}
+                <AvatarFallback className={`h-12 w-12 ${isEvent && 'rounded-[3px]'}`}>
+                  {imageFallback}
+                </AvatarFallback>
+              </Avatar>
+            )}
           </div>
           <div className="w-full">
-            <div className="font-medium flex items-center leading-tight">{title}</div>
+            {isDirect && otherUser ? (
+              <Link
+                to={`/users/${otherUser.id}`}
+                className="font-medium flex items-center leading-tight hover:underline"
+              >
+                {title}
+              </Link>
+            ) : hasEvent ? (
+              <Link
+                to={`/events/${eventSlug}`}
+                className="font-medium flex items-center leading-tight hover:underline"
+              >
+                {title}
+              </Link>
+            ) : (
+              <div className="font-medium flex items-center leading-tight">{title}</div>
+            )}
             {/* <div className="text-xs">/ {conversation.type}</div> */}
             <div className="text-[14px] text-muted-foreground italic -ml-0.5">
               {lastMessageAuthor && `${lastMessageAuthor}: `}

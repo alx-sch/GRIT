@@ -40,7 +40,20 @@ export const GmapPreview = ({ lng, lat, open, onOpenChange, location }: GmapPrev
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent
+        onClick={(e) => {
+          // Prevent any clicks inside the dialog from bubbling to parent card
+          e.stopPropagation();
+        }}
+        onPointerDownOutside={(e) => {
+          // Prevent dialog close from triggering card navigation
+          e.preventDefault();
+        }}
+        onInteractOutside={(e) => {
+          // Prevent dialog interactions from bubbling to card
+          e.preventDefault();
+        }}
+      >
         {location?.name && (
           <DialogHeader className="gap-0 justify-start">
             <DialogTitle>{location?.name}</DialogTitle>

@@ -1,8 +1,9 @@
-import { Container } from '@/components/layout/Container';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Heading, Text } from '@/components/ui/typography';
+import { BackButton } from '@/components/ui/backButton';
 import { UserCard } from '@/components/ui/userCard';
+import { EmptyState } from '@/components/ui/emptyState';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { conversationService } from '@/services/conversationService';
@@ -16,9 +17,9 @@ import {
   ResUserPublic,
   ResConversationSingleId,
 } from '@grit/schema';
-import { Check, MessageCircleMore, UserPlus, UserX, X } from 'lucide-react';
+import { Check, MessageCircleMore, UserPlus, UserX, X, Eye } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate, useRevalidator } from 'react-router-dom';
+import { useNavigate, useRevalidator, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
 interface FriendsLoaderData {
@@ -104,7 +105,8 @@ export default function FriendsPage() {
   }
 
   return (
-    <Container className="py-10 space-y-8">
+    <div className="space-y-8">
+      <BackButton label="Back to Profile" onClick={() => void navigate('/profile')} />
       <div className="space-y-6">
         <Heading>My Friends</Heading>
       </div>
@@ -120,7 +122,7 @@ export default function FriendsPage() {
         onDecline={decline}
       />
       <FriendsSection friends={friends.friendsList.data} onChat={startChat} onRemove={remove} />
-    </Container>
+    </div>
   );
 }
 
@@ -161,6 +163,10 @@ function FriendSearch({ friendIds, outgoingIds, incomingIds, onSendRequest }: Fr
         onChange={(e) => {
           setSearchInput(e.target.value);
         }}
+        clearable
+        onClear={() => {
+          setSearchInput('');
+        }}
       />
       {searchInput === '' ? null : !searchDone ? (
         <Text className="text-muted-foreground">Searching...</Text>
@@ -173,26 +179,43 @@ function FriendSearch({ friendIds, outgoingIds, incomingIds, onSendRequest }: Fr
                 key={user.id}
                 user={user}
                 actions={
-                  isPending ? (
-                    <span className="inline-flex items-center text-xs text-muted-foreground">
-                      Pending
-                    </span>
-                  ) : (
-                    <Button
-                      variant="default"
-                      title="Send friend request"
-                      onClick={() => void onSendRequest(user.id)}
-                    >
-                      <UserPlus />
+                  <>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link to={`/users/${user.id}`}>
+                        <Eye className="h-4 w-4" />
+                      </Link>
                     </Button>
-                  )
+                    {isPending ? (
+                      <span className="inline-flex items-center text-xs text-muted-foreground">
+                        Pending
+                      </span>
+                    ) : (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        title="Send friend request"
+                        onClick={() => void onSendRequest(user.id)}
+                      >
+                        <UserPlus className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </>
                 }
               />
             );
           })}
         </UserGrid>
       ) : (
-        <EmptyState>No users found matching &quot;{searchInput}&quot;</EmptyState>
+        <EmptyState
+          title="No users found"
+          description={`No results for "${searchInput}"`}
+          action={{
+            label: 'Clear Search',
+            onClick: () => {
+              setSearchInput('');
+            },
+          }}
+        />
       )}
     </div>
   );
@@ -216,11 +239,16 @@ function PendingSection({ requests, onAccept, onDecline }: PendingSectionProps) 
             user={req.requester}
             actions={
               <>
-                <Button onClick={() => void onAccept(req.id)}>
-                  <Check />
+                <Button variant="outline" size="sm" asChild>
+                  <Link to={`/users/${req.requester.id}`}>
+                    <Eye className="h-4 w-4" />
+                  </Link>
                 </Button>
-                <Button variant="secondary" onClick={() => void onDecline(req.id)}>
-                  <X />
+                <Button size="sm" onClick={() => void onAccept(req.id)}>
+                  <Check className="h-4 w-4" />
+                </Button>
+                <Button variant="secondary" size="sm" onClick={() => void onDecline(req.id)}>
+                  <X className="h-4 w-4" />
                 </Button>
               </>
             }
@@ -240,7 +268,10 @@ interface FriendsSectionProps {
 function FriendsSection({ friends, onChat, onRemove }: FriendsSectionProps) {
   if (friends.length === 0) {
     return (
-      <EmptyState>You don&apos;t have any friends yet. Search for new friends to add!</EmptyState>
+      <EmptyState
+        title="No friends yet"
+        description="Search for new friends above to start connecting!"
+      />
     );
   }
   return (
@@ -253,19 +284,26 @@ function FriendsSection({ friends, onChat, onRemove }: FriendsSectionProps) {
             user={friend.friend}
             actions={
               <>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to={`/users/${friend.friend.id}`}>
+                    <Eye className="h-4 w-4" />
+                  </Link>
+                </Button>
                 <Button
                   variant="default"
+                  size="sm"
                   title="Chat"
                   onClick={() => void onChat(friend.friend.id)}
                 >
-                  <MessageCircleMore />
+                  <MessageCircleMore className="h-4 w-4" />
                 </Button>
                 <Button
-                  variant="secondary"
+                  variant="destructive"
+                  size="sm"
                   title="Remove friend"
                   onClick={() => void onRemove(friend.friendId)}
                 >
-                  <UserX />
+                  <UserX className="h-4 w-4" />
                 </Button>
               </>
             }
@@ -278,12 +316,4 @@ function FriendsSection({ friends, onChat, onRemove }: FriendsSectionProps) {
 
 function UserGrid({ children }: { children: React.ReactNode }) {
   return <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{children}</div>;
-}
-
-function EmptyState({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="py-12 text-center border-2 border-dashed border-muted-foreground/20">
-      <Text className="text-muted-foreground">{children}</Text>
-    </div>
-  );
 }

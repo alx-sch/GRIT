@@ -3,4 +3,5 @@ export type {
   ResFriendBase as FriendBase,
   ResListFriendRequest as FriendRequestResponse,
   ResListFriend as FriendResponse,
+  FriendshipStatus,
 } from '@grit/schema';

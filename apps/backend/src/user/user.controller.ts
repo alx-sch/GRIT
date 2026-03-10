@@ -1,3 +1,6 @@
+import { GetUser } from '@/auth/guards/get-user.decorator';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { JwtAuthOptionalGuard } from '@/auth/guards/jwt-auth-optional.guard';
 import {
   Body,
   Query,
@@ -14,6 +17,7 @@ import {
   Delete,
   Param,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -21,21 +25,19 @@ import {
   ResUserPostDto,
   ReqUserPostDto,
   ReqUserGetAllDto,
-  ResUserPatchSchema,
   ReqUserPatchDto,
   ReqUserDeleteByIdDto,
-  ResUserEventsDto,
-  ResUserDeleteSchema,
   ReqUserPatchByIdDto,
   ReqUserDeleteAvatarDto,
+  ResMyEventsDto,
+  ResUserDeleteSchema,
+  ResUserPatchSchema,
 } from '@/user/user.schema';
 import { UserService } from '@/user/user.service';
-import { ZodSerializerDto } from 'nestjs-zod';
-import { ApiConsumes, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
-import { GetUser } from '@/auth/guards/get-user.decorator';
 import { ResUserGetAllSchema, ResUserAdminGetAllSchema } from '@grit/schema';
 import { User } from '@/auth/interfaces/user.interface';
+import { ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('users')
 export class UserController {
@@ -81,7 +83,7 @@ export class UserController {
   @Get('me/events')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @ZodSerializerDto(ResUserEventsDto)
+  @ZodSerializerDto(ResMyEventsDto)
   async getMyEvents(@GetUser('id') userId: number) {
     return await this.userService.userGetEvents(userId);
   }
@@ -177,5 +179,33 @@ export class UserController {
   @ZodSerializerDto(ResUserDeleteSchema)
   userDelete(@Param() param: ReqUserDeleteByIdDto, @GetUser() user: User) {
     return this.userService.userDelete(param.id, user);
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthOptionalGuard)
+  async getUserById(@Param('id') id: string, @GetUser('id') requestingUserId?: number) {
+    const userId = parseInt(id, 10);
+    if (isNaN(userId)) {
+      throw new NotFoundException('User not found');
+    }
+    const user = await this.userService.userGetPublic(userId, requestingUserId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
+  }
+
+  @Get(':id/events')
+  @UseGuards(JwtAuthOptionalGuard)
+  async getUserEvents(@Param('id') id: string, @GetUser('id') requestingUserId?: number) {
+    const userId = parseInt(id, 10);
+    if (isNaN(userId)) {
+      throw new NotFoundException('User not found');
+    }
+    const events = await this.userService.userGetPublicEvents(userId, requestingUserId);
+    if (events === null) {
+      throw new NotFoundException('User not found');
+    }
+    return events;
   }
 }

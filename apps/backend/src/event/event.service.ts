@@ -87,9 +87,9 @@ export class EventService {
     return deleted;
   }
 
-  async eventGetPublished(input: ReqEventGetPublishedDto) {
+  async eventGetPublished(input: ReqEventGetPublishedDto, userId?: number) {
     // First two functions -----> event.utils.ts
-    const where: Prisma.EventWhereInput = eventSearchFilter(input);
+    const where: Prisma.EventWhereInput = eventSearchFilter(input, userId);
     const cursorFilter = eventCursorFilter(input);
     const finalWhere = { ...where, ...cursorFilter };
     const { limit, sort } = input;

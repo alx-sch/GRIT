@@ -46,9 +46,11 @@ export function DefaultLayout() {
     <div className="min-h-screen bg-background text-foreground">
       <SocketProvider>
         <Navbar />
-        <Container as="main" className="py-6">
-          <Outlet />
-        </Container>
+        <main className="flex-1">
+          <Container className="py-10">
+            <Outlet />
+          </Container>
+        </main>
       </SocketProvider>
     </div>
   );

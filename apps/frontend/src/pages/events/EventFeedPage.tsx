@@ -1,9 +1,9 @@
-import { Container } from '@/components/layout/Container';
 import { Button } from '@/components/ui/button';
 import { Combobox, ComboboxOptions } from '@/components/ui/combobox';
 import { DatePicker } from '@/components/ui/datepicker';
 import { Input } from '@/components/ui/input';
-import { Heading, Text } from '@/components/ui/typography';
+import { Heading } from '@/components/ui/typography';
+import { EmptyState } from '@/components/ui/emptyState';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { EventCard } from '@/pages/events/components/EventCard';
@@ -12,10 +12,10 @@ import { locationService } from '@/services/locationService';
 import { EventResponse } from '@/types/event';
 import { LocationBase } from '@/types/location';
 import { format, parse } from 'date-fns';
-import { ArrowUpDown, MapPinIcon } from 'lucide-react';
+import { ArrowUpDown, MapPinIcon, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { DateRange } from 'react-day-picker';
-import { LoaderFunctionArgs, useSearchParams } from 'react-router-dom';
+import { LoaderFunctionArgs, useNavigate, useSearchParams } from 'react-router-dom';
 import { Pagination, useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 
 const buildEventQuery = (searchParams: URLSearchParams, cursor?: string | null) => ({
@@ -64,6 +64,7 @@ export default function EventFeedPage() {
   const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '');
 
   const debouncedSearch = useDebounce(searchInput, 500);
+  const navigate = useNavigate();
 
   // Events infinite scroll
   const {
@@ -173,11 +174,17 @@ export default function EventFeedPage() {
   };
 
   return (
-    <Container className="py-10 space-y-8">
-      <div className="space-y-2">
-        <Heading level={1} className="text-3xl md:text-4xl">
-          Upcoming events
-        </Heading>
+    <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <Heading>Upcoming Events</Heading>
+        <Button
+          onClick={() => {
+            void navigate('/create/event');
+          }}
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Create Event
+        </Button>
       </div>
 
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-2">
@@ -186,6 +193,10 @@ export default function EventFeedPage() {
           className="w-full md:w-sm md:shrink-0"
           value={searchInput}
           onChange={handleSearchChange}
+          clearable
+          onClear={() => {
+            setSearchInput('');
+          }}
         />
 
         <div className="flex items-center justify-between md:justify-end gap-1 md:gap-2 md:flex-1 min-w-0">
@@ -240,35 +251,30 @@ export default function EventFeedPage() {
           )}
         </>
       ) : (
-        <div className="flex flex-col items-center justify-center py-20 px-4 border-2 border-dashed border-border text-center bg-card">
-          <Heading level={3} className="uppercase tracking-tight">
-            No events found
-          </Heading>
-
-          <Text size="base" className="text-muted-foreground mt-2">
-            {searchInput
+        <EmptyState
+          title="No events found"
+          description={
+            searchInput
               ? `No results for "${searchInput}"`
               : selectedDateRange
                 ? 'Nothing scheduled for these dates'
-                : 'Check back later for new events.'}
-          </Text>
-
-          {searchInput || selectedDateRange || selectedLocation ? (
-            <Button
-              variant="destructive"
-              onClick={() => {
-                setSearchInput('');
-                setSort('');
-                const newParams = new URLSearchParams();
-                setSearchParams(newParams);
-              }}
-              className="mt-4"
-            >
-              Clear Filters
-            </Button>
-          ) : null}
-        </div>
+                : 'Check back later for new events.'
+          }
+          action={
+            searchInput || selectedDateRange || selectedLocation
+              ? {
+                  label: 'Clear Filters',
+                  onClick: () => {
+                    setSearchInput('');
+                    setSort('');
+                    const newParams = new URLSearchParams();
+                    setSearchParams(newParams);
+                  },
+                }
+              : undefined
+          }
+        />
       )}
-    </Container>
+    </div>
   );
 }
