@@ -8,6 +8,7 @@ export const ResAuthMeSchema = z.object({
   name: z.string().nullable(),
   avatarKey: z.string().nullable().optional(),
   isConfirmed: z.boolean().default(false),
+  isAdmin: z.boolean().default(false),
 });
 
 export class ReqRegisterDto extends createZodDto(RegisterSchema) {}

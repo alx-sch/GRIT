@@ -19,12 +19,25 @@ import type { NavRoute } from '@/types/navroute';
 import { createBrowserRouter, redirect } from 'react-router-dom';
 import EditEventPage, { editEventLoader } from './pages/events/EditEventPage';
 import FriendsPage, { friendsLoader } from './pages/my-friends/Page';
+import AdminPage, { adminLoader } from '@/pages/admin/Page';
+import { useCurrentUserStore } from '@/store/currentUserStore';
 
-// NOTE: let's define single source of truth for our routes here
-export const baseNavConfig: NavRoute[] = [
-  { path: '/users', label: 'Users' },
-  { path: '/events', label: 'Events' },
-] as const;
+export const useBaseNavConfig = (): NavRoute[] => {
+  const user = useCurrentUserStore((s) => s.user);
+
+  // NOTE: let's define single source of truth for our routes here.
+  const baseNavConfig: NavRoute[] = [
+    { path: '/users', label: 'Users' },
+    { path: '/events', label: 'Events' },
+  ];
+
+  // Only show admin tab if user is admin.
+  if (user?.isAdmin) {
+    baseNavConfig.push({ path: '/admin', label: 'Admin' });
+  }
+
+  return baseNavConfig;
+};
 
 export const router = createBrowserRouter([
   {
@@ -39,6 +52,12 @@ export const router = createBrowserRouter([
         path: 'design',
         Component: Design,
         handle: { title: 'Design' },
+      },
+      {
+        path: 'admin',
+        Component: AdminPage,
+        loader: adminLoader,
+        handle: { title: 'Admin Dashboard' },
       },
       {
         path: 'users',

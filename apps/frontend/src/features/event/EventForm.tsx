@@ -37,6 +37,7 @@ interface EventFormProps {
   onLocationMenuScrollToBottom?: () => void;
   isLoadingLocations?: boolean;
   onLocationCreated?: (location: LocationBase) => void;
+  onSuccess?: () => void;
 }
 
 export default function EventForm({
@@ -45,6 +46,7 @@ export default function EventForm({
   onLocationMenuScrollToBottom,
   isLoadingLocations,
   onLocationCreated,
+  onSuccess,
 }: EventFormProps) {
   const {
     control,
@@ -80,7 +82,7 @@ export default function EventForm({
     showRootError,
     rootErrorMessage,
     existingImageUrl,
-  } = useEventForm({ initialData, locations });
+  } = useEventForm({ initialData, locations, onSuccess });
 
   const locationOptionsCombobox = useMemo(
     () => [

@@ -1,8 +1,13 @@
 import { ReqLocationGetAllDto, ReqLocationPostDto } from '@/location/location.schema';
 import { PrismaService } from '@/prisma/prisma.service';
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { locationCursorFilter, locationEncodeCursor } from './location.utils';
+import { User } from '@/auth/interfaces/user.interface';
 
 @Injectable()
 export class LocationService {
@@ -72,11 +77,13 @@ export class LocationService {
     });
   }
 
-  async locationDelete(where: { id: number }) {
-    const exist = await this.locationExists(where.id);
-    if (!exist) {
+  async locationDelete(where: { id: number }, user: User) {
+    const location = await this.prisma.location.findUnique({ where });
+    if (!location) {
       throw new NotFoundException(`Location with id ${String(where.id)} not found`);
     }
+    if (location.authorId !== user.id && !user.isAdmin)
+      throw new UnauthorizedException('You can only delete your own locations.');
 
     return this.prisma.location.delete({
       where,
@@ -84,6 +91,14 @@ export class LocationService {
         author: true,
         events: true,
       },
+    });
+  }
+
+  async locationAdminGetAll(user: User) {
+    if (!user.isAdmin)
+      throw new UnauthorizedException('You do not have permission to access this.');
+    return await this.prisma.location.findMany({
+      orderBy: [{ name: 'asc' }, { id: 'asc' }],
     });
   }
 

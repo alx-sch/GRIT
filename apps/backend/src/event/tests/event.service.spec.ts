@@ -60,7 +60,7 @@ describe('Event / Service / Unit Tests', () => {
 
     it('throws NotFoundException when event does not exit', async () => {
       prismaServiceMock.event.findFirst.mockResolvedValue(null);
-      await expect(testEventService.eventUpdateImage('999', 1, mockFile)).rejects.toThrow(
+      await expect(testEventService.eventUpdateImage('999', 1, false, mockFile)).rejects.toThrow(
         NotFoundException
       );
     });
@@ -71,7 +71,7 @@ describe('Event / Service / Unit Tests', () => {
         authorId: 2,
         imageKey: null,
       });
-      await expect(testEventService.eventUpdateImage('1', 1, mockFile)).rejects.toThrow(
+      await expect(testEventService.eventUpdateImage('1', 1, false, mockFile)).rejects.toThrow(
         UnauthorizedException
       );
     });
@@ -88,7 +88,7 @@ describe('Event / Service / Unit Tests', () => {
         imageKey: 'new-image-key.jpg',
         attendees: [],
       });
-      const result = await testEventService.eventUpdateImage('1', 1, mockFile);
+      const result = await testEventService.eventUpdateImage('1', 1, false, mockFile);
 
       expect(storageServiceMock.uploadFile).toHaveBeenCalledWith(mockFile, 'event-images');
       /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -113,7 +113,7 @@ describe('Event / Service / Unit Tests', () => {
         attendees: [],
       });
 
-      await testEventService.eventUpdateImage('1', 1, mockFile);
+      await testEventService.eventUpdateImage('1', 1, false, mockFile);
 
       expect(storageServiceMock.deleteFile).toHaveBeenCalledWith(
         'old-image-key.jpg',
@@ -134,7 +134,9 @@ describe('Event / Service / Unit Tests', () => {
     it('throws NotFoundException when event does not exist', async () => {
       prismaServiceMock.event.findFirst.mockResolvedValue(null);
 
-      await expect(testEventService.eventDeleteImage('999', 1)).rejects.toThrow(NotFoundException);
+      await expect(testEventService.eventDeleteImage('999', 1, false)).rejects.toThrow(
+        NotFoundException
+      );
     });
 
     it('throws UnauthorizedException when user does not own the event', async () => {
@@ -144,7 +146,7 @@ describe('Event / Service / Unit Tests', () => {
         imageKey: 'some-key.jpg',
       });
 
-      await expect(testEventService.eventDeleteImage('1', 1)).rejects.toThrow(
+      await expect(testEventService.eventDeleteImage('1', 1, false)).rejects.toThrow(
         UnauthorizedException
       );
     });
@@ -156,7 +158,9 @@ describe('Event / Service / Unit Tests', () => {
         imageKey: null,
       });
 
-      await expect(testEventService.eventDeleteImage('1', 1)).rejects.toThrow(BadRequestException);
+      await expect(testEventService.eventDeleteImage('1', 1, false)).rejects.toThrow(
+        BadRequestException
+      );
     });
 
     it('deletes image from storage and updates database', async () => {
@@ -171,7 +175,7 @@ describe('Event / Service / Unit Tests', () => {
         attendees: [],
       });
 
-      await testEventService.eventDeleteImage('1', 1);
+      await testEventService.eventDeleteImage('1', 1, false);
 
       expect(storageServiceMock.deleteFile).toHaveBeenCalledWith(
         'image-to-delete.jpg',

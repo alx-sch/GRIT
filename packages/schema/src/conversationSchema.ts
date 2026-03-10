@@ -21,7 +21,7 @@ const messageSchema = z.object({
   conversationId: z.uuid(),
   text: z.string(),
   createdAt: z.iso.datetime(),
-  author: user,
+  author: user.nullable(),
 });
 
 const participants = z.array(

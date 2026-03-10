@@ -40,6 +40,7 @@ export const ResUserBaseSchema = z.object({
   isConfirmed: z.boolean().default(false),
   isProfilePublic: z.boolean().default(true),
   attending: z.array(ResUserEventSchema).default([]),
+  isAdmin: z.boolean().default(false),
   createdAt: z.iso.datetime(),
 });
 export type ResUserBase = z.infer<typeof ResUserBaseSchema>;
@@ -83,3 +84,7 @@ export const ResUserGetAllSchema = z.object({
   pagination: z.object({ nextCursor: z.string().nullable(), hasMore: z.boolean() }),
 });
 export type ResUserGetAll = z.infer<typeof ResUserGetAllSchema>;
+
+// Admin get all users
+export const ResUserAdminGetAllSchema = z.array(ResUserBaseSchema);
+export type ResUserAdminGetAll = z.infer<typeof ResUserAdminGetAllSchema>;

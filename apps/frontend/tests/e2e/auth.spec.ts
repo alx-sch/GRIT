@@ -111,7 +111,7 @@ test.describe('Authentication Flow', () => {
 
     await page.getByRole('button', { name: 'Create account' }).click();
 
-    await expect(page.getByText('Account created')).toBeVisible();
+    await expect(page.getByText('You are logged in')).toBeVisible();
   });
 
   test('should navigate between login and register pages', async ({ page }) => {

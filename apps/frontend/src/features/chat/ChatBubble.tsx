@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 
 export const ChatBubble = ({ message }: { message: ResChatMessage }) => {
   const currentUser = useCurrentUserStore((s) => s.user);
-  const author = message.author ?? { id: null, name: '[DELETED USER]', avatarKey: null };
+  const author = message.author ?? { id: null, name: 'Unknown', avatarKey: null };
   const isFromCurrentUser = currentUser?.id === author.id;
   const align = isFromCurrentUser ? 'justify-end' : 'justify-start';
   const initials = author.name?.trim().slice(0, 2).toUpperCase() ?? '??';
