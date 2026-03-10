@@ -8,25 +8,22 @@ import Design from '@/pages/design/Page';
 import ErrorPage from '@/pages/error/Page';
 import EventFeedPage, { eventsLoader } from '@/pages/events/EventFeedPage';
 import { EventPage, eventLoader } from '@/pages/events/EventPage';
-import Home from '@/pages/home/Page';
 import { LoginPage, loginPageAction, loginPageLoader } from '@/pages/login/Page';
 import { LogoutPage, logoutPageLoader } from '@/pages/logout/Page';
 import { Page as MyEventsPage, myEventsLoader } from '@/pages/my-events/Page';
 import { Page as ProfilePage, profileLoader } from '@/pages/profile/Page';
+import PublicProfilePage, { publicProfileLoader } from '@/pages/public-profile/Page';
 import { RegisterPage, registerPageAction, registerPageLoader } from '@/pages/register/Page';
 import Users, { usersLoader } from '@/pages/users/Page';
 import type { NavRoute } from '@/types/navroute';
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, redirect } from 'react-router-dom';
 import EditEventPage, { editEventLoader } from './pages/events/EditEventPage';
 import FriendsPage, { friendsLoader } from './pages/my-friends/Page';
 
 // NOTE: let's define single source of truth for our routes here
 export const baseNavConfig: NavRoute[] = [
-  { path: '/', label: 'Home' },
-  { path: '/design', label: 'Design' },
   { path: '/users', label: 'Users' },
   { path: '/events', label: 'Events' },
-  { path: '/create/event', label: 'Add Event' },
 ] as const;
 
 export const router = createBrowserRouter([
@@ -36,8 +33,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        Component: Home,
-        handle: { title: 'Home' },
+        loader: () => redirect('/events'),
       },
       {
         path: 'design',
@@ -46,9 +42,20 @@ export const router = createBrowserRouter([
       },
       {
         path: 'users',
-        Component: Users,
-        loader: usersLoader,
-        handle: { title: 'Users' },
+        children: [
+          {
+            index: true,
+            Component: Users,
+            loader: usersLoader,
+            handle: { title: 'Users' },
+          },
+          {
+            path: ':id',
+            Component: PublicProfilePage,
+            loader: publicProfileLoader,
+            handle: { title: 'Profile' },
+          },
+        ],
       },
       {
         path: 'events',
@@ -61,8 +68,25 @@ export const router = createBrowserRouter([
           },
           {
             path: ':id',
-            Component: EventPage,
-            loader: eventLoader,
+            children: [
+              {
+                index: true,
+                Component: EventPage,
+                loader: eventLoader,
+              },
+              {
+                path: 'edit',
+                Component: ProtectedLayout,
+                loader: protectedLayoutLoader,
+                children: [
+                  {
+                    index: true,
+                    Component: EditEventPage,
+                    loader: editEventLoader,
+                  },
+                ],
+              },
+            ],
           },
         ],
       },
@@ -111,28 +135,14 @@ export const router = createBrowserRouter([
             loader: profileLoader,
             handle: { title: 'Profile' },
           },
-        ],
-      },
-      {
-        path: 'my-events',
-        Component: ProtectedLayout,
-        loader: protectedLayoutLoader,
-        children: [
           {
-            index: true,
+            path: 'my-events',
             Component: MyEventsPage,
             loader: myEventsLoader,
             handle: { title: 'My Events' },
           },
-        ],
-      },
-      {
-        path: 'my-friends',
-        Component: ProtectedLayout,
-        loader: protectedLayoutLoader,
-        children: [
           {
-            index: true,
+            path: 'my-friends',
             Component: FriendsPage,
             loader: friendsLoader,
             handle: { title: 'My Friends' },
@@ -150,61 +160,6 @@ export const router = createBrowserRouter([
             loader: eventCreationLoader,
           },
         ],
-      },
-      {
-        path: 'design',
-        Component: Design,
-        handle: { title: 'Design' },
-      },
-      {
-        path: 'events',
-        children: [
-          {
-            index: true,
-            Component: EventFeedPage,
-            loader: eventsLoader,
-            handle: { title: 'Events' },
-          },
-          {
-            path: ':id',
-            children: [
-              {
-                index: true,
-                Component: EventPage,
-                loader: eventLoader,
-              },
-              {
-                path: 'edit',
-                Component: ProtectedLayout,
-                loader: protectedLayoutLoader,
-                children: [
-                  {
-                    index: true,
-                    Component: EditEventPage,
-                    loader: editEventLoader,
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-      {
-        path: 'login',
-        Component: LoginPage,
-        action: loginPageAction,
-        loader: loginPageLoader,
-      },
-      {
-        path: 'logout',
-        Component: LogoutPage,
-        loader: logoutPageLoader,
-      },
-      {
-        path: 'users',
-        Component: Users,
-        loader: usersLoader,
-        handle: { title: 'Users' },
       },
     ],
   },

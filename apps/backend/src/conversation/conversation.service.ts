@@ -97,6 +97,7 @@ export class ConversationService {
             id: true,
             imageKey: true,
             title: true,
+            slug: true,
           },
         },
       },

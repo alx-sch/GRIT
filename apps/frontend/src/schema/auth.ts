@@ -6,7 +6,7 @@ export const ResAuthMeSchema = z.object({
   name: z
     .string()
     .nullable()
-    .transform((v) => v ?? undefined),
+    .transform((v) => v ?? 'Unknown User'), // Users always have names, but transform null to default
   avatarKey: z
     .string()
     .nullable()

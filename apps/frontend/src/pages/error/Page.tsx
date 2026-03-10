@@ -1,6 +1,5 @@
 import { useRouteError, isRouteErrorResponse } from 'react-router-dom';
 import { isAxiosError } from 'axios';
-import { Container } from '@/components/layout/Container';
 import { Button } from '@/components/ui/button';
 import { FileQuestion, AlertTriangle, Lock } from 'lucide-react';
 
@@ -43,7 +42,7 @@ export default function ErrorPage() {
   }
 
   return (
-    <Container className="py-20 flex flex-col items-center justify-center text-center space-y-6">
+    <div className="py-20 flex flex-col items-center justify-center text-center space-y-6">
       <div className="bg-destructive/10 p-4 rounded-full">
         <Icon className="h-12 w-12 text-destructive" />
       </div>
@@ -63,6 +62,6 @@ export default function ErrorPage() {
           Go Home
         </Button>
       </div>
-    </Container>
+    </div>
   );
 }

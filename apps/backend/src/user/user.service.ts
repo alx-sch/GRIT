@@ -51,7 +51,15 @@ export class UserService {
     const hasMore = users.length > limit;
     const slicedData = hasMore ? users.slice(0, limit) : users;
     return {
-      data: slicedData,
+      data: slicedData.map((user) => ({
+        id: user.id,
+        name: user.name,
+        avatarKey: user.avatarKey,
+        bio: user.bio,
+        city: user.city,
+        country: user.country,
+        createdAt: user.createdAt.toISOString(),
+      })),
       pagination: {
         nextCursor: hasMore
           ? userEncodeCursor(
@@ -102,7 +110,11 @@ export class UserService {
       where: { email },
       include: {
         attending: {
-          include: { event: true },
+          include: {
+            event: {
+              include: { location: true },
+            },
+          },
         },
       },
     });
@@ -120,6 +132,8 @@ export class UserService {
         slug: a.event.slug,
         startAt: a.event.startAt.toISOString(),
         isOrganizer: a.event.authorId === user.id,
+        imageKey: a.event.imageKey,
+        location: a.event.location,
       })),
     };
   }
@@ -171,7 +185,11 @@ export class UserService {
       },
       include: {
         attending: {
-          include: { event: true },
+          include: {
+            event: {
+              include: { location: true },
+            },
+          },
         },
       },
     });
@@ -185,6 +203,8 @@ export class UserService {
         slug: a.event.slug,
         startAt: a.event.startAt.toISOString(),
         isOrganizer: a.event.authorId === updatedUser.id,
+        imageKey: a.event.imageKey,
+        location: a.event.location,
       })),
     };
   }
@@ -207,7 +227,9 @@ export class UserService {
         include: {
           attending: {
             include: {
-              event: true,
+              event: {
+                include: { location: true },
+              },
             },
           },
         },
@@ -229,6 +251,8 @@ export class UserService {
           slug: a.event.slug,
           startAt: a.event.startAt.toISOString(),
           isOrganizer: a.event.authorId === updatedUser.id,
+          imageKey: a.event.imageKey,
+          location: a.event.location,
         })),
       };
     } catch (error) {
@@ -263,7 +287,9 @@ export class UserService {
       include: {
         attending: {
           include: {
-            event: true,
+            event: {
+              include: { location: true },
+            },
           },
         },
       },
@@ -278,6 +304,8 @@ export class UserService {
         slug: a.event.slug,
         startAt: a.event.startAt.toISOString(),
         isOrganizer: a.event.authorId === updatedUser.id,
+        imageKey: a.event.imageKey,
+        location: a.event.location,
       })),
     };
   }
@@ -285,6 +313,10 @@ export class UserService {
   async userPatch(userId: number, data: ReqUserPatchDto) {
     const newData: Prisma.UserUpdateInput = {};
     if (data.name !== undefined) newData.name = data.name;
+    if (data.bio !== undefined) newData.bio = data.bio;
+    if (data.city !== undefined) newData.city = data.city;
+    if (data.country !== undefined) newData.country = data.country;
+    if (data.isProfilePublic !== undefined) newData.isProfilePublic = data.isProfilePublic;
 
     if (data.attending) {
       const attendingOps: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput = {};
@@ -413,6 +445,11 @@ export class UserService {
       },
       include: {
         location: true,
+        conversation: {
+          select: {
+            id: true,
+          },
+        },
       },
       orderBy: {
         startAt: 'asc',
@@ -424,9 +461,13 @@ export class UserService {
       title: e.title,
       slug: e.slug,
       startAt: e.startAt.toISOString(),
+      endAt: e.endAt.toISOString(),
       isOrganizer: e.authorId === userId,
       imageKey: e.imageKey,
       location: e.location,
+      conversationId: e.conversation?.id,
+      isPublished: e.isPublished,
+      isPublic: e.isPublic,
     }));
   }
 
@@ -439,5 +480,127 @@ export class UserService {
       createdAt: user.createdAt.toISOString(),
       attending: [],
     };
+  }
+
+  async userGetPublic(id: number, requestingUserId?: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        avatarKey: true,
+        createdAt: true,
+        bio: true,
+        city: true,
+        country: true,
+        isProfilePublic: true,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    // If profile is private, only allow full access to:
+    // 1. The user themselves
+    // 2. Their friends
+    // Otherwise, return minimal info so they can still send a friend request
+    if (!user.isProfilePublic) {
+      const isOwner = requestingUserId === id;
+      let isFriend = false;
+
+      if (requestingUserId && !isOwner) {
+        const areFriends = await this.prisma.friends.findFirst({
+          where: {
+            OR: [
+              { userId: requestingUserId, friendId: id },
+              { userId: id, friendId: requestingUserId },
+            ],
+          },
+        });
+        isFriend = !!areFriends;
+      }
+
+      // If not owner and not friend, return minimal info
+      if (!isOwner && !isFriend) {
+        return {
+          id: user.id,
+          name: user.name,
+          avatarKey: user.avatarKey,
+          createdAt: user.createdAt.toISOString(),
+          bio: null,
+          city: null,
+          country: null,
+          isProfilePublic: false,
+        };
+      }
+    }
+
+    return {
+      id: user.id,
+      name: user.name,
+      avatarKey: user.avatarKey,
+      createdAt: user.createdAt.toISOString(),
+      bio: user.bio,
+      city: user.city,
+      country: user.country,
+      isProfilePublic: user.isProfilePublic,
+    };
+  }
+
+  async userGetPublicEvents(userId: number, requestingUserId?: number) {
+    // First check if the user's profile is accessible
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { isProfilePublic: true },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    // If profile is private, check access permissions
+    if (!user.isProfilePublic) {
+      if (!requestingUserId || requestingUserId !== userId) {
+        if (requestingUserId) {
+          const areFriends = await this.prisma.friends.findFirst({
+            where: {
+              OR: [
+                { userId: requestingUserId, friendId: userId },
+                { userId, friendId: requestingUserId },
+              ],
+            },
+          });
+          if (!areFriends) {
+            return null;
+          }
+        } else {
+          return null;
+        }
+      }
+    }
+
+    const events = await this.prisma.event.findMany({
+      where: {
+        authorId: userId,
+        isPublished: true,
+        isPublic: true,
+      },
+      include: {
+        location: true,
+      },
+      orderBy: {
+        startAt: 'desc',
+      },
+    });
+
+    return events.map((event) => ({
+      id: event.id,
+      title: event.title,
+      slug: event.slug,
+      startAt: event.startAt.toISOString(),
+      imageKey: event.imageKey,
+      location: event.location,
+    }));
   }
 }

@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Text } from '@/components/ui/typography';
-import { Calendar, Ticket, Trash2, Upload, Edit } from 'lucide-react';
+import { Ticket, Trash2, Upload, Edit, MapPin, Users, Eye } from 'lucide-react';
 import { userService } from '@/services/userService';
 import { toast } from 'sonner';
 import type { CurrentUser } from '@/types/user';
@@ -9,20 +9,16 @@ import { ImageCropDialog } from '@/components/ui/image-crop-dialog';
 import { validateImageFile, readFileAsDataURL } from '@/lib/image-crop-utils';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useNavigate } from 'react-router-dom';
 
 interface ProfileSidebarProps {
   user: CurrentUser;
   avatarUrl?: string;
-  eventsCount: number;
   onAvatarUpdate: (updatedUser: CurrentUser) => void;
 }
 
-export function ProfileSidebar({
-  user,
-  avatarUrl,
-  eventsCount,
-  onAvatarUpdate,
-}: ProfileSidebarProps) {
+export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSidebarProps) {
+  const navigate = useNavigate();
   const [isUploading, setIsUploading] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
   const [showCropDialog, setShowCropDialog] = useState(false);
@@ -100,13 +96,25 @@ export function ProfileSidebar({
     }
   };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-  };
-
   const hasCustomAvatar = user.avatarKey && !user.avatarKey.startsWith('default-');
+
+  const navLinks = [
+    {
+      label: 'My Events',
+      icon: Ticket,
+      href: '/profile/my-events',
+    },
+    {
+      label: 'My Friends',
+      icon: Users,
+      href: '/profile/my-friends',
+    },
+    {
+      label: 'Public Profile',
+      icon: Eye,
+      href: `/users/${user.id}`,
+    },
+  ];
 
   return (
     <div className="w-full md:w-80 md:border-r-2 md:border-primary md:pr-8 space-y-6">
@@ -140,27 +148,34 @@ export function ProfileSidebar({
         <div className="text-center space-y-1">
           <Text className="text-xl font-semibold">{user.name ?? 'Anonymous'}</Text>
           <Text className="text-sm text-muted-foreground">{user.email ?? ''}</Text>
+          {(user.city ?? user.country) && (
+            <div className="flex items-center justify-center gap-1 text-muted-foreground">
+              <MapPin className="w-3 h-3" />
+              <Text className="text-sm">
+                {[user.city, user.country].filter(Boolean).join(', ')}
+              </Text>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="space-y-3 pt-6 border-t-2 border-primary">
-        <div className="flex items-center gap-3">
-          <Calendar className="w-5 h-5 text-muted-foreground shrink-0" />
-          <div className="flex-1">
-            <Text className="text-sm text-muted-foreground">Member since</Text>
-            <Text className="text-sm font-medium">{formatDate(user.createdAt)}</Text>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Ticket className="w-5 h-5 text-muted-foreground shrink-0" />
-          <div className="flex-1">
-            <Text className="text-sm text-muted-foreground">Events</Text>
-            <Text className="text-sm font-medium">
-              {eventsCount} {eventsCount === 1 ? 'event' : 'events'}
-            </Text>
-          </div>
-        </div>
+      <div className="space-y-2 pt-6 border-t-2 border-primary">
+        {navLinks.map((link) => {
+          const Icon = link.icon;
+          return (
+            <Button
+              key={link.href}
+              variant="secondary"
+              className="w-full justify-start gap-3"
+              onClick={() => {
+                void navigate(link.href);
+              }}
+            >
+              <Icon className="w-4 h-4" />
+              {link.label}
+            </Button>
+          );
+        })}
       </div>
 
       <input

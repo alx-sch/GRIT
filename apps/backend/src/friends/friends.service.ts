@@ -255,4 +255,34 @@ export class FriendsService {
 
     return friendship;
   }
+
+  async getFriendshipStatus(currentUserId: number, targetUserId: number) {
+    const friendship = await this.prisma.friends.findFirst({
+      where: {
+        OR: [
+          { userId: currentUserId, friendId: targetUserId },
+          { userId: targetUserId, friendId: currentUserId },
+        ],
+      },
+    });
+
+    if (friendship) {
+      return 'friends';
+    }
+
+    const pendingRequest = await this.prisma.friendRequest.findFirst({
+      where: {
+        OR: [
+          { requesterId: currentUserId, receiverId: targetUserId },
+          { requesterId: targetUserId, receiverId: currentUserId },
+        ],
+      },
+    });
+
+    if (!pendingRequest) {
+      return 'none';
+    }
+
+    return pendingRequest.requesterId === currentUserId ? 'pending_sent' : 'pending_received';
+  }
 }
