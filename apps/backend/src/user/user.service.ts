@@ -457,7 +457,7 @@ export class UserService {
     if (!user.isAdmin)
       throw new UnauthorizedException('You do not have permission to access this.');
     const users = await this.prisma.user.findMany({
-      orderBy: [{ name: 'asc' }],
+      orderBy: [{ isAdmin: 'desc' }, { name: 'asc' }],
     });
     return users.map((u) => ({
       ...u,
