@@ -67,7 +67,7 @@ export default function Design() {
   };
 
   return (
-    <>
+    <div className="space-y-8">
       <section className="space-y-4">
         <Heading level={2}>1. Typography System</Heading>
 
@@ -225,10 +225,6 @@ export default function Design() {
                 <AvatarImage src="https://github.com/shadcn.png" seed="test" />
                 <AvatarFallback>CN</AvatarFallback>
               </Avatar>
-              <Avatar>
-                <AvatarImage src="https://broken-link.com/img.png" seed="meowmeow" />
-                <AvatarFallback>JD</AvatarFallback>
-              </Avatar>
               <div className="space-y-1">
                 <Heading level={4} className="text-sm">
                   Logged In User
@@ -316,6 +312,6 @@ export default function Design() {
           </Card>
         </div>
       </section>
-    </>
+    </div>
   );
 }

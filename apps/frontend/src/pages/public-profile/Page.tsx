@@ -130,7 +130,7 @@ export default function PublicProfilePage() {
         </div>
       </div>
 
-      <Tabs defaultValue="events" className="w-full">
+      <Tabs defaultValue="info" className="w-full">
         <TabsList>
           <TabsTrigger value="info">Info</TabsTrigger>
           <TabsTrigger value="events">Events ({data.events.length})</TabsTrigger>
