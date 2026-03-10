@@ -11,15 +11,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { EventBase } from '@/types/event';
-import { adminService } from '@/services/adminService';
+import { adminService, AdminEvent } from '@/services/adminService';
 import { toast } from 'sonner';
 import { Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { AxiosError } from 'axios';
 
 interface AdminEventsTableProps {
-  initialEvents: EventBase[];
+  initialEvents: AdminEvent[];
 }
 
 export function AdminEventsTable({ initialEvents }: AdminEventsTableProps) {

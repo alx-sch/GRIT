@@ -11,14 +11,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { LocationBase } from '@/types/location';
-import { adminService } from '@/services/adminService';
+import { adminService, AdminLocation } from '@/services/adminService';
 import { toast } from 'sonner';
 import { Trash2 } from 'lucide-react';
 import { AxiosError } from 'axios';
 
 interface AdminLocationsTableProps {
-  initialLocations: LocationBase[];
+  initialLocations: AdminLocation[];
 }
 
 export function AdminLocationsTable({ initialLocations }: AdminLocationsTableProps) {
@@ -97,7 +96,9 @@ export function AdminLocationsTable({ initialLocations }: AdminLocationsTablePro
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
                           <AlertDialogAction
-                            onClick={() => void handleDeleteLocation(location.id)}
+                            onClick={() => {
+                              void handleDeleteLocation(location.id);
+                            }}
                             className="bg-destructive"
                           >
                             Delete

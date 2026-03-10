@@ -4,17 +4,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import { redirect } from 'react-router-dom';
-import { adminService, AdminUser } from '@/services/adminService';
-import { EventBase } from '@/types/event';
-import { LocationBase } from '@/types/location';
+import { adminService, AdminUser, AdminLocation, AdminEvent } from '@/services/adminService';
 import { AdminUsersTable } from './components/AdminUsersTable';
 import { AdminLocationsTable } from './components/AdminLocationsTable';
 import { AdminEventsTable } from './components/AdminEventsTable';
 
 interface AdminLoaderData {
   users: AdminUser[];
-  locations: LocationBase[];
-  events: EventBase[];
+  locations: AdminLocation[];
+  events: AdminEvent[];
 }
 
 export const adminLoader = async (): Promise<AdminLoaderData | Response> => {
