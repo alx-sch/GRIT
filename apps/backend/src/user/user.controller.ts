@@ -1,40 +1,39 @@
+import { GetUser } from '@/auth/guards/get-user.decorator';
+import { JwtAuthOptionalGuard } from '@/auth/guards/jwt-auth-optional.guard';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import {
-  Body,
-  Query,
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Param,
-  UseInterceptors,
-  UploadedFile,
-  ParseFilePipe,
-  MaxFileSizeValidator,
-  FileTypeValidator,
-  UseGuards,
-  Delete,
-  UnauthorizedException,
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import {
-  ResUserBaseDto,
-  ResUserPostDto,
-  ReqUserPostDto,
   ReqUserGetAllDto,
-  ResUserPatchSchema,
   ReqUserPatchDto,
+  ReqUserPostDto,
   ResMyEventsDto,
+  ResUserBaseDto,
   ResUserDeleteSchema,
+  ResUserPatchSchema,
+  ResUserPostDto,
 } from '@/user/user.schema';
 import { UserService } from '@/user/user.service';
-import { ZodSerializerDto } from 'nestjs-zod';
-import { ApiConsumes, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
-import { JwtAuthOptionalGuard } from '@/auth/guards/jwt-auth-optional.guard';
-import { GetUser } from '@/auth/guards/get-user.decorator';
 import { ResUserGetAllSchema } from '@grit/schema';
+import {
+  Body,
+  Controller,
+  Delete,
+  FileTypeValidator,
+  Get,
+  MaxFileSizeValidator,
+  NotFoundException,
+  Param,
+  ParseFilePipe,
+  Patch,
+  Post,
+  Query,
+  UnauthorizedException,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('users')
 export class UserController {
