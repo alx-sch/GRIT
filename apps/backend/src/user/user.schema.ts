@@ -39,9 +39,22 @@ export const ReqUserPostSchema = z.object({
 // verifications)
 export const ReqUserPatchSchema = z.strictObject({
   name: z.string().optional(),
-  bio: z.string().trim().min(1).max(150).optional(),
-  city: z.string().trim().min(1).optional(),
-  country: z.string().trim().min(1).optional(),
+  bio: z
+    .string()
+    .trim()
+    .max(150)
+    .transform((v) => (v === '' ? null : v))
+    .optional(),
+  city: z
+    .string()
+    .trim()
+    .transform((v) => (v === '' ? null : v))
+    .optional(),
+  country: z
+    .string()
+    .trim()
+    .transform((v) => (v === '' ? null : v))
+    .optional(),
   isProfilePublic: z.boolean().optional(),
   attending: z
     .strictObject({

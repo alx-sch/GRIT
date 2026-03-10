@@ -52,6 +52,7 @@ export const ResUserPublicSchema = z.object({
   city: z.string().nullable().optional(),
   country: z.string().nullable().optional(),
   createdAt: z.iso.datetime(),
+  isProfilePublic: z.boolean().optional(),
 });
 export type ResUserPublic = z.infer<typeof ResUserPublicSchema>;
 

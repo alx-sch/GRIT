@@ -50,9 +50,10 @@ export class EventController {
 
   // Get all published events or search published events
   @Get()
+  @UseGuards(JwtAuthOptionalGuard)
   @ZodSerializerDto(ResEventGetPublishedSchema)
-  eventGetPublished(@Query() query: ReqEventGetPublishedDto) {
-    return this.eventService.eventGetPublished(query);
+  eventGetPublished(@Query() query: ReqEventGetPublishedDto, @GetUser('id') userId?: number) {
+    return this.eventService.eventGetPublished(query, userId);
   }
 
   // Get event by ID (numeric) OR by Slug (string)

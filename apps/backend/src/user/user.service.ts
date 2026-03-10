@@ -501,27 +501,38 @@ export class UserService {
       return null;
     }
 
-    // If profile is private, only allow access to:
+    // If profile is private, only allow full access to:
     // 1. The user themselves
     // 2. Their friends
+    // Otherwise, return minimal info so they can still send a friend request
     if (!user.isProfilePublic) {
-      if (!requestingUserId || requestingUserId !== id) {
-        // Check if they are friends
-        if (requestingUserId) {
-          const areFriends = await this.prisma.friends.findFirst({
-            where: {
-              OR: [
-                { userId: requestingUserId, friendId: id },
-                { userId: id, friendId: requestingUserId },
-              ],
-            },
-          });
-          if (!areFriends) {
-            return null; // Return null to indicate "not found" (privacy protection)
-          }
-        } else {
-          return null; // Not logged in and profile is private
-        }
+      const isOwner = requestingUserId === id;
+      let isFriend = false;
+
+      if (requestingUserId && !isOwner) {
+        const areFriends = await this.prisma.friends.findFirst({
+          where: {
+            OR: [
+              { userId: requestingUserId, friendId: id },
+              { userId: id, friendId: requestingUserId },
+            ],
+          },
+        });
+        isFriend = !!areFriends;
+      }
+
+      // If not owner and not friend, return minimal info
+      if (!isOwner && !isFriend) {
+        return {
+          id: user.id,
+          name: user.name,
+          avatarKey: user.avatarKey,
+          createdAt: user.createdAt.toISOString(),
+          bio: null,
+          city: null,
+          country: null,
+          isProfilePublic: false,
+        };
       }
     }
 
@@ -533,6 +544,7 @@ export class UserService {
       bio: user.bio,
       city: user.city,
       country: user.country,
+      isProfilePublic: user.isProfilePublic,
     };
   }
 
@@ -572,6 +584,7 @@ export class UserService {
       where: {
         authorId: userId,
         isPublished: true,
+        isPublic: true,
       },
       include: {
         location: true,
