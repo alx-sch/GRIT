@@ -68,6 +68,7 @@ export default function FriendsPage() {
   async function sendRequest(userId: number) {
     try {
       await friendService.sendRequest(userId);
+	  toast.info('Friend request sent');
       void revalidate();
     } catch {
       toast.error('Failed to send friend request');
@@ -77,6 +78,7 @@ export default function FriendsPage() {
   async function accept(requestId: string) {
     try {
       await friendService.acceptRequest(requestId);
+	  toast.info('Friend request accepted');
       void revalidate();
     } catch {
       toast.error('Failed to accept friend request');
@@ -86,6 +88,7 @@ export default function FriendsPage() {
   async function decline(requestId: string) {
     try {
       await friendService.declineRequest(requestId);
+	  toast.info('Friend request declined');
       void revalidate();
     } catch {
       toast.error('Failed to decline friend request');
@@ -95,6 +98,7 @@ export default function FriendsPage() {
   async function remove(friendId: number) {
     try {
       await friendService.removeFriend(friendId);
+	  toast.info('Friend removed');
       void revalidate();
     } catch {
       toast.error('Failed to remove friend');

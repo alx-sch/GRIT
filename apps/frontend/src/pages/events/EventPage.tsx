@@ -61,6 +61,14 @@ export const EventPage = () => {
     copied,
   } = useEventPage();
 
+  const locationLabel =
+    [location?.address, location?.city]
+      .map((s) => s?.trim())
+      .filter(Boolean)
+      .join(', ') ||
+    location?.country?.trim() ||
+    'TBA';
+
   return (
     <>
       <Container className="py-10 space-y-8 p-0 md:px-0">
@@ -135,10 +143,7 @@ export const EventPage = () => {
                     className="group flex items-center gap-1.5 text-left cursor-pointer"
                   >
                     <Text className="text-lg md:underline decoration-dashed underline-offset-4 group-hover:decoration-solid transition-all">
-                      {[location?.address, location?.city]
-                        .map((s) => s?.trim())
-                        .filter(Boolean)
-                        .join(', ')}
+                      {locationLabel}
                     </Text>
                   </button>
                 ) : (
