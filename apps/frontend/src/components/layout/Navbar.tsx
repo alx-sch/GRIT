@@ -31,12 +31,14 @@ import type { NavRoute } from '@/types/navroute';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import { getAvatarImageUrl } from '@/lib/image_utils';
 import { chatStore } from '@/store/chatStore';
+import { useState } from 'react';
 
 export function Navbar() {
   const navConfig: NavRoute[] = [...baseNavConfig];
   const isLoggedIn = useAuthStore((s) => !!s.token);
   const user = useCurrentUserStore((s) => s.user);
   const displayName = user?.name ?? user?.email ?? 'User';
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Check if any conversations have an unread message
   const conversations = chatStore((s) => s.conversations);
@@ -153,7 +155,7 @@ export function Navbar() {
           </Link>
         )}
 
-        <Sheet>
+        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetTrigger asChild>
             <Button variant="outline" size="icon">
               <Menu className="h-5 w-5" />
@@ -183,17 +185,39 @@ export function Navbar() {
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-48">
-                  <DropdownMenuItem onClick={() => void navigate('/profile')}>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      void navigate('/profile');
+                    }}
+                  >
                     <User className="mr-2 h-4 w-4" />
                     Profile
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => void navigate('/my-events')}>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      void navigate('/my-events');
+                    }}
+                  >
                     <Calendar className="mr-2 h-4 w-4" />
                     My events
                   </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      void navigate('/my-friends');
+                    }}
+                  >
+                    <Users className="mr-2 h-4 w-4" />
+                    My friends
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={handleLogout}
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      handleLogout();
+                    }}
                     className="text-red-600 focus:text-red-600"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
