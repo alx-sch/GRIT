@@ -1,5 +1,12 @@
 import '@testing-library/jest-dom/vitest';
 
+// Polyfill ResizeObserver (used by cmdk's CommandList internally; not implemented in jsdom)
+global.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
