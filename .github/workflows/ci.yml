@@ -98,6 +98,13 @@ jobs:
       DATABASE_URL: postgresql://postgres:password@127.0.0.1:5432/grit_test
     steps:
       - uses: actions/checkout@v4
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:

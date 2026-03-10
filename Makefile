@@ -131,7 +131,7 @@ install-fe: build-schema
 install-playwright:
 	@echo "$(BOLD)$(BLUE)--- Ensuring Playwright is ready...$(RESET)"
 ifeq ($(OS), Linux)
-	@pnpm --filter @grit/frontend exec playwright install --with-deps
+	@pnpm --filter @grit/frontend exec playwright install --with-deps chromium
 else
 	@pnpm --filter @grit/frontend exec playwright install
 endif
