@@ -25,13 +25,13 @@ import { useCurrentUserStore } from '@/store/currentUserStore';
 export const useBaseNavConfig = (): NavRoute[] => {
   const user = useCurrentUserStore((s) => s.user);
 
-  // NOTE: let's define single source of truth for our routes here
+  // NOTE: let's define single source of truth for our routes here.
   const baseNavConfig: NavRoute[] = [
     { path: '/users', label: 'Users' },
     { path: '/events', label: 'Events' },
   ];
 
-  // Only show admin tab if user is admin
+  // Only show admin tab if user is admin.
   if (user?.isAdmin) {
     baseNavConfig.push({ path: '/admin', label: 'Admin' });
   }
