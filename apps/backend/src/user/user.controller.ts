@@ -156,7 +156,7 @@ export class UserController {
     }
     const events = await this.userService.userGetPublicEvents(userId, requestingUserId);
     if (events === null) {
-      throw new ForbiddenException('This profile is private');
+      throw new NotFoundException('User not found');
     }
     return events;
   }
