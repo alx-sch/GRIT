@@ -350,23 +350,19 @@ db-prod: start-postgres start-minio
 start-postgres: install-be
 	@echo "$(BOLD)$(YELLOW)--- Starting Postgres [DOCKER]...$(RESET)"
 	@$(DC) up -d postgres-db --no-build
-	@echo "$(BOLD)$(YELLOW)--- Waiting for Postgres to wake up...$(RESET)"
-	@RETRIES=20; \
+	@echo "$(BOLD)$(YELLOW)--- Waiting for Postgres to accept connections...$(RESET)"
+	@RETRIES=30; \
 	PG_CONTAINER=$$($(DC) ps -q postgres-db); \
-	while [ $$RETRIES -gt 0 ]; do \
-		if docker exec $$PG_CONTAINER pg_isready -h 127.0.0.1 -U $(POSTGRES_USER) -d $(POSTGRES_DB) > /dev/null 2>&1; then \
-			echo "$(GREEN)Postgres is ready!$(RESET)"; \
-			sleep 1; \
-			break; \
+	until docker exec $$PG_CONTAINER psql -U $(POSTGRES_USER) -d postgres -c '\q' > /dev/null 2>&1; do \
+		RETRIES=$$((RETRIES - 1)); \
+		if [ $$RETRIES -eq 0 ]; then \
+			echo "$(RED)Timeout waiting for Postgres.$(RESET)"; \
+			exit 1; \
 		fi; \
 		echo "Waiting for Postgres... ($$RETRIES attempts left)"; \
-		RETRIES=$$((RETRIES - 1)); \
 		sleep 1; \
 	done; \
-	if [ $$RETRIES -eq 0 ]; then \
-		echo "$(RED)Timeout waiting for Postgres.$(RESET)"; \
-		exit 1; \
-	fi
+	echo "$(GREEN)Postgres is ready!$(RESET)"
 
 # Helper: Starts the postgres container service
 start-minio: install-be
