@@ -171,7 +171,11 @@ export const EventPage = () => {
                 <Heading level={4} className="uppercase hidden md:block">
                   Host
                 </Heading>
-                {event.author?.name && <Text className="text-lg">{event.author.name}</Text>}
+                {event.author && (
+                  <Link to={`/users/${event.author.id}`}>
+                    <Text className="text-lg hover:underline">{event.author.name}</Text>
+                  </Link>
+                )}
               </div>
 
               {/* Going */}

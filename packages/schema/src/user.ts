@@ -29,8 +29,30 @@ export const ResUserPublicSchema = z.object({
   id: z.number().int().positive(),
   name: z.string(),
   avatarKey: z.string().nullable().optional(),
+  createdAt: z.iso.datetime(),
 });
 export type ResUserPublic = z.infer<typeof ResUserPublicSchema>;
+
+// Schema for public events (hosted by user) - excludes context-dependent fields like isOrganizer
+export const ResUserPublicEventSchema = z.object({
+  id: z.number().int().positive(),
+  title: z.string(),
+  slug: z.string(),
+  startAt: z.iso.datetime(),
+  imageKey: z.string().nullable().optional(),
+  location: ResEventLocationSchema.nullable().optional(),
+});
+export const ResUserPublicEventsSchema = z.array(ResUserPublicEventSchema);
+export type ResUserPublicEvents = z.infer<typeof ResUserPublicEventsSchema>;
+
+export const FriendshipStatusSchema = z.enum([
+  'none',
+  'pending_sent',
+  'pending_received',
+  'friends',
+  'self',
+]);
+export type FriendshipStatus = z.infer<typeof FriendshipStatusSchema>;
 
 // Paginated response
 export const ResUserGetAllSchema = z.object({

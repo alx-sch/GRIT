@@ -97,6 +97,81 @@ export class UserService {
     };
   }
 
+  async userGetPublic(id: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        avatarKey: true,
+        createdAt: true,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    return {
+      ...user,
+      createdAt: user.createdAt.toISOString(),
+    };
+  }
+
+  async userGetPublicEvents(userId: number) {
+    const events = await this.prisma.event.findMany({
+      where: {
+        authorId: userId,
+        isPublished: true,
+      },
+      include: {
+        location: true,
+      },
+      orderBy: {
+        startAt: 'desc',
+      },
+    });
+
+    return events.map((event) => ({
+      id: event.id,
+      title: event.title,
+      slug: event.slug,
+      startAt: event.startAt.toISOString(),
+      imageKey: event.imageKey,
+      location: event.location,
+    }));
+  }
+
+  async getFriendshipStatus(currentUserId: number, targetUserId: number) {
+    const friendship = await this.prisma.friends.findFirst({
+      where: {
+        OR: [
+          { userId: currentUserId, friendId: targetUserId },
+          { userId: targetUserId, friendId: currentUserId },
+        ],
+      },
+    });
+
+    if (friendship) {
+      return 'friends';
+    }
+
+    const pendingRequest = await this.prisma.friendRequest.findFirst({
+      where: {
+        OR: [
+          { requesterId: currentUserId, receiverId: targetUserId },
+          { requesterId: targetUserId, receiverId: currentUserId },
+        ],
+      },
+    });
+
+    if (!pendingRequest) {
+      return 'none';
+    }
+
+    return pendingRequest.requesterId === currentUserId ? 'pending_sent' : 'pending_received';
+  }
+
   async userGetByEmail(email: string) {
     const user = await this.prisma.user.findUnique({
       where: { email },

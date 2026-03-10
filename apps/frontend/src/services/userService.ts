@@ -1,6 +1,11 @@
 import api from '@/lib/api';
 import type { UserBase, UserResponse } from '@/types/user';
-import { ResUserEvents } from '@grit/schema';
+import {
+  ResUserEvents,
+  ResUserPublicSchema,
+  ResUserPublicEventsSchema,
+  FriendshipStatusSchema,
+} from '@grit/schema';
 
 interface GetUsersParams {
   limit?: string;
@@ -66,5 +71,20 @@ export const userService = {
 
   deleteAccount: async (): Promise<void> => {
     await api.delete('users/me');
+  },
+
+  getUserById: async (id: number) => {
+    const response = await api.get(`/users/${id}`);
+    return ResUserPublicSchema.parse(response.data);
+  },
+
+  getUserEvents: async (id: number) => {
+    const response = await api.get(`/users/${id}/events`);
+    return ResUserPublicEventsSchema.parse(response.data);
+  },
+
+  getFriendshipStatus: async (id: number) => {
+    const response = await api.get<{ status: string }>(`/users/me/friends/status/${id}`);
+    return FriendshipStatusSchema.parse(response.data.status);
   },
 };

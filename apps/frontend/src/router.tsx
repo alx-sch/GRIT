@@ -13,6 +13,7 @@ import { LoginPage, loginPageAction, loginPageLoader } from '@/pages/login/Page'
 import { LogoutPage, logoutPageLoader } from '@/pages/logout/Page';
 import { Page as MyEventsPage, myEventsLoader } from '@/pages/my-events/Page';
 import { Page as ProfilePage, profileLoader } from '@/pages/profile/Page';
+import PublicProfilePage, { publicProfileLoader } from '@/pages/public-profile/Page';
 import { RegisterPage, registerPageAction, registerPageLoader } from '@/pages/register/Page';
 import Users, { usersLoader } from '@/pages/users/Page';
 import type { NavRoute } from '@/types/navroute';
@@ -63,6 +64,17 @@ export const router = createBrowserRouter([
             path: ':id',
             Component: EventPage,
             loader: eventLoader,
+          },
+        ],
+      },
+      {
+        path: 'users',
+        children: [
+          {
+            path: ':id',
+            Component: PublicProfilePage,
+            loader: publicProfileLoader,
+            handle: { title: 'Profile' },
           },
         ],
       },

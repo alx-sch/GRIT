@@ -5,6 +5,7 @@ import {
   Get,
   Post,
   Patch,
+  Param,
   UseInterceptors,
   UploadedFile,
   ParseFilePipe,
@@ -13,6 +14,7 @@ import {
   UseGuards,
   Delete,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -127,5 +129,31 @@ export class UserController {
   ): Promise<ResUserBaseDto> {
     console.log('File received:', file.originalname);
     return await this.userService.userUpdateAvatar(userId, file);
+  }
+
+  @Get(':id')
+  async getUserById(@Param('id') id: string) {
+    const userId = parseInt(id, 10);
+    if (isNaN(userId)) {
+      throw new NotFoundException('User not found');
+    }
+    const user = await this.userService.userGetPublic(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
+  }
+
+  @Get(':id/events')
+  async getUserEvents(@Param('id') id: string) {
+    const userId = parseInt(id, 10);
+    if (isNaN(userId)) {
+      throw new NotFoundException('User not found');
+    }
+    const user = await this.userService.userGetPublic(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return await this.userService.userGetPublicEvents(userId);
   }
 }

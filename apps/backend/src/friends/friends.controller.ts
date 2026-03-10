@@ -11,6 +11,7 @@ import {
   ResFriendDto,
   ResListFriendRequestDto,
   ResListFriendDto,
+  ResFriendshipStatusDto,
 } from '@/friends/friends.schema';
 
 @Controller('users/me/friends')
@@ -65,5 +66,20 @@ export class FriendsController {
   @ZodSerializerDto(ResListFriendDto)
   listFriends(@Query() query: ReqFriendsGetAllDto, @GetUser('id') userId: number) {
     return this.friendsService.listFriends(userId, query);
+  }
+
+  // Get friendship status with a specific user
+  @Get('status/:userId')
+  @ZodSerializerDto(ResFriendshipStatusDto)
+  async getStatus(@Param('userId') userId: string, @GetUser('id') currentUserId: number) {
+    const targetUserId = parseInt(userId, 10);
+    if (isNaN(targetUserId)) {
+      return { status: 'none' };
+    }
+    if (targetUserId === currentUserId) {
+      return { status: 'self' };
+    }
+    const status = await this.friendsService.getFriendshipStatus(currentUserId, targetUserId);
+    return { status };
   }
 }
