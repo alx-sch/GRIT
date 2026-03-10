@@ -8,7 +8,6 @@ import Design from '@/pages/design/Page';
 import ErrorPage from '@/pages/error/Page';
 import EventFeedPage, { eventsLoader } from '@/pages/events/EventFeedPage';
 import { EventPage, eventLoader } from '@/pages/events/EventPage';
-import Home from '@/pages/home/Page';
 import { LoginPage, loginPageAction, loginPageLoader } from '@/pages/login/Page';
 import { LogoutPage, logoutPageLoader } from '@/pages/logout/Page';
 import { Page as MyEventsPage, myEventsLoader } from '@/pages/my-events/Page';
@@ -17,13 +16,12 @@ import PublicProfilePage, { publicProfileLoader } from '@/pages/public-profile/P
 import { RegisterPage, registerPageAction, registerPageLoader } from '@/pages/register/Page';
 import Users, { usersLoader } from '@/pages/users/Page';
 import type { NavRoute } from '@/types/navroute';
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, redirect } from 'react-router-dom';
 import EditEventPage, { editEventLoader } from './pages/events/EditEventPage';
 import FriendsPage, { friendsLoader } from './pages/my-friends/Page';
 
 // NOTE: let's define single source of truth for our routes here
 export const baseNavConfig: NavRoute[] = [
-  { path: '/', label: 'Home' },
   { path: '/design', label: 'Design' },
   { path: '/users', label: 'Users' },
   { path: '/events', label: 'Events' },
@@ -37,8 +35,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        Component: Home,
-        handle: { title: 'Home' },
+        loader: () => redirect('/events'),
       },
       {
         path: 'design',
