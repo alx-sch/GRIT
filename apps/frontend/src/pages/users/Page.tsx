@@ -88,7 +88,7 @@ export default function Users() {
 
   return (
     <div className="space-y-8">
-      <Heading level={1}>People</Heading>
+      <Heading level={1}>Users</Heading>
 
       <div className="flex flex-col gap-6">
         <Input

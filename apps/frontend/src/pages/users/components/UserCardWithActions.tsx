@@ -39,7 +39,7 @@ export function UserCardWithActions({
             />
           )}
           <Button variant="outline" size="sm" asChild>
-            <Link to={`/people/${user.id}`}>
+            <Link to={`/users/${user.id}`}>
               <Eye className="h-4 w-4" />
             </Link>
           </Button>

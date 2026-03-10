@@ -49,7 +49,7 @@ test.describe('Public Profile', () => {
       await route.fulfill({ json: { status: 'none' } });
     });
 
-    await page.goto('/people/2');
+    await page.goto('/users/2');
     await page.waitForLoadState('networkidle');
 
     // Verify user info is displayed
@@ -85,7 +85,7 @@ test.describe('Public Profile', () => {
       await route.fulfill({ json: { status: 'none' } });
     });
 
-    await page.goto('/people/3');
+    await page.goto('/users/3');
     await page.waitForLoadState('networkidle');
 
     await expect(page.locator('h2:has-text("Bob Smith")')).toBeVisible();
@@ -140,7 +140,7 @@ test.describe('Public Profile', () => {
       await route.fulfill({ json: { status: 'none' } });
     });
 
-    await page.goto('/people/4');
+    await page.goto('/users/4');
     await page.waitForLoadState('networkidle');
 
     // Click on Events tab

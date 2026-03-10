@@ -7,8 +7,6 @@ import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { vi } from 'vitest';
 
-/* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
-
 vi.mock('@/services/userService', () => ({
   userService: {
     getUsers: vi.fn(),
@@ -78,11 +76,10 @@ describe('Users Page', () => {
     vi.mocked(friendService.listIncomingRequests).mockResolvedValue(emptyFriendData);
   });
 
-  function renderUsersPage(initialUrl = '/people') {
-    const router = createMemoryRouter(
-      [{ path: '/people', Component: Users, loader: usersLoader }],
-      { initialEntries: [initialUrl] }
-    );
+  function renderUsersPage(initialUrl = '/users') {
+    const router = createMemoryRouter([{ path: '/users', Component: Users, loader: usersLoader }], {
+      initialEntries: [initialUrl],
+    });
     return { router, ...render(<RouterProvider router={router} />) };
   }
 
@@ -100,14 +97,14 @@ describe('Users Page', () => {
 
   describe('Search from URL', () => {
     it('pre-populates search input from ?search= on initial load', async () => {
-      renderUsersPage('/people?search=alice');
+      renderUsersPage('/users?search=alice');
 
       const searchInput = await screen.findByPlaceholderText('Search users...');
       expect(searchInput).toHaveValue('alice');
     });
 
     it('filters displayed users based on ?search= on initial load', async () => {
-      renderUsersPage('/people?search=alice');
+      renderUsersPage('/users?search=alice');
 
       await waitFor(() => {
         expect(screen.getByText('Alice')).toBeInTheDocument();
@@ -126,7 +123,7 @@ describe('Users Page', () => {
       const searchInput = screen.getByPlaceholderText('Search users...');
       expect(searchInput).toHaveValue('');
 
-      await router.navigate('/people?search=carol');
+      await router.navigate('/users?search=carol');
 
       await waitFor(() => {
         expect(searchInput).toHaveValue('carol');
@@ -140,7 +137,7 @@ describe('Users Page', () => {
         expect(screen.getByText('Alice')).toBeInTheDocument();
       });
 
-      await router.navigate('/people?search=carol');
+      await router.navigate('/users?search=carol');
 
       await waitFor(() => {
         expect(screen.getByText('Carol')).toBeInTheDocument();
