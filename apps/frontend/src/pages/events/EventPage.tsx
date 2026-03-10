@@ -17,7 +17,7 @@ import { getEventImageUrl } from '@/lib/image_utils';
 import { eventService } from '@/services/eventService';
 import { APIProvider } from '@vis.gl/react-google-maps';
 import { HomeIcon, Pencil, Trash2, User } from 'lucide-react';
-import { Link, LoaderFunctionArgs } from 'react-router-dom';
+import { Link, LoaderFunctionArgs, useNavigate } from 'react-router-dom';
 import { EventPageActions } from './components/EventPageActions';
 import { EventPageFiles } from './components/EventPageFiles';
 import { useEventPage } from './useEventPage';
@@ -29,11 +29,12 @@ export const eventLoader = async ({ params }: LoaderFunctionArgs) => {
 };
 
 export const EventPage = () => {
+  const navigate = useNavigate();
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API as string;
 
   const {
     event,
-    isAuthor,
+    canEdit,
     isAttending,
     countAttending,
     isLoading,
@@ -68,9 +69,14 @@ export const EventPage = () => {
     location?.country?.trim() ??
     'TBA';
 
+  // Added a handler here because of back button bug (it needed to be clicked two times to go back to /events).
+  const handleBackClick = () => {
+    void navigate('/events');
+  };
+
   return (
     <div className="space-y-8">
-      <BackButton />
+      <BackButton onClick={handleBackClick} />
       <div className="flex flex-row justify-between">
         <div className="space-y-2">
           <Heading level={1} className="text-3xl md:text-4xl">
@@ -78,14 +84,14 @@ export const EventPage = () => {
           </Heading>
         </div>
         <div className="flex flex-row gap-2">
-          {isAuthor && (
+          {canEdit && (
             <Link to="edit">
               <Button variant="secondary" size="lg">
                 <Pencil className="h-4 w-4" />
               </Button>
             </Link>
           )}
-          {isAuthor && (
+          {canEdit && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" size="lg">

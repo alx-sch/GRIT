@@ -8,11 +8,19 @@ import {
   ResUserBaseDto,
   ResUserPostDto,
 } from '@/user/user.schema';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+  ForbiddenException,
+  ConflictException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { userCursorFilter, userEncodeCursor } from './user.utils';
+import { User } from '@/auth/interfaces/user.interface';
 import { ChatGateway } from '@/chat/chat.gateway';
 
 @Injectable()
@@ -140,6 +148,11 @@ export class UserService {
 
   async userPost(data: ReqUserPostDto): Promise<ResUserPostDto> {
     const token = randomBytes(32).toString('hex');
+
+    // A hard-coded check (since we use the name 'Unknown' for deleted users).
+    if (data.name.toUpperCase() === 'UNKNOWN') {
+      throw new ConflictException('Name unknown is reserved for deleted users');
+    }
 
     const user = await this.prisma.user.create({
       data: {
@@ -471,13 +484,68 @@ export class UserService {
     }));
   }
 
-  async userDelete(id: number) {
-    const user = await this.prisma.user.delete({
-      where: { id },
+  async userDeleteMe(user: User) {
+    if (user.isAdmin) {
+      throw new ForbiddenException('You can not delete an admin user');
+    }
+    const targetUser = await this.prisma.user.delete({
+      where: { id: user.id },
     });
     return {
-      ...user,
-      createdAt: user.createdAt.toISOString(),
+      ...targetUser,
+      createdAt: targetUser.createdAt.toISOString(),
+      attending: [],
+    };
+  }
+
+  // ====== ADMIN SERVICES ======= //
+
+  async userAdminGetAll(user: User) {
+    if (!user.isAdmin)
+      throw new UnauthorizedException('You do not have permission to access this.');
+    const users = await this.prisma.user.findMany({
+      orderBy: [{ isAdmin: 'desc' }, { name: 'asc' }],
+    });
+    return users.map((u) => ({
+      ...u,
+      createdAt: u.createdAt.toISOString(),
+    }));
+  }
+
+  async userDeleteAvatarById(targetId: number, user: User) {
+    if (user.id !== targetId && !user.isAdmin) {
+      throw new UnauthorizedException('You do not have permission delete this avatar');
+    }
+    return this.userDeleteAvatar(targetId);
+  }
+
+  async userPatchById(targetId: number, data: ReqUserPatchDto, user: User) {
+    if (user.id !== targetId && !user.isAdmin) {
+      throw new UnauthorizedException('You do not have permission to modify this user');
+    }
+    return this.userPatch(targetId, data);
+  }
+
+  async userDelete(targetId: number, user: User) {
+    if (user.id !== targetId) {
+      if (!user.isAdmin)
+        throw new UnauthorizedException('You do not have permission to delete this user');
+    }
+
+    const isTargetAdmin = await this.prisma.user.findUnique({
+      where: { id: targetId },
+      select: { isAdmin: true },
+    });
+    if (isTargetAdmin?.isAdmin) {
+      throw new ForbiddenException('You can not delete an admin user');
+    }
+
+    const targetUser = await this.prisma.user.delete({
+      where: { id: targetId },
+    });
+    return {
+      ...targetUser,
+      createdAt: targetUser.createdAt.toISOString(),
       attending: [],
     };
   }

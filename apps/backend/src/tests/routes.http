@@ -16,7 +16,7 @@ Content-Type: application/json
 {
 	"name": "test",
 	"email": "test@example.com",
-	"password": "password123"
+	"password": "password123",
 }
 ###
 
@@ -33,6 +33,7 @@ GET {{baseUrl}}/auth/confirm?token={{confToken}}
 GET {{baseUrl}}/auth/debug/token/1
 ###
 
+// Normal login
 # @name login
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
@@ -40,6 +41,17 @@ Content-Type: application/json
 {
 	"email": "cindy@example.com",
 	"password": "0123456789"
+}
+###
+
+// Admin login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+	"email": "admin@example.com",
+	"password": "admin123"
 }
 ###
 
@@ -71,13 +83,16 @@ GET {{baseUrl}}/users/me/events
 Authorization: Bearer {{token}}
 ###
 
+
 # User attends an event
 PATCH {{baseUrl}}/users/me
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-	"attending": 2
+  "attending": {
+    "connect": [2]
+  }
 }
 ###
 
@@ -102,17 +117,17 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-	"name": "Test location",
+	"name": "Aaa",
 	"city": "Berlin",
 	"country": "Germany",
 	"longitude": 59.4748,
 	"latitude": 11.4478,
-	"isPublic": true
+	"isPublic": false
 }
 ###
 
 // Delete location
-DELETE {{baseUrl}}/locations/6 HTTP/1.1
+DELETE {{baseUrl}}/locations/1 HTTP/1.1
 Authorization: Bearer {{token}}
 ###
 
@@ -164,7 +179,7 @@ content-type: application/json
 ###
 
 # Delete event (using ID 4)
-DELETE {{baseUrl}}/events/4 HTTP/1.1
+DELETE {{baseUrl}}/events/2 HTTP/1.1
 Authorization: Bearer {{token}}
 ###
 
@@ -207,6 +222,77 @@ Authorization: Bearer {{token}}
 ###
 
 # Remove friend
-DELETE {{baseUrl}}/users/me/friends/1 HTTP/1.1
+DELETE {{baseUrl}}/users/me/friends/2 HTTP/1.1
+Authorization: Bearer {{token}}
+###
+
+// ========== ADMIN ========== //
+
+# Get ALL users (sorted by name, asc)
+GET {{baseUrl}}/users/admin
+Authorization: Bearer {{token}}
+###
+
+# Get ALL locations (sorted by name, asc)
+GET {{baseUrl}}/locations/admin
+Authorization: Bearer {{token}}
+###
+
+# Get ALL events (sorted by startAt, asc)
+GET {{baseUrl}}/events/admin
+Authorization: Bearer {{token}}
+###
+
+# Update event by event id
+PATCH {{baseUrl}}/events/1 HTTP/1.1
+Authorization: Bearer {{token}}
+content-type: application/json
+
+{
+	"endAt": "2025-01-02T02:00:33Z",
+	"locationId": 2
+}
+###
+
+# Delete event image by event id
+DELETE {{baseUrl}}/events/1/image HTTP/1.1
+Authorization: Bearer {{token}}
+###
+
+# Delete event file by event id and file id
+DELETE {{baseUrl}}/events/1/files/1 HTTP/1.1
+Authorization: Bearer {{token}}
+###
+
+# Delete event by event id
+DELETE {{baseUrl}}/events/3 HTTP/1.1
+Authorization: Bearer {{token}}
+###
+
+# Delete a user by user id
+DELETE {{baseUrl}}/users/3 HTTP/1.1
+Authorization: Bearer {{token}}
+###
+
+# Delete a user avatar by user id
+DELETE {{baseUrl}}/users/2/avatar HTTP/1.1
+Authorization: Bearer {{token}}
+###
+
+# Patch a user by user id (name or "attending")
+PATCH {{baseUrl}}/users/2
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Cindy",
+  "attending": {
+    "disconnect": [3]
+  }
+}
+###
+
+# Delete a location by location id
+DELETE {{baseUrl}}/locations/2
 Authorization: Bearer {{token}}
 ###

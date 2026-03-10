@@ -20,6 +20,9 @@ export const ReqEventGetByIdSchema = z.strictObject({
 export class ReqEventGetByIdDto extends createZodDto(ReqEventGetByIdSchema) {}
 export const ResEventGetByIdSchema = ResEventBaseSchema;
 
+// Admin -> Get ALL events
+export const ResEventGetAllSchema = z.array(ResEventBaseSchema);
+
 // Get all published events or search published events
 export const ReqEventGetPublishedSchema = z.strictObject({
   author_id: z.coerce.number().int().positive().optional(),

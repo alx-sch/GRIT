@@ -17,6 +17,7 @@ import { userService } from '@/services/userService';
 import { useAuthStore } from '@/store/authStore';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import { toast } from 'sonner';
+import { AxiosError } from 'axios';
 
 export function DangerZone() {
   const [isDeleting, setIsDeleting] = useState(false);
@@ -34,7 +35,10 @@ export function DangerZone() {
       window.location.href = '/?account_deleted=true';
     } catch (error) {
       console.error('Failed to delete account:', error);
-      toast.error('Failed to delete account. Please try again.');
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status !== 403) {
+        toast.error('Failed to delete account. Please try again.');
+      } else toast.error('You can not delete an admin user');
     } finally {
       setIsDeleting(false);
     }

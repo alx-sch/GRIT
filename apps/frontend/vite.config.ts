@@ -23,6 +23,8 @@ export default defineConfig(({ mode }) => {
       watch: {
         ignored: ['**/node_modules/**', '**/dist/**'],
       },
+      sourcemapIgnoreList: (sourcePath) => sourcePath.includes('node_modules'),
+
       proxy: {
         '/s3': {
           target: 'http://localhost:9000',

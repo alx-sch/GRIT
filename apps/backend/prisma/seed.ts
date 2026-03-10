@@ -112,6 +112,13 @@ async function main() {
   console.log('--- Seeding Users ---');
 
   const usersToCreate = [
+    {
+      email: 'admin@example.com',
+      name: 'Admin',
+      password: 'admin123',
+      image: null,
+      isAdmin: true,
+    },
     { email: 'alice@example.com', name: 'Alice', password: '0123456789', image: 'avatar-1.jpg' },
     { email: 'bob@example.com', name: 'Bob', password: '12345678pw', image: 'avatar-2.jpg' },
     { email: 'cindy@example.com', name: 'Cindy', password: '0123456789', image: null },
@@ -130,6 +137,7 @@ async function main() {
         password: hashedPassword,
         isConfirmed: true,
         confirmationToken: null,
+        isAdmin: u.isAdmin,
       },
     });
     console.log(`👤 Processed User: ${user.name} (${String(user.id)})`);
@@ -312,6 +320,7 @@ async function main() {
 
   const aliceFromDb = await prisma.user.findUnique({ where: { email: 'alice@example.com' } });
   const bobFromDb = await prisma.user.findUnique({ where: { email: 'bob@example.com' } });
+  const cindyFromDb = await prisma.user.findUnique({ where: { email: 'cindy@example.com' } });
   const party = await prisma.event.findFirst({ where: { title: 'Grit Launch Party' } });
 
   const attendees = [aliceFromDb, bobFromDb];
@@ -351,6 +360,91 @@ async function main() {
 
   for (const attendee of attendees) {
     if (attendee?.name) console.log(`✅ ${attendee.name} is now attending the Party`);
+  }
+
+  //////////////////////
+  // FRIENDSHIP SEEDING //
+  //////////////////////
+
+  console.log('--- Seeding Friendships ---');
+
+  if (!aliceFromDb || !bobFromDb || !cindyFromDb) {
+    throw new Error('Seed users not found');
+  }
+
+  // Alice <-> Bob friendship
+  const aliceAndBob = await prisma.friends.findFirst({
+    where: {
+      userId: aliceFromDb.id,
+      friendId: bobFromDb.id,
+    },
+  });
+  if (!aliceAndBob) {
+    await prisma.$transaction([
+      prisma.friends.create({
+        data: {
+          userId: aliceFromDb.id,
+          friendId: bobFromDb.id,
+        },
+      }),
+      prisma.friends.create({
+        data: {
+          userId: bobFromDb.id,
+          friendId: aliceFromDb.id,
+        },
+      }),
+    ]);
+    console.log(`👫 Alice & Bob are now friends`);
+  }
+
+  // Alice <-> Cindy friendship
+  const aliceAndCindy = await prisma.friends.findFirst({
+    where: {
+      userId: aliceFromDb.id,
+      friendId: cindyFromDb.id,
+    },
+  });
+  if (!aliceAndCindy) {
+    await prisma.$transaction([
+      prisma.friends.create({
+        data: {
+          userId: aliceFromDb.id,
+          friendId: cindyFromDb.id,
+        },
+      }),
+      prisma.friends.create({
+        data: {
+          userId: cindyFromDb.id,
+          friendId: aliceFromDb.id,
+        },
+      }),
+    ]);
+    console.log(`👫 Alice & Cindy are now friends`);
+  }
+
+  // Bob <-> Cindy friendship
+  const bobAndCindy = await prisma.friends.findFirst({
+    where: {
+      userId: bobFromDb.id,
+      friendId: cindyFromDb.id,
+    },
+  });
+  if (!bobAndCindy) {
+    await prisma.$transaction([
+      prisma.friends.create({
+        data: {
+          userId: bobFromDb.id,
+          friendId: cindyFromDb.id,
+        },
+      }),
+      prisma.friends.create({
+        data: {
+          userId: cindyFromDb.id,
+          friendId: bobFromDb.id,
+        },
+      }),
+    ]);
+    console.log(`👫 Bob & Cindy are now friends`);
   }
 }
 
