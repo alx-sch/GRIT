@@ -29,6 +29,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import type { NavRoute } from '@/types/navroute';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
+import { AnimatedUnderline } from '../ui/animatedUnderline';
 import { getAvatarImageUrl } from '@/lib/image_utils';
 import { chatStore } from '@/store/chatStore';
 import { useState } from 'react';
@@ -89,14 +90,13 @@ export function Navbar() {
                         to={link.path}
                         className={cn(
                           navigationMenuTriggerStyle(),
-                          'bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent',
-                          'rounded-none text-base font-bold h-auto px-4 border-b-2',
-                          isActive(link.path)
-                            ? 'border-foreground text-foreground'
-                            : 'border-transparent hover:border-foreground/50'
+                          'group relative bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent',
+                          'rounded-none text-base font-bold h-auto px-4 pb-1',
+                          isActive(link.path) ? 'text-foreground' : ''
                         )}
                       >
                         {link.label}
+                        <AnimatedUnderline isActive={isActive(link.path)} />
                       </Link>
                     </NavigationMenuLink>
                   </NavigationMenuItem>
@@ -110,16 +110,11 @@ export function Navbar() {
           )}
           {isLoggedIn && (
             <>
-              <Link to="/chat">
+              <Link to="/chat" className="relative group">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={cn(
-                    'relative rounded-none border-b-2 border-t-0 border-x-0 hover:bg-transparent',
-                    location.pathname.startsWith('/chat')
-                      ? 'border-foreground hover:border-foreground'
-                      : 'border-transparent hover:border-foreground/50'
-                  )}
+                  className="relative rounded-none border-0 hover:bg-transparent pb-1"
                   aria-label="Chat"
                 >
                   <MessageSquare className="h-6 w-6" strokeWidth={2.5} />
@@ -127,28 +122,30 @@ export function Navbar() {
                     <div className="absolute top-1 right-1 bg-primary w-2 h-2 rounded-full border border-card"></div>
                   )}
                 </Button>
+                <AnimatedUnderline isActive={location.pathname.startsWith('/chat')} />
               </Link>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className={cn(
-                      'flex items-center gap-2 h-10 w-auto px-3 rounded-none border-b-2 border-t-0 border-x-0 hover:bg-transparent',
-                      location.pathname.startsWith('/profile')
-                        ? 'border-foreground hover:border-foreground'
-                        : 'border-transparent hover:border-foreground/50'
-                    )}
-                  >
-                    <Avatar className="h-6 w-6">
-                      <AvatarImage
-                        src={user?.avatarKey ? getAvatarImageUrl(user.avatarKey) : undefined}
-                        seed={user?.id?.toString() ?? 'user'}
-                      />
-                      <AvatarFallback name={displayName} />
-                    </Avatar>
-                    <span className="normal-case text-base font-bold">{displayName}</span>
-                  </Button>
+                  <div className="relative group">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="flex items-center gap-2 h-10 w-auto px-3 rounded-none border-0 hover:bg-transparent pb-1"
+                    >
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage
+                          src={user?.avatarKey ? getAvatarImageUrl(user.avatarKey) : undefined}
+                          seed={user?.id?.toString() ?? 'user'}
+                        />
+                        <AvatarFallback name={displayName} />
+                      </Avatar>
+                      <span className="normal-case text-base font-bold">{displayName}</span>
+                    </Button>
+                    <AnimatedUnderline
+                      isActive={location.pathname.startsWith('/profile')}
+                      className="pointer-events-none"
+                    />
+                  </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem onClick={() => void navigate('/profile')}>
