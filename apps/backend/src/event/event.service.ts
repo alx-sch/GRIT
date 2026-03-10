@@ -20,6 +20,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConversationType, Prisma } from '@prisma/client';
+import { User } from '@/auth/interfaces/user.interface';
 
 @Injectable()
 export class EventService {
@@ -142,6 +143,13 @@ export class EventService {
         hasMore,
       },
     };
+  }
+
+  async eventGetAll(user: User) {
+    if (user.isAdmin) throw new UnauthorizedException('You do not have permission to access this.');
+    return await this.prisma.event.findMany({
+      orderBy: [{ startAt: 'asc' }, { id: 'asc' }],
+    });
   }
 
   async eventGetById(idOrSlug: string, userId?: number) {

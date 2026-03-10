@@ -228,8 +228,18 @@ Authorization: Bearer {{token}}
 
 // ========== ADMIN ========== //
 
-# Get ALL users
+# Get ALL users (sorted by name, asc)
 GET {{baseUrl}}/users/admin
+Authorization: Bearer {{token}}
+###
+
+# Get ALL locations (sorted by name, asc)
+GET {{baseUrl}}/locations/admin
+Authorization: Bearer {{token}}
+###
+
+# Get ALL events (sorted by startAt, asc)
+GET {{baseUrl}}/locations/admin
 Authorization: Bearer {{token}}
 ###
 

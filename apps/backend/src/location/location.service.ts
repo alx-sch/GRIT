@@ -95,7 +95,7 @@ export class LocationService {
   }
 
   async locationAdminGetAll(user: User) {
-    if (!user.isAdmin) throw new UnauthorizedException('You do not have permission to access');
+    if (!user.isAdmin) throw new UnauthorizedException('You do not have permission to access this.');
     return await this.prisma.location.findMany({
       orderBy: [{ name: 'asc' }, { id: 'asc' }],
     });

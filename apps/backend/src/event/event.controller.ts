@@ -31,6 +31,7 @@ import {
   ResEventDeleteSchema,
   ResEventPatchSchema,
   ResEventPostDraftSchema,
+  ResEventGetAllSchema,
 } from './event.schema';
 import { EventService } from './event.service';
 import { User } from '@/auth/interfaces/user.interface';
@@ -53,6 +54,15 @@ export class EventController {
   @ZodSerializerDto(ResEventGetPublishedSchema)
   eventGetPublished(@Query() query: ReqEventGetPublishedDto) {
     return this.eventService.eventGetPublished(query);
+  }
+
+  // Admin -> Get ALL events
+  @Get('admin')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(ResEventGetAllSchema)
+  eventGetAll(@GetUser() user: User) {
+    return this.eventService.eventGetAll(user);
   }
 
   // Get event by ID (numeric) OR by Slug (string)
