@@ -19,6 +19,8 @@ jobs:
           script: |
             cd /srv/grit
 
+            make vol-backup
+
             echo "Pulling latest changes..."
             git fetch origin
             git reset --hard origin/main
