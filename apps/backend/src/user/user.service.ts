@@ -14,6 +14,7 @@ import {
   NotFoundException,
   UnauthorizedException,
   ForbiddenException,
+  ConflictException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
@@ -133,6 +134,11 @@ export class UserService {
 
   async userPost(data: ReqUserPostDto): Promise<ResUserPostDto> {
     const token = randomBytes(32).toString('hex');
+
+    // A hard-coded check (since we use the name 'Unknown' for deleted users).
+    if (data.name.toUpperCase() === 'UNKNOWN') {
+      throw new ConflictException('Name unknown is reserved for deleted users');
+    }
 
     const user = await this.prisma.user.create({
       data: {

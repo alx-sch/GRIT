@@ -62,7 +62,7 @@ export async function registerPageAction({ request }: { request: Request }) {
     useAuthStore.getState().setAuthenticated(loginData.accessToken);
     useCurrentUserStore.getState().setUser(loginData.user);
 
-    // Clean up URL and redirect with success toast
+    // Clean up URL and redirect to /events with success toast
     return redirect('/events?logged_in=true');
   } catch (err) {
     if (axios.isAxiosError(err)) {
