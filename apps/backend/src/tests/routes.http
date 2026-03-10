@@ -228,6 +228,11 @@ Authorization: Bearer {{token}}
 
 // ========== ADMIN ========== //
 
+# Get ALL users
+GET {{baseUrl}}/users/admin
+Authorization: Bearer {{token}}
+###
+
 # Update event by event id
 PATCH {{baseUrl}}/events/1 HTTP/1.1
 Authorization: Bearer {{token}}

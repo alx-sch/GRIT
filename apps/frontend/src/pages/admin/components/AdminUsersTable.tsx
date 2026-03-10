@@ -41,28 +41,33 @@ export function AdminUsersTable({ initialUsers }: AdminUsersTableProps) {
   };
 
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="border rounded-lg overflow-x-auto">
       <table className="w-full text-sm">
         <thead className="bg-muted">
           <tr>
-            <th className="px-4 py-2 text-left">Name</th>
-            <th className="px-4 py-2 text-left">Email</th>
-            <th className="px-4 py-2 text-right">Actions</th>
+            <th className="px-2 sm:px-4 py-2 text-left">Name</th>
+            <th className="px-2 sm:px-4 py-2 text-left hidden sm:table-cell">Email</th>
+            <th className="px-2 sm:px-4 py-2 text-right">Actions</th>
           </tr>
         </thead>
         <tbody>
           {users.length === 0 ? (
             <tr>
-              <td colSpan={3} className="px-4 py-2 text-center text-muted-foreground">
+              <td colSpan={3} className="px-2 sm:px-4 py-2 text-center text-muted-foreground">
                 No users found
               </td>
             </tr>
           ) : (
             users.map((user) => (
               <tr key={user.id} className="border-t hover:bg-muted/50">
-                <td className="px-4 py-2">{user.name ?? 'N/A'}</td>
-                <td className="px-4 py-2">{user.email}</td>
-                <td className="px-4 py-2">
+                <td className="px-2 sm:px-4 py-2">
+                  <div>
+                    <p className="font-medium">{user.name ?? 'N/A'}</p>
+                    <p className="text-xs text-muted-foreground sm:hidden">{user.email}</p>
+                  </div>
+                </td>
+                <td className="px-2 sm:px-4 py-2 hidden sm:table-cell">{user.email}</td>
+                <td className="px-2 sm:px-4 py-2">
                   <div className="flex justify-end">
                     {/* Only show delete if NOT admin */}
                     {!user.isAdmin ? (

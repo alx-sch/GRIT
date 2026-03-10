@@ -34,7 +34,7 @@ import { ZodSerializerDto } from 'nestjs-zod';
 import { ApiConsumes, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { GetUser } from '@/auth/guards/get-user.decorator';
-import { ResUserGetAllSchema } from '@grit/schema';
+import { ResUserGetAllSchema, ResUserAdminGetAllSchema } from '@grit/schema';
 import { User } from '@/auth/interfaces/user.interface';
 
 @Controller('users')
@@ -134,6 +134,15 @@ export class UserController {
   ): Promise<ResUserBaseDto> {
     console.log('File received:', file.originalname);
     return await this.userService.userUpdateAvatar(userId, file);
+  }
+
+  // ADMIN -> Get ALL users
+  @Get('admin')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(ResUserAdminGetAllSchema)
+  userAdminGetAll(@GetUser() user: User) {
+    return this.userService.userAdminGetAll(user);
   }
 
   // ADMIN -> delete avatar (reset to default)

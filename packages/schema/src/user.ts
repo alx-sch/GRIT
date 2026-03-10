@@ -30,7 +30,6 @@ export const ResUserPublicSchema = z.object({
   id: z.number().int().positive(),
   name: z.string(),
   avatarKey: z.string().nullable().optional(),
-  isAdmin: z.boolean().default(false),
 });
 export type ResUserPublic = z.infer<typeof ResUserPublicSchema>;
 
@@ -40,3 +39,7 @@ export const ResUserGetAllSchema = z.object({
   pagination: z.object({ nextCursor: z.string().nullable(), hasMore: z.boolean() }),
 });
 export type ResUserGetAll = z.infer<typeof ResUserGetAllSchema>;
+
+// Admin get all users
+export const ResUserAdminGetAllSchema = z.array(ResUserBaseSchema);
+export type ResUserAdminGetAll = z.infer<typeof ResUserAdminGetAllSchema>;

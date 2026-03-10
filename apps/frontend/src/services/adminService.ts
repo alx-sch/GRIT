@@ -7,6 +7,7 @@ export interface AdminUser {
   name: string;
   avatarKey?: string | null;
   isAdmin: boolean;
+  email: string;
 }
 
 interface PaginatedResponse<T> {
@@ -21,11 +22,9 @@ const ADMIN_FETCH_LIMIT = 100;
 
 export const adminService = {
   // Users
-  async getAllUsers() {
-    const response = await api.get<PaginatedResponse<AdminUser>>(
-      `/users?limit=${ADMIN_FETCH_LIMIT}`
-    );
-    return response.data.data;
+  async getAllUsers(): Promise<AdminUser[]> {
+    const response = await api.get<AdminUser[]>(`/users/admin`);
+    return response.data;
   },
 
   async deleteUser(userId: number) {

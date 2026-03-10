@@ -453,6 +453,15 @@ export class UserService {
 
   // ====== ADMIN SERVICES ======= //
 
+  async userAdminGetAll(user: User) {
+    if (!user.isAdmin) throw new UnauthorizedException('You do not have permission to access');
+    const users = await this.prisma.user.findMany();
+    return users.map((u) => ({
+      ...u,
+      createdAt: u.createdAt.toISOString(),
+    }));
+  }
+
   async userDeleteAvatarById(targetId: number, user: User) {
     if (user.id !== targetId && !user.isAdmin) {
       throw new UnauthorizedException('You do not have permission delete this avatar');
