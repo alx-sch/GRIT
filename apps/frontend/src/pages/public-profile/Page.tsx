@@ -5,6 +5,7 @@ import { Heading, Text } from '@/components/ui/typography';
 import { getAvatarImageUrl, getEventImageUrl } from '@/lib/image_utils';
 import { friendService } from '@/services/friendService';
 import { userService } from '@/services/userService';
+import { useAuthStore } from '@/store/authStore';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import type { FriendshipStatus } from '@/types/friends';
 import type { ResUserPublicEvents } from '@grit/schema';
@@ -25,12 +26,18 @@ export const publicProfileLoader = async ({ params }: LoaderFunctionArgs) => {
     userService.getUserEvents(id),
   ]);
 
+  // Only fetch friendship status if user is logged in
   let friendshipStatus: FriendshipStatus = 'none';
-  try {
-    const status = await userService.getFriendshipStatus(id);
-    friendshipStatus = status;
-  } catch {
-    // User not logged in or error - friendship status will remain 'none'
+  const token = useAuthStore.getState().token;
+  if (token) {
+    try {
+      const status = await userService.getFriendshipStatus(id);
+      friendshipStatus = status;
+    } catch (error) {
+      // Network error or other issue - log but don't block page load
+      console.error('Failed to fetch friendship status:', error);
+      friendshipStatus = 'none';
+    }
   }
 
   return { user, events, friendshipStatus };
@@ -55,10 +62,13 @@ export default function PublicProfilePage() {
     try {
       if (friendshipStatus === 'none') {
         await friendService.sendRequest(data.user.id);
+        // Only update UI after successful API response
         setFriendshipStatus('pending_sent');
         toast.success('Friend request sent');
       }
-    } catch {
+    } catch (error) {
+      // Don't update UI on error - keep showing "Add Friend" button
+      console.error('Failed to send friend request:', error);
       toast.error('Failed to send friend request');
     } finally {
       setIsLoading(false);

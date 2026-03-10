@@ -4,6 +4,7 @@ import { Heading, Text } from '@/components/ui/typography';
 import { getAvatarImageUrl } from '@/lib/image_utils';
 import { ProfileSidebar } from './components/ProfileSidebar';
 import { ProfileInfo } from './components/ProfileInfo';
+import { PrivacySettings } from './components/PrivacySettings';
 import { MyEvents } from './components/MyEvents';
 import { ThemeSettings } from './components/ThemeSettings';
 import { DangerZone } from './components/DangerZone';
@@ -54,6 +55,8 @@ export function Page() {
 
         <div className="flex-1 space-y-6">
           <ProfileInfo user={user} onProfileUpdate={handleUserUpdate} />
+
+          <PrivacySettings user={user} onPrivacyUpdate={handleUserUpdate} />
 
           <ThemeSettings />
 

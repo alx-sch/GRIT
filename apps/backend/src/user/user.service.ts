@@ -316,6 +316,7 @@ export class UserService {
     if (data.bio !== undefined) newData.bio = data.bio;
     if (data.city !== undefined) newData.city = data.city;
     if (data.country !== undefined) newData.country = data.country;
+    if (data.isProfilePublic !== undefined) newData.isProfilePublic = data.isProfilePublic;
 
     if (data.attending) {
       const attendingOps: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput = {};
@@ -481,7 +482,7 @@ export class UserService {
     };
   }
 
-  async userGetPublic(id: number) {
+  async userGetPublic(id: number, requestingUserId?: number) {
     const user = await this.prisma.user.findUnique({
       where: { id },
       select: {
@@ -492,6 +493,7 @@ export class UserService {
         bio: true,
         city: true,
         country: true,
+        isProfilePublic: true,
       },
     });
 
@@ -499,13 +501,73 @@ export class UserService {
       return null;
     }
 
+    // If profile is private, only allow access to:
+    // 1. The user themselves
+    // 2. Their friends
+    if (!user.isProfilePublic) {
+      if (!requestingUserId || requestingUserId !== id) {
+        // Check if they are friends
+        if (requestingUserId) {
+          const areFriends = await this.prisma.friends.findFirst({
+            where: {
+              OR: [
+                { userId: requestingUserId, friendId: id },
+                { userId: id, friendId: requestingUserId },
+              ],
+            },
+          });
+          if (!areFriends) {
+            return null; // Return null to indicate "not found" (privacy protection)
+          }
+        } else {
+          return null; // Not logged in and profile is private
+        }
+      }
+    }
+
     return {
-      ...user,
+      id: user.id,
+      name: user.name,
+      avatarKey: user.avatarKey,
       createdAt: user.createdAt.toISOString(),
+      bio: user.bio,
+      city: user.city,
+      country: user.country,
     };
   }
 
-  async userGetPublicEvents(userId: number) {
+  async userGetPublicEvents(userId: number, requestingUserId?: number) {
+    // First check if the user's profile is accessible
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { isProfilePublic: true },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    // If profile is private, check access permissions
+    if (!user.isProfilePublic) {
+      if (!requestingUserId || requestingUserId !== userId) {
+        if (requestingUserId) {
+          const areFriends = await this.prisma.friends.findFirst({
+            where: {
+              OR: [
+                { userId: requestingUserId, friendId: userId },
+                { userId, friendId: requestingUserId },
+              ],
+            },
+          });
+          if (!areFriends) {
+            return null;
+          }
+        } else {
+          return null;
+        }
+      }
+    }
+
     const events = await this.prisma.event.findMany({
       where: {
         authorId: userId,

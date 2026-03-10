@@ -61,13 +61,6 @@ export class FriendsController {
     return this.friendsService.listOutgoing(userId, query);
   }
 
-  // List friends
-  @Get()
-  @ZodSerializerDto(ResListFriendDto)
-  listFriends(@Query() query: ReqFriendsGetAllDto, @GetUser('id') userId: number) {
-    return this.friendsService.listFriends(userId, query);
-  }
-
   // Get friendship status with a specific user
   @Get('status/:userId')
   @ZodSerializerDto(ResFriendshipStatusDto)
@@ -81,5 +74,12 @@ export class FriendsController {
     }
     const status = await this.friendsService.getFriendshipStatus(currentUserId, targetUserId);
     return { status };
+  }
+
+  // List friends
+  @Get()
+  @ZodSerializerDto(ResListFriendDto)
+  listFriends(@Query() query: ReqFriendsGetAllDto, @GetUser('id') userId: number) {
+    return this.friendsService.listFriends(userId, query);
   }
 }

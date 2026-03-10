@@ -21,6 +21,7 @@ model User {
   googleId               String?
   // Status Flags
   isConfirmed            Boolean                   @default(false)
+  isProfilePublic        Boolean                   @default(true)
   // Relations
   events                 Event[]                   @relation("EventAuthor")
   locations              Location[]

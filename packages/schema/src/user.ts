@@ -38,6 +38,7 @@ export const ResUserBaseSchema = z.object({
   city: z.string().nullable().optional(),
   country: z.string().nullable().optional(),
   isConfirmed: z.boolean().default(false),
+  isProfilePublic: z.boolean().default(true),
   attending: z.array(ResUserEventSchema).default([]),
   createdAt: z.iso.datetime(),
 });

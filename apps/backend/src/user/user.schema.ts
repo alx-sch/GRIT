@@ -42,6 +42,7 @@ export const ReqUserPatchSchema = z.strictObject({
   bio: z.string().max(150).optional(),
   city: z.string().optional(),
   country: z.string().optional(),
+  isProfilePublic: z.boolean().optional(),
   attending: z
     .strictObject({
       connect: z.array(z.number().int().positive()).optional(),

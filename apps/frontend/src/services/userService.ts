@@ -4,7 +4,7 @@ import {
   ResMyEvents,
   ResUserPublicSchema,
   ResUserPublicEventsSchema,
-  FriendshipStatusSchema,
+  ResFriendshipStatusSchema,
 } from '@grit/schema';
 
 interface GetUsersParams {
@@ -53,6 +53,7 @@ export const userService = {
     bio?: string | null;
     city?: string | null;
     country?: string | null;
+    isProfilePublic?: boolean;
   }): Promise<UserBase> => {
     const response = await api.patch<UserBase>('users/me', data);
     return response.data;
@@ -89,7 +90,8 @@ export const userService = {
   },
 
   getFriendshipStatus: async (id: number) => {
-    const response = await api.get<{ status: string }>(`/users/me/friends/status/${id}`);
-    return FriendshipStatusSchema.parse(response.data.status);
+    const response = await api.get(`/users/me/friends/status/${id}`);
+    const parsed = ResFriendshipStatusSchema.parse(response.data);
+    return parsed.status;
   },
 };

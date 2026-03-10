@@ -42,9 +42,20 @@ export const router = createBrowserRouter([
       },
       {
         path: 'users',
-        Component: Users,
-        loader: usersLoader,
-        handle: { title: 'Users' },
+        children: [
+          {
+            index: true,
+            Component: Users,
+            loader: usersLoader,
+            handle: { title: 'Users' },
+          },
+          {
+            path: ':id',
+            Component: PublicProfilePage,
+            loader: publicProfileLoader,
+            handle: { title: 'Profile' },
+          },
+        ],
       },
       {
         path: 'events',
@@ -57,19 +68,25 @@ export const router = createBrowserRouter([
           },
           {
             path: ':id',
-            Component: EventPage,
-            loader: eventLoader,
-          },
-        ],
-      },
-      {
-        path: 'users',
-        children: [
-          {
-            path: ':id',
-            Component: PublicProfilePage,
-            loader: publicProfileLoader,
-            handle: { title: 'Profile' },
+            children: [
+              {
+                index: true,
+                Component: EventPage,
+                loader: eventLoader,
+              },
+              {
+                path: 'edit',
+                Component: ProtectedLayout,
+                loader: protectedLayoutLoader,
+                children: [
+                  {
+                    index: true,
+                    Component: EditEventPage,
+                    loader: editEventLoader,
+                  },
+                ],
+              },
+            ],
           },
         ],
       },
@@ -143,61 +160,6 @@ export const router = createBrowserRouter([
             loader: eventCreationLoader,
           },
         ],
-      },
-      {
-        path: 'design',
-        Component: Design,
-        handle: { title: 'Design' },
-      },
-      {
-        path: 'events',
-        children: [
-          {
-            index: true,
-            Component: EventFeedPage,
-            loader: eventsLoader,
-            handle: { title: 'Events' },
-          },
-          {
-            path: ':id',
-            children: [
-              {
-                index: true,
-                Component: EventPage,
-                loader: eventLoader,
-              },
-              {
-                path: 'edit',
-                Component: ProtectedLayout,
-                loader: protectedLayoutLoader,
-                children: [
-                  {
-                    index: true,
-                    Component: EditEventPage,
-                    loader: editEventLoader,
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-      {
-        path: 'login',
-        Component: LoginPage,
-        action: loginPageAction,
-        loader: loginPageLoader,
-      },
-      {
-        path: 'logout',
-        Component: LogoutPage,
-        loader: logoutPageLoader,
-      },
-      {
-        path: 'users',
-        Component: Users,
-        loader: usersLoader,
-        handle: { title: 'Users' },
       },
     ],
   },

@@ -15,6 +15,7 @@ import {
   Delete,
   UnauthorizedException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -31,6 +32,7 @@ import { UserService } from '@/user/user.service';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { ApiConsumes, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { JwtAuthOptionalGuard } from '@/auth/guards/jwt-auth-optional.guard';
 import { GetUser } from '@/auth/guards/get-user.decorator';
 import { ResUserGetAllSchema } from '@grit/schema';
 
@@ -132,12 +134,13 @@ export class UserController {
   }
 
   @Get(':id')
-  async getUserById(@Param('id') id: string) {
+  @UseGuards(JwtAuthOptionalGuard)
+  async getUserById(@Param('id') id: string, @GetUser('id') requestingUserId?: number) {
     const userId = parseInt(id, 10);
     if (isNaN(userId)) {
       throw new NotFoundException('User not found');
     }
-    const user = await this.userService.userGetPublic(userId);
+    const user = await this.userService.userGetPublic(userId, requestingUserId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -145,15 +148,16 @@ export class UserController {
   }
 
   @Get(':id/events')
-  async getUserEvents(@Param('id') id: string) {
+  @UseGuards(JwtAuthOptionalGuard)
+  async getUserEvents(@Param('id') id: string, @GetUser('id') requestingUserId?: number) {
     const userId = parseInt(id, 10);
     if (isNaN(userId)) {
       throw new NotFoundException('User not found');
     }
-    const user = await this.userService.userGetPublic(userId);
-    if (!user) {
-      throw new NotFoundException('User not found');
+    const events = await this.userService.userGetPublicEvents(userId, requestingUserId);
+    if (events === null) {
+      throw new ForbiddenException('This profile is private');
     }
-    return await this.userService.userGetPublicEvents(userId);
+    return events;
   }
 }

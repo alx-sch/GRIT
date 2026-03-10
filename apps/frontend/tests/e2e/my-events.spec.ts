@@ -101,7 +101,7 @@ test.describe('My Events Page', () => {
   });
 
   test('should display all events with correct badges', async ({ page }) => {
-    await page.goto('/my-events');
+    await page.goto('/profile/my-events');
 
     // Check attending event in Upcoming tab (default)
     await expect(page.getByText("Event I'm Attending")).toBeVisible();
@@ -122,7 +122,7 @@ test.describe('My Events Page', () => {
   });
 
   test('should open publish dialog when Publish button is clicked', async ({ page }) => {
-    await page.goto('/my-events');
+    await page.goto('/profile/my-events');
 
     // Switch to Organizing tab to see draft events
     await page.getByRole('tab', { name: /organizing/i }).click();
@@ -143,7 +143,7 @@ test.describe('My Events Page', () => {
   });
 
   test('should close publish dialog when Cancel is clicked', async ({ page }) => {
-    await page.goto('/my-events');
+    await page.goto('/profile/my-events');
 
     // Switch to Organizing tab
     await page.getByRole('tab', { name: /organizing/i }).click();
@@ -214,7 +214,7 @@ test.describe('My Events Page', () => {
       }
     });
 
-    await page.goto('/my-events');
+    await page.goto('/profile/my-events');
 
     // Switch to Organizing tab
     await page.getByRole('tab', { name: /organizing/i }).click();
@@ -233,7 +233,7 @@ test.describe('My Events Page', () => {
   });
 
   test('should open unpublish dialog when Unpublish button is clicked', async ({ page }) => {
-    await page.goto('/my-events');
+    await page.goto('/profile/my-events');
 
     // Switch to Organizing tab
     await page.getByRole('tab', { name: /organizing/i }).click();
@@ -263,7 +263,7 @@ test.describe('My Events Page', () => {
       }
     });
 
-    await page.goto('/my-events');
+    await page.goto('/profile/my-events');
 
     // Switch to Organizing tab
     await page.getByRole('tab', { name: /organizing/i }).click();
@@ -282,7 +282,7 @@ test.describe('My Events Page', () => {
   });
 
   test('should show Edit button only for organizer events', async ({ page }) => {
-    await page.goto('/my-events');
+    await page.goto('/profile/my-events');
 
     // First check attending event in Upcoming tab (should NOT have Edit button)
     await expect(page.getByText("Event I'm Attending")).toBeVisible();
@@ -301,7 +301,7 @@ test.describe('My Events Page', () => {
   });
 
   test('should show Details button for all events', async ({ page }) => {
-    await page.goto('/my-events');
+    await page.goto('/profile/my-events');
 
     // Check attending event in Upcoming tab
     await expect(page.getByText("Event I'm Attending")).toBeVisible();
@@ -317,7 +317,7 @@ test.describe('My Events Page', () => {
   });
 
   test('should make event title clickable', async ({ page }) => {
-    await page.goto('/my-events');
+    await page.goto('/profile/my-events');
 
     // Switch to Organizing tab
     await page.getByRole('tab', { name: /organizing/i }).click();
@@ -337,7 +337,7 @@ test.describe('My Events Page', () => {
       } as never;
     });
 
-    await page.goto('/my-events');
+    await page.goto('/profile/my-events');
 
     // Switch to Organizing tab
     await page.getByRole('tab', { name: /organizing/i }).click();
@@ -354,7 +354,7 @@ test.describe('My Events Page', () => {
   });
 
   test('should sort events with drafts first by default', async ({ page }) => {
-    await page.goto('/my-events');
+    await page.goto('/profile/my-events');
 
     // Switch to Organizing tab
     await page.getByRole('tab', { name: /organizing/i }).click();
@@ -378,14 +378,14 @@ test.describe('My Events Page', () => {
       await route.fulfill({ json: [] });
     });
 
-    await page.goto('/my-events');
+    await page.goto('/profile/my-events');
 
     // Should show empty state
     await expect(page.getByText(/no events yet/i)).toBeVisible();
   });
 
   test('should show dashed border for draft events', async ({ page }) => {
-    await page.goto('/my-events');
+    await page.goto('/profile/my-events');
 
     // Switch to Organizing tab to see draft events
     await page.getByRole('tab', { name: /organizing/i }).click();
@@ -398,7 +398,7 @@ test.describe('My Events Page', () => {
   });
 
   test('should display event date and location', async ({ page }) => {
-    await page.goto('/my-events');
+    await page.goto('/profile/my-events');
 
     // Switch to Organizing tab to see draft events
     await page.getByRole('tab', { name: /organizing/i }).click();
