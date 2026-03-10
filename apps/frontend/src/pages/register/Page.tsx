@@ -54,11 +54,16 @@ export async function registerPageAction({ request }: { request: Request }) {
     // Exclude confirmPassword
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { confirmPassword, ...registerData } = parsedData.data;
-    const data = await authService.register(registerData);
+    // Register
+    await authService.register(registerData);
 
-    useAuthStore.getState().setAuthenticated(data.accessToken);
-    useCurrentUserStore.getState().setUser(data.user);
-    return redirect('/events?signup_success=true');
+    // Log in
+    const loginData = await authService.login(parsedData.data);
+    useAuthStore.getState().setAuthenticated(loginData.accessToken);
+    useCurrentUserStore.getState().setUser(loginData.user);
+
+    // Clean up URL and redirect with success toast
+    return redirect('/events?logged_in=true');
   } catch (err) {
     if (axios.isAxiosError(err)) {
       if (err.response?.status === 409) {
