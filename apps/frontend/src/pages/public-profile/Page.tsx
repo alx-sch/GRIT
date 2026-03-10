@@ -1,5 +1,6 @@
 import { BackButton } from '@/components/ui/backButton';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Heading, Text } from '@/components/ui/typography';
 import { getAvatarImageUrl, getEventImageUrl } from '@/lib/image_utils';
@@ -143,9 +144,13 @@ export default function PublicProfilePage() {
       </div>
 
       <Tabs defaultValue="info" className="w-full">
-        <TabsList>
-          <TabsTrigger value="info">Info</TabsTrigger>
-          <TabsTrigger value="events">Events ({data.events.length})</TabsTrigger>
+        <TabsList variant="brutalist" className="w-full md:w-auto">
+          <TabsTrigger value="info" variant="brutalist" className="text-xs md:text-sm">
+            Info
+          </TabsTrigger>
+          <TabsTrigger value="events" variant="brutalist" className="text-xs md:text-sm">
+            Events ({data.events.length})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="info" className="mt-6">
@@ -169,7 +174,7 @@ export default function PublicProfilePage() {
               <Text className="text-muted-foreground">No public events hosted yet.</Text>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid gap-6 justify-start md:grid-cols-2 lg:grid-cols-3">
               {data.events.map((event) => (
                 <PublicEventCard key={event.id} event={event} />
               ))}
@@ -182,33 +187,27 @@ export default function PublicProfilePage() {
 }
 
 function PublicEventCard({ event }: { event: ResUserPublicEvents[number] }) {
-  const eventDate = format(new Date(event.startAt), 'MMM d, yyyy');
-  const eventTime = format(new Date(event.startAt), 'h:mm a');
-
-  const locationText = event.location
-    ? [event.location.name, event.location.city, event.location.country].filter(Boolean).join(', ')
-    : 'Location TBD';
-
   const imageUrl = getEventImageUrl({ id: event.id, title: event.title, imageKey: event.imageKey });
 
   return (
-    <a href={`/events/${event.slug}`} className="block">
-      <div className="bg-card rounded-lg border overflow-hidden hover:shadow-md transition-shadow">
-        <div className="h-40 overflow-hidden">
-          <img src={imageUrl} alt={event.title} className="w-full h-full object-cover" />
-        </div>
-        <div className="p-4 space-y-2">
-          <Heading level={4} className="line-clamp-1">
+    <a href={`/events/${event.slug}`}>
+      <Card className="w-full h-full flex flex-col rounded border-3 mx-auto hover:-translate-y-1 transition-transform duration-200 max-w-100">
+        <CardHeader>
+          <img src={imageUrl} alt={event.title} className="w-full aspect-square object-cover" />
+        </CardHeader>
+        <CardContent className="px-4 pb-4 pt-0 space-y-3 overflow-hidden">
+          <CardTitle className="font-bold text-xl md:text-3xl line-clamp-2" title={event.title}>
             {event.title}
-          </Heading>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Text>{eventDate}</Text>
-            <Text>•</Text>
-            <Text>{eventTime}</Text>
-          </div>
-          <Text className="text-sm text-muted-foreground line-clamp-1">{locationText}</Text>
-        </div>
-      </div>
+          </CardTitle>
+          <CardDescription
+            className="font-heading font-medium text-base md:text-xl line-clamp-2 min-w-0"
+            title={`${format(event.startAt, 'EEE, MMM d')} @ ${event.location?.name ?? event.location?.city ?? 'TBA'}`}
+          >
+            {format(event.startAt, 'EEE, MMM d')} @{' '}
+            {event.location?.name ?? event.location?.city ?? 'TBA'}
+          </CardDescription>
+        </CardContent>
+      </Card>
     </a>
   );
 }
