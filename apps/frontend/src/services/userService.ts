@@ -1,7 +1,7 @@
 import api from '@/lib/api';
 import type { UserBase, UserResponse } from '@/types/user';
 import {
-  ResUserEvents,
+  ResMyEvents,
   ResUserPublicSchema,
   ResUserPublicEventsSchema,
   FriendshipStatusSchema,
@@ -31,8 +31,8 @@ export const userService = {
     return response.data;
   },
 
-  getMyEvents: async (): Promise<ResUserEvents> => {
-    const response = await api.get<ResUserEvents>('users/me/events');
+  getMyEvents: async (): Promise<ResMyEvents> => {
+    const response = await api.get<ResMyEvents>('users/me/events');
     return response.data;
   },
 

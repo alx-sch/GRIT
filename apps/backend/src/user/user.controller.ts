@@ -24,7 +24,7 @@ import {
   ReqUserGetAllDto,
   ResUserPatchSchema,
   ReqUserPatchDto,
-  ResUserEventsDto,
+  ResMyEventsDto,
   ResUserDeleteSchema,
 } from '@/user/user.schema';
 import { UserService } from '@/user/user.service';
@@ -77,7 +77,7 @@ export class UserController {
   @Get('me/events')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @ZodSerializerDto(ResUserEventsDto)
+  @ZodSerializerDto(ResMyEventsDto)
   async getMyEvents(@GetUser('id') userId: number) {
     return await this.userService.userGetEvents(userId);
   }

@@ -11,10 +11,10 @@ import { locationService } from '@/services/locationService';
 import { EventResponse } from '@/types/event';
 import { LocationBase } from '@/types/location';
 import { format, parse } from 'date-fns';
-import { ArrowUpDown, MapPinIcon } from 'lucide-react';
+import { ArrowUpDown, MapPinIcon, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { DateRange } from 'react-day-picker';
-import { LoaderFunctionArgs, useSearchParams } from 'react-router-dom';
+import { LoaderFunctionArgs, useNavigate, useSearchParams } from 'react-router-dom';
 import { Pagination, useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 
 const buildEventQuery = (searchParams: URLSearchParams, cursor?: string | null) => ({
@@ -63,6 +63,7 @@ export default function EventFeedPage() {
   const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '');
 
   const debouncedSearch = useDebounce(searchInput, 500);
+  const navigate = useNavigate();
 
   // Events infinite scroll
   const {
@@ -172,11 +173,17 @@ export default function EventFeedPage() {
   };
 
   return (
-    <>
-      <div className="space-y-2">
-        <Heading level={1} className="text-3xl md:text-4xl">
-          Upcoming events
-        </Heading>
+    <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <Heading>Upcoming Events</Heading>
+        <Button
+          onClick={() => {
+            void navigate('/create/event');
+          }}
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Create Event
+        </Button>
       </div>
 
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-2">
@@ -268,6 +275,6 @@ export default function EventFeedPage() {
           ) : null}
         </div>
       )}
-    </>
+    </div>
   );
 }
