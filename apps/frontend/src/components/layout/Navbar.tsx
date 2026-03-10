@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, User, LogOut, Calendar, ChevronDown, Users } from 'lucide-react';
+import { Menu, X, User, LogOut, Calendar, ChevronDown, Users, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   NavigationMenu,
@@ -50,15 +50,18 @@ export function Navbar() {
     return new Date(conv.lastReadAt) < new Date(conv.lastMessage.createdAt);
   });
 
-  if (isLoggedIn) {
-    navConfig.push({ path: '/chat', label: 'Chat' });
-  }
   if (!isLoggedIn) {
     navConfig.push({ path: '/login', label: 'Login' });
   }
 
   const location = useLocation();
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => {
+    // For /chat, match if pathname starts with /chat (to handle /chat/:id routes)
+    if (path === '/chat') {
+      return location.pathname.startsWith('/chat');
+    }
+    return location.pathname === path;
+  };
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -93,11 +96,6 @@ export function Navbar() {
                             : 'border-transparent hover:border-foreground/50'
                         )}
                       >
-                        {link.label === 'Chat' && hasUnread ? (
-                          <div className="bg-primary w-1.5 h-1.5 rounded-full absolute top-1 right-1"></div>
-                        ) : (
-                          ''
-                        )}
                         {link.label}
                       </Link>
                     </NavigationMenuLink>
@@ -111,42 +109,71 @@ export function Navbar() {
             </Link>
           )}
           {isLoggedIn && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2 h-10 px-3">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage
-                      src={user?.avatarKey ? getAvatarImageUrl(user.avatarKey) : undefined}
-                      seed={user?.id?.toString() ?? 'user'}
-                    />
-                    <AvatarFallback name={displayName} />
-                  </Avatar>
-                  <span className="normal-case text-base font-bold">{displayName}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={() => void navigate('/profile')}>
-                  <User className="mr-2 h-4 w-4" />
-                  Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => void navigate('/my-events')}>
-                  <Calendar className="mr-2 h-4 w-4" />
-                  My events
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => void navigate('/my-friends')}>
-                  <Users className="mr-2 h-4 w-4" />
-                  My friends
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={handleLogout}
-                  className="text-red-600 focus:text-red-600"
+            <>
+              <Link to="/chat">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={cn(
+                    'relative rounded-none border-b-2 border-t-0 border-x-0 hover:bg-transparent',
+                    location.pathname.startsWith('/chat')
+                      ? 'border-foreground hover:border-foreground'
+                      : 'border-transparent hover:border-foreground/50'
+                  )}
+                  aria-label="Chat"
                 >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <MessageSquare className="h-6 w-6" strokeWidth={2.5} />
+                  {hasUnread && (
+                    <div className="absolute top-1 right-1 bg-primary w-2 h-2 rounded-full border border-card"></div>
+                  )}
+                </Button>
+              </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn(
+                      'flex items-center gap-2 h-10 w-auto px-3 rounded-none border-b-2 border-t-0 border-x-0 hover:bg-transparent',
+                      location.pathname.startsWith('/profile')
+                        ? 'border-foreground hover:border-foreground'
+                        : 'border-transparent hover:border-foreground/50'
+                    )}
+                  >
+                    <Avatar className="h-6 w-6">
+                      <AvatarImage
+                        src={user?.avatarKey ? getAvatarImageUrl(user.avatarKey) : undefined}
+                        seed={user?.id?.toString() ?? 'user'}
+                      />
+                      <AvatarFallback name={displayName} />
+                    </Avatar>
+                    <span className="normal-case text-base font-bold">{displayName}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => void navigate('/profile')}>
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => void navigate('/profile/my-events')}>
+                    <Calendar className="mr-2 h-4 w-4" />
+                    My events
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => void navigate('/profile/my-friends')}>
+                    <Users className="mr-2 h-4 w-4" />
+                    My friends
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="text-red-600 focus:text-red-600"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
           )}
         </div>
 
@@ -199,7 +226,7 @@ export function Navbar() {
                     <DropdownMenuItem
                       onClick={() => {
                         setMobileMenuOpen(false);
-                        void navigate('/my-events');
+                        void navigate('/profile/my-events');
                       }}
                     >
                       <Calendar className="mr-2 h-4 w-4" />
@@ -208,7 +235,7 @@ export function Navbar() {
                     <DropdownMenuItem
                       onClick={() => {
                         setMobileMenuOpen(false);
-                        void navigate('/my-friends');
+                        void navigate('/profile/my-friends');
                       }}
                     >
                       <Users className="mr-2 h-4 w-4" />
@@ -257,6 +284,25 @@ export function Navbar() {
                       </Link>
                     </SheetClose>
                   ))}
+                {isLoggedIn && (
+                  <SheetClose asChild>
+                    <Link
+                      to="/chat"
+                      className={cn(
+                        'text-xl font-bold px-2 py-2 transition-all relative',
+                        location.pathname.startsWith('/chat')
+                          ? 'bg-foreground text-background'
+                          : 'hover:underline underline-offset-4'
+                      )}
+                    >
+                      <span className="flex items-center gap-2">
+                        <MessageSquare className="h-5 w-5" />
+                        Chat
+                        {hasUnread && <div className="bg-primary w-2 h-2 rounded-full"></div>}
+                      </span>
+                    </Link>
+                  </SheetClose>
+                )}
               </div>
             </SheetContent>
           </Sheet>

@@ -1,11 +1,10 @@
+import { BackButton } from '@/components/ui/backButton';
 import { Heading } from '@/components/ui/typography';
+import EventForm from '@/features/event/EventForm';
+import { Pagination, useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { locationService } from '@/services/locationService';
 import { LocationBase } from '@/types/location';
-import EventForm from '@/features/event/EventForm';
-import { useInfiniteScroll, Pagination } from '@/hooks/useInfiniteScroll';
-import { useNavigate } from 'react-router-dom';
-import { ChevronLeft } from 'lucide-react';
 
 export const eventCreationLoader = async () => {
   const response = await locationService.getLocations();
@@ -20,8 +19,6 @@ export default function CreateEventPage() {
     data: LocationBase[];
     pagination: Pagination;
   }>();
-
-  const navigate = useNavigate();
 
   const {
     items: locationItems,
@@ -42,15 +39,7 @@ export default function CreateEventPage() {
 
   return (
     <div className="space-y-8">
-      <button
-        onClick={() => {
-          void navigate(-1);
-        }}
-        className="flex items-center gap-1 uppercase text-primary font-heading text-lg hover:text-foreground transition-color w-fit"
-      >
-        <ChevronLeft className="h-4 w-4" />
-        Back
-      </button>
+      <BackButton />
       <div className="space-y-6">
         <div className="space-y-2">
           <Heading level={1} className="text-3xl md:text-4xl">

@@ -1,17 +1,18 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BackButton } from '@/components/ui/backButton';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Heading, Text } from '@/components/ui/typography';
 import { getAvatarImageUrl, getEventImageUrl } from '@/lib/image_utils';
-import { userService } from '@/services/userService';
 import { friendService } from '@/services/friendService';
+import { userService } from '@/services/userService';
 import { useCurrentUserStore } from '@/store/currentUserStore';
-import { LoaderFunctionArgs, useLoaderData, useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
-import { UserPlus, UserCheck, Clock, MapPin, ChevronLeft } from 'lucide-react';
-import { useState } from 'react';
-import { toast } from 'sonner';
 import type { FriendshipStatus } from '@/types/friends';
 import type { ResUserPublicEvents } from '@grit/schema';
+import { format } from 'date-fns';
+import { Clock, MapPin, UserCheck, UserPlus } from 'lucide-react';
+import { useState } from 'react';
+import { LoaderFunctionArgs, useLoaderData } from 'react-router-dom';
+import { toast } from 'sonner';
 
 export const publicProfileLoader = async ({ params }: LoaderFunctionArgs) => {
   const id = parseInt(params.id ?? '', 10);
@@ -40,7 +41,6 @@ export default function PublicProfilePage() {
   const currentUser = useCurrentUserStore((s) => s.user);
   const [friendshipStatus, setFriendshipStatus] = useState<FriendshipStatus>(data.friendshipStatus);
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
 
   const isViewingSelf = currentUser?.id === data.user.id;
   const isLoggedIn = !!currentUser;
@@ -67,15 +67,7 @@ export default function PublicProfilePage() {
 
   return (
     <div className="space-y-8">
-      <button
-        onClick={() => {
-          void navigate(-1);
-        }}
-        className="flex items-center gap-1 uppercase text-primary font-heading text-lg hover:text-foreground transition-color w-fit"
-      >
-        <ChevronLeft className="h-4 w-4" />
-        Back
-      </button>
+      <BackButton />
       <div className="flex flex-col md:flex-row gap-6 items-start">
         <div className="w-32 h-32 rounded-full overflow-hidden bg-muted shrink-0">
           {avatarUrl ? (

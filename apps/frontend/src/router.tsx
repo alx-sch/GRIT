@@ -22,10 +22,8 @@ import FriendsPage, { friendsLoader } from './pages/my-friends/Page';
 
 // NOTE: let's define single source of truth for our routes here
 export const baseNavConfig: NavRoute[] = [
-  { path: '/design', label: 'Design' },
   { path: '/users', label: 'Users' },
   { path: '/events', label: 'Events' },
-  { path: '/create/event', label: 'Add Event' },
 ] as const;
 
 export const router = createBrowserRouter([
@@ -120,28 +118,14 @@ export const router = createBrowserRouter([
             loader: profileLoader,
             handle: { title: 'Profile' },
           },
-        ],
-      },
-      {
-        path: 'my-events',
-        Component: ProtectedLayout,
-        loader: protectedLayoutLoader,
-        children: [
           {
-            index: true,
+            path: 'my-events',
             Component: MyEventsPage,
             loader: myEventsLoader,
             handle: { title: 'My Events' },
           },
-        ],
-      },
-      {
-        path: 'my-friends',
-        Component: ProtectedLayout,
-        loader: protectedLayoutLoader,
-        children: [
           {
-            index: true,
+            path: 'my-friends',
             Component: FriendsPage,
             loader: friendsLoader,
             handle: { title: 'My Friends' },

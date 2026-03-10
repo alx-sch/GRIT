@@ -42,7 +42,7 @@ export function MyEvents({ events }: MyEventsProps) {
                 size="sm"
                 variant="outline"
                 onClick={() => {
-                  void navigate('/my-events');
+                  void navigate('/profile/my-events');
                 }}
               >
                 View All
@@ -136,7 +136,7 @@ export function MyEvents({ events }: MyEventsProps) {
                 size="sm"
                 className="w-full mt-2"
                 onClick={() => {
-                  void navigate('/my-events');
+                  void navigate('/profile/my-events');
                 }}
               >
                 View all {events.length} events

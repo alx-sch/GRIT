@@ -27,11 +27,8 @@ export default function Users() {
   }, [users, searchTerm]);
 
   return (
-    <>
-      <div className="space-y-2">
-        <Heading level={1}>Users</Heading>
-        <Text className="text-muted-foreground">Manage your team members and permissions.</Text>
-      </div>
+    <div className="space-y-8">
+      <Heading level={1}>Users</Heading>
 
       <div className="flex flex-col gap-6">
         <Input
@@ -55,6 +52,6 @@ export default function Users() {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }

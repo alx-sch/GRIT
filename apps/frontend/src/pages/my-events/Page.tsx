@@ -1,6 +1,7 @@
 import { Heading } from '@/components/ui/typography';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { BackButton } from '@/components/ui/backButton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CalendarDays, Plus } from 'lucide-react';
 import { userService } from '@/services/userService';
@@ -105,7 +106,8 @@ export function Page() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      <BackButton label="Back to Profile" onClick={() => void navigate('/profile')} />
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <Heading>My Events</Heading>
         {events.length > 0 && (

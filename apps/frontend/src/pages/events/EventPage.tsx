@@ -12,10 +12,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { GmapPreview } from '@/components/ui/gmapPreview';
 import { Heading, Text } from '@/components/ui/typography';
+import { BackButton } from '@/components/ui/backButton';
 import { getEventImageUrl } from '@/lib/image_utils';
 import { eventService } from '@/services/eventService';
 import { APIProvider } from '@vis.gl/react-google-maps';
-import { ChevronLeft, HomeIcon, Pencil, Trash2, User } from 'lucide-react';
+import { HomeIcon, Pencil, Trash2, User } from 'lucide-react';
 import { Link, LoaderFunctionArgs } from 'react-router-dom';
 import { EventPageActions } from './components/EventPageActions';
 import { EventPageFiles } from './components/EventPageFiles';
@@ -54,7 +55,6 @@ export const EventPage = () => {
     handleChat,
     handleGoing,
     handleDelete,
-    navigate,
     shareText,
     shareUrl,
     copied,
@@ -62,15 +62,7 @@ export const EventPage = () => {
 
   return (
     <div className="space-y-8">
-      <button
-        onClick={() => {
-          void navigate(-1);
-        }}
-        className="flex items-center gap-1 uppercase text-primary font-heading text-lg hover:text-foreground transition-color w-fit"
-      >
-        <ChevronLeft className="h-4 w-4" />
-        Back
-      </button>
+      <BackButton />
       <div className="flex flex-row justify-between">
         <div className="space-y-2">
           <Heading level={1} className="text-3xl md:text-4xl">
@@ -79,16 +71,16 @@ export const EventPage = () => {
         </div>
         <div className="flex flex-row gap-2">
           {isAuthor && (
-            <Button variant="outline" size="sm">
-              <Link to="edit">
+            <Link to="edit">
+              <Button variant="secondary" size="lg">
                 <Pencil className="h-4 w-4" />
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           )}
           {isAuthor && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="default" size="sm">
+                <Button variant="destructive" size="lg">
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </AlertDialogTrigger>

@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Heading, Text } from '@/components/ui/typography';
+import { BackButton } from '@/components/ui/backButton';
 import { UserCard } from '@/components/ui/userCard';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
@@ -104,6 +105,7 @@ export default function FriendsPage() {
 
   return (
     <div className="space-y-8">
+      <BackButton label="Back to Profile" onClick={() => void navigate('/profile')} />
       <div className="space-y-6">
         <Heading>My Friends</Heading>
       </div>
