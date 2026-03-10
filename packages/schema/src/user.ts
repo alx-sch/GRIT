@@ -3,16 +3,31 @@ import { ResEventLocationSchema } from './event.js';
 
 export const ResUserEventSchema = z.object({
   id: z.number().int().positive(),
+  title: z.string(),
+  slug: z.string(),
   startAt: z.iso.datetime(),
   isOrganizer: z.boolean(),
   imageKey: z.string().nullable().optional(),
   location: ResEventLocationSchema.nullable().optional(),
-  title: z.string(),
-  slug: z.string(),
-  conversationId: z.string().optional(),
 });
 export const ResUserEventsSchema = z.array(ResUserEventSchema);
 export type ResUserEvents = z.infer<typeof ResUserEventsSchema>;
+
+export const ResMyEventSchema = z.object({
+  id: z.number().int().positive(),
+  title: z.string(),
+  slug: z.string(),
+  startAt: z.iso.datetime(),
+  endAt: z.iso.datetime(),
+  isOrganizer: z.boolean(),
+  imageKey: z.string().nullable().optional(),
+  location: ResEventLocationSchema.nullable().optional(),
+  conversationId: z.string().optional(),
+  isPublished: z.boolean(),
+  isPublic: z.boolean(),
+});
+export const ResMyEventsSchema = z.array(ResMyEventSchema);
+export type ResMyEvents = z.infer<typeof ResMyEventsSchema>;
 
 export const ResUserBaseSchema = z.object({
   id: z.number().int().positive(),
