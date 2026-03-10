@@ -3,7 +3,11 @@ require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env'
 
 import { defineConfig } from 'prisma/config';
 
-const { POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_HOST, DB_PORT, POSTGRES_DB } = process.env;
+const { POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_HOST, DB_PORT, NODE_ENV } = process.env;
+let { POSTGRES_DB } = process.env;
+
+if (NODE_ENV === 'test') POSTGRES_DB = `${POSTGRES_DB}_test`;
+
 const DATABASE_URL = `postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST ?? 'localhost'}:${DB_PORT ?? '5432'}/${POSTGRES_DB}?schema=public`;
 
 export default defineConfig({
