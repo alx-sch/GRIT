@@ -15,7 +15,6 @@ import { adminService, AdminEvent } from '@/services/adminService';
 import { toast } from 'sonner';
 import { Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { AxiosError } from 'axios';
 
 interface AdminEventsTableProps {
   initialEvents: AdminEvent[];
@@ -31,11 +30,8 @@ export function AdminEventsTable({ initialEvents }: AdminEventsTableProps) {
       await adminService.deleteEvent(eventId);
       setEvents(events.filter((e) => e.id !== eventId));
       toast.success('Event deleted');
-    } catch (error) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response?.status !== 403) {
-        toast.error('Failed to delete event');
-      }
+    } catch {
+      toast.error('Failed to delete event');
     } finally {
       setIsDeleting(null);
     }

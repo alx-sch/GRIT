@@ -14,7 +14,6 @@ import {
 import { adminService, AdminUser } from '@/services/adminService';
 import { toast } from 'sonner';
 import { Trash2 } from 'lucide-react';
-import { AxiosError } from 'axios';
 
 interface AdminUsersTableProps {
   initialUsers: AdminUser[];
@@ -30,11 +29,8 @@ export function AdminUsersTable({ initialUsers }: AdminUsersTableProps) {
       await adminService.deleteUser(userId);
       setUsers(users.filter((u) => u.id !== userId));
       toast.success('User deleted');
-    } catch (error) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response?.status !== 403) {
-        toast.error('Failed to delete user');
-      }
+    } catch {
+      toast.error('Failed to delete user');
     } finally {
       setIsDeleting(null);
     }

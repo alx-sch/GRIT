@@ -490,9 +490,15 @@ export class UserService {
       if (!user.isAdmin)
         throw new UnauthorizedException('You do not have permission to delete this user');
     }
-    if (targetId === user.id && user.isAdmin) {
+
+    const isTargetAdmin = await this.prisma.user.findUnique({
+      where: { id: targetId },
+      select: { isAdmin: true },
+    });
+    if (isTargetAdmin) {
       throw new ForbiddenException('You can not delete an admin user');
     }
+
     const targetUser = await this.prisma.user.delete({
       where: { id: targetId },
     });

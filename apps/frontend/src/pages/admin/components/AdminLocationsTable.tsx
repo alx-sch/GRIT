@@ -14,7 +14,6 @@ import {
 import { adminService, AdminLocation } from '@/services/adminService';
 import { toast } from 'sonner';
 import { Trash2 } from 'lucide-react';
-import { AxiosError } from 'axios';
 
 interface AdminLocationsTableProps {
   initialLocations: AdminLocation[];
@@ -30,11 +29,8 @@ export function AdminLocationsTable({ initialLocations }: AdminLocationsTablePro
       await adminService.deleteLocation(locationId);
       setLocations(locations.filter((l) => l.id !== locationId));
       toast.success('Location deleted');
-    } catch (error) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response?.status !== 403) {
-        toast.error('Failed to delete location');
-      }
+    } catch {
+      toast.error('Failed to delete location');
     } finally {
       setIsDeleting(null);
     }
