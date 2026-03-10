@@ -54,7 +54,7 @@ export function mapConversationToCard(
   let lastMessageAuthorNameLong;
   if (conversationState?.lastMessage?.author?.id === currentUser.id)
     lastMessageAuthorNameLong = 'You';
-  else lastMessageAuthorNameLong = conversationState?.lastMessage?.author.name;
+  else lastMessageAuthorNameLong = conversationState?.lastMessage?.author?.name;
   const lastMessageAuthor = lastMessageAuthorNameLong
     ? trimText(lastMessageAuthorNameLong, 10)
     : undefined;

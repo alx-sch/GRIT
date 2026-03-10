@@ -80,7 +80,7 @@ endif
 # TARGETS
 # ---------------------------------------------------
 
-all:	start
+all:	start-local
 
 #######################
 ## 🛡️ ENV VALIDATION ##
@@ -344,6 +344,12 @@ db: start-postgres start-minio
 	@echo "•   View logs (db): '$(YELLOW)make logs$(RESET)'"
 	@echo "•   View database:  '$(YELLOW)make view-db$(RESET)'"
 
+db-prod: start-postgres start-minio
+	@pnpm --filter @grit/backend exec prisma migrate deploy
+	@echo "$(BOLD)$(GREEN)Database is ready and schema is deployed.$(RESET)"
+	@echo "•   View logs (db): '$(YELLOW)make logs$(RESET)'"
+	@echo "•   View database:  '$(YELLOW)make view-db$(RESET)'"
+
 # Helper: Starts the postgres container service
 start-postgres: install-be
 	@echo "$(BOLD)$(YELLOW)--- Starting Postgres [DOCKER]...$(RESET)"
@@ -526,8 +532,8 @@ run-fe: kill-port-fe build-fe
 
 ###############################
 
-# Starts production services via Docker Compose
-start: check-env db
+# Starts local services via Docker Compose
+start-local: check-env db
 	@echo "$(BOLD)$(YELLOW)--- Launching Application Services...$(RESET)"
 	$(DC) up -d --build backend caddy
 
@@ -539,6 +545,13 @@ start: check-env db
 	else \
 		echo "•   View app:       '$(YELLOW)https://localhost:$(HTTPS_PORT)$(RESET)'"; \
 	fi
+
+# Starts production services via Docker Compose
+start-prod: check-env db-prod
+	@echo "$(BOLD)$(YELLOW)--- Launching Application Services...$(RESET)"
+	CADDY_ENV=prod $(DC) up -d --build backend caddy
+	@echo "$(BOLD)$(GREEN)Full stack is live!$(RESET)"
+	@echo "•   View live logs: '$(YELLOW)make logs$(RESET)'"
 
 # Stops production services via Docker Compose
 stop:
@@ -562,6 +575,7 @@ stop:
 		clean-db \
 		clean-turbo \
 		db \
+		db-prod \
 		dev \
 		dev-be \
 		dev-fe \
@@ -574,9 +588,15 @@ stop:
 		lint-fix \
 		logs \
 		purge \
+		run \
+		run-be \
+		run-fe \
 		seed-db \
+		start-local \
+		start-prod \
 		start-postgres \
 		start-minio \
+		stop \
 		stop-db \
 		stop-dev-processes \
 		test-be \
@@ -586,9 +606,5 @@ stop:
 		vol-backup \
 		vol-inspect \
 		vol-ls \
-		vol-restore \
-		run \
-		run-be \
-		run-fe \
-		start \
-		stop
+		vol-restore
+
