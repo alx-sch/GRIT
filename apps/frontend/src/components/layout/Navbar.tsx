@@ -84,13 +84,13 @@ export function Navbar() {
               {navConfig
                 .filter((link) => link.label !== 'Login')
                 .map((link) => (
-                  <NavigationMenuItem key={link.label}>
-                    <NavigationMenuLink asChild className="p-0 relative">
+                  <NavigationMenuItem key={link.label} className="list-none">
+                    <NavigationMenuLink asChild className="p-0">
                       <Link
                         to={link.path}
                         className={cn(
                           navigationMenuTriggerStyle(),
-                          'group relative bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent',
+                          'relative bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent',
                           'rounded-none text-base font-bold h-auto px-4 pb-1',
                           isActive(link.path) ? 'text-foreground' : ''
                         )}

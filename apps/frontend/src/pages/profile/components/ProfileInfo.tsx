@@ -104,6 +104,7 @@ export function ProfileInfo({ user, onProfileUpdate }: ProfileInfoProps) {
               {...register('name')}
               disabled={!isEditing || isSubmitting}
               placeholder="Enter your name"
+              clearable={isEditing && !isSubmitting}
             />
             {errors.name && <Text className="text-sm text-destructive">{errors.name.message}</Text>}
           </div>
@@ -137,6 +138,7 @@ export function ProfileInfo({ user, onProfileUpdate }: ProfileInfoProps) {
                 {...register('city')}
                 disabled={!isEditing || isSubmitting}
                 placeholder="Your city"
+                clearable={isEditing && !isSubmitting}
               />
               {errors.city && (
                 <Text className="text-sm text-destructive">{errors.city.message}</Text>
@@ -153,6 +155,7 @@ export function ProfileInfo({ user, onProfileUpdate }: ProfileInfoProps) {
                 {...register('country')}
                 disabled={!isEditing || isSubmitting}
                 placeholder="Your country"
+                clearable={isEditing && !isSubmitting}
               />
               {errors.country && (
                 <Text className="text-sm text-destructive">{errors.country.message}</Text>

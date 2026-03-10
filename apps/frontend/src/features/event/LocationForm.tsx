@@ -137,6 +137,7 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
             aria-invalid={!!errors.name}
             {...register('name')}
             placeholder="e.g Berghain, My awesome flat, etc."
+            clearable
           />
           {errors.name?.message && (
             <Alert variant="destructive" className="self-start">
@@ -163,6 +164,7 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
               type="text"
               {...register('address')}
               placeholder='e.g "Alexanderplatz"'
+              clearable
             />
           </div>
         </div>
@@ -177,20 +179,33 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
               type="text"
               {...register('postalCode')}
               placeholder='e.g "12059"'
+              clearable
             />
           </div>
           <div className="flex flex-col flex-1 gap-2">
             <label htmlFor="city" className="font-heading">
               City
             </label>
-            <Input id="city" type="text" {...register('city')} placeholder='e.g "Berlin"' />
+            <Input
+              id="city"
+              type="text"
+              {...register('city')}
+              placeholder='e.g "Berlin"'
+              clearable
+            />
           </div>
         </div>
         <div className="flex flex-col gap-2">
           <label htmlFor="country" className="font-heading">
             Country
           </label>
-          <Input id="country" type="text" {...register('country')} placeholder='e.g "Germany"' />
+          <Input
+            id="country"
+            type="text"
+            {...register('country')}
+            placeholder='e.g "Germany"'
+            clearable
+          />
         </div>
         {/* Visibility */}
         <fieldset className="flex flex-col gap-4">

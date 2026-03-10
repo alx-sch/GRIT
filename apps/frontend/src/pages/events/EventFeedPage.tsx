@@ -2,7 +2,8 @@ import { Button } from '@/components/ui/button';
 import { Combobox, ComboboxOptions } from '@/components/ui/combobox';
 import { DatePicker } from '@/components/ui/datepicker';
 import { Input } from '@/components/ui/input';
-import { Heading, Text } from '@/components/ui/typography';
+import { Heading } from '@/components/ui/typography';
+import { EmptyState } from '@/components/ui/emptyState';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { EventCard } from '@/pages/events/components/EventCard';
@@ -192,6 +193,10 @@ export default function EventFeedPage() {
           className="w-full md:w-sm md:shrink-0"
           value={searchInput}
           onChange={handleSearchChange}
+          clearable
+          onClear={() => {
+            setSearchInput('');
+          }}
         />
 
         <div className="flex items-center justify-between md:justify-end gap-1 md:gap-2 md:flex-1 min-w-0">
@@ -246,34 +251,29 @@ export default function EventFeedPage() {
           )}
         </>
       ) : (
-        <div className="flex flex-col items-center justify-center py-20 px-4 border-2 border-dashed border-border text-center bg-card">
-          <Heading level={3} className="uppercase tracking-tight">
-            No events found
-          </Heading>
-
-          <Text size="base" className="text-muted-foreground mt-2">
-            {searchInput
+        <EmptyState
+          title="No events found"
+          description={
+            searchInput
               ? `No results for "${searchInput}"`
               : selectedDateRange
                 ? 'Nothing scheduled for these dates'
-                : 'Check back later for new events.'}
-          </Text>
-
-          {searchInput || selectedDateRange || selectedLocation ? (
-            <Button
-              variant="destructive"
-              onClick={() => {
-                setSearchInput('');
-                setSort('');
-                const newParams = new URLSearchParams();
-                setSearchParams(newParams);
-              }}
-              className="mt-4"
-            >
-              Clear Filters
-            </Button>
-          ) : null}
-        </div>
+                : 'Check back later for new events.'
+          }
+          action={
+            searchInput || selectedDateRange || selectedLocation
+              ? {
+                  label: 'Clear Filters',
+                  onClick: () => {
+                    setSearchInput('');
+                    setSort('');
+                    const newParams = new URLSearchParams();
+                    setSearchParams(newParams);
+                  },
+                }
+              : undefined
+          }
+        />
       )}
     </div>
   );

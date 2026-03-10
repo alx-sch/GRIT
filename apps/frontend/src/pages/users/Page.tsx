@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
 import { LoaderFunctionArgs } from 'react-router-dom';
 import { userService } from '@/services/userService';
-import { Heading, Text } from '@/components/ui/typography';
+import { Heading } from '@/components/ui/typography';
 import { Input } from '@/components/ui/input';
+import { EmptyState } from '@/components/ui/emptyState';
 import { UserResponse } from '@/types/user';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { UserCard } from '@/components/ui/userCard';
@@ -38,6 +39,10 @@ export default function Users() {
           onChange={(e) => {
             setSearchTerm(e.target.value);
           }}
+          clearable
+          onClear={() => {
+            setSearchTerm('');
+          }}
         />
 
         {filteredUsers.length > 0 ? (
@@ -47,9 +52,22 @@ export default function Users() {
             ))}
           </div>
         ) : (
-          <div className="py-12 text-center border-2 border-dashed border-muted-foreground/20">
-            <Text className="text-muted-foreground">No users found matching "{searchTerm}"</Text>
-          </div>
+          <EmptyState
+            title="No users found"
+            description={
+              searchTerm ? `No results for "${searchTerm}"` : 'No users available at the moment.'
+            }
+            action={
+              searchTerm
+                ? {
+                    label: 'Clear Search',
+                    onClick: () => {
+                      setSearchTerm('');
+                    },
+                  }
+                : undefined
+            }
+          />
         )}
       </div>
     </div>

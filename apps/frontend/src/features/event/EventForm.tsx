@@ -142,6 +142,7 @@ export default function EventForm({
             aria-invalid={!!errors.title}
             {...register('title')}
             placeholder="Give your event a catchy name"
+            clearable
           />
           {showTitleError && titleErrorMessage && (
             <Alert variant="destructive" className="mt-1.5 md:w-1/3 self-start">

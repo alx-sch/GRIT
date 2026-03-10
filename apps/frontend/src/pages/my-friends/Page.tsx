@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Heading, Text } from '@/components/ui/typography';
 import { BackButton } from '@/components/ui/backButton';
 import { UserCard } from '@/components/ui/userCard';
+import { EmptyState } from '@/components/ui/emptyState';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { conversationService } from '@/services/conversationService';
@@ -162,6 +163,10 @@ function FriendSearch({ friendIds, outgoingIds, incomingIds, onSendRequest }: Fr
         onChange={(e) => {
           setSearchInput(e.target.value);
         }}
+        clearable
+        onClear={() => {
+          setSearchInput('');
+        }}
       />
       {searchInput === '' ? null : !searchDone ? (
         <Text className="text-muted-foreground">Searching...</Text>
@@ -193,7 +198,16 @@ function FriendSearch({ friendIds, outgoingIds, incomingIds, onSendRequest }: Fr
           })}
         </UserGrid>
       ) : (
-        <EmptyState>No users found matching &quot;{searchInput}&quot;</EmptyState>
+        <EmptyState
+          title="No users found"
+          description={`No results for "${searchInput}"`}
+          action={{
+            label: 'Clear Search',
+            onClick: () => {
+              setSearchInput('');
+            },
+          }}
+        />
       )}
     </div>
   );
@@ -241,7 +255,10 @@ interface FriendsSectionProps {
 function FriendsSection({ friends, onChat, onRemove }: FriendsSectionProps) {
   if (friends.length === 0) {
     return (
-      <EmptyState>You don&apos;t have any friends yet. Search for new friends to add!</EmptyState>
+      <EmptyState
+        title="No friends yet"
+        description="Search for new friends above to start connecting!"
+      />
     );
   }
   return (
@@ -279,12 +296,4 @@ function FriendsSection({ friends, onChat, onRemove }: FriendsSectionProps) {
 
 function UserGrid({ children }: { children: React.ReactNode }) {
   return <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{children}</div>;
-}
-
-function EmptyState({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="py-12 text-center border-2 border-dashed border-muted-foreground/20">
-      <Text className="text-muted-foreground">{children}</Text>
-    </div>
-  );
 }
