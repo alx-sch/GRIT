@@ -1,4 +1,4 @@
-import { Search, User } from 'lucide-react';
+import { ArrowRight, Search, User } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -130,6 +130,13 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     });
   };
 
+  const handleSeeAll = (basePath: string) => {
+    onOpenChange(false);
+    requestAnimationFrame(() => {
+      void navigate(`${basePath}?search=${encodeURIComponent(query)}`);
+    });
+  };
+
   const hasResults = results.events.length > 0 || results.users.length > 0;
   const isQueryTooShort = query.length > 0 && query.length < MIN_QUERY_LENGTH;
   // Loading: debounced query hasn't caught up to typed query, or fetch hasn't returned yet
@@ -169,9 +176,19 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
           <>
             {displayedEvents.length > 0 && (
               <CommandGroup>
-                <Heading level={4} className="uppercase px-3 py-2">
-                  Events
-                </Heading>
+                <div className="flex items-center justify-between px-3 py-2">
+                  <Heading level={4} className="uppercase">
+                    Events
+                  </Heading>
+                  <button
+                    onClick={() => {
+                      handleSeeAll('/events');
+                    }}
+                    className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground hover:underline underline-offset-4 transition-colors shrink-0"
+                  >
+                    See all <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
                 {displayedEvents.map((event) => (
                   <CommandItem
                     key={event.id}
@@ -200,9 +217,19 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
 
             {displayedUsers.length > 0 && (
               <CommandGroup>
-                <Heading level={4} className="uppercase px-3 py-2">
-                  People
-                </Heading>
+                <div className="flex items-center justify-between px-3 py-2">
+                  <Heading level={4} className="uppercase">
+                    People
+                  </Heading>
+                  <button
+                    onClick={() => {
+                      handleSeeAll('/users');
+                    }}
+                    className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground hover:underline underline-offset-4 transition-colors shrink-0"
+                  >
+                    See all <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
                 {displayedUsers.map((user) => {
                   const location = formatUserLocation(user);
                   return (

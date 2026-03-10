@@ -285,7 +285,7 @@ function FriendsSection({ friends, onChat, onRemove }: FriendsSectionProps) {
             actions={
               <>
                 <Button variant="outline" size="sm" asChild>
-                  <Link to={`/users/${friend.friend.id}`}>
+                  <Link to={`/people/${friend.friend.id}`}>
                     <Eye className="h-4 w-4" />
                   </Link>
                 </Button>

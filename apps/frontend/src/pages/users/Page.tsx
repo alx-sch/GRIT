@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { LoaderFunctionArgs } from 'react-router-dom';
+import { useState, useMemo, useEffect } from 'react';
+import { LoaderFunctionArgs, useSearchParams } from 'react-router-dom';
 import { userService } from '@/services/userService';
 import { friendService } from '@/services/friendService';
 import { Heading } from '@/components/ui/typography';
@@ -51,7 +51,17 @@ export default function Users() {
   const { users, friendshipStatuses: initialStatuses } = useTypedLoaderData<UsersLoaderData>();
   const currentUser = useCurrentUserStore((s) => s.user);
 
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchParams] = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') ?? '');
+
+  // Sync input when URL param changes externally (e.g. navigated here from GlobalSearch)
+  useEffect(() => {
+    const urlSearch = searchParams.get('search') ?? '';
+    if (urlSearch !== searchTerm) {
+      setSearchTerm(urlSearch);
+    }
+    // Only re-run when searchParams changes
+  }, [searchParams]);
   const [friendshipStatuses, setFriendshipStatuses] =
     useState<Record<number, FriendshipStatus>>(initialStatuses);
   const [loadingUsers, setLoadingUsers] = useState<Record<number, boolean>>({});
@@ -78,7 +88,7 @@ export default function Users() {
 
   return (
     <div className="space-y-8">
-      <Heading level={1}>Users</Heading>
+      <Heading level={1}>People</Heading>
 
       <div className="flex flex-col gap-6">
         <Input

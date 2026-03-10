@@ -23,6 +23,7 @@ vi.mock('@/services/userService', () => ({
 
 vi.mock('@/lib/image_utils', () => ({
   getAvatarImageUrl: () => 'http://test/avatar.jpg',
+  getEventImageUrl: () => 'http://test/event.jpg',
 }));
 
 // --- Mock data ---

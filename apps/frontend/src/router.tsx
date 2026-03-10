@@ -22,7 +22,7 @@ import FriendsPage, { friendsLoader } from './pages/my-friends/Page';
 
 // NOTE: let's define single source of truth for our routes here
 export const baseNavConfig: NavRoute[] = [
-  { path: '/users', label: 'Users' },
+  { path: '/people', label: 'People' },
   { path: '/events', label: 'Events' },
 ] as const;
 
@@ -41,13 +41,13 @@ export const router = createBrowserRouter([
         handle: { title: 'Design' },
       },
       {
-        path: 'users',
+        path: 'people',
         children: [
           {
             index: true,
             Component: Users,
             loader: usersLoader,
-            handle: { title: 'Users' },
+            handle: { title: 'People' },
           },
           {
             path: ':id',

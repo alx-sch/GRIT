@@ -64,6 +64,16 @@ export default function EventFeedPage() {
   const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '');
 
   const debouncedSearch = useDebounce(searchInput, 500);
+
+  // Sync input when URL param changes externally (e.g. navigated here from GlobalSearch)
+  useEffect(() => {
+    const urlSearch = searchParams.get('search') ?? '';
+    if (urlSearch !== searchInput && urlSearch !== debouncedSearch) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSearchInput(urlSearch);
+    }
+    // Only run when searchParams changes, not on every searchInput/debouncedSearch change
+  }, [searchParams]);
   const navigate = useNavigate();
 
   // Events infinite scroll
