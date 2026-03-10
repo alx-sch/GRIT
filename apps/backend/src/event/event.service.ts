@@ -146,9 +146,10 @@ export class EventService {
   }
 
   async eventGetAll(user: User) {
-    if (user.isAdmin) throw new UnauthorizedException('You do not have permission to access this.');
+    if (!user.isAdmin)
+      throw new UnauthorizedException('You do not have permission to access this.');
     return await this.prisma.event.findMany({
-      orderBy: [{ startAt: 'asc' }, { id: 'asc' }],
+      orderBy: [{ isPublished: 'desc' }, { startAt: 'asc' }, { id: 'asc' }],
     });
   }
 

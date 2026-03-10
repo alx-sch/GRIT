@@ -117,12 +117,12 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-	"name": "Aaaa",
+	"name": "Aaa",
 	"city": "Berlin",
 	"country": "Germany",
 	"longitude": 59.4748,
 	"latitude": 11.4478,
-	"isPublic": true
+	"isPublic": false
 }
 ###
 
@@ -239,7 +239,7 @@ Authorization: Bearer {{token}}
 ###
 
 # Get ALL events (sorted by startAt, asc)
-GET {{baseUrl}}/locations/admin
+GET {{baseUrl}}/events/admin
 Authorization: Bearer {{token}}
 ###
 
@@ -295,5 +295,4 @@ Content-Type: application/json
 # Delete a location by location id
 DELETE {{baseUrl}}/locations/2
 Authorization: Bearer {{token}}
-
 ###

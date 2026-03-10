@@ -1,6 +1,4 @@
 import api from '@/lib/api';
-import { EventBase } from '@/types/event';
-import { LocationBase } from '@/types/location';
 
 export interface AdminUser {
   id: number;
@@ -10,15 +8,19 @@ export interface AdminUser {
   email: string;
 }
 
-interface PaginatedResponse<T> {
-  data: T[];
-  pagination: {
-    nextCursor: string | null;
-    hasMore: boolean;
-  };
+export interface AdminLocation {
+  id: number;
+  name: string;
+  city?: string;
+  country?: string;
 }
 
-const ADMIN_FETCH_LIMIT = 100;
+export interface AdminEvent {
+  id: number;
+  title: string;
+  startAt: string;
+  isPublished: boolean;
+}
 
 export const adminService = {
   // Users
@@ -37,10 +39,8 @@ export const adminService = {
 
   // Locations
   async getAllLocations() {
-    const response = await api.get<PaginatedResponse<LocationBase>>(
-      `/locations?limit=${ADMIN_FETCH_LIMIT}`
-    );
-    return response.data.data;
+    const response = await api.get<AdminLocation[]>(`/locations/admin`);
+    return response.data;
   },
 
   async deleteLocation(locationId: number) {
@@ -49,10 +49,8 @@ export const adminService = {
 
   // Events
   async getAllEvents() {
-    const response = await api.get<PaginatedResponse<EventBase>>(
-      `/events?limit=${ADMIN_FETCH_LIMIT}`
-    );
-    return response.data.data;
+    const response = await api.get<AdminEvent[]>(`/events/admin`);
+    return response.data;
   },
 
   async deleteEvent(eventId: number) {
