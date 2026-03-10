@@ -12,7 +12,7 @@ model User {
   // Core Data
   email                  String                    @unique
   password               String?
-  name                   String
+  name                   String                    @unique
   avatarKey              String?
   confirmationToken      String?                   @unique
   googleId               String?

@@ -29,3 +29,5 @@ export const ReqLocationDeleteSchema = z.strictObject({
 });
 export class ReqLocationDeleteDto extends createZodDto(ReqLocationDeleteSchema) {}
 export const ResLocationDeleteSchema = ResLocationBaseSchema;
+
+export const ResLocationAdminGetAllSchema = z.array(ResLocationBaseSchema);

@@ -117,7 +117,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-	"name": "Test location",
+	"name": "Aaaa",
 	"city": "Berlin",
 	"country": "Germany",
 	"longitude": 59.4748,

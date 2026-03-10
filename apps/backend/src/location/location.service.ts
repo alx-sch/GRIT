@@ -94,6 +94,13 @@ export class LocationService {
     });
   }
 
+  async locationAdminGetAll(user: User) {
+    if (!user.isAdmin) throw new UnauthorizedException('You do not have permission to access');
+    return await this.prisma.location.findMany({
+      orderBy: [{ name: 'asc' }, { id: 'asc' }],
+    });
+  }
+
   async locationExists(id: number) {
     const location = await this.prisma.location.findUnique({
       where: { id },

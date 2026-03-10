@@ -454,8 +454,11 @@ export class UserService {
   // ====== ADMIN SERVICES ======= //
 
   async userAdminGetAll(user: User) {
-    if (!user.isAdmin) throw new UnauthorizedException('You do not have permission to access');
-    const users = await this.prisma.user.findMany();
+    if (!user.isAdmin)
+      throw new UnauthorizedException('You do not have permission to access this.');
+    const users = await this.prisma.user.findMany({
+      orderBy: [{ name: 'asc' }],
+    });
     return users.map((u) => ({
       ...u,
       createdAt: u.createdAt.toISOString(),

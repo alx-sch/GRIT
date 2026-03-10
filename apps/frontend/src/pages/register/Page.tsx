@@ -62,7 +62,7 @@ export async function registerPageAction({ request }: { request: Request }) {
   } catch (err) {
     if (axios.isAxiosError(err)) {
       if (err.response?.status === 409) {
-        return { formErrors: ['Email already exists'] } satisfies ActionFormError;
+        return { formErrors: ['Username or email already exists'] } satisfies ActionFormError;
       }
       if (err.response?.status === 400) {
         return { formErrors: ['Invalid data provided'] } satisfies ActionFormError;

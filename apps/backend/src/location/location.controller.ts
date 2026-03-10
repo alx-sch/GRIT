@@ -7,6 +7,7 @@ import {
   ResLocationDeleteSchema,
   ResLocationGetAllSchema,
   ResLocationPostSchema,
+  ResLocationAdminGetAllSchema,
 } from '@/location/location.schema';
 import { LocationService } from '@/location/location.service';
 import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
@@ -39,7 +40,16 @@ export class LocationController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResLocationDeleteSchema)
-  eventDelete(@Param() param: ReqLocationDeleteDto, @GetUser() user: User) {
+  locationDelete(@Param() param: ReqLocationDeleteDto, @GetUser() user: User) {
     return this.locationService.locationDelete({ id: param.id }, user);
+  }
+
+  // ADMIN -> Get ALL locations
+  @Get('admin')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(ResLocationAdminGetAllSchema)
+  locationAdminGetAll(@GetUser() user: User) {
+    return this.locationService.locationAdminGetAll(user);
   }
 }
