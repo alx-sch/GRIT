@@ -285,13 +285,13 @@ test-be-e2e: install-be test-be-testdb-init
 # Helper commands
 test-be-testdb-init: start-postgres
 	@echo "$(BOLD)$(YELLOW)--- Creating Test Database ...$(RESET)"
-	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
-	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
+	@$(DC) exec postgres-db psql -h 127.0.0.1 -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
+	@$(DC) exec postgres-db psql -h 127.0.0.1 -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
 	@NODE_ENV=test pnpm --filter @grit/backend exec prisma db push
 
 test-be-testdb-remove:
 	@echo "$(BOLD)$(YELLOW)--- Removing Test Database ...$(RESET)"
-	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
+	@$(DC) exec postgres-db psql -h 127.0.0.1 -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
 
 ## Frontend ##
 
@@ -353,7 +353,7 @@ start-postgres: install-be
 	@echo "$(BOLD)$(YELLOW)--- Waiting for Postgres to accept connections...$(RESET)"
 	@RETRIES=30; \
 	PG_CONTAINER=$$($(DC) ps -q postgres-db); \
-	until docker exec $$PG_CONTAINER psql -U $(POSTGRES_USER) -d postgres -c '\q' > /dev/null 2>&1; do \
+	until docker exec $$PG_CONTAINER psql -h 127.0.0.1 -U $(POSTGRES_USER) -d postgres -c '\q' > /dev/null 2>&1; do \
 		RETRIES=$$((RETRIES - 1)); \
 		if [ $$RETRIES -eq 0 ]; then \
 			echo "$(RED)Timeout waiting for Postgres.$(RESET)"; \

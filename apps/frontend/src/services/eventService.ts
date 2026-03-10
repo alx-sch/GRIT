@@ -11,6 +11,7 @@ interface GetEventsParams {
   cursor?: string;
   locationId?: string;
   sort?: string;
+  signal?: AbortSignal;
 }
 
 export const eventService = {
@@ -26,7 +27,7 @@ export const eventService = {
     if (params?.sort) queryParams.set('sort', params.sort);
     const queryString = queryParams.toString();
     const url = queryString ? `events?${queryString}` : '/events';
-    const response = await api.get<EventResponse>(url);
+    const response = await api.get<EventResponse>(url, { signal: params?.signal });
     return response.data;
   },
 

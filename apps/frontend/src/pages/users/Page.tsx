@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { LoaderFunctionArgs } from 'react-router-dom';
+import { useState, useMemo, useEffect } from 'react';
+import { LoaderFunctionArgs, useSearchParams } from 'react-router-dom';
 import { userService } from '@/services/userService';
 import { friendService } from '@/services/friendService';
 import { Heading } from '@/components/ui/typography';
@@ -21,7 +21,8 @@ export const usersLoader = async ({ request }: LoaderFunctionArgs): Promise<User
   const url = new URL(request.url);
   const limit = url.searchParams.get('limit') ?? undefined;
   const cursor = url.searchParams.get('cursor') ?? undefined;
-  const users = await userService.getUsers({ limit, cursor });
+  const search = url.searchParams.get('search') ?? undefined;
+  const users = await userService.getUsers({ limit, cursor, search });
 
   const friendshipStatuses: Record<number, FriendshipStatus> = {};
   try {
@@ -51,7 +52,17 @@ export default function Users() {
   const { users, friendshipStatuses: initialStatuses } = useTypedLoaderData<UsersLoaderData>();
   const currentUser = useCurrentUserStore((s) => s.user);
 
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchParams] = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') ?? '');
+
+  // Sync input when URL param changes externally (e.g. navigated here from GlobalSearch)
+  useEffect(() => {
+    const urlSearch = searchParams.get('search') ?? '';
+    if (urlSearch !== searchTerm) {
+      setSearchTerm(urlSearch);
+    }
+    // Only re-run when searchParams changes
+  }, [searchParams]);
   const [friendshipStatuses, setFriendshipStatuses] =
     useState<Record<number, FriendshipStatus>>(initialStatuses);
   const [loadingUsers, setLoadingUsers] = useState<Record<number, boolean>>({});
