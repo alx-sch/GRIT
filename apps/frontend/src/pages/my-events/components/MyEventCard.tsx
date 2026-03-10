@@ -82,17 +82,17 @@ export function MyEventCard({
         )}
       >
         <CardContent className="p-0">
-          <div className="flex flex-col md:flex-row">
+          <div className="flex flex-col md:flex-row items-center">
             <button
               onClick={() => {
                 onViewDetails(event.slug);
               }}
-              className="w-full md:w-40 md:h-40 shrink-0 p-4 md:p-3 flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer"
+              className="w-full md:w-40 md:h-40 shrink-0 p-4 md:p-3 hover:opacity-80 transition-opacity cursor-pointer"
             >
               <img
                 src={getEventImageUrl(event)}
                 alt={event.title}
-                className="w-full aspect-square object-cover rounded"
+                className="w-full h-full aspect-square object-cover rounded mx-auto"
               />
             </button>
 
@@ -111,9 +111,9 @@ export function MyEventCard({
                   onClick={() => {
                     onViewDetails(event.slug);
                   }}
-                  className="text-left hover:underline mb-3 block w-full"
+                  className="text-left hover:underline mb-3 block w-full cursor-pointer"
                 >
-                  <Text className="font-semibold text-lg break-words">{event.title}</Text>
+                  <Text className="font-semibold text-lg wrap-break-word">{event.title}</Text>
                 </button>
 
                 <Text className="text-sm text-muted-foreground mb-2">

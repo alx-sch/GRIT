@@ -7,7 +7,8 @@ import { locationService } from '@/services/locationService';
 import { EventBase } from '@/types/event';
 import { LocationBase } from '@/types/location';
 import { useMemo } from 'react';
-import { LoaderFunctionArgs } from 'react-router-dom';
+import { LoaderFunctionArgs, useNavigate } from 'react-router-dom';
+import { ChevronLeft } from 'lucide-react';
 
 export const editEventLoader = async ({ params }: LoaderFunctionArgs) => {
   if (!params.id) throw new Response('Not Found', { status: 404 });
@@ -24,6 +25,8 @@ export default function EditEventPage() {
     event: EventBase;
     locations: { data: LocationBase[]; pagination: Pagination };
   }>();
+
+  const navigate = useNavigate();
 
   const eventLocation = event.location;
   const locationsWithSelected = useMemo(
@@ -53,6 +56,15 @@ export default function EditEventPage() {
 
   return (
     <div className="space-y-8">
+      <button
+        onClick={() => {
+          void navigate(-1);
+        }}
+        className="flex items-center gap-1 uppercase text-primary font-heading text-lg hover:text-foreground transition-color w-fit"
+      >
+        <ChevronLeft className="h-4 w-4" />
+        Back to Event
+      </button>
       <div className="space-y-2">
         <Heading level={1} className="text-3xl md:text-4xl">
           Edit Event
