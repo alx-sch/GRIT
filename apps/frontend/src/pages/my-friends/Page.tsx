@@ -1,4 +1,3 @@
-import { Container } from '@/components/layout/Container';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Heading, Text } from '@/components/ui/typography';
@@ -104,7 +103,7 @@ export default function FriendsPage() {
   }
 
   return (
-    <Container className="py-10 space-y-8">
+    <div className="space-y-8">
       <div className="space-y-6">
         <Heading>My Friends</Heading>
       </div>
@@ -120,7 +119,7 @@ export default function FriendsPage() {
         onDecline={decline}
       />
       <FriendsSection friends={friends.friendsList.data} onChat={startChat} onRemove={remove} />
-    </Container>
+    </div>
   );
 }
 

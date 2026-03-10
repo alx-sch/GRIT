@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { LoaderFunctionArgs } from 'react-router-dom';
 import { userService } from '@/services/userService';
-import { Container } from '@/components/layout/Container';
 import { Heading, Text } from '@/components/ui/typography';
 import { Input } from '@/components/ui/input';
 import { UserResponse } from '@/types/user';
@@ -28,7 +27,7 @@ export default function Users() {
   }, [users, searchTerm]);
 
   return (
-    <Container className="py-10 space-y-6">
+    <>
       <div className="space-y-2">
         <Heading level={1}>Users</Heading>
         <Text className="text-muted-foreground">Manage your team members and permissions.</Text>
@@ -56,6 +55,6 @@ export default function Users() {
           </div>
         )}
       </div>
-    </Container>
+    </>
   );
 }

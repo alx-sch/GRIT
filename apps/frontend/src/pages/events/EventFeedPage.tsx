@@ -1,4 +1,3 @@
-import { Container } from '@/components/layout/Container';
 import { Button } from '@/components/ui/button';
 import { Combobox, ComboboxOptions } from '@/components/ui/combobox';
 import { DatePicker } from '@/components/ui/datepicker';
@@ -173,7 +172,7 @@ export default function EventFeedPage() {
   };
 
   return (
-    <Container className="py-10 space-y-8">
+    <>
       <div className="space-y-2">
         <Heading level={1} className="text-3xl md:text-4xl">
           Upcoming events
@@ -269,6 +268,6 @@ export default function EventFeedPage() {
           ) : null}
         </div>
       )}
-    </Container>
+    </>
   );
 }

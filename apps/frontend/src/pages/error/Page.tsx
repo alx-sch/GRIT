@@ -43,7 +43,7 @@ export default function ErrorPage() {
   }
 
   return (
-    <Container className="py-20 flex flex-col items-center justify-center text-center space-y-6">
+    <div className="py-20 flex flex-col items-center justify-center text-center space-y-6">
       <div className="bg-destructive/10 p-4 rounded-full">
         <Icon className="h-12 w-12 text-destructive" />
       </div>
@@ -63,6 +63,6 @@ export default function ErrorPage() {
           Go Home
         </Button>
       </div>
-    </Container>
+    </div>
   );
 }

@@ -1,4 +1,3 @@
-import { Container } from '@/components/layout/Container';
 import { Heading, Text } from '@/components/ui/typography';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -137,51 +136,49 @@ export function Page() {
   );
 
   return (
-    <Container className="py-10">
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <Heading>My Events</Heading>
-          {events.length > 0 && (
-            <Button
-              onClick={() => {
-                void navigate('/create/event');
-              }}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Event
-            </Button>
-          )}
-        </div>
-
-        {events.length === 0 ? (
-          renderEmptyState()
-        ) : (
-          <Tabs defaultValue="all" className="w-full">
-            <TabsList className="w-full sm:w-auto flex overflow-x-auto">
-              <TabsTrigger value="all">All ({events.length})</TabsTrigger>
-              <TabsTrigger value="upcoming">Upcoming ({upcomingEvents.length})</TabsTrigger>
-              <TabsTrigger value="past">Past ({pastEvents.length})</TabsTrigger>
-              <TabsTrigger value="organizing">Organizing ({organizingEvents.length})</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="all" className="mt-6">
-              {renderEventsList(events)}
-            </TabsContent>
-
-            <TabsContent value="upcoming" className="mt-6">
-              {renderEventsList(upcomingEvents)}
-            </TabsContent>
-
-            <TabsContent value="past" className="mt-6">
-              {renderEventsList(pastEvents)}
-            </TabsContent>
-
-            <TabsContent value="organizing" className="mt-6">
-              {renderEventsList(organizingEvents)}
-            </TabsContent>
-          </Tabs>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <Heading>My Events</Heading>
+        {events.length > 0 && (
+          <Button
+            onClick={() => {
+              void navigate('/create/event');
+            }}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Create Event
+          </Button>
         )}
       </div>
-    </Container>
+
+      {events.length === 0 ? (
+        renderEmptyState()
+      ) : (
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="w-full sm:w-auto flex overflow-x-auto">
+            <TabsTrigger value="all">All ({events.length})</TabsTrigger>
+            <TabsTrigger value="upcoming">Upcoming ({upcomingEvents.length})</TabsTrigger>
+            <TabsTrigger value="past">Past ({pastEvents.length})</TabsTrigger>
+            <TabsTrigger value="organizing">Organizing ({organizingEvents.length})</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="all" className="mt-6">
+            {renderEventsList(events)}
+          </TabsContent>
+
+          <TabsContent value="upcoming" className="mt-6">
+            {renderEventsList(upcomingEvents)}
+          </TabsContent>
+
+          <TabsContent value="past" className="mt-6">
+            {renderEventsList(pastEvents)}
+          </TabsContent>
+
+          <TabsContent value="organizing" className="mt-6">
+            {renderEventsList(organizingEvents)}
+          </TabsContent>
+        </Tabs>
+      )}
+    </div>
   );
 }

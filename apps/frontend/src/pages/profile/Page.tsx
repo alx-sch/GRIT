@@ -38,34 +38,30 @@ export function Page() {
   const avatarUrl = user.avatarKey ? getAvatarImageUrl(user.avatarKey) : undefined;
 
   return (
-    <Container className="py-10">
-      <div className="space-y-8">
-        <div>
-          <Heading>Profile</Heading>
-          <Text className="text-muted-foreground">
-            Manage your account settings and preferences
-          </Text>
-        </div>
+    <div className="space-y-8">
+      <div>
+        <Heading>Profile</Heading>
+        <Text className="text-muted-foreground">Manage your account settings and preferences</Text>
+      </div>
 
-        <div className="flex flex-col md:flex-row gap-8">
-          <ProfileSidebar
-            user={user}
-            avatarUrl={avatarUrl}
-            eventsCount={user.attending.length}
-            onAvatarUpdate={handleUserUpdate}
-          />
+      <div className="flex flex-col md:flex-row gap-8">
+        <ProfileSidebar
+          user={user}
+          avatarUrl={avatarUrl}
+          eventsCount={user.attending.length}
+          onAvatarUpdate={handleUserUpdate}
+        />
 
-          <div className="flex-1 space-y-6">
-            <ProfileInfo user={user} onProfileUpdate={handleUserUpdate} />
+        <div className="flex-1 space-y-6">
+          <ProfileInfo user={user} onProfileUpdate={handleUserUpdate} />
 
-            <ThemeSettings />
+          <ThemeSettings />
 
-            <MyEvents events={user.attending} />
+          <MyEvents events={user.attending} />
 
-            <DangerZone />
-          </div>
+          <DangerZone />
         </div>
       </div>
-    </Container>
+    </div>
   );
 }

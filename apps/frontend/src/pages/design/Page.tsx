@@ -1,4 +1,3 @@
-import { Container } from '@/components/layout/Container';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -68,7 +67,7 @@ export default function Design() {
   };
 
   return (
-    <Container className="py-10 space-y-6">
+    <>
       <section className="space-y-4">
         <Heading level={2}>1. Typography System</Heading>
 
@@ -317,6 +316,6 @@ export default function Design() {
           </Card>
         </div>
       </section>
-    </Container>
+    </>
   );
 }

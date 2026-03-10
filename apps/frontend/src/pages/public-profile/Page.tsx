@@ -1,4 +1,3 @@
-import { Container } from '@/components/layout/Container';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Heading, Text } from '@/components/ui/typography';
@@ -66,109 +65,107 @@ export default function PublicProfilePage() {
   };
 
   return (
-    <Container className="py-10">
-      <div className="space-y-8">
-        <div className="flex flex-col md:flex-row gap-6 items-start">
-          <div className="w-32 h-32 rounded-full overflow-hidden bg-muted shrink-0">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt={data.user.name} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-primary/10">
-                <Text className="text-4xl font-semibold text-primary">
-                  {data.user.name.charAt(0).toUpperCase()}
-                </Text>
-              </div>
-            )}
-          </div>
-
-          <div className="flex-1 space-y-2">
-            <div className="flex flex-col md:flex-row md:items-center gap-4 justify-between">
-              <Heading level={2}>{data.user.name}</Heading>
-
-              {isLoggedIn && !isViewingSelf && (
-                <div>
-                  {friendshipStatus === 'none' && (
-                    <Button
-                      onClick={() => {
-                        void handleFriendAction();
-                      }}
-                      disabled={isLoading}
-                    >
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      Add Friend
-                    </Button>
-                  )}
-                  {friendshipStatus === 'pending_sent' && (
-                    <Button variant="outline" disabled>
-                      <Clock className="mr-2 h-4 w-4" />
-                      Request Pending
-                    </Button>
-                  )}
-                  {friendshipStatus === 'pending_received' && (
-                    <Button variant="secondary">
-                      <Clock className="mr-2 h-4 w-4" />
-                      Accept Request
-                    </Button>
-                  )}
-                  {friendshipStatus === 'friends' && (
-                    <Button variant="outline" disabled>
-                      <UserCheck className="mr-2 h-4 w-4" />
-                      Friends
-                    </Button>
-                  )}
-                </div>
-              )}
+    <div className="space-y-8">
+      <div className="flex flex-col md:flex-row gap-6 items-start">
+        <div className="w-32 h-32 rounded-full overflow-hidden bg-muted shrink-0">
+          {avatarUrl ? (
+            <img src={avatarUrl} alt={data.user.name} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-primary/10">
+              <Text className="text-4xl font-semibold text-primary">
+                {data.user.name.charAt(0).toUpperCase()}
+              </Text>
             </div>
-
-            <div className="flex flex-col gap-1">
-              {(data.user.city ?? data.user.country) && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <MapPin className="w-4 h-4" />
-                  <Text>{[data.user.city, data.user.country].filter(Boolean).join(', ')}</Text>
-                </div>
-              )}
-              <Text className="text-muted-foreground">Member since {memberSince}</Text>
-            </div>
-          </div>
+          )}
         </div>
 
-        <Tabs defaultValue="events" className="w-full">
-          <TabsList>
-            <TabsTrigger value="info">Info</TabsTrigger>
-            <TabsTrigger value="events">Events ({data.events.length})</TabsTrigger>
-          </TabsList>
+        <div className="flex-1 space-y-2">
+          <div className="flex flex-col md:flex-row md:items-center gap-4 justify-between">
+            <Heading level={2}>{data.user.name}</Heading>
 
-          <TabsContent value="info" className="mt-6">
-            <div className="bg-card rounded-lg border p-6 space-y-4">
-              {data.user.bio ? (
-                <div>
-                  <Heading level={4} className="mb-2">
-                    About
-                  </Heading>
-                  <Text>{data.user.bio}</Text>
-                </div>
-              ) : (
-                <Text className="text-muted-foreground">This user hasn't added a bio yet.</Text>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="events" className="mt-6">
-            {data.events.length === 0 ? (
-              <div className="bg-card rounded-lg border p-6 text-center">
-                <Text className="text-muted-foreground">No public events hosted yet.</Text>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {data.events.map((event) => (
-                  <PublicEventCard key={event.id} event={event} />
-                ))}
+            {isLoggedIn && !isViewingSelf && (
+              <div>
+                {friendshipStatus === 'none' && (
+                  <Button
+                    onClick={() => {
+                      void handleFriendAction();
+                    }}
+                    disabled={isLoading}
+                  >
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Add Friend
+                  </Button>
+                )}
+                {friendshipStatus === 'pending_sent' && (
+                  <Button variant="outline" disabled>
+                    <Clock className="mr-2 h-4 w-4" />
+                    Request Pending
+                  </Button>
+                )}
+                {friendshipStatus === 'pending_received' && (
+                  <Button variant="secondary">
+                    <Clock className="mr-2 h-4 w-4" />
+                    Accept Request
+                  </Button>
+                )}
+                {friendshipStatus === 'friends' && (
+                  <Button variant="outline" disabled>
+                    <UserCheck className="mr-2 h-4 w-4" />
+                    Friends
+                  </Button>
+                )}
               </div>
             )}
-          </TabsContent>
-        </Tabs>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            {(data.user.city ?? data.user.country) && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <MapPin className="w-4 h-4" />
+                <Text>{[data.user.city, data.user.country].filter(Boolean).join(', ')}</Text>
+              </div>
+            )}
+            <Text className="text-muted-foreground">Member since {memberSince}</Text>
+          </div>
+        </div>
       </div>
-    </Container>
+
+      <Tabs defaultValue="events" className="w-full">
+        <TabsList>
+          <TabsTrigger value="info">Info</TabsTrigger>
+          <TabsTrigger value="events">Events ({data.events.length})</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="info" className="mt-6">
+          <div className="bg-card rounded-lg border p-6 space-y-4">
+            {data.user.bio ? (
+              <div>
+                <Heading level={4} className="mb-2">
+                  About
+                </Heading>
+                <Text>{data.user.bio}</Text>
+              </div>
+            ) : (
+              <Text className="text-muted-foreground">This user hasn't added a bio yet.</Text>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="events" className="mt-6">
+          {data.events.length === 0 ? (
+            <div className="bg-card rounded-lg border p-6 text-center">
+              <Text className="text-muted-foreground">No public events hosted yet.</Text>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {data.events.map((event) => (
+                <PublicEventCard key={event.id} event={event} />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
 
