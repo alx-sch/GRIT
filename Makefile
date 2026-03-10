@@ -131,11 +131,10 @@ install-fe: build-schema
 install-playwright:
 	@echo "$(BOLD)$(BLUE)--- Ensuring Playwright is ready...$(RESET)"
 ifeq ($(OS), Linux)
-	@if ! ldconfig -p | grep -q libatk-1.0.so.0; then \
-		pnpm --filter @grit/frontend exec playwright install-deps; \
-	fi
-endif
+	@pnpm --filter @grit/frontend exec playwright install --with-deps
+else
 	@pnpm --filter @grit/frontend exec playwright install
+endif
 
 # -- CLEANUP TARGETS --
 
@@ -288,8 +287,6 @@ test-be-testdb-init: start-postgres
 	@echo "$(BOLD)$(YELLOW)--- Creating Test Database ...$(RESET)"
 	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
 	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
-	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
-	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
 	@NODE_ENV=test pnpm --filter @grit/backend exec prisma db push
 
 test-be-testdb-remove:
@@ -310,7 +307,6 @@ test-fe-integration: install-fe
 
 test-fe-e2e: install-fe install-playwright
 	@echo "$(BOLD)$(YELLOW)--- Running Frontend E2E Tests ...$(RESET)"
-	@pnpm --filter @grit/frontend exec playwright install
 	@pnpm --filter @grit/frontend exec playwright test
 
 #############################
@@ -355,11 +351,12 @@ start-postgres: install-be
 	@echo "$(BOLD)$(YELLOW)--- Starting Postgres [DOCKER]...$(RESET)"
 	@$(DC) up -d postgres-db --no-build
 	@echo "$(BOLD)$(YELLOW)--- Waiting for Postgres to wake up...$(RESET)"
-	@RETRIES=10; \
+	@RETRIES=20; \
 	PG_CONTAINER=$$($(DC) ps -q postgres-db); \
 	while [ $$RETRIES -gt 0 ]; do \
-		if docker exec $$PG_CONTAINER pg_isready -U $(POSTGRES_USER) -d $(POSTGRES_DB) > /dev/null 2>&1; then \
+		if docker exec $$PG_CONTAINER pg_isready -h 127.0.0.1 -U $(POSTGRES_USER) -d $(POSTGRES_DB) > /dev/null 2>&1; then \
 			echo "$(GREEN)Postgres is ready!$(RESET)"; \
+			sleep 1; \
 			break; \
 		fi; \
 		echo "Waiting for Postgres... ($$RETRIES attempts left)"; \
