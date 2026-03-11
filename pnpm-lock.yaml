@@ -8,6 +8,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      '@nestjs/mapped-types':
+        specifier: '*'
+        version: 2.1.0(@nestjs/common@11.1.14(reflect-metadata@0.2.2)(rxjs@7.8.2))(reflect-metadata@0.2.2)
     devDependencies:
       '@eslint/js':
         specifier: ^9.39.2
