@@ -7,8 +7,7 @@ export class MailService {
   constructor(private mailerService: MailerService) {}
 
   async sendConfirmationEmail(email: string, token: string) {
-    // Construct the link using your validated APP_BASE_URL envar
-    const url = `${env.APP_BASE_URL}/auth/confirm?token=${token}`;
+    const url = `${env.APP_BASE_URL}/api/auth/confirm?token=${token}`;
 
     await this.mailerService.sendMail({
       to: email,

@@ -44,8 +44,21 @@ export class AuthController {
   }
 
   @Get('confirm')
-  async confirm(@Query() query: ReqConfirmEmailDto) {
-    return this.authService.confirmEmail(query.token);
+  async confirm(@Query() query: ReqConfirmEmailDto, @Res() res: Response) {
+    const appBaseUrl = this.configService.get<string>('APP_BASE_URL');
+    const fePort = this.configService.get<number>('FE_PORT');
+    const frontendUrl = appBaseUrl ?? `http://localhost:${String(fePort)}`;
+
+    try {
+      await this.authService.confirmEmail(query.token);
+      // Success
+      res.redirect(`${frontendUrl}/login?confirmed=true`);
+      return;
+    } catch {
+      // Token already used or invalid -> forward to landing page to avoid 404
+      res.redirect(`${frontendUrl}/login?already_confirmed=true`);
+      return;
+    }
   }
 
   @Post('login')

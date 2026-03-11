@@ -190,36 +190,15 @@ export class UserService {
       throw new NotFoundException('Invalid or expired confirmation token.');
     }
 
-    const updatedUser = await this.prisma.user.update({
+    await this.prisma.user.update({
       where: { id: user.id },
       data: {
         isConfirmed: true,
         confirmationToken: null,
       },
-      include: {
-        attending: {
-          include: {
-            event: {
-              include: { location: true },
-            },
-          },
-        },
-      },
     });
 
-    return {
-      ...updatedUser,
-      createdAt: updatedUser.createdAt.toISOString(),
-      attending: updatedUser.attending.map((a) => ({
-        id: a.event.id,
-        title: a.event.title,
-        slug: a.event.slug,
-        startAt: a.event.startAt.toISOString(),
-        isOrganizer: a.event.authorId === updatedUser.id,
-        imageKey: a.event.imageKey,
-        location: a.event.location,
-      })),
-    };
+    return { success: true };
   }
 
   async userUpdateAvatar(userId: number, file: Express.Multer.File): Promise<ResUserBaseDto> {
