@@ -87,7 +87,9 @@ export class AuthController {
     const result = this.authService.login(user);
 
     // Redirect back to frontend with the token
-    const frontendUrl = this.configService.get<string>('APP_BASE_URL') ?? 'http://localhost:5173';
+    const appBaseUrl = this.configService.get<string>('APP_BASE_URL');
+    const fePort = this.configService.get<number>('FE_PORT') ?? 5173;
+    const frontendUrl = appBaseUrl ?? `http://localhost:${String(fePort)}`;
     res.redirect(`${frontendUrl}/login?token=${result.accessToken}`);
   }
 }

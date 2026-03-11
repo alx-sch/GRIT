@@ -52,7 +52,7 @@ export class AllWsExceptionsFilter implements WsExceptionFilter {
 @UseFilters(new AllWsExceptionsFilter())
 @WebSocketGateway({
   cors: {
-    origin: [env.APP_BASE_URL, 'http://localhost:5173'],
+    origin: [env.APP_BASE_URL, `http://localhost:${String(env.FE_PORT)}`],
     credentials: true,
   },
 })
