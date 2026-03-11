@@ -65,7 +65,7 @@ export const ResConversationSingleSchema = z.object({
   title: z.string().optional().nullable(),
   type: conversationTypes,
   updatedAt: z.iso.datetime(),
-  event: event,
+  event: event.nullable(),
   participants: participants,
 });
 export type ResConversationSingle = z.infer<typeof ResConversationSingleSchema>;

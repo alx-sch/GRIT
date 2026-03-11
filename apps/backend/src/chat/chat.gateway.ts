@@ -6,6 +6,7 @@ import {
   WebSocketGateway,
   WsException,
   OnGatewayConnection,
+  OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket, type DefaultEventsMap } from 'socket.io';
 import { ChatService } from '@/chat/chat.service';
@@ -55,7 +56,7 @@ export class AllWsExceptionsFilter implements WsExceptionFilter {
     credentials: true,
   },
 })
-export class ChatGateway implements OnGatewayConnection {
+export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // In userSockets we will store which socket belongs to which user id
   private userSockets = new Map<number, Set<string>>();
 
@@ -84,7 +85,8 @@ export class ChatGateway implements OnGatewayConnection {
         try {
           userId = this.jwtService.verify<{ sub: number }>(token).sub;
         } catch {
-          return null;
+          next(new Error('Unauthorized'));
+          return;
         }
         if (!userId) {
           next(new Error('Unauthorized'));
@@ -196,6 +198,23 @@ export class ChatGateway implements OnGatewayConnection {
     this.userSockets.get(userId)?.add(client.id);
 
     await this.syncSocketConversations(client, userId);
+  }
+
+  handleDisconnect(client: AppSocket) {
+    const userId = client.data.userId;
+    if (!userId) return;
+
+    const sockets = this.userSockets.get(userId);
+    if (!sockets) return;
+
+    sockets.delete(client.id);
+
+    // Fallback in any case
+    if (sockets.size === 0) this.userSockets.delete(userId);
+  }
+
+  getSingleConnectionStatus(userId: number) {
+    return this.userSockets.has(userId);
   }
 
   async resyncUserRooms(userId: number) {

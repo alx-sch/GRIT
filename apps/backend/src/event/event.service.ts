@@ -1,4 +1,4 @@
-import { ConversationService } from '@/conversation/conversation.service';
+import { ChatGateway } from '@/chat/chat.gateway';
 import {
   ReqEventGetPublishedDto,
   ReqEventPatchDto,
@@ -28,7 +28,7 @@ export class EventService {
     private prisma: PrismaService,
     private locationService: LocationService,
     private storage: StorageService,
-    private readonly conversation: ConversationService
+    private readonly chatGateway: ChatGateway
   ) {}
 
   /**
@@ -491,6 +491,7 @@ export class EventService {
         location: true,
       },
     });
+    await this.chatGateway.resyncUserRooms(data.authorId);
     return createdEvent;
   }
 

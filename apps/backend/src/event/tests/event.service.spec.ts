@@ -6,6 +6,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 
 import { EventService } from '../event.service';
 import { ConversationService } from '@/conversation/conversation.service';
+import { ChatGateway } from '@/chat/chat.gateway';
 
 describe('Event / Service / Unit Tests', () => {
   const prismaServiceMock = {
@@ -25,6 +26,8 @@ describe('Event / Service / Unit Tests', () => {
     getOrCreateEventConversation: jest.fn(),
   };
 
+  const chatGatewayMock = {};
+
   let testEventService: EventService;
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -37,6 +40,7 @@ describe('Event / Service / Unit Tests', () => {
         { provide: ConversationService, useValue: conversationServiceMock },
         { provide: PrismaService, useValue: prismaServiceMock },
         { provide: StorageService, useValue: storageServiceMock },
+        { provide: ChatGateway, useValue: chatGatewayMock },
       ],
     }).compile();
     testEventService = moduleRef.get<EventService>(EventService);
