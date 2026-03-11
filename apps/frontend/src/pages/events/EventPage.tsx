@@ -176,6 +176,7 @@ export const EventPage = () => {
                   <Text className="text-lg hover:underline truncate">{event.author.name}</Text>
                 </Link>
               )}
+              {!event.author && <Text className="text-lg">Unknown</Text>}
             </div>
 
             {/* Going */}

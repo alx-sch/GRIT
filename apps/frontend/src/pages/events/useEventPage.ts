@@ -100,7 +100,7 @@ export const useEventPage = () => {
         await userService.unattendEvent(event.id);
         setIsAttending(false);
         setCountAttending((prev) => prev - 1);
-        toast.info('You are no longer attending "' + event.title + '".');
+        toast.info('You are no longer attending "' + event.title + '"!');
       } catch (error) {
         toast.error('Something went wrong:' + String(error));
       } finally {
@@ -123,10 +123,10 @@ export const useEventPage = () => {
   const handleDelete = async () => {
     try {
       await eventService.deleteEvent(String(event.id));
-      toast.success('Event Deleted');
+      toast.success('Event deleted successfully!');
       void navigate('/events', { replace: true });
     } catch (error) {
-      toast.error('Failed to delete events: ' + String(error));
+      toast.error('Failed to delete event: ' + String(error));
     }
   };
 

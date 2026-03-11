@@ -143,14 +143,19 @@ export function useEventForm({ initialData, locations, onSuccess }: UseEventForm
       localStorage.removeItem(DRAFT_KEY);
 
       if (isEditMode) {
-        toast.success('Event updated');
+        toast.success('Event updated successfully!');
         onSuccess?.();
         void navigate('../', { replace: true });
+      } else if (!parsed.data.isPublished) {
+        toast.success('Event created as draft');
+        void navigate(`/events/${result.slug}`, { replace: true });
       } else {
+        toast.success('Event published successfully!');
         void navigate(`/events/${result.slug}`, { replace: true });
       }
     } catch (error) {
       let message = 'Something went wrong. Please try again.';
+      toast.error(message);
       if (isAxiosError(error)) {
         const data = error.response?.data as { message?: string } | undefined;
         if (data?.message) {
@@ -241,6 +246,7 @@ export function useEventForm({ initialData, locations, onSuccess }: UseEventForm
 
   // File handlers
   const handleRemoveExistingFile = (fileId: number) => {
+    toast.warning('File will be removed upon saving the event');
     setExistingFiles((prev) => prev.filter((f) => f.id !== fileId));
     setFilesToDelete((prev) => [...prev, fileId]);
   };
