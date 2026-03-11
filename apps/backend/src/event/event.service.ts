@@ -1,5 +1,4 @@
 import { ChatGateway } from '@/chat/chat.gateway';
-import { ConversationService } from '@/conversation/conversation.service';
 import {
   ReqEventGetPublishedDto,
   ReqEventPatchDto,

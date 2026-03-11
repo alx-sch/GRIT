@@ -200,7 +200,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     await this.syncSocketConversations(client, userId);
   }
 
-  async handleDisconnect(client: AppSocket) {
+  handleDisconnect(client: AppSocket) {
     const userId = client.data.userId;
     if (!userId) return;
 
