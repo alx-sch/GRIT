@@ -1,4 +1,3 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -9,7 +8,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Text } from '@/components/ui/typography';
-import { getAvatarImageUrl, getEventImageUrl } from '@/lib/image_utils';
+import { UserAvatar } from '@/components/ui/user-avatar';
+import { getEventImageUrl } from '@/lib/image_utils';
 import { userService } from '@/services/userService';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import { EventBase } from '@/types/event';
@@ -107,17 +107,12 @@ export function EventCard({ event, friendsIds }: EventCardProps) {
             {friendsGoing && friendsGoing.length > 0 && (
               <div className="flex -space-x-3">
                 {friendsGoing.slice(0, 3).map((friend, index) => (
-                  <Avatar
-                    className="h-8 w-8 border-2 border-background bg-muted"
+                  <UserAvatar
+                    user={friend}
+                    size="sm"
+                    className="border-2 border-background bg-muted"
                     key={index}
-                    style={{ zIndex: 3 - index }}
-                  >
-                    <AvatarImage
-                      src={friend?.avatarKey ? getAvatarImageUrl(friend.avatarKey) : undefined}
-                      seed={friend?.id?.toString() ?? 'user'}
-                    />
-                    <AvatarFallback name={friend.name} />
-                  </Avatar>
+                  />
                 ))}
               </div>
             )}
