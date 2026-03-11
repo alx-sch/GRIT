@@ -18,8 +18,8 @@ export class InvitesController {
   // Send an event invite
   @Post()
   @ZodSerializerDto(ResInviteDto)
-  sendInvite(@Body() body: ReqInviteDto, @GetUser('id') userId: number) {
-    return this.invitesService.sendInvite(userId, body.receiverId, body.eventId);
+  sendInvite(@Body() body: ReqInviteDto, @GetUser('id') senderId: number) {
+    return this.invitesService.sendInvite(senderId, body.receiverId, body.eventId);
   }
 
   // Update an event invite (accept or decline)

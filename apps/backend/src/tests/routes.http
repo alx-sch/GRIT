@@ -226,6 +226,39 @@ DELETE {{baseUrl}}/users/me/friends/2 HTTP/1.1
 Authorization: Bearer {{token}}
 ###
 
+// ========== EVENT INVITES ========== //
+
+# Send event invite
+POST {{baseUrl}}/users/me/invites HTTP/1.1
+Authorization: Bearer {{token}}
+content-type: application/json
+
+{
+	"receiverId": "2",
+	"eventId": "3"
+}
+###
+
+# Accept/decline event invite
+POST {{baseUrl}}/users/me/invites/b637781d-5405-4531-b809-fe61be8c2e08 HTTP/1.1
+Authorization: Bearer {{token}}
+content-type: application/json
+
+{
+	"status": "ACCEPTED"
+}
+###
+
+# Get list of incoming event invites
+GET {{baseUrl}}/users/me/invites/incoming HTTP/1.1
+Authorization: Bearer {{token}}
+###
+
+# Get list of outgoing event invites
+GET {{baseUrl}}/users/me/invites/outgoing HTTP/1.1
+Authorization: Bearer {{token}}
+###
+
 // ========== ADMIN ========== //
 
 # Get ALL users (sorted by name, asc)

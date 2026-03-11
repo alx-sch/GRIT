@@ -35,7 +35,6 @@ const ResInviteEventSchema = z.object({
   id: z.number().int().positive(),
   title: z.string(),
   imageKey: z.string().nullable().optional(),
-  isPublic: z.boolean(),
 });
 export type ResInviteEvent = z.infer<typeof ResInviteEventSchema>;
 
