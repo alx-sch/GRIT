@@ -12,12 +12,18 @@ model User {
   // Core Data
   email                  String                    @unique
   password               String?
-  name                   String
+  name                   String                    @unique
   avatarKey              String?
+  bio                    String?
+  city                   String?
+  country                String?
   confirmationToken      String?                   @unique
   googleId               String?
   // Status Flags
   isConfirmed            Boolean                   @default(false)
+  isProfilePublic        Boolean                   @default(true)
+  // Role
+  isAdmin                Boolean                   @default(false)
   // Relations
   events                 Event[]                   @relation("EventAuthor")
   locations              Location[]

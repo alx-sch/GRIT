@@ -22,6 +22,8 @@ interface ChatStore {
   resetConversations: () => void;
   setLastReadAt: (conversationId: string) => void;
   hasUnread: () => boolean;
+  clearLastMessage: (conversationId: string) => void;
+  setLastMessage: (conversationId: string, message: ResChatMessage) => void;
 }
 
 export const chatStore = create<ChatStore>((set, get) => ({
@@ -83,6 +85,38 @@ export const chatStore = create<ChatStore>((set, get) => ({
     return Object.values(conversations).some((conv) => {
       if (!conv.lastReadAt || !conv.lastMessage?.createdAt) return false;
       return new Date(conv.lastReadAt) < new Date(conv.lastMessage.createdAt);
+    });
+  },
+
+  // Update the last message for a conversation (used if a message is deleted and we show the previous one)
+  setLastMessage: (conversationId: string, message: ResChatMessage) => {
+    set((state) => {
+      const existing = state.conversations[conversationId];
+      return {
+        conversations: {
+          ...state.conversations,
+          [conversationId]: {
+            lastMessage: message,
+            lastReadAt: existing?.lastReadAt ?? null,
+          },
+        },
+      };
+    });
+  },
+
+  // Clear the last message for a conversation (if all messages are deleted)
+  clearLastMessage: (conversationId: string) => {
+    set((state) => {
+      const existing = state.conversations[conversationId];
+      return {
+        conversations: {
+          ...state.conversations,
+          [conversationId]: {
+            lastMessage: null,
+            lastReadAt: existing?.lastReadAt ?? null,
+          },
+        },
+      };
     });
   },
 }));

@@ -10,6 +10,7 @@ services:
       context: ..
       dockerfile: deployment/caddy/Dockerfile.caddy
       args:
+        - CADDY_ENV=${CADDY_ENV:-local}
         - VITE_GOOGLE_MAPS_API=${VITE_GOOGLE_MAPS_API}
         - APP_BASE_URL=${APP_BASE_URL:-}
     restart: unless-stopped

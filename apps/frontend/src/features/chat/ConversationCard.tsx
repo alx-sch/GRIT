@@ -1,10 +1,11 @@
 import { Card, CardHeader } from '@/components/ui/card';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import { ResConversationSingle } from '@grit/schema';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useNavigate } from 'react-router-dom';
+import { UserAvatar } from '@/components/ui/user-avatar';
+import { useNavigate, Link } from 'react-router-dom';
 import { chatStore } from '@/store/chatStore';
 import { mapConversationToCard } from './conversationToCard';
+import { getEventImageUrl } from '@/lib/image_utils';
 
 interface ConversationCardProps {
   conversation: ResConversationSingle;
@@ -21,17 +22,43 @@ export const ConversationCard = ({ conversation, isActive }: ConversationCardPro
     return s.conversations[conversation.id];
   });
 
-  const {
-    title,
-    imageUrl,
-    imageFallback,
-    lastMessageText,
-    lastMessageAuthor,
-    lastMessageCreatedAt,
-    hasUnread,
-    eventStart,
-    isEvent,
-  } = mapConversationToCard(conversation, conversationState, currentUser);
+  const { title, lastMessageText, lastMessageAuthor, lastMessageCreatedAt, hasUnread, eventStart } =
+    mapConversationToCard(conversation, conversationState, currentUser);
+
+  const otherUser =
+    conversation.type === 'DIRECT'
+      ? conversation.participants.find((el) => el.user.id !== currentUser.id)?.user
+      : undefined;
+
+  const isDirect = conversation.type === 'DIRECT';
+  const isEvent = conversation.type === 'EVENT';
+  const eventSlug = conversation.event?.slug;
+  const hasEvent = isEvent && eventSlug;
+
+  const avatarUser =
+    conversation.type === 'DIRECT'
+      ? otherUser
+      : {
+          name:
+            conversation.type === 'EVENT'
+              ? (conversation.event?.title ?? '')
+              : (conversation.title ?? ''),
+        };
+
+  const eventSrc =
+    conversation.type === 'EVENT' && conversation.event
+      ? getEventImageUrl(conversation.event)
+      : undefined;
+
+  const avatarEl = (
+    <UserAvatar
+      user={avatarUser ?? { name: '' }}
+      src={eventSrc}
+      size="md"
+      className={isEvent ? 'rounded-[3px]' : undefined}
+      fallbackClassName={isEvent ? 'rounded-[3px]' : undefined}
+    />
+  );
 
   return (
     <>
@@ -53,15 +80,32 @@ export const ConversationCard = ({ conversation, isActive }: ConversationCardPro
                 </div>
               )}
             </div>
-            <Avatar className={`h-12 w-12 ${isEvent && 'rounded-[3px]'}`}>
-              {imageUrl && <AvatarImage src={imageUrl} />}
-              <AvatarFallback className={`h-12 w-12 ${isEvent && 'rounded-[3px]'}`}>
-                {imageFallback}
-              </AvatarFallback>
-            </Avatar>
+            {isDirect && otherUser ? (
+              <Link to={`/users/${otherUser.id}`}>{avatarEl}</Link>
+            ) : hasEvent ? (
+              <Link to={`/events/${eventSlug}`}>{avatarEl}</Link>
+            ) : (
+              avatarEl
+            )}
           </div>
           <div className="w-full">
-            <div className="font-medium flex items-center leading-tight">{title}</div>
+            {isDirect && otherUser ? (
+              <Link
+                to={`/users/${otherUser.id}`}
+                className="font-medium flex items-center leading-tight hover:underline"
+              >
+                {title}
+              </Link>
+            ) : hasEvent ? (
+              <Link
+                to={`/events/${eventSlug}`}
+                className="font-medium flex items-center leading-tight hover:underline"
+              >
+                {title}
+              </Link>
+            ) : (
+              <div className="font-medium flex items-center leading-tight">{title}</div>
+            )}
             {/* <div className="text-xs">/ {conversation.type}</div> */}
             <div className="text-[14px] text-muted-foreground italic -ml-0.5">
               {lastMessageAuthor && `${lastMessageAuthor}: `}

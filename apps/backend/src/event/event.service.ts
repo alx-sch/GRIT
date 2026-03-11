@@ -21,6 +21,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConversationType, Prisma } from '@prisma/client';
+import { User } from '@/auth/interfaces/user.interface';
 
 @Injectable()
 export class EventService {
@@ -33,6 +34,7 @@ export class EventService {
 
   /**
    * HELPER: Resolves an event ID from either a numeric ID string or a Slug.
+   * Also checks if user has permission to delete event
    */
   private async resolveEventId(idOrSlug: string): Promise<number> {
     const event = await this.prisma.event.findFirst({
@@ -49,46 +51,46 @@ export class EventService {
     return event.id;
   }
 
-  async eventDelete(idOrSlug: string, userId: number) {
+  async eventDelete(idOrSlug: string, userId: number, isAdmin: boolean) {
     const eventId = await this.resolveEventId(idOrSlug);
-
-    try {
-      const deleted = await this.prisma.event.delete({
-        where: {
-          id: eventId,
-          authorId: userId,
-        },
-        include: {
-          author: true,
-          location: true,
-          files: true,
-        },
-      });
-
-      if (deleted.imageKey) {
-        try {
-          await this.storage.deleteFile(deleted.imageKey, 'event-images');
-        } catch (error) {
-          console.error(`Failed to delete event image with key ${deleted.imageKey}:`, error);
-        }
-      }
-      for (const file of deleted.files) {
-        try {
-          await this.storage.deleteFile(file.fileKey, file.bucket);
-        } catch (error) {
-          console.error(`Failed to delete file ${file.fileKey}:`, error);
-        }
-      }
-
-      return deleted;
-    } catch {
+    const eventData = await this.prisma.event.findUnique({
+      where: { id: eventId },
+      select: { authorId: true },
+    });
+    if (eventData?.authorId !== userId && !isAdmin)
       throw new UnauthorizedException(`No permission to delete event with id ${idOrSlug}.`);
+
+    const deleted = await this.prisma.event.delete({
+      where: {
+        id: eventId,
+      },
+      include: {
+        author: true,
+        location: true,
+        files: true,
+      },
+    });
+
+    if (deleted.imageKey) {
+      try {
+        await this.storage.deleteFile(deleted.imageKey, 'event-images');
+      } catch (error) {
+        console.error(`Failed to delete event image with key ${deleted.imageKey}:`, error);
+      }
     }
+    for (const file of deleted.files) {
+      try {
+        await this.storage.deleteFile(file.fileKey, file.bucket);
+      } catch (error) {
+        console.error(`Failed to delete file ${file.fileKey}:`, error);
+      }
+    }
+    return deleted;
   }
 
-  async eventGetPublished(input: ReqEventGetPublishedDto) {
+  async eventGetPublished(input: ReqEventGetPublishedDto, userId?: number) {
     // First two functions -----> event.utils.ts
-    const where: Prisma.EventWhereInput = eventSearchFilter(input);
+    const where: Prisma.EventWhereInput = eventSearchFilter(input, userId);
     const cursorFilter = eventCursorFilter(input);
     const finalWhere = { ...where, ...cursorFilter };
     const { limit, sort } = input;
@@ -144,6 +146,14 @@ export class EventService {
     };
   }
 
+  async eventGetAll(user: User) {
+    if (!user.isAdmin)
+      throw new UnauthorizedException('You do not have permission to access this.');
+    return await this.prisma.event.findMany({
+      orderBy: [{ isPublished: 'desc' }, { startAt: 'asc' }, { id: 'asc' }],
+    });
+  }
+
   async eventGetById(idOrSlug: string, userId?: number) {
     const eventId = await this.resolveEventId(idOrSlug);
 
@@ -170,7 +180,7 @@ export class EventService {
     };
   }
 
-  async eventPatch(idOrSlug: string, data: ReqEventPatchDto, userId: number) {
+  async eventPatch(idOrSlug: string, data: ReqEventPatchDto, userId: number, isAdmin: boolean) {
     const newData: Prisma.EventUpdateInput = {};
     if (data.content !== undefined) newData.content = data.content;
     if (data.endAt !== undefined) newData.endAt = data.endAt;
@@ -202,26 +212,26 @@ export class EventService {
       select: { authorId: true },
     });
 
-    if (event?.authorId !== userId) {
-      throw new NotFoundException(`Event not found or no permission to update it.`);
-    }
+    if (event?.authorId !== userId && !isAdmin)
+      throw new UnauthorizedException('You can only modify your own events');
 
-    try {
-      return await this.prisma.event.update({
-        where: { id: eventId, authorId: userId },
-        data: newData,
-        include: {
-          author: true,
-          location: true,
-          files: true,
-        },
-      });
-    } catch {
-      throw new NotFoundException(`Event not found or no permission to update it.`);
-    }
+    return await this.prisma.event.update({
+      where: { id: eventId },
+      data: newData,
+      include: {
+        author: true,
+        location: true,
+        files: true,
+      },
+    });
   }
 
-  async eventUpdateImage(idOrSlug: string, userId: number, file: Express.Multer.File) {
+  async eventUpdateImage(
+    idOrSlug: string,
+    userId: number,
+    isAdmin: boolean,
+    file: Express.Multer.File
+  ) {
     const eventId = await this.resolveEventId(idOrSlug);
     const bucket = 'event-images';
     let newBucketKey: string | null = null;
@@ -232,7 +242,8 @@ export class EventService {
       select: { authorId: true, imageKey: true },
     });
     if (!event) throw new NotFoundException('Event not found');
-    if (event.authorId !== userId) throw new UnauthorizedException();
+    if (event.authorId !== userId && !isAdmin)
+      throw new UnauthorizedException('You can only modify images as an event owner or admin.');
 
     try {
       // Upload new image
@@ -280,7 +291,7 @@ export class EventService {
     }
   }
 
-  async eventDeleteImage(idOrSlug: string, userId: number) {
+  async eventDeleteImage(idOrSlug: string, userId: number, isAdmin: boolean) {
     const eventId = await this.resolveEventId(idOrSlug);
     // Verify ownership
     const event = await this.prisma.event.findUnique({
@@ -288,7 +299,8 @@ export class EventService {
       select: { authorId: true, imageKey: true },
     });
     if (!event) throw new NotFoundException('Event not found');
-    if (event.authorId !== userId) throw new UnauthorizedException();
+    if (event.authorId !== userId && !isAdmin)
+      throw new UnauthorizedException('You can only delete your own images');
     if (!event.imageKey) throw new BadRequestException('Event has no image');
 
     await this.storage.deleteFile(event.imageKey, 'event-images');
@@ -317,7 +329,12 @@ export class EventService {
     };
   }
 
-  async eventUploadFile(idOrSlug: string, userId: number, file: Express.Multer.File) {
+  async eventUploadFile(
+    idOrSlug: string,
+    userId: number,
+    isAdmin: boolean,
+    file: Express.Multer.File
+  ) {
     const eventId = await this.resolveEventId(idOrSlug);
     const bucket = 'event-files';
     let newFileKey: string | null = null;
@@ -328,7 +345,8 @@ export class EventService {
       select: { authorId: true },
     });
     if (!event) throw new NotFoundException('Event not found');
-    if (event.authorId !== userId) throw new UnauthorizedException();
+    if (event.authorId !== userId && !isAdmin)
+      throw new UnauthorizedException('You can only upload files to your own event.');
 
     try {
       // Upload new file
@@ -376,7 +394,7 @@ export class EventService {
     }
   }
 
-  async eventDeleteFile(idOrSlug: string, userId: number, fileId: number) {
+  async eventDeleteFile(idOrSlug: string, userId: number, isAdmin: boolean, fileId: number) {
     const eventId = await this.resolveEventId(idOrSlug);
     // Verify ownership
     const event = await this.prisma.event.findUnique({
@@ -384,7 +402,8 @@ export class EventService {
       select: { authorId: true },
     });
     if (!event) throw new NotFoundException('Event not found');
-    if (event.authorId !== userId) throw new UnauthorizedException();
+    if (event.authorId !== userId && !isAdmin)
+      throw new UnauthorizedException('You can only delete files from your own events.');
 
     // Verify file exists and belongs to this event
     const file = await this.prisma.eventFile.findUnique({

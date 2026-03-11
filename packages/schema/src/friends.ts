@@ -75,3 +75,9 @@ export const ResListFriendSchema = z.strictObject({
 });
 
 export type ResListFriend = z.infer<typeof ResListFriendSchema>;
+
+// Friendship status response
+export const ResFriendshipStatusSchema = z.object({
+  status: z.enum(['none', 'pending_sent', 'pending_received', 'friends', 'self']),
+});
+export type ResFriendshipStatus = z.infer<typeof ResFriendshipStatusSchema>;

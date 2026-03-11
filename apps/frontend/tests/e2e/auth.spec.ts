@@ -85,7 +85,7 @@ test.describe('Authentication Flow', () => {
     await expect(page.getByRole('heading', { name: 'Login' })).toBeVisible();
 
     await page.getByLabel('Email').fill('test@example.com');
-    await page.getByLabel('Password').fill('Password123');
+    await page.locator('input[name="password"]').fill('Password123');
 
     await page.getByRole('main').getByRole('button', { name: 'Login' }).click();
 
@@ -106,12 +106,12 @@ test.describe('Authentication Flow', () => {
 
     await page.getByLabel('Name').fill('John Doe');
     await page.getByLabel('Email').fill('newuser@example.com');
-    await page.getByLabel('Password', { exact: true }).fill('Password123!');
-    await page.getByLabel('Re-type Password').fill('Password123!');
+    await page.locator('input[name="password"]').fill('Password123!');
+    await page.locator('input[name="confirmPassword"]').fill('Password123!');
 
     await page.getByRole('button', { name: 'Create account' }).click();
 
-    await expect(page.getByText('Account created')).toBeVisible();
+    await expect(page.getByText('You are logged in')).toBeVisible();
   });
 
   test('should navigate between login and register pages', async ({ page }) => {
@@ -129,7 +129,7 @@ test.describe('Authentication Flow', () => {
     await page.goto('/login');
 
     await page.getByLabel('Email').fill('wrong@example.com');
-    await page.getByLabel('Password').fill('WrongPassword123');
+    await page.locator('input[name="password"]').fill('WrongPassword123');
 
     await page.getByRole('main').getByRole('button', { name: 'Login' }).click();
 

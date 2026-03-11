@@ -15,6 +15,8 @@ export const useEventPage = () => {
   const currentUserAttending =
     currentUser && event.attendees.some((el) => el.id === currentUser.id);
   const isAuthor = event.authorId === currentUser?.id;
+  const isAdmin = currentUser?.isAdmin ?? false;
+  const canEdit = isAuthor || isAdmin;
 
   const [isAttending, setIsAttending] = useState(currentUserAttending);
   const [countAttending, setCountAttending] = useState(event.attendees.length);
@@ -131,6 +133,8 @@ export const useEventPage = () => {
   return {
     event,
     isAuthor,
+    isAdmin,
+    canEdit,
     isAttending,
     countAttending,
     isLoading,

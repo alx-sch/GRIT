@@ -38,13 +38,30 @@ export function eventDecodeCursor(cursor: string): { startAt: Date; id: number }
  */
 
 // For filtering the events by start time, author id, search keywords etc.
-export function eventSearchFilter(input: ReqEventGetPublishedDto) {
-  const where: Prisma.EventWhereInput = { isPublished: true };
+export function eventSearchFilter(input: ReqEventGetPublishedDto, userId?: number) {
+  // Base filter: published events that are either:
+  // 1. Public events (visible to everyone)
+  // 2. Private events where the user is the author
+  // 3. Private events where the user is attending
+  const visibilityFilter: Prisma.EventWhereInput = userId
+    ? {
+        OR: [{ isPublic: true }, { authorId: userId }, { attendees: { some: { userId } } }],
+      }
+    : { isPublic: true };
+
+  const where: Prisma.EventWhereInput = {
+    isPublished: true,
+    ...visibilityFilter,
+  };
 
   if (input.search) {
-    where.OR = [
-      { title: { contains: input.search, mode: 'insensitive' } },
-      { content: { contains: input.search, mode: 'insensitive' } },
+    where.AND = [
+      {
+        OR: [
+          { title: { contains: input.search, mode: 'insensitive' } },
+          { content: { contains: input.search, mode: 'insensitive' } },
+        ],
+      },
     ];
   }
   if (input.author_id) where.authorId = input.author_id;

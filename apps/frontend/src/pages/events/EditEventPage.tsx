@@ -1,4 +1,4 @@
-import { Container } from '@/components/layout/Container';
+import { BackButton } from '@/components/ui/backButton';
 import { Heading } from '@/components/ui/typography';
 import EventForm from '@/features/event/EventForm';
 import { Pagination, useInfiniteScroll } from '@/hooks/useInfiniteScroll';
@@ -8,7 +8,7 @@ import { locationService } from '@/services/locationService';
 import { EventBase } from '@/types/event';
 import { LocationBase } from '@/types/location';
 import { useMemo } from 'react';
-import { LoaderFunctionArgs } from 'react-router-dom';
+import { LoaderFunctionArgs, useRevalidator } from 'react-router-dom';
 
 export const editEventLoader = async ({ params }: LoaderFunctionArgs) => {
   if (!params.id) throw new Response('Not Found', { status: 404 });
@@ -18,6 +18,8 @@ export const editEventLoader = async ({ params }: LoaderFunctionArgs) => {
 };
 
 export default function EditEventPage() {
+  const revalidator = useRevalidator();
+
   const {
     event,
     locations: { data: initialLocations, pagination: initialPagination },
@@ -53,7 +55,8 @@ export default function EditEventPage() {
   };
 
   return (
-    <Container className="py-10 space-y-8 p-0 md:px-0">
+    <div className="space-y-8">
+      <BackButton label="Back to Event" />
       <div className="space-y-2">
         <Heading level={1} className="text-3xl md:text-4xl">
           Edit Event
@@ -65,7 +68,10 @@ export default function EditEventPage() {
         onLocationMenuScrollToBottom={handleLocationMenuScrollToBottom}
         isLoadingLocations={isLoadingLocations}
         onLocationCreated={addLocation}
+        onSuccess={() => {
+          void revalidator.revalidate();
+        }}
       />
-    </Container>
+    </div>
   );
 }

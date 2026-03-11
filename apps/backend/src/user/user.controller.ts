@@ -1,3 +1,6 @@
+import { GetUser } from '@/auth/guards/get-user.decorator';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { JwtAuthOptionalGuard } from '@/auth/guards/jwt-auth-optional.guard';
 import {
   Body,
   Query,
@@ -12,7 +15,9 @@ import {
   FileTypeValidator,
   UseGuards,
   Delete,
+  Param,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -20,17 +25,19 @@ import {
   ResUserPostDto,
   ReqUserPostDto,
   ReqUserGetAllDto,
-  ResUserPatchSchema,
   ReqUserPatchDto,
-  ResUserEventsDto,
+  ReqUserDeleteByIdDto,
+  ReqUserPatchByIdDto,
+  ReqUserDeleteAvatarDto,
+  ResMyEventsDto,
   ResUserDeleteSchema,
+  ResUserPatchSchema,
 } from '@/user/user.schema';
 import { UserService } from '@/user/user.service';
+import { ResUserGetAllSchema, ResUserAdminGetAllSchema } from '@grit/schema';
+import { User } from '@/auth/interfaces/user.interface';
+import { ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { ApiConsumes, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
-import { GetUser } from '@/auth/guards/get-user.decorator';
-import { ResUserGetAllSchema } from '@grit/schema';
 
 @Controller('users')
 export class UserController {
@@ -55,10 +62,11 @@ export class UserController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResUserPatchSchema)
-  userPatch(@Body() data: ReqUserPatchDto, @GetUser('id') userId: number) {
+  userPatchMe(@Body() data: ReqUserPatchDto, @GetUser('id') userId: number) {
     return this.userService.userPatch(userId, data);
   }
 
+  // Get user
   @Get('me')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
@@ -75,17 +83,18 @@ export class UserController {
   @Get('me/events')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @ZodSerializerDto(ResUserEventsDto)
+  @ZodSerializerDto(ResMyEventsDto)
   async getMyEvents(@GetUser('id') userId: number) {
     return await this.userService.userGetEvents(userId);
   }
-  // Delete a user
+
+  // Delete logged in user
   @Delete('me')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResUserDeleteSchema)
-  async userDelete(@GetUser('id') id: number) {
-    return this.userService.userDelete(id);
+  userDeleteMe(@GetUser() user: User) {
+    return this.userService.userDeleteMe(user);
   }
 
   // Delete avatar (reset to default)
@@ -127,5 +136,76 @@ export class UserController {
   ): Promise<ResUserBaseDto> {
     console.log('File received:', file.originalname);
     return await this.userService.userUpdateAvatar(userId, file);
+  }
+
+  // ADMIN -> Get ALL users
+  @Get('admin')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(ResUserAdminGetAllSchema)
+  userAdminGetAll(@GetUser() user: User) {
+    return this.userService.userAdminGetAll(user);
+  }
+
+  // ADMIN -> delete avatar (reset to default)
+  @Delete(':id/avatar')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(ResUserBaseDto)
+  async deleteAvatarById(
+    @Param() param: ReqUserDeleteAvatarDto,
+    @GetUser() user: User
+  ): Promise<ResUserBaseDto> {
+    return await this.userService.userDeleteAvatarById(param.id, user);
+  }
+
+  // ADMIN -> edit a user by id
+  @Patch(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(ResUserPatchSchema)
+  userPatchById(
+    @Param() param: ReqUserPatchByIdDto,
+    @Body() data: ReqUserPatchDto,
+    @GetUser() user: User
+  ) {
+    return this.userService.userPatchById(param.id, data, user);
+  }
+
+  // ADMIN -> delete a user by id
+  @Delete(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(ResUserDeleteSchema)
+  userDelete(@Param() param: ReqUserDeleteByIdDto, @GetUser() user: User) {
+    return this.userService.userDelete(param.id, user);
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthOptionalGuard)
+  async getUserById(@Param('id') id: string, @GetUser('id') requestingUserId?: number) {
+    const userId = parseInt(id, 10);
+    if (isNaN(userId)) {
+      throw new NotFoundException('User not found');
+    }
+    const user = await this.userService.userGetPublic(userId, requestingUserId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
+  }
+
+  @Get(':id/events')
+  @UseGuards(JwtAuthOptionalGuard)
+  async getUserEvents(@Param('id') id: string, @GetUser('id') requestingUserId?: number) {
+    const userId = parseInt(id, 10);
+    if (isNaN(userId)) {
+      throw new NotFoundException('User not found');
+    }
+    const events = await this.userService.userGetPublicEvents(userId, requestingUserId);
+    if (events === null) {
+      throw new NotFoundException('User not found');
+    }
+    return events;
   }
 }

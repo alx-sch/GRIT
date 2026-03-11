@@ -2,9 +2,11 @@ import { chatStore } from '@/store/chatStore';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import { ResConversationSingle } from '@grit/schema';
 import { ChevronLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { mapConversationToCard } from './conversationToCard';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { UserAvatar } from '@/components/ui/user-avatar';
+import { getEventImageUrl } from '@/lib/image_utils';
+import { cn } from '@/lib/utils';
 
 export const ChatBoxHeader = ({ conversation }: { conversation: ResConversationSingle }) => {
   const navigate = useNavigate();
@@ -16,10 +18,41 @@ export const ChatBoxHeader = ({ conversation }: { conversation: ResConversationS
     return s.conversations[conversation.id];
   });
 
-  const { title, imageUrl, imageFallback, isEvent } = mapConversationToCard(
-    conversation,
-    conversationState,
-    currentUser
+  const { title } = mapConversationToCard(conversation, conversationState, currentUser);
+
+  const otherUser =
+    conversation.type === 'DIRECT'
+      ? conversation.participants.find((el) => el.user.id !== currentUser.id)?.user
+      : undefined;
+
+  const isDirect = conversation.type === 'DIRECT';
+  const isEventChat = conversation.type === 'EVENT';
+  const eventSlug = conversation.event?.slug;
+  const hasEvent = isEventChat && eventSlug;
+
+  const avatarUser =
+    conversation.type === 'DIRECT'
+      ? otherUser
+      : {
+          name:
+            conversation.type === 'EVENT'
+              ? (conversation.event?.title ?? '')
+              : (conversation.title ?? ''),
+        };
+
+  const eventSrc =
+    conversation.type === 'EVENT' && conversation.event
+      ? getEventImageUrl(conversation.event)
+      : undefined;
+
+  const avatarEl = (
+    <UserAvatar
+      user={avatarUser ?? { name: '' }}
+      src={eventSrc}
+      size="md"
+      className={cn('mr-3', isEventChat && 'rounded-[3px]')}
+      fallbackClassName={isEventChat ? 'rounded-[3px]' : undefined}
+    />
   );
 
   return (
@@ -34,15 +67,26 @@ export const ChatBoxHeader = ({ conversation }: { conversation: ResConversationS
           </button>
         </div>
         <div className="py-2 px-2.5 flex">
-          <Avatar className={`h-12 w-12 mr-3 ${isEvent && 'rounded-[3px]'}`}>
-            {imageUrl && <AvatarImage src={imageUrl} />}
-            <AvatarFallback className={`h-12 w-12 test ${isEvent && 'rounded-[3px]'}`}>
-              {imageFallback}
-            </AvatarFallback>
-          </Avatar>
+          {isDirect && otherUser ? (
+            <Link to={`/users/${otherUser.id}`}>{avatarEl}</Link>
+          ) : hasEvent ? (
+            <Link to={`/events/${eventSlug}`}>{avatarEl}</Link>
+          ) : (
+            avatarEl
+          )}
           <div className="text-accent-foreground">
             <div className="text-xs mt-0.5 mb-0.5">{conversation.type}</div>
-            <div className="text-lg font-bold">{title}</div>
+            {isDirect && otherUser ? (
+              <Link to={`/users/${otherUser.id}`} className="text-lg font-bold hover:underline">
+                {title}
+              </Link>
+            ) : hasEvent ? (
+              <Link to={`/events/${eventSlug}`} className="text-lg font-bold hover:underline">
+                {title}
+              </Link>
+            ) : (
+              <div className="text-lg font-bold">{title}</div>
+            )}
           </div>
         </div>
       </div>

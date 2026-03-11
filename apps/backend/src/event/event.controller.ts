@@ -22,7 +22,6 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { ZodSerializerDto } from 'nestjs-zod';
-
 import {
   ReqEventDeleteDto,
   ReqEventGetByIdDto,
@@ -32,8 +31,10 @@ import {
   ResEventDeleteSchema,
   ResEventPatchSchema,
   ResEventPostDraftSchema,
+  ResEventGetAllSchema,
 } from './event.schema';
 import { EventService } from './event.service';
+import { User } from '@/auth/interfaces/user.interface';
 
 @Controller('events')
 export class EventController {
@@ -44,15 +45,25 @@ export class EventController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResEventDeleteSchema)
-  eventDelete(@Param() param: ReqEventDeleteDto, @GetUser('id') userId: number) {
-    return this.eventService.eventDelete(param.id, userId);
+  eventDelete(@Param() param: ReqEventDeleteDto, @GetUser() user: User) {
+    return this.eventService.eventDelete(param.id, user.id, user.isAdmin);
   }
 
   // Get all published events or search published events
   @Get()
+  @UseGuards(JwtAuthOptionalGuard)
   @ZodSerializerDto(ResEventGetPublishedSchema)
-  eventGetPublished(@Query() query: ReqEventGetPublishedDto) {
-    return this.eventService.eventGetPublished(query);
+  eventGetPublished(@Query() query: ReqEventGetPublishedDto, @GetUser('id') userId?: number) {
+    return this.eventService.eventGetPublished(query, userId);
+  }
+
+  // Admin -> Get ALL events
+  @Get('admin')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(ResEventGetAllSchema)
+  eventGetAll(@GetUser() user: User) {
+    return this.eventService.eventGetAll(user);
   }
 
   // Get event by ID (numeric) OR by Slug (string)
@@ -74,9 +85,9 @@ export class EventController {
   eventPatch(
     @Body() data: ReqEventPatchDto,
     @Param() param: ReqEventGetByIdDto,
-    @GetUser('id') userId: number
+    @GetUser() user: User
   ) {
-    return this.eventService.eventPatch(param.id, data, userId);
+    return this.eventService.eventPatch(param.id, data, user.id, user.isAdmin);
   }
 
   // ADD Image upload routine
@@ -96,7 +107,7 @@ export class EventController {
   @UseInterceptors(FileInterceptor('file'))
   async uploadEventImage(
     @Param() param: ReqEventGetByIdDto,
-    @GetUser('id') userId: number,
+    @GetUser() user: User,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -107,7 +118,7 @@ export class EventController {
     )
     file: Express.Multer.File
   ) {
-    return await this.eventService.eventUpdateImage(param.id, userId, file);
+    return await this.eventService.eventUpdateImage(param.id, user.id, user.isAdmin, file);
   }
 
   // Delete event image
@@ -115,8 +126,8 @@ export class EventController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResEventBaseSchema)
-  async deleteEventImage(@Param() param: ReqEventDeleteDto, @GetUser('id') userId: number) {
-    return this.eventService.eventDeleteImage(param.id, userId);
+  async deleteEventImage(@Param() param: ReqEventDeleteDto, @GetUser() user: User) {
+    return this.eventService.eventDeleteImage(param.id, user.id, user.isAdmin);
   }
 
   // Upload new documents (image or pdf)
@@ -125,7 +136,7 @@ export class EventController {
   @UseInterceptors(FileInterceptor('file'))
   uploadEventFile(
     @Param() param: ReqEventGetByIdDto,
-    @GetUser('id') userId: number,
+    @GetUser() user: User,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -136,7 +147,7 @@ export class EventController {
     )
     file: Express.Multer.File
   ) {
-    return this.eventService.eventUploadFile(param.id, userId, file);
+    return this.eventService.eventUploadFile(param.id, user.id, user.isAdmin, file);
   }
 
   // Delete documents (image or pdf)
@@ -145,16 +156,17 @@ export class EventController {
   deleteEventFile(
     @Param('id', ParseIntPipe) eventId: number,
     @Param('fileId', ParseIntPipe) fileId: number,
-    @GetUser('id') userId: number
+    @GetUser() user: User
   ) {
-    return this.eventService.eventDeleteFile(String(eventId), userId, fileId);
+    return this.eventService.eventDeleteFile(String(eventId), user.id, user.isAdmin, fileId);
   }
+
   // Post a new event draft
   @Post()
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResEventPostDraftSchema)
-  eventCreateDraft(@Body() data: ReqEventPostDraftDto, @GetUser('id') userId: number) {
-    return this.eventService.eventPostDraft(Object.assign(data, { authorId: userId }));
+  eventCreateDraft(@Body() data: ReqEventPostDraftDto, @GetUser() user: User) {
+    return this.eventService.eventPostDraft(Object.assign(data, { authorId: user.id }));
   }
 }

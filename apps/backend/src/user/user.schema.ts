@@ -1,4 +1,4 @@
-import { ResUserBaseSchema, ResUserEventsSchema } from '@grit/schema';
+import { ResUserBaseSchema, ResUserEventsSchema, ResMyEventsSchema } from '@grit/schema';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
@@ -39,6 +39,23 @@ export const ReqUserPostSchema = z.object({
 // verifications)
 export const ReqUserPatchSchema = z.strictObject({
   name: z.string().optional(),
+  bio: z
+    .string()
+    .trim()
+    .max(150)
+    .transform((v) => (v === '' ? null : v))
+    .optional(),
+  city: z
+    .string()
+    .trim()
+    .transform((v) => (v === '' ? null : v))
+    .optional(),
+  country: z
+    .string()
+    .trim()
+    .transform((v) => (v === '' ? null : v))
+    .optional(),
+  isProfilePublic: z.boolean().optional(),
   attending: z
     .strictObject({
       connect: z.array(z.number().int().positive()).optional(),
@@ -46,18 +63,29 @@ export const ReqUserPatchSchema = z.strictObject({
     })
     .optional(),
 });
-export class ReqUserPatchDto extends createZodDto(ReqUserPatchSchema) {}
+
+// Patch a user
+export const ReqUserPatchByIdSchema = z.strictObject({
+  id: z.coerce.number().int().positive(),
+});
 export const ResUserPatchSchema = ResUserBaseSchema;
 
 // Get an individual user by id
 export const ReqUserGetByIdSchema = z.strictObject({
   id: z.coerce.number().int().positive(),
 });
-export class ReqUserGetByIdDto extends createZodDto(ReqUserGetByIdSchema) {}
 export const ResUserGetByIdSchema = ResUserBaseSchema;
 
 // Delete a user
+export const ReqUserDeleteByIdSchema = z.strictObject({
+  id: z.coerce.number().int().positive(),
+});
 export const ResUserDeleteSchema = ResUserBaseSchema;
+
+// Delete a user's avatar
+export const ReqUserDeleteAvatarSchema = z.strictObject({
+  id: z.coerce.number().int().positive(),
+});
 
 // --- DTO classes ---
 export class ResUserBaseDto extends createZodDto(ResUserBaseSchema) {}
@@ -65,4 +93,10 @@ export class ReqUserGetAllDto extends createZodDto(ReqUserGetAllSchema) {}
 export class ResUserPostDto extends createZodDto(ResUserPostSchema) {}
 export class ReqUserPostDto extends createZodDto(ReqUserPostSchema) {}
 export class ResUserEventsDto extends createZodDto(ResUserEventsSchema) {}
+export class ResMyEventsDto extends createZodDto(ResMyEventsSchema) {}
 export class ReqUserConfirmDto extends createZodDto(ReqUserConfirmSchema) {}
+export class ReqUserGetByIdDto extends createZodDto(ReqUserGetByIdSchema) {}
+export class ReqUserDeleteAvatarDto extends createZodDto(ReqUserDeleteAvatarSchema) {}
+export class ReqUserDeleteByIdDto extends createZodDto(ReqUserDeleteByIdSchema) {}
+export class ReqUserPatchDto extends createZodDto(ReqUserPatchSchema) {}
+export class ReqUserPatchByIdDto extends createZodDto(ReqUserPatchByIdSchema) {}

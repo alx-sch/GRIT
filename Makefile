@@ -80,7 +80,7 @@ endif
 # TARGETS
 # ---------------------------------------------------
 
-all:	start
+all:	start-local
 
 #######################
 ## 🛡️ ENV VALIDATION ##
@@ -131,11 +131,10 @@ install-fe: build-schema
 install-playwright:
 	@echo "$(BOLD)$(BLUE)--- Ensuring Playwright is ready...$(RESET)"
 ifeq ($(OS), Linux)
-	@if ! ldconfig -p | grep -q libatk-1.0.so.0; then \
-		pnpm --filter @grit/frontend exec playwright install-deps; \
-	fi
-endif
+	@pnpm --filter @grit/frontend exec playwright install --with-deps chromium
+else
 	@pnpm --filter @grit/frontend exec playwright install
+endif
 
 # -- CLEANUP TARGETS --
 
@@ -288,8 +287,6 @@ test-be-testdb-init: start-postgres
 	@echo "$(BOLD)$(YELLOW)--- Creating Test Database ...$(RESET)"
 	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
 	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
-	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
-	@$(DC) exec postgres-db psql -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
 	@NODE_ENV=test pnpm --filter @grit/backend exec prisma db push
 
 test-be-testdb-remove:
@@ -310,7 +307,6 @@ test-fe-integration: install-fe
 
 test-fe-e2e: install-fe install-playwright
 	@echo "$(BOLD)$(YELLOW)--- Running Frontend E2E Tests ...$(RESET)"
-	@pnpm --filter @grit/frontend exec playwright install
 	@pnpm --filter @grit/frontend exec playwright test
 
 #############################
@@ -338,9 +334,15 @@ dev-fe: check-env kill-port-fe install-fe
 
 # Starts database AND MinIO for local development
 db: start-postgres start-minio
-	@pnpm --filter @grit/backend exec prisma db push
+	@pnpm --filter @grit/backend exec prisma migrate deploy
 	@$(MAKE) seed-db --no-print-directory
 	@echo "$(BOLD)$(GREEN)Database is ready, schema is synced and initial users are seeded.$(RESET)"
+	@echo "•   View logs (db): '$(YELLOW)make logs$(RESET)'"
+	@echo "•   View database:  '$(YELLOW)make view-db$(RESET)'"
+
+db-prod: start-postgres start-minio
+	@pnpm --filter @grit/backend exec prisma migrate deploy
+	@echo "$(BOLD)$(GREEN)Database is ready and schema is deployed.$(RESET)"
 	@echo "•   View logs (db): '$(YELLOW)make logs$(RESET)'"
 	@echo "•   View database:  '$(YELLOW)make view-db$(RESET)'"
 
@@ -348,22 +350,19 @@ db: start-postgres start-minio
 start-postgres: install-be
 	@echo "$(BOLD)$(YELLOW)--- Starting Postgres [DOCKER]...$(RESET)"
 	@$(DC) up -d postgres-db --no-build
-	@echo "$(BOLD)$(YELLOW)--- Waiting for Postgres to wake up...$(RESET)"
-	@RETRIES=10; \
+	@echo "$(BOLD)$(YELLOW)--- Waiting for Postgres to accept connections...$(RESET)"
+	@RETRIES=30; \
 	PG_CONTAINER=$$($(DC) ps -q postgres-db); \
-	while [ $$RETRIES -gt 0 ]; do \
-		if docker exec $$PG_CONTAINER pg_isready -U $(POSTGRES_USER) -d $(POSTGRES_DB) > /dev/null 2>&1; then \
-			echo "$(GREEN)Postgres is ready!$(RESET)"; \
-			break; \
+	until docker exec $$PG_CONTAINER psql -U $(POSTGRES_USER) -d postgres -c '\q' > /dev/null 2>&1; do \
+		RETRIES=$$((RETRIES - 1)); \
+		if [ $$RETRIES -eq 0 ]; then \
+			echo "$(RED)Timeout waiting for Postgres.$(RESET)"; \
+			exit 1; \
 		fi; \
 		echo "Waiting for Postgres... ($$RETRIES attempts left)"; \
-		RETRIES=$$((RETRIES - 1)); \
 		sleep 1; \
 	done; \
-	if [ $$RETRIES -eq 0 ]; then \
-		echo "$(RED)Timeout waiting for Postgres.$(RESET)"; \
-		exit 1; \
-	fi
+	echo "$(GREEN)Postgres is ready!$(RESET)"
 
 # Helper: Starts the postgres container service
 start-minio: install-be
@@ -385,6 +384,13 @@ start-minio: install-be
 		echo "$(RED)Timeout waiting for MinIO.$(RESET)"; \
 		exit 1; \
 	fi
+
+# Creates a new Prisma migration using the current branch name (last segment after /)
+create-migration:
+	$(eval MIGRATION_NAME := $(shell git branch --show-current | sed 's|.*/||' | tr '-' '_'))
+	@echo "$(BOLD)$(YELLOW)--- Creating Migration: $(MIGRATION_NAME)...$(RESET)"
+	@pnpm --filter @grit/backend exec prisma migrate dev --name $(MIGRATION_NAME)
+	@echo "$(BOLD)$(GREEN)Migration '$(MIGRATION_NAME)' created.$(RESET)"
 
 # Populates the database with initial test data
 seed-db:
@@ -526,8 +532,8 @@ run-fe: kill-port-fe build-fe
 
 ###############################
 
-# Starts production services via Docker Compose
-start: check-env db
+# Starts local services via Docker Compose
+start-local: check-env db
 	@echo "$(BOLD)$(YELLOW)--- Launching Application Services...$(RESET)"
 	$(DC) up -d --build backend caddy
 
@@ -539,6 +545,13 @@ start: check-env db
 	else \
 		echo "•   View app:       '$(YELLOW)https://localhost:$(HTTPS_PORT)$(RESET)'"; \
 	fi
+
+# Starts production services via Docker Compose
+start-prod: check-env db-prod
+	@echo "$(BOLD)$(YELLOW)--- Launching Application Services...$(RESET)"
+	CADDY_ENV=prod $(DC) up -d --build backend caddy
+	@echo "$(BOLD)$(GREEN)Full stack is live!$(RESET)"
+	@echo "•   View live logs: '$(YELLOW)make logs$(RESET)'"
 
 # Stops production services via Docker Compose
 stop:
@@ -561,7 +574,9 @@ stop:
 		clean-backup \
 		clean-db \
 		clean-turbo \
+		create-migration \
 		db \
+		db-prod \
 		dev \
 		dev-be \
 		dev-fe \
@@ -574,9 +589,15 @@ stop:
 		lint-fix \
 		logs \
 		purge \
+		run \
+		run-be \
+		run-fe \
 		seed-db \
+		start-local \
+		start-prod \
 		start-postgres \
 		start-minio \
+		stop \
 		stop-db \
 		stop-dev-processes \
 		test-be \
@@ -586,9 +607,5 @@ stop:
 		vol-backup \
 		vol-inspect \
 		vol-ls \
-		vol-restore \
-		run \
-		run-be \
-		run-fe \
-		start \
-		stop
+		vol-restore
+

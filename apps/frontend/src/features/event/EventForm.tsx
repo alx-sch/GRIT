@@ -37,6 +37,7 @@ interface EventFormProps {
   onLocationMenuScrollToBottom?: () => void;
   isLoadingLocations?: boolean;
   onLocationCreated?: (location: LocationBase) => void;
+  onSuccess?: () => void;
 }
 
 export default function EventForm({
@@ -45,6 +46,7 @@ export default function EventForm({
   onLocationMenuScrollToBottom,
   isLoadingLocations,
   onLocationCreated,
+  onSuccess,
 }: EventFormProps) {
   const {
     control,
@@ -80,7 +82,7 @@ export default function EventForm({
     showRootError,
     rootErrorMessage,
     existingImageUrl,
-  } = useEventForm({ initialData, locations });
+  } = useEventForm({ initialData, locations, onSuccess });
 
   const locationOptionsCombobox = useMemo(
     () => [
@@ -142,6 +144,7 @@ export default function EventForm({
             aria-invalid={!!errors.title}
             {...register('title')}
             placeholder="Give your event a catchy name"
+            clearable
           />
           {showTitleError && titleErrorMessage && (
             <Alert variant="destructive" className="mt-1.5 md:w-1/3 self-start">
@@ -344,10 +347,10 @@ export default function EventForm({
           <SheetHeader className="flex flex-row items-center justify-between border-b-2 border-border pb-4 mb-2 space-y-0 text-left">
             <SheetTitle className="font-bold uppercase tracking-wider">Add New Location</SheetTitle>
             <SheetClose asChild>
-              <button className="focus:outline-none hover:opacity-70 transition-opacity">
-                <X className="h-8 w-8 text-foreground" strokeWidth={3} />
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <X className="h-8 w-8" strokeWidth={3} />
                 <span className="sr-only">Close</span>
-              </button>
+              </Button>
             </SheetClose>
           </SheetHeader>
           <LocationForm

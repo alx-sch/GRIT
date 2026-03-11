@@ -1,5 +1,6 @@
 import { Field, FieldGroup, FieldLabel, FieldSet, FieldError } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Button } from '@/components/ui/button';
 import { Form, redirect, useNavigation, useActionData, Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
@@ -8,12 +9,12 @@ import { authService } from '@/services/authService';
 import { ActionFormError } from '@/types/actionFormError';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import axios from 'axios';
 import z from 'zod';
 import { RegisterSchema } from '@grit/schema';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 const LocalRegisterSchema = RegisterSchema.extend({
   email: z.email('Please enter a valid email address'),
@@ -54,15 +55,20 @@ export async function registerPageAction({ request }: { request: Request }) {
     // Exclude confirmPassword
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { confirmPassword, ...registerData } = parsedData.data;
-    const data = await authService.register(registerData);
+    // Register
+    await authService.register(registerData);
 
-    useAuthStore.getState().setAuthenticated(data.accessToken);
-    useCurrentUserStore.getState().setUser(data.user);
-    return redirect('/events?signup_success=true');
+    // Log in
+    const loginData = await authService.login(parsedData.data);
+    useAuthStore.getState().setAuthenticated(loginData.accessToken);
+    useCurrentUserStore.getState().setUser(loginData.user);
+
+    // Clean up URL and redirect to /events with success toast
+    return redirect('/events?logged_in=true');
   } catch (err) {
     if (axios.isAxiosError(err)) {
       if (err.response?.status === 409) {
-        return { formErrors: ['Email already exists'] } satisfies ActionFormError;
+        return { formErrors: ['Username or email already exists'] } satisfies ActionFormError;
       }
       if (err.response?.status === 400) {
         return { formErrors: ['Invalid data provided'] } satisfies ActionFormError;
@@ -89,8 +95,6 @@ export const RegisterPage = () => {
     mode: 'onChange',
   });
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const password = useWatch({ control, name: 'password' }) ?? '';
 
   const actionData = useActionData<ActionFormError | undefined>();
@@ -170,25 +174,12 @@ export const RegisterPage = () => {
 
                 <Field>
                   <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      autoComplete="new-password"
-                      error={!!errors.password}
-                      {...register('password')}
-                      className="pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowPassword(!showPassword);
-                      }}
-                      className="absolute right-5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
+                  <PasswordInput
+                    id="password"
+                    autoComplete="new-password"
+                    error={!!errors.password}
+                    {...register('password')}
+                  />
 
                   <ul className="space-y-1 mt-2">
                     {criteria.map((c, i) => (
@@ -208,29 +199,12 @@ export const RegisterPage = () => {
 
                 <Field>
                   <FieldLabel htmlFor="confirmPassword">Re-type Password</FieldLabel>
-                  <div className="relative">
-                    <Input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      autoComplete="new-password"
-                      error={!!errors.confirmPassword}
-                      {...register('confirmPassword')}
-                      className="pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowConfirmPassword(!showConfirmPassword);
-                      }}
-                      className="absolute right-5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
-                  </div>
+                  <PasswordInput
+                    id="confirmPassword"
+                    autoComplete="new-password"
+                    error={!!errors.confirmPassword}
+                    {...register('confirmPassword')}
+                  />
                   <FieldError errors={[errors.confirmPassword]} />
                 </Field>
 

@@ -1,4 +1,3 @@
-import { getAvatarImageUrl, getEventImageUrlByKey } from '@/lib/image_utils';
 import { trimText } from '@/lib/utils';
 import { CurrentUser } from '@/types/user';
 import { ResConversationOverview, ResConversationState } from '@grit/schema';
@@ -16,26 +15,6 @@ export function mapConversationToCard(
 
   const isEvent = conversation.type === 'EVENT';
 
-  // Image
-  const findImageUrl = () => {
-    if (conversation.type === 'DIRECT')
-      return otherUser?.avatarKey ? getAvatarImageUrl(otherUser.avatarKey) : undefined;
-    if (conversation.type === 'EVENT')
-      return conversation.event?.imageKey
-        ? getEventImageUrlByKey(conversation.event.imageKey)
-        : undefined;
-  };
-  const imageUrl = findImageUrl();
-
-  // Image Fallback
-  const getImageFallback = () => {
-    if (conversation.type === 'DIRECT') return otherUser?.name?.trim().slice(0, 2).toUpperCase();
-    if (conversation.type === 'EVENT')
-      return conversation.event?.title?.trim().slice(0, 2).toUpperCase() ?? '?';
-    return '';
-  };
-  const imageFallback = getImageFallback();
-
   // Title
   const findTitle = () => {
     if (conversation.type === 'DIRECT') return otherUser?.name;
@@ -52,9 +31,13 @@ export function mapConversationToCard(
 
   // Last Message Author
   let lastMessageAuthorNameLong;
-  if (conversationState?.lastMessage?.author?.id === currentUser.id)
+  if (!conversationState?.lastMessage) {
+    lastMessageAuthorNameLong = undefined;
+  } else if (conversationState.lastMessage.author?.id === currentUser.id) {
     lastMessageAuthorNameLong = 'You';
-  else lastMessageAuthorNameLong = conversationState?.lastMessage?.author?.name;
+  } else {
+    lastMessageAuthorNameLong = conversationState.lastMessage.author?.name ?? 'Unknown';
+  }
   const lastMessageAuthor = lastMessageAuthorNameLong
     ? trimText(lastMessageAuthorNameLong, 10)
     : undefined;
@@ -96,8 +79,6 @@ export function mapConversationToCard(
   return {
     isEvent,
     title,
-    imageUrl,
-    imageFallback,
     lastMessageText,
     lastMessageAuthor,
     lastMessageCreatedAt,
