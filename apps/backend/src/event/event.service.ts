@@ -54,10 +54,25 @@ export class EventService {
     const eventId = await this.resolveEventId(idOrSlug);
     const eventData = await this.prisma.event.findUnique({
       where: { id: eventId },
-      select: { authorId: true },
+      select: {
+        authorId: true,
+        attendees: true,
+        conversation: true,
+      },
     });
     if (eventData?.authorId !== userId && !isAdmin)
       throw new UnauthorizedException(`No permission to delete event with id ${idOrSlug}.`);
+
+    if (!eventData) return;
+
+    // We send a message to the people who might still be in the chat, that the chat was just deleted
+    if (eventData.conversation)
+      this.chatGateway.handleConversationDeletion(eventData.conversation.id);
+
+    // We delete the event we remove all user sockets from the room and send initial messages again
+    await Promise.all(
+      eventData.attendees.map((attendee) => this.chatGateway.resyncUserRooms(attendee.userId))
+    );
 
     const deleted = await this.prisma.event.delete({
       where: {

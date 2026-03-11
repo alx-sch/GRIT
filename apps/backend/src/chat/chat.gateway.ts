@@ -42,7 +42,7 @@ export class AllWsExceptionsFilter implements WsExceptionFilter {
       console.error('[WS ERROR]', exception);
     }
     client.emit('error', {
-      message: 'Bad request',
+      message: '404 Chat not found. You might not have access or it was deleted.',
     });
   }
 }
@@ -211,6 +211,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // Fallback in any case
     if (sockets.size === 0) this.userSockets.delete(userId);
+  }
+
+  // In case an event was deleted we send a message to all users in the current chat
+  async handleConversationDeletion(conversationId: string) {
+    const sockets = await this.server.in(conversationId).fetchSockets();
+    this.server.to(conversationId).emit('chat_deleted', 'This chat was deleted');
   }
 
   getSingleConnectionStatus(userId: number) {

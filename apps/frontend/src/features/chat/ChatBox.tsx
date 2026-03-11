@@ -19,6 +19,8 @@ import {
 import { AlertCircleIcon, Trash2 } from 'lucide-react';
 import { useSocket } from '@/providers/socketProvider';
 import { chatStore } from '@/store/chatStore';
+import { useNavigate } from 'react-router-dom';
+import { BackButton } from '@/components/ui/backButton';
 
 export const ChatBox = ({ conversationId }: { conversationId: string }) => {
   const {
@@ -42,6 +44,8 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
   const isInitialLoad = useRef(true);
   const socket = useSocket();
   const messagesRef = useRef(messages);
+
+  const navigate = useNavigate();
 
   // We are creating a stable reference to the updated messages so that event listeners don't work on outdated data.
   useEffect(() => {
@@ -188,11 +192,18 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
 
   if (errorMessage) {
     return (
-      <Alert variant={'destructive'}>
-        <AlertCircleIcon />
-        <AlertTitle>Error!</AlertTitle>
-        <AlertDescription>{errorMessage}</AlertDescription>
-      </Alert>
+      <>
+        <Alert variant={'destructive'}>
+          <AlertCircleIcon />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{errorMessage}</AlertDescription>
+        </Alert>
+        <BackButton
+          className="w-"
+          label="Back to all Chats"
+          onClick={() => void navigate('/chat')}
+        />
+      </>
     );
   }
 

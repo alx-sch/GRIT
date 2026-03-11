@@ -14,7 +14,6 @@ export class ConversationController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResConversationSingleIdSchema)
-  // TODO Add body validation
   conversationCreate(@Body() data: ReqConversationCreate, @GetUser('id') userId: number) {
     return this.conversationService.conversationGetOrCreate(data, userId);
   }

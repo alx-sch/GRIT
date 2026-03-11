@@ -58,6 +58,10 @@ export function useChat(conversationId: string) {
       });
     };
 
+    const handleChatDeleted = () => {
+      setErrorMessage('This chat was deleted');
+    };
+
     socket.on('message', handleMessage);
     socket.on('initialHistory', handleInitialHistory);
     socket.on('moreHistory', handleMoreHistory);
@@ -65,6 +69,7 @@ export function useChat(conversationId: string) {
     socket.on('error', handleError);
     socket.on('user_info', handleUserInfo);
     socket.on('message_deleted', handleMessageDeleted);
+    socket.on('chat_deleted', handleChatDeleted);
 
     socket.emit('requestUserInfo');
 
