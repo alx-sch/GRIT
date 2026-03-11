@@ -1,15 +1,16 @@
-import { useState, useMemo } from 'react';
-import { LoaderFunctionArgs } from 'react-router-dom';
-import { userService } from '@/services/userService';
-import { friendService } from '@/services/friendService';
-import { Heading } from '@/components/ui/typography';
-import { Input } from '@/components/ui/input';
 import { EmptyState } from '@/components/ui/emptyState';
-import { UserResponse } from '@/types/user';
+import { Input } from '@/components/ui/input';
+import { Heading } from '@/components/ui/typography';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
+import { friendService } from '@/services/friendService';
+import { userService } from '@/services/userService';
+import { useAuthStore } from '@/store/authStore';
 import { useCurrentUserStore } from '@/store/currentUserStore';
-import { toast } from 'sonner';
 import type { FriendshipStatus } from '@/types/friends';
+import { UserResponse } from '@/types/user';
+import { useMemo, useState } from 'react';
+import { LoaderFunctionArgs } from 'react-router-dom';
+import { toast } from 'sonner';
 import { UserCardWithActions } from './components/UserCardWithActions';
 
 interface UsersLoaderData {
@@ -22,26 +23,29 @@ export const usersLoader = async ({ request }: LoaderFunctionArgs): Promise<User
   const limit = url.searchParams.get('limit') ?? undefined;
   const cursor = url.searchParams.get('cursor') ?? undefined;
   const users = await userService.getUsers({ limit, cursor });
+  const token = useAuthStore.getState().token;
 
   const friendshipStatuses: Record<number, FriendshipStatus> = {};
-  try {
-    const [friends, outgoing, incoming] = await Promise.all([
-      friendService.listFriends(),
-      friendService.listOutgoingRequests(),
-      friendService.listIncomingRequests(),
-    ]);
+  if (token) {
+    try {
+      const [friends, outgoing, incoming] = await Promise.all([
+        friendService.listFriends(),
+        friendService.listOutgoingRequests(),
+        friendService.listIncomingRequests(),
+      ]);
 
-    for (const friend of friends.data) {
-      friendshipStatuses[friend.friendId] = 'friends';
+      for (const friend of friends.data) {
+        friendshipStatuses[friend.friendId] = 'friends';
+      }
+      for (const request of outgoing.data) {
+        friendshipStatuses[request.receiverId] = 'pending_sent';
+      }
+      for (const request of incoming.data) {
+        friendshipStatuses[request.requesterId] = 'pending_received';
+      }
+    } catch {
+      // Not logged in or error fetching - leave statuses empty
     }
-    for (const request of outgoing.data) {
-      friendshipStatuses[request.receiverId] = 'pending_sent';
-    }
-    for (const request of incoming.data) {
-      friendshipStatuses[request.requesterId] = 'pending_received';
-    }
-  } catch {
-    // Not logged in or error fetching - leave statuses empty
   }
 
   return { users, friendshipStatuses };

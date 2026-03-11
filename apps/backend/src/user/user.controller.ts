@@ -134,7 +134,6 @@ export class UserController {
     )
     file: Express.Multer.File
   ): Promise<ResUserBaseDto> {
-    console.log('File received:', file.originalname);
     return await this.userService.userUpdateAvatar(userId, file);
   }
 

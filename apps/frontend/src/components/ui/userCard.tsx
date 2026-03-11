@@ -11,7 +11,6 @@ interface UserCardUser {
 
 export const UserCard = ({ user, actions }: { user: UserCardUser; actions?: React.ReactNode }) => {
   const displayName = user.name ?? 'User';
-  console.log('user.onlineStatus', user);
 
   return (
     <>
