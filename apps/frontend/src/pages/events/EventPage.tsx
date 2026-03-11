@@ -9,10 +9,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { BackButton } from '@/components/ui/backButton';
 import { Button } from '@/components/ui/button';
 import { GmapPreview } from '@/components/ui/gmapPreview';
 import { Heading, Text } from '@/components/ui/typography';
-import { BackButton } from '@/components/ui/backButton';
 import { getEventImageUrl } from '@/lib/image_utils';
 import { eventService } from '@/services/eventService';
 import { APIProvider } from '@vis.gl/react-google-maps';
@@ -61,13 +61,14 @@ export const EventPage = () => {
     copied,
   } = useEventPage();
 
-  const locationLabel =
-    [location?.address, location?.city]
-      .map((s) => s?.trim())
-      .filter(Boolean)
-      .join(', ') ??
-    location?.country?.trim() ??
-    'TBA';
+  const addressCity = [location?.address, location?.city]
+    .map((s) => s?.trim())
+    .filter((s): s is string => Boolean(s))
+    .join(', ');
+
+  const country = location?.country?.trim() ?? '';
+
+  const locationLabel = addressCity !== '' ? addressCity : country !== '' ? country : 'TBA';
 
   // Added a handler here because of back button bug (it needed to be clicked two times to go back to /events).
   const handleBackClick = () => {

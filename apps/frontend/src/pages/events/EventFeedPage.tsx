@@ -1,15 +1,17 @@
 import { Button } from '@/components/ui/button';
 import { Combobox, ComboboxOptions } from '@/components/ui/combobox';
 import { DatePicker } from '@/components/ui/datepicker';
+import { EmptyState } from '@/components/ui/emptyState';
 import { Input } from '@/components/ui/input';
 import { Heading } from '@/components/ui/typography';
-import { EmptyState } from '@/components/ui/emptyState';
 import { useDebounce } from '@/hooks/useDebounce';
+import { Pagination, useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { EventCard } from '@/pages/events/components/EventCard';
 import { eventService } from '@/services/eventService';
 import { friendService } from '@/services/friendService';
 import { locationService } from '@/services/locationService';
+import { useAuthStore } from '@/store/authStore';
 import { EventResponse } from '@/types/event';
 import { LocationBase } from '@/types/location';
 import { format, parse } from 'date-fns';
@@ -17,7 +19,6 @@ import { ArrowUpDown, MapPinIcon, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { DateRange } from 'react-day-picker';
 import { LoaderFunctionArgs, useNavigate, useSearchParams } from 'react-router-dom';
-import { Pagination, useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 
 const buildEventQuery = (searchParams: URLSearchParams, cursor?: string | null) => ({
   search: searchParams.get('search') ?? undefined,
@@ -33,11 +34,14 @@ const buildEventQuery = (searchParams: URLSearchParams, cursor?: string | null) 
 export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const query = buildEventQuery(url.searchParams);
+  const token = useAuthStore.getState().token;
 
   const [events, locationsResponse, friendsData] = await Promise.all([
     eventService.getEvents(query),
     locationService.getLocations(),
-    friendService.listFriends({ limit: '100' }).catch(() => null),
+
+    //Only fetch friends list if user is logged-in
+    token ? friendService.listFriends({ limit: '100' }).catch(() => null) : Promise.resolve(null),
   ]);
 
   const friendsIds = new Set(friendsData?.data.map((f) => f.friend.id) ?? []);
