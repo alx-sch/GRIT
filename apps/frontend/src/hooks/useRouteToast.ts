@@ -38,14 +38,26 @@ const preparedToasts = [
   {
     param: 'confirmed',
     type: 'success',
-    message: 'Email confirmed',
+    message: 'Email confirmed!',
+    description: 'You can now log in to your account.',
+  },
+  {
+    param: 'confirmed_logged_in',
+    type: 'success',
+    message: 'Email confirmed!',
     description: 'Your account is now verified.',
   },
   {
     param: 'already_confirmed',
     type: 'success',
     message: 'Already verified',
-    description: 'You have already confirmed your email.',
+    description: 'Please log in to access your account.',
+  },
+  {
+    param: 'already_confirmed_logged_in',
+    type: 'success',
+    message: 'Already verified',
+    description: "You're all set!",
   },
   {
     param: 'error',

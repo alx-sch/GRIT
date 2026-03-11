@@ -103,10 +103,10 @@ export const loginPageLoader = async ({ request }: { request: Request }) => {
     // Start default redirect destination
     let destination = '/';
 
-    // If user came from an email link, carry the signal to the destination!
+    // If user came from an email link, use logged-in specific params for different toast messages
     const params = new URLSearchParams();
-    if (confirmed) params.set('confirmed', 'true');
-    if (alreadyConfirmed) params.set('already_confirmed', 'true');
+    if (confirmed) params.set('confirmed_logged_in', 'true');
+    if (alreadyConfirmed) params.set('already_confirmed_logged_in', 'true');
 
     const searchString = params.toString();
     if (searchString) {
