@@ -75,6 +75,13 @@ export class InvitesService {
 
     return invite;
   }
+
+  /**
+   * Accept or decline an invite
+   * @param id Event invite ID
+   * @param userId Current user
+   * @param status ACCEPTED, DECLINED or PENDING
+   */
   async updateInvite(id: string, userId: number, status: InviteStatus) {
     const invite = await this.prisma.eventInvite.findUnique({
       where: { id },
@@ -99,13 +106,17 @@ export class InvitesService {
     });
 
     // If accepted, add to attendees
-    if (status === InviteStatus.ACCEPTED) {
-      await this.prisma.eventAttendee.create({
-        data: {
-          eventId: invite.eventId,
-          userId: invite.receiverId,
-        },
-      });
+    try {
+      if (status === InviteStatus.ACCEPTED) {
+        await this.prisma.eventAttendee.create({
+          data: {
+            eventId: invite.eventId,
+            userId: invite.receiverId,
+          },
+        });
+      }
+    } catch {
+      throw new ConflictException('You are already going to this event.');
     }
 
     // If declined AND public -> delete event invite
@@ -122,6 +133,27 @@ export class InvitesService {
     }
 
     return updatedInvite;
+  }
+
+  /**
+   * Deletes an event invite
+   */
+  async deleteInvite(id: string, userId: number) {
+    const eventInvite = await this.prisma.eventInvite.findUnique({ where: { id } });
+
+    if (!eventInvite) throw new NotFoundException('Invite does not exist');
+
+    if (eventInvite.senderId !== userId && eventInvite.receiverId !== userId)
+      throw new ForbiddenException('You can not delete an invite you are not part of.');
+
+    return await this.prisma.eventInvite.delete({
+      where: { id },
+      include: {
+        event: { select: { id: true, title: true, imageKey: true, isPublic: true } },
+        sender: { select: { id: true, name: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, avatarKey: true } },
+      },
+    });
   }
 
   /**

@@ -234,19 +234,24 @@ Authorization: Bearer {{token}}
 content-type: application/json
 
 {
-	"receiverId": "2",
-	"eventId": "3"
+	"receiverId": "32",
+	"eventId": "2"
 }
 ###
 
 # Accept/decline event invite
-POST {{baseUrl}}/users/me/invites/b637781d-5405-4531-b809-fe61be8c2e08 HTTP/1.1
+POST {{baseUrl}}/users/me/invites/c7c4bc33-a038-462e-a9f9-4cf5b6f0aa52 HTTP/1.1
 Authorization: Bearer {{token}}
 content-type: application/json
 
 {
 	"status": "ACCEPTED"
 }
+###
+
+# Delete event invite
+DELETE {{baseUrl}}/users/me/invites/389aa8b6-03d-40ae-afc0-9a482fe385eb
+Authorization: Bearer {{token}}
 ###
 
 # Get list of incoming event invites
