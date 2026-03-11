@@ -126,7 +126,7 @@ export function DatePicker({
         <span className="truncate">{formatDateDisplay()}</span>
       ) : (
         <>
-          <CalendarIcon className="shrink-0" />
+          <CalendarIcon className="shrink-0 hidden md:block" />
           <span className="uppercase">{placeholder}</span>
         </>
       )}
@@ -175,7 +175,7 @@ export function DatePicker({
     const mobileSelectionSummary = selected?.from && (
       <div className="w-full mb-3 px-2">
         <div className="flex items-center justify-center gap-2 h-12 px-4 bg-secondary border-2 border-border text-sm font-medium">
-          <CalendarIcon className="h-4 w-4 shrink-0" />
+          <CalendarIcon className="h-4 w-4 shrink-0 hidden md:block" />
           <span className="truncate">
             {showTime
               ? selected.to

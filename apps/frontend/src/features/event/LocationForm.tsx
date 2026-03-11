@@ -11,7 +11,7 @@ import { APIProvider } from '@vis.gl/react-google-maps';
 import { isAxiosError } from 'axios';
 import { AlertCircleIcon } from 'lucide-react';
 import { useEffect } from 'react';
-import { Control, Controller, SubmitHandler, useForm, useWatch } from 'react-hook-form';
+import { Control, SubmitHandler, useForm, useWatch } from 'react-hook-form';
 
 //Key for local Storage
 const DRAFT_KEY = 'location-draft';
@@ -52,7 +52,7 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
       country: '',
       latitude: undefined,
       longitude: undefined,
-      isPublic: undefined,
+      isPublic: true,
       address: '',
       postalCode: '',
     },
@@ -207,7 +207,7 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
             clearable
           />
         </div>
-        {/* Visibility */}
+        {/*Visibility
         <fieldset className="flex flex-col gap-4">
           <legend className="font-heading mb-2"> Choose your location visibility </legend>
           <Controller
@@ -238,7 +238,7 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
               </div>
             )}
           />
-        </fieldset>
+        </fieldset>*/}
 
         {errors.root?.message && (
           <Alert variant="destructive" className="mt-1.5">

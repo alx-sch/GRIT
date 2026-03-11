@@ -20,7 +20,7 @@ export const UserCard = ({ user, actions }: { user: UserCardUser; actions?: Reac
             <div className="overflow-hidden">
               <CardTitle className="text-base truncate">{displayName}</CardTitle>
             </div>
-            <div className="flex flex-row gap-2">{actions}</div>
+            <div className="flex flex-row gap-2 flex-shrink-0">{actions}</div>
           </div>
         </CardHeader>
       </Card>

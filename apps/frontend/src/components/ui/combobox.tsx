@@ -84,7 +84,7 @@ export function Combobox({
           )}
         >
           <span className="flex items-center gap-2 truncate">
-            {Icon && <Icon className="h-4 w-4 shrink-0" />}
+            {Icon && <Icon className="h-4 w-4 shrink-0 hidden md:block" />}
             {showSelectedTick && value ? <CheckIcon className="h-4 w-4 shrink-0" /> : null}
             {selectedLabel ?? placeholder}
           </span>

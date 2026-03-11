@@ -7,8 +7,8 @@ import {
 import {
   eventCursorFilter,
   eventEncodeCursor,
-  eventSearchFilter,
   eventGenerateSlug,
+  eventSearchFilter,
 } from '@/event/event.utils';
 import { LocationService } from '@/location/location.service';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -115,6 +115,7 @@ export class EventService {
               select: {
                 id: true,
                 name: true,
+                avatarKey: true,
               },
             },
           },
@@ -163,7 +164,7 @@ export class EventService {
         location: true,
         files: true,
         attendees: {
-          select: { user: { select: { id: true, name: true } } },
+          select: { user: { select: { id: true, name: true, avatarKey: true } } },
         },
         conversation: { select: { id: true } },
       },
@@ -262,6 +263,7 @@ export class EventService {
                 select: {
                   id: true,
                   name: true,
+                  avatarKey: true,
                 },
               },
             },
@@ -316,6 +318,7 @@ export class EventService {
               select: {
                 id: true,
                 name: true,
+                avatarKey: true,
               },
             },
           },
@@ -374,6 +377,7 @@ export class EventService {
                 select: {
                   id: true,
                   name: true,
+                  avatarKey: true,
                 },
               },
             },
@@ -426,6 +430,7 @@ export class EventService {
               select: {
                 id: true,
                 name: true,
+                avatarKey: true,
               },
             },
           },

@@ -2,10 +2,9 @@ import { Field, FieldGroup, FieldLabel, FieldSet, FieldError } from '@/component
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Button } from '@/components/ui/button';
-import { Form, redirect, useNavigation, useActionData, Link } from 'react-router-dom';
+import { authService } from '@/services/authService';
 import { useAuthStore } from '@/store/authStore';
 import { useCurrentUserStore } from '@/store/currentUserStore';
-import { authService } from '@/services/authService';
 import { ActionFormError } from '@/types/actionFormError';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,8 +12,9 @@ import { useEffect } from 'react';
 import axios from 'axios';
 import z from 'zod';
 import { RegisterSchema } from '@grit/schema';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
+import { Form, Link, redirect, useActionData, useNavigation } from 'react-router-dom';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 
 const LocalRegisterSchema = RegisterSchema.extend({
   email: z.email('Please enter a valid email address'),

@@ -61,6 +61,14 @@ export const EventPage = () => {
     copied,
   } = useEventPage();
 
+  const locationLabel =
+    [location?.address, location?.city]
+      .map((s) => s?.trim())
+      .filter(Boolean)
+      .join(', ') ??
+    location?.country?.trim() ??
+    'TBA';
+
   // Added a handler here because of back button bug (it needed to be clicked two times to go back to /events).
   const handleBackClick = () => {
     void navigate('/events');
@@ -131,10 +139,7 @@ export const EventPage = () => {
                   className="group flex items-center gap-1.5 text-left cursor-pointer"
                 >
                   <Text className="text-lg md:underline decoration-dashed underline-offset-4 group-hover:decoration-solid transition-all">
-                    {[location?.address, location?.city]
-                      .map((s) => s?.trim())
-                      .filter(Boolean)
-                      .join(', ')}
+                    {locationLabel}
                   </Text>
                 </button>
               ) : (
@@ -161,13 +166,13 @@ export const EventPage = () => {
 
             {/* Host */}
             <div className="flex flex-row md:flex-col gap-2 order-3 md:order-2 items-center md:items-start">
-              <HomeIcon className="h-6 w-6 text-primary md:hidden" />
+              <HomeIcon className="h-6 w-6 text-primary md:hidden flex-shrink-0" />
               <Heading level={4} className="uppercase hidden md:block">
                 Host
               </Heading>
               {event.author && (
-                <Link to={`/users/${event.author.id}`}>
-                  <Text className="text-lg hover:underline">{event.author.name}</Text>
+                <Link to={`/users/${event.author.id}`} className="min-w-0 max-w-full">
+                  <Text className="text-lg hover:underline truncate">{event.author.name}</Text>
                 </Link>
               )}
             </div>

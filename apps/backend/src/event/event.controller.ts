@@ -141,7 +141,10 @@ export class EventController {
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 10 }),
-          new FileTypeValidator({ fileType: /(image\/.+|application\/pdf)/ }),
+          new FileTypeValidator({
+            fileType: /(image\/.+|application\/pdf)/,
+            fallbackToMimetype: true,
+          }),
         ],
       })
     )

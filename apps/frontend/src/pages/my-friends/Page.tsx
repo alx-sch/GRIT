@@ -1,3 +1,14 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Heading, Text } from '@/components/ui/typography';
@@ -12,10 +23,10 @@ import { userService } from '@/services/userService';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import { FriendRequestResponse, FriendResponse } from '@/types/friends';
 import {
+  ResConversationSingleId,
   ResFriendBase,
   ResFriendRequest,
   ResUserPublic,
-  ResConversationSingleId,
 } from '@grit/schema';
 import { Check, MessageCircleMore, UserPlus, UserX, X, Eye } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -58,6 +69,7 @@ export default function FriendsPage() {
   async function sendRequest(userId: number) {
     try {
       await friendService.sendRequest(userId);
+      toast.info('Friend request sent');
       void revalidate();
     } catch {
       toast.error('Failed to send friend request');
@@ -67,6 +79,7 @@ export default function FriendsPage() {
   async function accept(requestId: string) {
     try {
       await friendService.acceptRequest(requestId);
+      toast.info('Friend request accepted');
       void revalidate();
     } catch {
       toast.error('Failed to accept friend request');
@@ -76,6 +89,7 @@ export default function FriendsPage() {
   async function decline(requestId: string) {
     try {
       await friendService.declineRequest(requestId);
+      toast.info('Friend request declined');
       void revalidate();
     } catch {
       toast.error('Failed to decline friend request');
@@ -85,6 +99,7 @@ export default function FriendsPage() {
   async function remove(friendId: number) {
     try {
       await friendService.removeFriend(friendId);
+      toast.info('Friend removed');
       void revalidate();
     } catch {
       toast.error('Failed to remove friend');
@@ -297,14 +312,32 @@ function FriendsSection({ friends, onChat, onRemove }: FriendsSectionProps) {
                 >
                   <MessageCircleMore className="h-4 w-4" />
                 </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  title="Remove friend"
-                  onClick={() => void onRemove(friend.friendId)}
-                >
-                  <UserX className="h-4 w-4" />
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm" title="Remove friend">
+                      <UserX className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Remove this friend?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will remove {friend.friend.name} from
+                        your friends.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => {
+                          void onRemove(friend.friendId);
+                        }}
+                      >
+                        Remove friend
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </>
             }
           />
