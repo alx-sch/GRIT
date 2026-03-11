@@ -11,7 +11,13 @@ import {
 import { Server, Socket, type DefaultEventsMap } from 'socket.io';
 import { ChatService } from '@/chat/chat.service';
 import { randomUUID } from 'crypto';
-import { ReqChatMessagePostDto } from '@/chat/chat.schema';
+import {
+  ReqChatConversationReadDto,
+  ReqChatDeleteMessageDto,
+  ReqChatGetInitialHistoryDto,
+  ReqChatLoadMoreHistoryDto,
+  ReqChatMessagePostDto,
+} from '@/chat/chat.schema';
 import { ResChatMessageSchema, ReqSocketAuthSchema } from '@grit/schema';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { ArgumentsHost, Catch, UseFilters, UsePipes, WsExceptionFilter } from '@nestjs/common';
@@ -237,7 +243,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('getInitialHistory')
   async handGetHistory(
-    @MessageBody() body: { conversationId: string },
+    @MessageBody() body: ReqChatGetInitialHistoryDto,
     @ConnectedSocket() client: AppSocket
   ) {
     await this.assertUserInConversation(body.conversationId, client.data.userId);
@@ -279,7 +285,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('loadMoreHistory')
   async handleLoadMore(
-    @MessageBody() body: { cursorSentAt: string; cursorId: string; conversationId: string },
+    @MessageBody() body: ReqChatLoadMoreHistoryDto,
     @ConnectedSocket() client: AppSocket
   ) {
     await this.assertUserInConversation(body.conversationId, client.data.userId);
@@ -307,7 +313,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('conversationRead')
   async handleNewLastReadAt(
     @ConnectedSocket() client: AppSocket,
-    @MessageBody() body: { conversationId: string }
+    @MessageBody() body: ReqChatConversationReadDto
   ) {
     await this.assertUserInConversation(body.conversationId, client.data.userId);
     const userId = client.data.userId;
@@ -330,7 +336,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('delete_message')
   async handleDeleteMessage(
-    @MessageBody() body: { messageId: string; conversationId: string },
+    @MessageBody() body: ReqChatDeleteMessageDto,
     @ConnectedSocket() client: AppSocket
   ) {
     // Only admins can delete

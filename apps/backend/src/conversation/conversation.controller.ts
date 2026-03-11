@@ -3,8 +3,9 @@ import { ConversationService } from './conversation.service';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { GetUser } from '@/auth/guards/get-user.decorator';
-import { type ReqConversationCreate, ResConversationSingleIdSchema } from '@grit/schema';
+import { ResConversationSingleIdSchema } from '@grit/schema';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { ReqConversationCreateDto } from './conversation.schema';
 
 @Controller('conversation')
 export class ConversationController {
@@ -14,7 +15,7 @@ export class ConversationController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResConversationSingleIdSchema)
-  conversationCreate(@Body() data: ReqConversationCreate, @GetUser('id') userId: number) {
+  conversationCreate(@Body() data: ReqConversationCreateDto, @GetUser('id') userId: number) {
     return this.conversationService.conversationGetOrCreate(data, userId);
   }
 
