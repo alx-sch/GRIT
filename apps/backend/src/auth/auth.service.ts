@@ -6,15 +6,13 @@ import { ResAuthMeDto, ReqRegisterDto, ResLoginDto, GoogleProfile } from '@/auth
 import * as bcrypt from 'bcrypt';
 import { type LoginInput } from '@grit/schema';
 import { env } from '@/config/env';
-import { StorageService } from '@/storage/storage.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
-    private readonly prisma: PrismaService,
-    private readonly storageService: StorageService
+    private readonly prisma: PrismaService
   ) {}
 
   async register(data: ReqRegisterDto) {

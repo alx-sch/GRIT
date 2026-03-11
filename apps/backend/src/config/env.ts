@@ -5,7 +5,8 @@ import { sharedPortsSchema, AUTH_CONFIG } from '@grit/schema';
 const backendBaseSchema = sharedPortsSchema
   .extend({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-    APP_BASE_URL: z.url().optional(),
+    APP_BASE_URL: z.string().default('http://localhost:5173'),
+});
 
     // Authentication & Security
     JWT_SECRET: z
@@ -77,7 +78,6 @@ const backendBaseSchema = sharedPortsSchema
 
     return {
       ...data,
-      FRONTEND_URL: frontendUrl,
       API_BASE_URL: apiBaseUrl,
       MINIO_ENDPOINT: publicMinio,
       MINIO_INTERNAL_URL: internalMinio,
