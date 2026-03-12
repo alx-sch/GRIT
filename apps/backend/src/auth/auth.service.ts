@@ -6,6 +6,8 @@ import { ResAuthMeDto, ReqRegisterDto, ResLoginDto, GoogleProfile } from '@/auth
 import * as bcrypt from 'bcrypt';
 import { type LoginInput } from '@grit/schema';
 import { env } from '@/config/env';
+import { nanoid } from 'nanoid';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -79,31 +81,43 @@ export class AuthService {
   async validateOAuthUser(profile: GoogleProfile) {
     const { email, firstName, providerId } = profile;
 
-    // Upsert: Find by email, update provider info, or create new
-    const user = await this.prisma.user.upsert({
-      where: { email },
-      update: {
-        googleId: providerId,
-        isConfirmed: true, // OAuth emails are trusted
-      },
-      create: {
-        email,
-        name: firstName,
-        googleId: providerId,
-        isConfirmed: true,
-        password: null, // No password for OAuth users
-      },
-    });
+    let attempts = 0;
+    const maxAttempts = 3;
 
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      avatarKey: user.avatarKey,
-      isConfirmed: user.isConfirmed,
-      attending: [],
-      isAdmin: user.isAdmin,
-    };
+    while (attempts < maxAttempts) {
+      try {
+        const user = await this.prisma.user.upsert({
+          where: { email },
+          update: {
+            googleId: providerId,
+            isConfirmed: true,
+          },
+          create: {
+            email,
+            name: `${firstName}-${nanoid(6)}`,
+            googleId: providerId,
+            isConfirmed: true,
+            password: null,
+          },
+        });
+
+        return user;
+      } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+          if (error.code === 'P2002') {
+            // P2002 is Prisma's error code for a unique constraint violation
+            const target = error.meta?.target as string[];
+            if (target.includes('name')) {
+              attempts++;
+              continue; // Loop around and try again with a new nanoid
+            }
+          }
+        }
+        throw error;
+      }
+    }
+    // this should be astronomically unlikely, but oh well.
+    throw new Error('Could not generate a unique username after multiple attempts.');
   }
 
   // For test purposes (since NODE_ENV is read-only).
