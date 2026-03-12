@@ -10,6 +10,7 @@ import {
   ParseIntPipe,
   ForbiddenException,
   UseGuards,
+  ConflictException,
 } from '@nestjs/common';
 import { AuthService } from '@/auth/auth.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -51,12 +52,17 @@ export class AuthController {
 
     try {
       await this.authService.confirmEmail(query.token);
-      // Success
+      // Success - email confirmed for the first time
       res.redirect(`${frontendUrl}/login?confirmed=true`);
       return;
-    } catch {
-      // Token already used or invalid -> forward to landing page to avoid 404
-      res.redirect(`${frontendUrl}/login?already_confirmed=true`);
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        // Token valid, but email already confirmed
+        res.redirect(`${frontendUrl}/login?already_confirmed=true`);
+        return;
+      }
+      // Invalid or expired token
+      res.redirect(`${frontendUrl}/login?error=true`);
       return;
     }
   }

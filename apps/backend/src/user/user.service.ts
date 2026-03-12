@@ -190,11 +190,14 @@ export class UserService {
       throw new NotFoundException('Invalid or expired confirmation token.');
     }
 
+    if (user.isConfirmed) {
+      throw new ConflictException('Email already confirmed.');
+    }
+
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
         isConfirmed: true,
-        confirmationToken: null,
       },
     });
 

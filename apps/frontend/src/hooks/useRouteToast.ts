@@ -65,6 +65,12 @@ const preparedToasts = [
     message: 'Invalid link',
     description: 'This confirmation link is invalid or has expired.',
   },
+  {
+    param: 'error_logged_in',
+    type: 'error',
+    message: 'Invalid link',
+    description: 'This confirmation link is invalid or has expired.',
+  },
 ] as const;
 
 export function useRouteToasts() {

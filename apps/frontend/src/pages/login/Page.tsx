@@ -78,6 +78,7 @@ export const loginPageLoader = async ({ request }: { request: Request }) => {
 
   const confirmed = url.searchParams.get('confirmed');
   const alreadyConfirmed = url.searchParams.get('already_confirmed');
+  const error = url.searchParams.get('error');
 
   if (token) {
     try {
@@ -107,6 +108,7 @@ export const loginPageLoader = async ({ request }: { request: Request }) => {
     const params = new URLSearchParams();
     if (confirmed) params.set('confirmed_logged_in', 'true');
     if (alreadyConfirmed) params.set('already_confirmed_logged_in', 'true');
+    if (error) params.set('error_logged_in', 'true');
 
     const searchString = params.toString();
     if (searchString) {
