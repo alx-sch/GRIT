@@ -29,6 +29,7 @@ export const ChatBoxHeader = ({ conversation }: { conversation: ResConversationS
   const isEventChat = conversation.type === 'EVENT';
   const eventSlug = conversation.event?.slug;
   const hasEvent = isEventChat && eventSlug;
+  const isValidOtherUser = otherUser && otherUser.id !== null;
 
   const avatarUser =
     conversation.type === 'DIRECT'
@@ -67,7 +68,7 @@ export const ChatBoxHeader = ({ conversation }: { conversation: ResConversationS
           </button>
         </div>
         <div className="py-2 px-2.5 flex">
-          {isDirect && otherUser ? (
+          {isDirect && isValidOtherUser ? (
             <Link to={`/users/${otherUser.id}`}>{avatarEl}</Link>
           ) : hasEvent ? (
             <Link to={`/events/${eventSlug}`}>{avatarEl}</Link>
@@ -76,7 +77,7 @@ export const ChatBoxHeader = ({ conversation }: { conversation: ResConversationS
           )}
           <div className="text-accent-foreground">
             <div className="text-xs mt-0.5 mb-0.5">{conversation.type}</div>
-            {isDirect && otherUser ? (
+            {isDirect && isValidOtherUser ? (
               <Link to={`/users/${otherUser.id}`} className="text-lg font-bold hover:underline">
                 {title}
               </Link>

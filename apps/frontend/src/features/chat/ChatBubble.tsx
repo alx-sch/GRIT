@@ -9,23 +9,34 @@ export const ChatBubble = ({ message }: { message: ResChatMessage }) => {
   const author = message.author ?? { id: null, name: 'Unknown', avatarKey: null };
   const isFromCurrentUser = currentUser?.id === author.id;
   const align = isFromCurrentUser ? 'justify-end' : 'justify-start';
+  const isDeletedUser = author.id === null;
+
   return (
     <>
       <div className={`${align} flex my-4`}>
         <div className={`border border-input p-2 px-3 max-w-9/10 md:max-w-4/5 lg:max-w-3/5 flex`}>
           {!isFromCurrentUser && (
-            <Link to={`/users/${author.id}`} className="mr-2">
-              <UserAvatar user={author} size="xs" />
-            </Link>
+            <div className="mr-2">
+              {isDeletedUser ? (
+                <UserAvatar user={author} size="xs" />
+              ) : (
+                <Link to={`/users/${author.id}`}>
+                  <UserAvatar user={author} size="xs" />
+                </Link>
+              )}
+            </div>
           )}
           <div className="text-sm">
             {!isFromCurrentUser && (
-              <Link
-                to={`/users/${author.id}`}
-                className="font-bold uppercase text-xs hover:underline block"
-              >
-                {author.name}
-              </Link>
+              <div className="font-bold uppercase text-xs block">
+                {isDeletedUser ? (
+                  <span>{author.name}</span>
+                ) : (
+                  <Link to={`/users/${author.id}`} className="hover:underline">
+                    {author.name}
+                  </Link>
+                )}
+              </div>
             )}
             <span>{message.text}</span>
             <div className="text-right text-xs mt-1">{timestampToLocalTime(message.createdAt)}</div>
