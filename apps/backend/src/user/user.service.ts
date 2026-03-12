@@ -434,9 +434,16 @@ export class UserService {
   async userGetEvents(userId: number) {
     const events = await this.prisma.event.findMany({
       where: {
-        attendees: {
-          some: { userId: userId },
-        },
+        OR: [
+          {
+            attendees: {
+              some: { userId: userId },
+            },
+          },
+          {
+            authorId: userId,
+          },
+        ],
       },
       include: {
         location: true,
