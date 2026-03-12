@@ -43,7 +43,6 @@ export function ProfileAvatar({ user, avatarUrl, onAvatarUpdate }: ProfileAvatar
       setSelectedImageSrc(dataUrl);
       setShowCropDialog(true);
     } catch (error) {
-      console.error('Failed to read image file:', error);
       toast.error('Failed to read image file. Please try again.');
     } finally {
       // Reset file input
@@ -62,7 +61,6 @@ export function ProfileAvatar({ user, avatarUrl, onAvatarUpdate }: ProfileAvatar
       onAvatarUpdate(updatedUser);
       toast.success('Profile picture updated successfully!');
     } catch (error) {
-      console.error('Avatar upload failed:', error);
       toast.error('Failed to upload profile picture. Please try again.');
     } finally {
       setIsUploading(false);

@@ -76,9 +76,7 @@ export class StorageService implements OnModuleInit {
           Key: key,
         })
       );
-      console.log(`Successfully deleted ${key} from ${bucket}`);
     } catch (error) {
-      console.error(`Failed to delete file ${key}:`, error);
       throw error;
     }
   }

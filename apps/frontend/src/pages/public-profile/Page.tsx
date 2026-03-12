@@ -33,9 +33,8 @@ export const publicProfileLoader = async ({ params }: LoaderFunctionArgs) => {
     try {
       const status = await userService.getFriendshipStatus(id);
       friendshipStatus = status;
-    } catch (error) {
+    } catch {
       // Network error or other issue - log but don't block page load
-      console.error('Failed to fetch friendship status:', error);
       friendshipStatus = 'none';
     }
   }
@@ -64,7 +63,6 @@ export default function PublicProfilePage() {
         toast.success('Friend request sent');
       }
     } catch (error) {
-      console.error('Failed to send friend request:', error);
       toast.error('Failed to send friend request');
     } finally {
       setIsLoading(false);
@@ -80,7 +78,6 @@ export default function PublicProfilePage() {
       setFriendshipStatus('none');
       toast.success('Friend removed');
     } catch (error) {
-      console.error('Failed to remove friend:', error);
       toast.error('Failed to remove friend');
     } finally {
       setIsLoading(false);

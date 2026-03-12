@@ -34,7 +34,6 @@ export function DangerZone() {
       toast.success('Account deleted successfully');
       window.location.href = '/?account_deleted=true';
     } catch (error) {
-      console.error('Failed to delete account:', error);
       const axiosError = error as AxiosError;
       if (axiosError.response?.status !== 403) {
         toast.error('Failed to delete account. Please try again.');

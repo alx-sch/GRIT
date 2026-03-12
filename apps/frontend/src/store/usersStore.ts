@@ -20,7 +20,6 @@ export const useUsersStore = create<UsersState>((set) => ({
       const response = await userService.getUsers();
       set({ users: response.data, loading: false });
     } catch (err: unknown) {
-      console.error(err);
 
       let message = 'Failed to load users';
 

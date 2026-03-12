@@ -50,7 +50,6 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
       setSelectedImageSrc(dataUrl);
       setShowCropDialog(true);
     } catch (error) {
-      console.error('Failed to read image file:', error);
       toast.error('Failed to read image file. Please try again.');
     } finally {
       if (fileInputRef.current) {
@@ -68,7 +67,6 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
       onAvatarUpdate(updatedUser);
       toast.success('Profile picture updated successfully!');
     } catch (error) {
-      console.error('Avatar upload failed:', error);
       toast.error('Failed to upload profile picture. Please try again.');
     } finally {
       setIsUploading(false);
@@ -89,7 +87,6 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
       onAvatarUpdate(updatedUser);
       toast.success('Profile picture reset to default');
     } catch (error) {
-      console.error('Failed to remove avatar:', error);
       toast.error('Failed to reset profile picture. Please try again.');
     } finally {
       setIsRemoving(false);

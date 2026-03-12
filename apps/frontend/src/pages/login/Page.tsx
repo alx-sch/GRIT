@@ -88,7 +88,6 @@ export const loginPageLoader = async ({ request }: { request: Request }) => {
       // Clean up URL and redirect with success toast
       return redirect('/events?logged_in=true');
     } catch (err) {
-      console.error('OAuth login failed:', err);
       // Clear any stored token if there was an error
       useAuthStore.getState().clearAuthenticated();
       return redirect('/login?error=oauth_failed');

@@ -5,6 +5,7 @@ import { Pagination, useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { locationService } from '@/services/locationService';
 import { LocationBase } from '@/types/location';
+import { toast } from 'sonner';
 
 export const eventCreationLoader = async () => {
   const response = await locationService.getLocations();
@@ -26,10 +27,18 @@ export default function CreateEventPage() {
     pagination: locationPagination,
     loadMore,
     addItem: addLocation,
-  } = useInfiniteScroll(initialLocations, initialPagination, async (cursor) => {
-    const res = await locationService.getLocations({ cursor });
-    return { data: res.data, pagination: res.pagination };
-  });
+  } = useInfiniteScroll(
+    initialLocations,
+    initialPagination,
+    async (cursor) => {
+      const res = await locationService.getLocations({ cursor });
+      return { data: res.data, pagination: res.pagination };
+    },
+    [],
+    () => {
+      toast.error('Failed to load more locations. Please try again.');
+    }
+  );
 
   const handleLocationMenuScrollToBottom = () => {
     if (locationPagination.hasMore && !isLoadingLocations) {

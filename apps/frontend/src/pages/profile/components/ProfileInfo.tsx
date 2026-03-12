@@ -66,7 +66,6 @@ export function ProfileInfo({ user, onProfileUpdate }: ProfileInfoProps) {
       toast.success('Profile updated successfully!');
       setIsEditing(false);
     } catch (error) {
-      console.error('Profile update failed:', error);
       toast.error('Failed to update profile');
     }
   };
