@@ -28,11 +28,21 @@ export const publicProfileLoader = async ({ params }: LoaderFunctionArgs) => {
 
   // Only fetch friendship status if user is logged in
   let friendshipStatus: FriendshipStatus = 'none';
+  let friendRequestId: string | null = null;
   const token = useAuthStore.getState().token;
   if (token) {
     try {
       const status = await userService.getFriendshipStatus(id);
       friendshipStatus = status;
+
+      // If there's a pending received request, fetch the request details to get the ID
+      if (status === 'pending_received') {
+        const incomingRequests = await friendService.listIncomingRequests({ limit: '100' });
+        const request = incomingRequests.data.find((req) => req.requesterId === id);
+        if (request) {
+          friendRequestId = request.id;
+        }
+      }
     } catch (error) {
       // Network error or other issue - log but don't block page load
       console.error('Failed to fetch friendship status:', error);
@@ -40,7 +50,7 @@ export const publicProfileLoader = async ({ params }: LoaderFunctionArgs) => {
     }
   }
 
-  return { user, events, friendshipStatus };
+  return { user, events, friendshipStatus, friendRequestId };
 };
 
 export default function PublicProfilePage() {
@@ -87,6 +97,22 @@ export default function PublicProfilePage() {
     }
   };
 
+  const handleAcceptRequest = async () => {
+    if (!isLoggedIn || !data.friendRequestId) return;
+
+    setIsLoading(true);
+    try {
+      await friendService.acceptRequest(data.friendRequestId);
+      setFriendshipStatus('friends');
+      toast.success('Friend request accepted');
+    } catch (error) {
+      console.error('Failed to accept friend request:', error);
+      toast.error('Failed to accept friend request');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (isPrivateProfile && !isViewingSelf) {
     return (
       <PrivateProfileView
@@ -99,6 +125,9 @@ export default function PublicProfilePage() {
         }}
         onRemoveFriend={() => {
           void handleRemoveFriend();
+        }}
+        onAcceptRequest={() => {
+          void handleAcceptRequest();
         }}
       />
     );
@@ -117,6 +146,9 @@ export default function PublicProfilePage() {
         }}
         onRemoveFriend={() => {
           void handleRemoveFriend();
+        }}
+        onAcceptRequest={() => {
+          void handleAcceptRequest();
         }}
       />
       <ProfileTabs user={data.user} events={data.events} />

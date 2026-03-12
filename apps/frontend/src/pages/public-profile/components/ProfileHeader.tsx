@@ -13,6 +13,7 @@ interface ProfileHeaderProps {
   showFriendButton?: boolean;
   onAddFriend?: () => void;
   onRemoveFriend?: () => void;
+  onAcceptRequest?: () => void;
 }
 
 export function ProfileHeader({
@@ -22,6 +23,7 @@ export function ProfileHeader({
   showFriendButton = false,
   onAddFriend,
   onRemoveFriend,
+  onAcceptRequest,
 }: ProfileHeaderProps) {
   const memberSince = format(new Date(user.createdAt), 'MMMM yyyy');
 
@@ -39,6 +41,7 @@ export function ProfileHeader({
               isLoading={isLoading}
               onAddFriend={onAddFriend}
               onRemoveFriend={onRemoveFriend}
+              onAcceptRequest={onAcceptRequest}
             />
           )}
         </div>

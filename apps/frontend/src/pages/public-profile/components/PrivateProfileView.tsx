@@ -12,6 +12,7 @@ interface PrivateProfileViewProps {
   isLoggedIn: boolean;
   onAddFriend: () => void;
   onRemoveFriend: () => void;
+  onAcceptRequest: () => void;
 }
 
 export function PrivateProfileView({
@@ -21,6 +22,7 @@ export function PrivateProfileView({
   isLoggedIn,
   onAddFriend,
   onRemoveFriend,
+  onAcceptRequest,
 }: PrivateProfileViewProps) {
   return (
     <div className="space-y-8">
@@ -32,6 +34,7 @@ export function PrivateProfileView({
         showFriendButton={isLoggedIn}
         onAddFriend={onAddFriend}
         onRemoveFriend={onRemoveFriend}
+        onAcceptRequest={onAcceptRequest}
       />
       <div className="bg-card rounded-lg border p-8 text-center space-y-4">
         <Lock className="w-12 h-12 mx-auto text-muted-foreground" />

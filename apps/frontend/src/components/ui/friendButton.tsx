@@ -8,6 +8,7 @@ interface FriendButtonProps {
   isLoading: boolean;
   onAddFriend: () => void;
   onRemoveFriend?: () => void;
+  onAcceptRequest?: () => void;
   size?: 'default' | 'sm';
   acceptHref?: string;
 }
@@ -17,6 +18,7 @@ export function FriendButton({
   isLoading,
   onAddFriend,
   onRemoveFriend,
+  onAcceptRequest,
   size = 'default',
   acceptHref,
 }: FriendButtonProps) {
@@ -51,8 +53,16 @@ export function FriendButton({
         </Button>
       );
     }
+    if (onAcceptRequest) {
+      return (
+        <Button variant="secondary" size={size} disabled={isLoading} onClick={onAcceptRequest}>
+          <Clock className={isIconOnly ? 'h-4 w-4' : 'mr-2 h-4 w-4'} />
+          {!isIconOnly && 'Accept Request'}
+        </Button>
+      );
+    }
     return (
-      <Button variant="secondary" size={size}>
+      <Button variant="secondary" size={size} disabled>
         <Clock className={isIconOnly ? 'h-4 w-4' : 'mr-2 h-4 w-4'} />
         {!isIconOnly && 'Accept Request'}
       </Button>
