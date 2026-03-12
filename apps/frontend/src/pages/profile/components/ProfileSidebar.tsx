@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { UserAvatar } from '@/components/ui/user-avatar';
 import { Text } from '@/components/ui/typography';
-import { Ticket, Trash2, Upload, Edit, MapPin, Users, Eye } from 'lucide-react';
+import { Ticket, Trash2, Upload, Edit, MapPin, Users, Eye, Calendar } from 'lucide-react';
 import { userService } from '@/services/userService';
 import { toast } from 'sonner';
 import type { CurrentUser } from '@/types/user';
@@ -98,6 +98,12 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
 
   const hasCustomAvatar = user.avatarKey && !user.avatarKey.startsWith('default-');
 
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  };
+
   const navLinks = [
     {
       label: 'My Events',
@@ -149,6 +155,10 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
               </Text>
             </div>
           )}
+          <div className="flex items-center justify-center gap-1 text-muted-foreground">
+            <Calendar className="w-3 h-3" />
+            <Text className="text-sm">Member since {formatDate(user.createdAt)}</Text>
+          </div>
         </div>
       </div>
 
