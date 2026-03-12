@@ -12,6 +12,7 @@ import { z } from 'zod';
 import { userService } from '@/services/userService';
 import { toast } from 'sonner';
 import type { CurrentUser } from '@/types/user';
+import axios from 'axios';
 
 const profileSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -67,7 +68,19 @@ export function ProfileInfo({ user, onProfileUpdate }: ProfileInfoProps) {
       setIsEditing(false);
     } catch (error) {
       console.error('Profile update failed:', error);
-      toast.error('Failed to update profile');
+
+      if (axios.isAxiosError(error)) {
+        const message = error.response?.data?.message;
+        if (message === 'Username already taken') {
+          toast.error('This username is already in use');
+        } else if (message) {
+          toast.error(message);
+        } else {
+          toast.error('Failed to update profile');
+        }
+      } else {
+        toast.error('Failed to update profile');
+      }
     }
   };
 

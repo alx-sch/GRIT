@@ -154,6 +154,24 @@ export class UserService {
       throw new ConflictException('Name unknown is reserved for deleted users');
     }
 
+    // Check if email already exists
+    const existingEmail = await this.prisma.user.findUnique({
+      where: { email: data.email },
+    });
+
+    if (existingEmail) {
+      throw new ConflictException('Email already in use');
+    }
+
+    // Check if name already exists
+    const existingName = await this.prisma.user.findFirst({
+      where: { name: data.name },
+    });
+
+    if (existingName) {
+      throw new ConflictException('Username already taken');
+    }
+
     const user = await this.prisma.user.create({
       data: {
         name: data.name,
@@ -325,7 +343,21 @@ export class UserService {
 
   async userPatch(userId: number, data: ReqUserPatchDto) {
     const newData: Prisma.UserUpdateInput = {};
-    if (data.name !== undefined) newData.name = data.name;
+
+    if (data.name !== undefined) {
+      if (data.name.toUpperCase() === 'UNKNOWN')
+        throw new ConflictException('Username already taken');
+
+      // Check if name already exists
+      const existingName = await this.prisma.user.findFirst({
+        where: { name: data.name, id: { not: userId } },
+      });
+
+      if (existingName) {
+        throw new ConflictException('Username already taken');
+      }
+      newData.name = data.name;
+    }
     if (data.bio !== undefined) newData.bio = data.bio;
     if (data.city !== undefined) newData.city = data.city;
     if (data.country !== undefined) newData.country = data.country;
