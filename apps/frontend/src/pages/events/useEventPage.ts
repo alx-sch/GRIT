@@ -30,6 +30,7 @@ export const useEventPage = () => {
   const [invitingIds, setInvitingIds] = useState<Set<number>>(new Set());
   const [sentInvites, setSentInvites] = useState<Set<number>>(new Set());
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [invitesLoading, setInvitesLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -48,6 +49,9 @@ export const useEventPage = () => {
 
   const imageFiles = event.files.filter((f) => f.mimeType.startsWith('image/'));
   const otherFiles = event.files.filter((f) => !f.mimeType.startsWith('image/'));
+  const [friends, setFriends] = useState<Array<{ id: number; name: string; avatarKey?: string }>>(
+    []
+  );
 
   const handlePrev = () => {
     setSelectedImageIndex((i) => {
@@ -136,47 +140,6 @@ export const useEventPage = () => {
     }
   };
 
-  const [friends, setFriends] = useState<Array<{ id: number; name: string; avatarKey?: string }>>(
-    []
-  );
-
-  useEffect(() => {
-    const fetchFriends = async () => {
-      try {
-        const response = await friendService.listFriends();
-        // Map the response to extract just the friend data
-        const friendsList = response.data.map((friendship) => ({
-          id: friendship.friend.id,
-          name: friendship.friend.name,
-          avatarKey: friendship.friend.avatarKey ?? undefined,
-        }));
-        setFriends(friendsList);
-      } catch (error) {
-        console.error('Failed to fetch friends', error);
-      }
-    };
-
-    if (currentUser) {
-      void fetchFriends();
-    }
-  }, [currentUser?.id]);
-
-  useEffect(() => {
-    const fetchOutgoingInvites = async () => {
-      try {
-        const invites = await inviteService.listOutgoing();
-        const sentFriendIds = new Set(invites.map((invite) => invite.receiverId));
-        setSentInvites(sentFriendIds);
-      } catch (error) {
-        console.error('Failed to fetch invites', error);
-      }
-    };
-
-    if (currentUser) {
-      void fetchOutgoingInvites();
-    }
-  }, [currentUser?.id, event.id]);
-
   const handleInviteFriend = async (friendId: number) => {
     try {
       setInvitingIds((prev) => new Set(prev).add(friendId));
@@ -203,14 +166,45 @@ export const useEventPage = () => {
     setInviteOpen(true);
   };
 
-  const invitableFriends = friends.filter((friend) => {
-    // Hide friends already attending
-    const isAttending = event.attendees.some((attendee) => attendee.id === friend.id);
-    // Hide friends already invited
-    const isAlreadyInvited = sentInvites.has(friend.id);
+  useEffect(() => {
+    const fetchFriends = async () => {
+      try {
+        const response = await friendService.listFriends();
+        // Map the response to extract just the friend data
+        const friendsList = response.data.map((friendship) => ({
+          id: friendship.friend.id,
+          name: friendship.friend.name,
+          avatarKey: friendship.friend.avatarKey ?? undefined,
+        }));
+        setFriends(friendsList);
+      } catch (error) {
+        console.error('Failed to fetch friends', error);
+      }
+    };
 
-    return !isAttending && !isAlreadyInvited;
-  });
+    if (currentUser) {
+      void fetchFriends();
+    }
+  }, [currentUser?.id]);
+
+  useEffect(() => {
+    const fetchOutgoingInvites = async () => {
+      try {
+        setInvitesLoading(true);
+        const invites = await inviteService.listOutgoingInvites(String(event.id));
+        const sentFriendIds = new Set(invites.map((invite) => invite.receiverId));
+        setSentInvites(sentFriendIds);
+      } catch (error) {
+        console.error('Failed to fetch invites', error);
+      } finally {
+        setInvitesLoading(false);
+      }
+    };
+
+    if (currentUser) {
+      void fetchOutgoingInvites();
+    }
+  }, [currentUser?.id, event.id]);
 
   return {
     event,
@@ -221,6 +215,7 @@ export const useEventPage = () => {
     countAttending,
     isLoading,
     isMapOpen,
+    invitesLoading,
     setIsMapOpen,
     selectedImageIndex,
     setSelectedImageIndex,
@@ -248,7 +243,9 @@ export const useEventPage = () => {
     shareText,
     shareUrl,
     copied,
-    invitableFriends,
-    friends,
+    invitableFriends: friends.filter(
+      (friend) => !event.attendees.some((attendee) => attendee.id === friend.id)
+      // Only contains friends who are NOT attending event
+    ),
   };
 };

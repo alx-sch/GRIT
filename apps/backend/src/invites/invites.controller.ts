@@ -1,4 +1,4 @@
-import { Controller, Post, UseGuards, Body, Get, Param, Delete } from '@nestjs/common';
+import { Controller, Post, UseGuards, Body, Get, Param, Delete, Query } from '@nestjs/common';
 import { InvitesService } from './invites.service';
 import { GetUser } from '@/auth/guards/get-user.decorator';
 import { ZodSerializerDto } from 'nestjs-zod';
@@ -50,7 +50,7 @@ export class InvitesController {
   // List outgoing event invites
   @Get('outgoing')
   @ZodSerializerDto(ResListInvitesDto)
-  listOutgoing(@GetUser('id') userId: number) {
-    return this.invitesService.listOutgoing(userId);
+  listOutgoing(@GetUser('id') userId: number, @Query('eventId') idOrSlug?: string) {
+    return this.invitesService.listOutgoing(userId, idOrSlug);
   }
 }

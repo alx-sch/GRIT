@@ -38,6 +38,7 @@ export const EventPage = () => {
     isAttending,
     countAttending,
     isLoading,
+    invitesLoading,
     isMapOpen,
     setIsMapOpen,
     selectedImageIndex,
@@ -211,6 +212,8 @@ export const EventPage = () => {
             invitableFriends={invitableFriends}
             onInviteOpenChange={setInviteOpen}
             onShareOpenChange={setShareOpen}
+            invitesLoading={invitesLoading}
+            eventAttendees={event.attendees}
             onGoing={() => {
               void handleGoing();
             }}

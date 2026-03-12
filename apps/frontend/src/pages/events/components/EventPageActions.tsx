@@ -22,6 +22,8 @@ interface EventPageActionsProps {
   invitableFriends: Array<{ id: number; name: string; avatarKey?: string }>;
   sentInvites: Set<number>;
   invitingIds: Set<number>;
+  invitesLoading?: boolean;
+  eventAttendees?: Array<{ id: number }>;
   onInviteOpenChange: (open: boolean) => void;
   onShareOpenChange: (open: boolean) => void;
   onInviteFriend: (friendId: number) => Promise<void>;
@@ -44,6 +46,8 @@ export const EventPageActions = ({
   shareOpen,
   inviteOpen,
   sentInvites,
+  invitesLoading,
+  eventAttendees = [],
   onShareOpenChange,
   onInviteOpenChange,
   onGoing,
@@ -222,19 +226,25 @@ export const EventPageActions = ({
               filteredFriends.map((friend) => (
                 <div
                   key={friend.id}
-                  className="flex items-center justify-between p-3 rounded border border-border hover:bg-accent transition-colors"
+                  className={cn(
+                    'flex items-center justify-between p-3 rounded border border-border hover:bg-accent transition-colors',
+                    sentInvites.has(friend.id) && 'opacity-50 bg-muted'
+                  )}
                 >
                   <Text className="font-medium">{friend.name}</Text>
                   <Button
                     size="sm"
                     disabled={sentInvites.has(friend.id) || invitingIds.has(friend.id)}
+                    variant={sentInvites.has(friend.id) ? 'outline' : 'default'}
                     onClick={() => onInviteFriend(friend.id)}
                   >
                     {sentInvites.has(friend.id)
                       ? 'Invited ✓'
                       : invitingIds.has(friend.id)
                         ? 'Sending...'
-                        : 'Invite'}
+                        : invitesLoading
+                          ? 'Loading...'
+                          : 'Invite'}
                   </Button>
                 </div>
               ))

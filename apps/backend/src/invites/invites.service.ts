@@ -1,4 +1,5 @@
 import { PrismaService } from '@/prisma/prisma.service';
+import { EventService } from '@/event/event.service';
 import {
   ForbiddenException,
   NotFoundException,
@@ -9,7 +10,10 @@ import { InviteStatus } from '@grit/schema';
 
 @Injectable()
 export class InvitesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private eventService: EventService
+  ) {}
 
   /**
    * Send an event invite to a friend.
@@ -176,9 +180,17 @@ export class InvitesService {
    * List all outgoing event invites
    * @returns An array of user's outgoing event invites
    */
-  async listOutgoing(userId: number) {
-    return await this.prisma.eventInvite.findMany({
-      where: { senderId: userId },
+  async listOutgoing(userId: number, idOrSlug?: string) {
+    let eventId: number | undefined;
+
+    if (idOrSlug) {
+      eventId = await this.eventService.resolveEventId(idOrSlug);
+    }
+    const invites = this.prisma.eventInvite.findMany({
+      where: {
+        senderId: userId,
+        ...(eventId && { eventId }), // If eventId is defined -> also filter by eventId.
+      },
       include: {
         event: { select: { id: true, title: true, imageKey: true } },
         sender: { select: { id: true, name: true, avatarKey: true } },
@@ -186,5 +198,7 @@ export class InvitesService {
       },
       orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
     });
+
+    return invites;
   }
 }

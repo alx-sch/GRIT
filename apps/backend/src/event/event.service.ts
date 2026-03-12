@@ -35,7 +35,7 @@ export class EventService {
    * HELPER: Resolves an event ID from either a numeric ID string or a Slug.
    * Also checks if user has permission to delete event
    */
-  private async resolveEventId(idOrSlug: string): Promise<number> {
+  async resolveEventId(idOrSlug: string): Promise<number> {
     const event = await this.prisma.event.findFirst({
       where: {
         OR: [{ slug: idOrSlug }, { id: isNaN(Number(idOrSlug)) ? undefined : Number(idOrSlug) }],

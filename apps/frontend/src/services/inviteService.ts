@@ -17,13 +17,16 @@ export const inviteService = {
     return response.data;
   },
 
-  listIncoming: async (): Promise<ResListInvites> => {
+  listIncomingInvites: async (): Promise<ResListInvites> => {
     const response = await api.get<ResListInvites>('/users/me/invites/incoming');
     return response.data;
   },
 
-  listOutgoing: async (): Promise<ResListInvites> => {
-    const response = await api.get<ResListInvites>('/users/me/invites/outgoing');
+  listOutgoingInvites: async (idOrSlug?: string): Promise<ResListInvites> => {
+    const url = idOrSlug
+      ? `/users/me/invites/outgoing?eventId=${idOrSlug}`
+      : '/users/me/invites/outgoing';
+    const response = await api.get<ResListInvites>(url);
     return response.data;
   },
 };
