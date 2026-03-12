@@ -241,16 +241,6 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
               <Upload className="w-4 h-4" />
               Upload New Picture
             </Button>
-            <Button
-              onClick={() => {
-                void handleRandomAvatar();
-              }}
-              className="w-full flex items-center justify-start gap-2"
-              variant="outline"
-            >
-              <Shuffle className="w-4 h-4" />
-              Choose Random Avatar
-            </Button>
             {hasAnyAvatar && (
               <Button
                 onClick={() => {
