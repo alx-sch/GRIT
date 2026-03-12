@@ -1,5 +1,6 @@
 import { PrismaService } from '@/prisma/prisma.service';
 import { EventService } from '@/event/event.service';
+import { ChatService } from '@/chat/chat.service';
 import {
   ForbiddenException,
   NotFoundException,
@@ -7,12 +8,15 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { InviteStatus } from '@grit/schema';
+import { env } from '@/config/env';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class InvitesService {
   constructor(
     private prisma: PrismaService,
-    private eventService: EventService
+    private eventService: EventService,
+    private chatService: ChatService
   ) {}
 
   /**
@@ -77,7 +81,88 @@ export class InvitesService {
       },
     });
 
+    try {
+      await this.sendInviteMessage(senderId, receiverId, invite.event.title, eventId);
+    } catch (error) {
+      console.error('Failed to send invite message:', error);
+    }
+
     return invite;
+  }
+
+  /*
+   *
+   * Helper function to send automatic DIRECT chat message when inviting to an event.
+   */
+  private async sendInviteMessage(
+    senderId: number,
+    receiverId: number,
+    eventTitle: string,
+    eventId: number
+  ) {
+    // Find or create conversation between sender and receiver
+    let conversation = await this.prisma.conversation.findFirst({
+      where: {
+        type: 'DIRECT',
+        participants: {
+          every: {
+            userId: { in: [senderId, receiverId] },
+          },
+        },
+        AND: {
+          participants: {
+            some: { userId: senderId },
+          },
+        },
+      },
+    });
+
+    // If no conversation exists, create one
+    if (!conversation) {
+      conversation = await this.prisma.conversation.create({
+        data: {
+          type: 'DIRECT',
+          createdBy: senderId,
+          participants: {
+            createMany: {
+              data: [{ userId: senderId }, { userId: receiverId }],
+            },
+          },
+        },
+      });
+    } else {
+      // Ensure receiver is a participant
+      await this.prisma.conversationParticipant.upsert({
+        // Upsert tries to update, if it doesn't exist, it creates.
+        where: {
+          conversationId_userId: {
+            conversationId: conversation.id,
+            userId: receiverId,
+          },
+        },
+        // If it doesn't exist -> create.
+        create: {
+          conversationId: conversation.id,
+          userId: receiverId,
+        },
+        // If it exsists -> update.
+        update: {},
+      });
+    }
+
+    // Create base URL depending on production / development
+    const frontendUrl =
+      env.NODE_ENV === 'production' ? 'https://grit.social' : 'http://localhost:5173';
+    const eventUrl = `${frontendUrl}/events/${String(eventId)}`;
+
+    // Send automated message
+    const messageId = randomUUID();
+    await this.chatService.saveMessage({
+      id: messageId,
+      conversationId: conversation.id,
+      authorId: senderId,
+      text: `I'm inviting you to "${eventTitle}"! Check it out: ${eventUrl}`,
+    });
   }
 
   /**

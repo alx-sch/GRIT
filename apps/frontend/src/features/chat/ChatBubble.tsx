@@ -4,6 +4,29 @@ import { UserAvatar } from '@/components/ui/user-avatar';
 import { timestampToLocalTime } from '@/lib/time_utils';
 import { Link } from 'react-router-dom';
 
+// Detect and render links (especially useful for event invites)
+const renderMessageWithLinks = (text: string) => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+
+  return parts.map((part, index) => {
+    if (urlRegex.test(part)) {
+      return (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:text-blue-800 underline break-all"
+        >
+          {part}
+        </a>
+      );
+    }
+    return <span key={index}>{part}</span>;
+  });
+};
+
 export const ChatBubble = ({ message }: { message: ResChatMessage }) => {
   const currentUser = useCurrentUserStore((s) => s.user);
   const author = message.author ?? { id: null, name: 'Unknown', avatarKey: null };
@@ -27,7 +50,7 @@ export const ChatBubble = ({ message }: { message: ResChatMessage }) => {
                 {author.name}
               </Link>
             )}
-            <span>{message.text}</span>
+            <span>{renderMessageWithLinks(message.text)}</span>{' '}
             <div className="text-right text-xs mt-1">{timestampToLocalTime(message.createdAt)}</div>
           </div>
         </div>
