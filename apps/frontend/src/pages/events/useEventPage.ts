@@ -1,5 +1,7 @@
 import { eventService } from '@/services/eventService';
 import { userService } from '@/services/userService';
+import { inviteService } from '@/services/inviteService';
+import { friendService } from '@/services/friendService';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import type { CurrentUser } from '@/types/user';
 import { useEffect, useState } from 'react';
@@ -25,6 +27,10 @@ export const useEventPage = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [invitingIds, setInvitingIds] = useState<Set<number>>(new Set());
+  const [sentInvites, setSentInvites] = useState<Set<number>>(new Set());
+  const [inviteOpen, setInviteOpen] = useState(false);
+
   const navigate = useNavigate();
 
   const formattedDate = format(new Date(event.startAt), 'MMMM d, yyyy | p');
@@ -130,6 +136,82 @@ export const useEventPage = () => {
     }
   };
 
+  const [friends, setFriends] = useState<Array<{ id: number; name: string; avatarKey?: string }>>(
+    []
+  );
+
+  useEffect(() => {
+    const fetchFriends = async () => {
+      try {
+        const response = await friendService.listFriends();
+        // Map the response to extract just the friend data
+        const friendsList = response.data.map((friendship) => ({
+          id: friendship.friend.id,
+          name: friendship.friend.name,
+          avatarKey: friendship.friend.avatarKey ?? undefined,
+        }));
+        setFriends(friendsList);
+      } catch (error) {
+        console.error('Failed to fetch friends', error);
+      }
+    };
+
+    if (currentUser) {
+      void fetchFriends();
+    }
+  }, [currentUser?.id]);
+
+  useEffect(() => {
+    const fetchOutgoingInvites = async () => {
+      try {
+        const invites = await inviteService.listOutgoing();
+        const sentFriendIds = new Set(invites.map((invite) => invite.receiverId));
+        setSentInvites(sentFriendIds);
+      } catch (error) {
+        console.error('Failed to fetch invites', error);
+      }
+    };
+
+    if (currentUser) {
+      void fetchOutgoingInvites();
+    }
+  }, [currentUser?.id, event.id]);
+
+  const handleInviteFriend = async (friendId: number) => {
+    try {
+      setInvitingIds((prev) => new Set(prev).add(friendId));
+
+      await inviteService.sendInvite({
+        eventId: event.id,
+        receiverId: friendId,
+      });
+
+      setSentInvites((prev) => new Set(prev).add(friendId));
+      toast.success('Invite sent!');
+    } catch (error) {
+      toast.error('Failed to send invite');
+    } finally {
+      setInvitingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(friendId);
+        return next;
+      });
+    }
+  };
+
+  const handleInvite = () => {
+    setInviteOpen(true);
+  };
+
+  const invitableFriends = friends.filter((friend) => {
+    // Hide friends already attending
+    const isAttending = event.attendees.some((attendee) => attendee.id === friend.id);
+    // Hide friends already invited
+    const isAlreadyInvited = sentInvites.has(friend.id);
+
+    return !isAttending && !isAlreadyInvited;
+  });
+
   return {
     event,
     isAuthor,
@@ -143,6 +225,10 @@ export const useEventPage = () => {
     selectedImageIndex,
     setSelectedImageIndex,
     shareOpen,
+    inviteOpen,
+    setInviteOpen,
+    invitingIds,
+    sentInvites,
     setShareOpen,
     formattedDate,
     location,
@@ -152,6 +238,8 @@ export const useEventPage = () => {
     handlePrev,
     handleNext,
     handleShare,
+    handleInvite,
+    handleInviteFriend,
     handleCopyLink,
     handleChat,
     handleGoing,
@@ -160,5 +248,7 @@ export const useEventPage = () => {
     shareText,
     shareUrl,
     copied,
+    invitableFriends,
+    friends,
   };
 };

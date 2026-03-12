@@ -49,11 +49,18 @@ export const EventPage = () => {
     locationText,
     imageFiles,
     otherFiles,
+    inviteOpen,
+    setInviteOpen,
+    invitingIds,
+    sentInvites,
+    invitableFriends,
     handlePrev,
     handleNext,
     handleShare,
     handleCopyLink,
     handleChat,
+    handleInvite,
+    handleInviteFriend,
     handleGoing,
     handleDelete,
     shareText,
@@ -196,10 +203,19 @@ export const EventPage = () => {
           <EventPageActions
             isAttending={isAttending}
             isLoading={isLoading}
+            invitingIds={invitingIds}
+            sentInvites={sentInvites}
+            onInviteFriend={handleInviteFriend}
             shareOpen={shareOpen}
+            inviteOpen={inviteOpen}
+            invitableFriends={invitableFriends}
+            onInviteOpenChange={setInviteOpen}
             onShareOpenChange={setShareOpen}
             onGoing={() => {
               void handleGoing();
+            }}
+            onInvite={() => {
+              void handleInvite();
             }}
             onShare={() => {
               handleShare();

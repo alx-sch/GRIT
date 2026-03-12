@@ -11,13 +11,22 @@ import { Text } from '@/components/ui/typography';
 import { FaFacebook, FaTelegram, FaWhatsapp, FaXTwitter } from 'react-icons/fa6';
 import { QRCodeSVG } from 'qrcode.react';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
+import { Input } from '@/components/ui/input';
 
 interface EventPageActionsProps {
   isAttending: boolean | null;
   isLoading: boolean;
   shareOpen: boolean;
+  inviteOpen: boolean;
+  invitableFriends: Array<{ id: number; name: string; avatarKey?: string }>;
+  sentInvites: Set<number>;
+  invitingIds: Set<number>;
+  onInviteOpenChange: (open: boolean) => void;
   onShareOpenChange: (open: boolean) => void;
+  onInviteFriend: (friendId: number) => Promise<void>;
   onGoing: () => void;
+  onInvite: () => void;
   onShare: () => void;
   onChat: () => void;
   onCopyLink: () => void;
@@ -33,11 +42,18 @@ export const EventPageActions = ({
   isAttending,
   isLoading,
   shareOpen,
+  inviteOpen,
+  sentInvites,
   onShareOpenChange,
+  onInviteOpenChange,
   onGoing,
+  onInvite,
   onShare,
   onChat,
   onCopyLink,
+  onInviteFriend,
+  invitableFriends,
+  invitingIds,
   shareText,
   shareUrl,
   eventTitle,
@@ -45,6 +61,12 @@ export const EventPageActions = ({
   eventLocation,
   copied,
 }: EventPageActionsProps) => {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredFriends = invitableFriends.filter((friend) =>
+    friend.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <>
       <Card className="w-full border-0 bg-transparent shadow-none md:border md:bg-card md:shadow md:mt-5">
@@ -66,7 +88,7 @@ export const EventPageActions = ({
             >
               {isAttending ? 'Going ✓' : 'Going'}
             </Button>
-            <Button variant="secondary" className="flex-1">
+            <Button variant="secondary" className="flex-1" onClick={onInvite}>
               Invite
             </Button>
             <Button variant="secondary" className="flex-1" onClick={onShare}>
@@ -174,6 +196,49 @@ export const EventPageActions = ({
                 </a>
               </Button>
             ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* INVITE DIALOG */}
+      <Dialog open={inviteOpen} onOpenChange={onInviteOpenChange}>
+        <DialogContent className="max-w-sm flex flex-col gap-4 p-4 max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="text-[12px] uppercase tracking-[0.3em] opacity-50 font-sans font-bold">
+              Invite friends
+            </DialogTitle>
+          </DialogHeader>
+
+          <Input
+            placeholder="Search friends..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="text-sm"
+          />
+
+          <div className="flex-1 overflow-y-auto flex flex-col gap-2">
+            {filteredFriends.length === 0 ? (
+              <div className="text-center py-8 text-sm opacity-50">No friends to invite</div>
+            ) : (
+              filteredFriends.map((friend) => (
+                <div
+                  key={friend.id}
+                  className="flex items-center justify-between p-3 rounded border border-border hover:bg-accent transition-colors"
+                >
+                  <Text className="font-medium">{friend.name}</Text>
+                  <Button
+                    size="sm"
+                    disabled={sentInvites.has(friend.id) || invitingIds.has(friend.id)}
+                    onClick={() => onInviteFriend(friend.id)}
+                  >
+                    {sentInvites.has(friend.id)
+                      ? 'Invited ✓'
+                      : invitingIds.has(friend.id)
+                        ? 'Sending...'
+                        : 'Invite'}
+                  </Button>
+                </div>
+              ))
+            )}
           </div>
         </DialogContent>
       </Dialog>

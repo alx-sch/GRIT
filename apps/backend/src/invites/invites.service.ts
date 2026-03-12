@@ -32,8 +32,8 @@ export class InvitesService {
     });
     if (!event) throw new NotFoundException('Event does not exist');
 
-    // Check if sender is event owner
-    if (event.authorId !== senderId) {
+    // Check if sender is event owner (only if private event)
+    if (event.authorId !== senderId && !event.isPublic) {
       throw new ForbiddenException('Only event owner can send invites');
     }
 

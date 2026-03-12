@@ -23,9 +23,10 @@ import { toast } from 'sonner';
 interface EventCardProps {
   event: EventBase;
   friendsIds: Set<number>;
+  sentInvites?: Set<number>;
 }
 
-export function EventCard({ event, friendsIds }: EventCardProps) {
+export function EventCard({ event, friendsIds, sentInvites = new Set() }: EventCardProps) {
   const [isAttending, setIsAttending] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const currentUser: CurrentUser | null = useCurrentUserStore((s) => s.user);
@@ -73,6 +74,16 @@ export function EventCard({ event, friendsIds }: EventCardProps) {
         setIsLoading(false);
       }
     }
+  };
+
+  const handleInvite = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!currentUser) {
+      void navigate('/login?redirect=' + encodeURIComponent(`/events/${event.slug}`));
+      return;
+    }
+    void navigate(`/events/${event.slug}`);
   };
 
   return (
@@ -127,9 +138,6 @@ export function EventCard({ event, friendsIds }: EventCardProps) {
 
           {/* Action buttons */}
           <div className="flex items-center gap-2 w-full">
-            <Button variant="default" className="flex-1">
-              Invite
-            </Button>
             <Button
               variant="outline"
               className="flex-1"

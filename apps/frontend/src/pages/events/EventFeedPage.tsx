@@ -10,6 +10,7 @@ import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { EventCard } from '@/pages/events/components/EventCard';
 import { eventService } from '@/services/eventService';
 import { friendService } from '@/services/friendService';
+import { inviteService } from '@/services/inviteService';
 import { locationService } from '@/services/locationService';
 import { useAuthStore } from '@/store/authStore';
 import { EventResponse } from '@/types/event';
@@ -36,21 +37,24 @@ export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
   const query = buildEventQuery(url.searchParams);
   const token = useAuthStore.getState().token;
 
-  const [events, locationsResponse, friendsData] = await Promise.all([
+  const [events, locationsResponse, friendsData, outgoingInvites] = await Promise.all([
     eventService.getEvents(query),
     locationService.getLocations(),
 
     //Only fetch friends list if user is logged-in
     token ? friendService.listFriends({ limit: '100' }).catch(() => null) : Promise.resolve(null),
+    token ? inviteService.listOutgoing().catch(() => null) : Promise.resolve(null),
   ]);
 
   const friendsIds = new Set(friendsData?.data.map((f) => f.friend.id) ?? []);
+  const sentInvites = new Set(outgoingInvites?.map((invite) => invite.receiverId) ?? []);
 
   return {
     events,
     locations: locationsResponse.data,
     locationsPagination: locationsResponse.pagination,
     friendsIds,
+    sentInvites,
   };
 };
 
@@ -64,11 +68,12 @@ const sortOptions: ComboboxOptions[] = [
 ];
 
 export default function EventFeedPage() {
-  const { events, locations, locationsPagination, friendsIds } = useTypedLoaderData<{
+  const { events, locations, locationsPagination, friendsIds, sentInvites } = useTypedLoaderData<{
     events: EventResponse;
     locations: LocationBase[];
     locationsPagination: Pagination;
     friendsIds: Set<number>;
+    sentInvites: Set<number>;
   }>();
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -253,7 +258,12 @@ export default function EventFeedPage() {
         <>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {items.map((event) => (
-              <EventCard key={event.id} event={event} friendsIds={friendsIds} />
+              <EventCard
+                key={event.id}
+                event={event}
+                friendsIds={friendsIds}
+                sentInvites={sentInvites}
+              />
             ))}
           </div>
           <div ref={sentinelRef} />
