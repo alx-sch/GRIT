@@ -6,7 +6,7 @@ import { ResAuthMeDto, ReqRegisterDto, ResLoginDto, GoogleProfile } from '@/auth
 import * as bcrypt from 'bcrypt';
 import { type LoginInput } from '@grit/schema';
 import { env } from '@/config/env';
-import { nanoid } from 'nanoid';
+import { customAlphabet } from 'nanoid';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
@@ -75,6 +75,12 @@ export class AuthService {
     });
   }
 
+  // "nanoid" uses '-' and '_' --> exclude these by using a custom alphabet
+  generateNanoId = customAlphabet(
+    '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
+    3
+  );
+
   // Handles both new signups and returning logins via upsert.
   // If a user originally signed up with a password but now clicks "Login with Google",
   // this will "link" their Google ID to their existing email account automatically.
@@ -94,7 +100,7 @@ export class AuthService {
           },
           create: {
             email,
-            name: `${firstName}-${nanoid(3)}`,
+            name: `${firstName}-${this.generateNanoId()}`,
             googleId: providerId,
             isConfirmed: true,
             password: null,

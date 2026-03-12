@@ -368,7 +368,7 @@ start-postgres: install-be
 start-minio: install-be
 	@echo "$(BOLD)$(YELLOW)--- Starting MinIO [DOCKER]...$(RESET)"
 	@$(DC) up -d minio --no-build
-	@echo "$(BOLD)$(YELLOW)--- Waiting for MinIO to wake up...$(RESET)"
+	@echo "$(BOLD)$(YELLOW)--- Waiting for MinIO to accept connections...$(RESET)"
 	@RETRIES=10; \
 	MINIO_CONTAINER=$$($(DC) ps -q minio); \
 	while [ $$RETRIES -gt 0 ]; do \
