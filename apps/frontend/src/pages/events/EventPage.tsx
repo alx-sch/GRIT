@@ -218,7 +218,7 @@ export const EventPage = () => {
               void handleGoing();
             }}
             onInvite={() => {
-              void handleInvite();
+              handleInvite();
             }}
             onShare={() => {
               handleShare();

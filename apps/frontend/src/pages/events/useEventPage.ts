@@ -49,9 +49,7 @@ export const useEventPage = () => {
 
   const imageFiles = event.files.filter((f) => f.mimeType.startsWith('image/'));
   const otherFiles = event.files.filter((f) => !f.mimeType.startsWith('image/'));
-  const [friends, setFriends] = useState<Array<{ id: number; name: string; avatarKey?: string }>>(
-    []
-  );
+  const [friends, setFriends] = useState<{ id: number; name: string; avatarKey?: string }[]>([]);
 
   const handlePrev = () => {
     setSelectedImageIndex((i) => {
@@ -151,7 +149,7 @@ export const useEventPage = () => {
 
       setSentInvites((prev) => new Set(prev).add(friendId));
       toast.success('Invite sent!');
-    } catch (error) {
+    } catch {
       toast.error('Failed to send invite');
     } finally {
       setInvitingIds((prev) => {

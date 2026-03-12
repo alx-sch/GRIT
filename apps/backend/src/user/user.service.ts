@@ -342,150 +342,154 @@ export class UserService {
   }
 
   async userPatch(userId: number, data: ReqUserPatchDto) {
-    const newData: Prisma.UserUpdateInput = {};
+    // Wrap everything in a transaction (if one call fails, then they all roll back - making every
+    // call to the DB dependent on each other).
+    return await this.prisma.$transaction(async (tx) => {
+      const newData: Prisma.UserUpdateInput = {};
 
-    if (data.name !== undefined) {
-      if (data.name.toUpperCase() === 'UNKNOWN')
-        throw new ConflictException('Username already taken');
+      if (data.name !== undefined) {
+        if (data.name.toUpperCase() === 'UNKNOWN')
+          throw new ConflictException('Username already taken');
 
-      // Check if name already exists
-      const existingName = await this.prisma.user.findFirst({
-        where: { name: data.name, id: { not: userId } },
-      });
-
-      if (existingName) {
-        throw new ConflictException('Username already taken');
-      }
-      newData.name = data.name;
-    }
-    if (data.bio !== undefined) newData.bio = data.bio;
-    if (data.city !== undefined) newData.city = data.city;
-    if (data.country !== undefined) newData.country = data.country;
-    if (data.isProfilePublic !== undefined) newData.isProfilePublic = data.isProfilePublic;
-
-    if (data.attending) {
-      const attendingOps: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput = {};
-      const membershipOps: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput = {};
-
-      if (data.attending.connect?.length) {
-        const events = await this.prisma.event.findMany({
-          where: { id: { in: data.attending.connect } },
-          select: {
-            id: true,
-            conversation: { select: { id: true } },
-          },
+        // Check if name already exists
+        const existingName = await tx.user.findFirst({
+          where: { name: data.name, id: { not: userId } },
         });
 
-        if (events.length !== data.attending.connect.length) {
-          throw new NotFoundException('One or more events not found');
+        if (existingName) {
+          throw new ConflictException('Username already taken');
         }
+        newData.name = data.name;
+      }
+      if (data.bio !== undefined) newData.bio = data.bio;
+      if (data.city !== undefined) newData.city = data.city;
+      if (data.country !== undefined) newData.country = data.country;
+      if (data.isProfilePublic !== undefined) newData.isProfilePublic = data.isProfilePublic;
 
-        for (const event of events) {
-          if (!event.conversation) {
-            throw new Error(`Event ${String(event.id)} has no conversation`);
+      if (data.attending) {
+        const attendingOps: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput = {};
+        const membershipOps: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput = {};
+
+        if (data.attending.connect?.length) {
+          const events = await tx.event.findMany({
+            where: { id: { in: data.attending.connect } },
+            select: {
+              id: true,
+              conversation: { select: { id: true } },
+            },
+          });
+
+          if (events.length !== data.attending.connect.length) {
+            throw new NotFoundException('One or more events not found');
           }
-        }
 
-        attendingOps.create = events.map((e) => ({
-          eventId: e.id,
-        }));
+          for (const event of events) {
+            if (!event.conversation) {
+              throw new Error(`Event ${String(event.id)} has no conversation`);
+            }
+          }
 
-        membershipOps.connectOrCreate = events.map((e) => ({
-          where: {
-            conversationId_userId: {
+          attendingOps.create = events.map((e) => ({
+            eventId: e.id,
+          }));
+
+          membershipOps.connectOrCreate = events.map((e) => ({
+            where: {
+              conversationId_userId: {
+                // @ts-expect-error we validated above that conversation exists.
+                conversationId: e.conversation.id,
+                userId,
+              },
+            },
+            create: {
               // @ts-expect-error we validated above that conversation exists.
               conversationId: e.conversation.id,
-              userId,
             },
-          },
-          create: {
+          }));
+
+          await tx.eventInvite.deleteMany({
+            where: {
+              eventId: { in: data.attending.connect },
+              receiverId: userId,
+            },
+          });
+        }
+
+        if (data.attending.disconnect?.length) {
+          const events = await tx.event.findMany({
+            where: { id: { in: data.attending.disconnect } },
+            select: {
+              id: true,
+              conversation: { select: { id: true } },
+            },
+          });
+
+          if (events.length !== data.attending.disconnect.length) {
+            throw new NotFoundException('One or more events not found');
+          }
+
+          for (const event of events) {
+            if (!event.conversation) {
+              throw new Error(`Event ${String(event.id)} has no conversation`);
+            }
+          }
+
+          attendingOps.deleteMany = data.attending.disconnect.map((eventId) => ({
+            eventId,
+            userId,
+          }));
+
+          membershipOps.deleteMany = events.map((e) => ({
             // @ts-expect-error we validated above that conversation exists.
             conversationId: e.conversation.id,
-          },
-        }));
-
-        await this.prisma.eventInvite.deleteMany({
-          where: {
-            eventId: { in: data.attending.connect },
-            receiverId: userId,
-          },
-        });
-      }
-
-      if (data.attending.disconnect?.length) {
-        const events = await this.prisma.event.findMany({
-          where: { id: { in: data.attending.disconnect } },
-          select: {
-            id: true,
-            conversation: { select: { id: true } },
-          },
-        });
-
-        if (events.length !== data.attending.disconnect.length) {
-          throw new NotFoundException('One or more events not found');
+            userId,
+          }));
         }
 
-        for (const event of events) {
-          if (!event.conversation) {
-            throw new Error(`Event ${String(event.id)} has no conversation`);
-          }
+        if (Object.keys(attendingOps).length) {
+          newData.attending = attendingOps;
         }
 
-        attendingOps.deleteMany = data.attending.disconnect.map((eventId) => ({
-          eventId,
-          userId,
-        }));
-
-        membershipOps.deleteMany = events.map((e) => ({
-          // @ts-expect-error we validated above that conversation exists.
-          conversationId: e.conversation.id,
-          userId,
-        }));
+        if (Object.keys(membershipOps).length) {
+          newData.convMemberships = membershipOps;
+        }
       }
 
-      if (Object.keys(attendingOps).length) {
-        newData.attending = attendingOps;
+      if (Object.keys(newData).length === 0) {
+        throw new BadRequestException('No fields to update');
       }
 
-      if (Object.keys(membershipOps).length) {
-        newData.convMemberships = membershipOps;
-      }
-    }
-
-    if (Object.keys(newData).length === 0) {
-      throw new BadRequestException('No fields to update');
-    }
-
-    const user_raw = await this.prisma.user.update({
-      where: { id: userId },
-      data: newData,
-      include: {
-        attending: {
-          include: {
-            event: {
-              include: { location: true },
+      const user_raw = await tx.user.update({
+        where: { id: userId },
+        data: newData,
+        include: {
+          attending: {
+            include: {
+              event: {
+                include: { location: true },
+              },
             },
           },
         },
-      },
+      });
+
+      // After updating the user we need to resync the chat rooms he is in
+      await this.chatGateway.resyncUserRooms(userId);
+
+      return {
+        ...user_raw,
+        createdAt: user_raw.createdAt.toISOString(),
+        attending: user_raw.attending.map((a) => ({
+          id: a.event.id,
+          title: a.event.title,
+          slug: a.event.slug,
+          startAt: a.event.startAt.toISOString(),
+          isOrganizer: a.event.authorId === userId,
+          imageKey: a.event.imageKey,
+          location: a.event.location,
+        })),
+      };
     });
-
-    // After updating the user we need to resync the chat rooms he is in
-    await this.chatGateway.resyncUserRooms(userId);
-
-    return {
-      ...user_raw,
-      createdAt: user_raw.createdAt.toISOString(),
-      attending: user_raw.attending.map((a) => ({
-        id: a.event.id,
-        title: a.event.title,
-        slug: a.event.slug,
-        startAt: a.event.startAt.toISOString(),
-        isOrganizer: a.event.authorId === userId,
-        imageKey: a.event.imageKey,
-        location: a.event.location,
-      })),
-    };
   }
 
   async userGetEvents(userId: number) {

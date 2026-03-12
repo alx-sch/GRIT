@@ -70,10 +70,10 @@ export function ProfileInfo({ user, onProfileUpdate }: ProfileInfoProps) {
       console.error('Profile update failed:', error);
 
       if (axios.isAxiosError(error)) {
-        const message = error.response?.data?.message;
+        const message = (error.response?.data as { message?: string })?.message;
         if (message === 'Username already taken') {
           toast.error('This username is already in use');
-        } else if (message) {
+        } else if (typeof message === 'string') {
           toast.error(message);
         } else {
           toast.error('Failed to update profile');

@@ -19,11 +19,11 @@ interface EventPageActionsProps {
   isLoading: boolean;
   shareOpen: boolean;
   inviteOpen: boolean;
-  invitableFriends: Array<{ id: number; name: string; avatarKey?: string }>;
+  invitableFriends: { id: number; name: string; avatarKey?: string }[];
   sentInvites: Set<number>;
   invitingIds: Set<number>;
+  eventAttendees?: { id: number }[];
   invitesLoading?: boolean;
-  eventAttendees?: Array<{ id: number }>;
   onInviteOpenChange: (open: boolean) => void;
   onShareOpenChange: (open: boolean) => void;
   onInviteFriend: (friendId: number) => Promise<void>;
@@ -46,8 +46,8 @@ export const EventPageActions = ({
   shareOpen,
   inviteOpen,
   sentInvites,
-  invitesLoading,
   eventAttendees = [],
+  invitesLoading,
   onShareOpenChange,
   onInviteOpenChange,
   onGoing,
@@ -223,7 +223,9 @@ export const EventPageActions = ({
           <Input
             placeholder="Search friends..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+            }}
             className="text-sm"
           />
 
@@ -248,12 +250,12 @@ export const EventPageActions = ({
                       size="sm"
                       disabled={isDisabled}
                       variant={isDisabled ? 'outline' : 'default'}
-                      onClick={() => onInviteFriend(friend.id)}
+                      onClick={() => void onInviteFriend(friend.id)}
                     >
                       {status === 'ATTENDING' && 'Already Going ✓'}
                       {status === 'INVITED' && 'Invited ✓'}
                       {status === 'SENDING' && 'Sending...'}
-                      {status === 'NOT_INVITED' && 'Invite'}
+                      {status === 'NOT_INVITED' && invitesLoading ? 'Loading...' : 'Invite'}
                     </Button>
                   </div>
                 );
