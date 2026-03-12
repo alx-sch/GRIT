@@ -14,9 +14,9 @@ POST {{baseUrl}}/auth/register
 Content-Type: application/json
 
 {
-	"name": "test",
-	"email": "test@example.com",
-	"password": "password123",
+	"name": "test8",
+	"email": "test8@example.com",
+	"password": "password123"
 }
 ###
 

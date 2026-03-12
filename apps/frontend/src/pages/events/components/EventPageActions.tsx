@@ -24,6 +24,7 @@ interface EventPageActionsProps {
   invitingIds: Set<number>;
   eventAttendees?: { id: number }[];
   invitesLoading?: boolean;
+  canInvite?: boolean;
   onInviteOpenChange: (open: boolean) => void;
   onShareOpenChange: (open: boolean) => void;
   onInviteFriend: (friendId: number) => Promise<void>;
@@ -48,6 +49,7 @@ export const EventPageActions = ({
   sentInvites,
   eventAttendees = [],
   invitesLoading,
+  canInvite,
   onShareOpenChange,
   onInviteOpenChange,
   onGoing,
@@ -100,7 +102,13 @@ export const EventPageActions = ({
             >
               {isAttending ? 'Going ✓' : 'Going'}
             </Button>
-            <Button variant="secondary" className="flex-1" onClick={onInvite}>
+            <Button
+              onClick={onInvite}
+              disabled={!canInvite || isLoading}
+              variant="secondary"
+              className="flex-1"
+              title={!canInvite ? 'Only event owner can invite to private events' : ''}
+            >
               Invite
             </Button>
             <Button variant="secondary" className="flex-1" onClick={onShare}>

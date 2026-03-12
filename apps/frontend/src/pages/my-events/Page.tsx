@@ -166,18 +166,30 @@ export function Page() {
       ) : (
         <Tabs defaultValue="upcoming" className="w-full">
           <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center md:gap-2">
-            <TabsList variant="brutalist" className="w-full md:w-auto">
-              <TabsTrigger value="upcoming" variant="brutalist" className="text-xs md:text-sm">
+            <TabsList variant="brutalist" className="w-full md:w-auto overflow-x-auto">
+              <TabsTrigger
+                value="upcoming"
+                variant="brutalist"
+                className="text-xs md:text-sm shrink-0"
+              >
                 Upcoming ({upcomingEvents.length})
               </TabsTrigger>
-              <TabsTrigger value="past" variant="brutalist" className="text-xs md:text-sm">
-                Past ({pastEvents.length})
-              </TabsTrigger>
-              <TabsTrigger value="organizing" variant="brutalist" className="text-xs md:text-sm">
+              <TabsTrigger
+                value="organizing"
+                variant="brutalist"
+                className="text-xs md:text-sm shrink-0"
+              >
                 Organizing ({organizingEvents.length})
               </TabsTrigger>
-              <TabsTrigger value="invitations" variant="brutalist" className="text-xs md:text-sm">
+              <TabsTrigger
+                value="invitations"
+                variant="brutalist"
+                className="text-xs md:text-sm shrink-0"
+              >
                 Invitations ({invitedEvents.length})
+              </TabsTrigger>
+              <TabsTrigger value="past" variant="brutalist" className="text-xs md:text-sm shrink-0">
+                Past ({pastEvents.length})
               </TabsTrigger>
             </TabsList>
 

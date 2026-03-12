@@ -50,6 +50,7 @@ export const EventPage = () => {
     locationText,
     imageFiles,
     otherFiles,
+    isAuthor,
     inviteOpen,
     setInviteOpen,
     invitingIds,
@@ -77,6 +78,7 @@ export const EventPage = () => {
   const country = location?.country?.trim() ?? '';
 
   const locationLabel = addressCity !== '' ? addressCity : country !== '' ? country : 'TBA';
+  const canInvite = event.isPublic || isAuthor;
 
   // Added a handler here because of back button bug (it needed to be clicked two times to go back to /events).
   const handleBackClick = () => {
@@ -202,6 +204,7 @@ export const EventPage = () => {
 
           {/* Action buttons */}
           <EventPageActions
+            canInvite={canInvite}
             isAttending={isAttending}
             isLoading={isLoading}
             invitingIds={invitingIds}
