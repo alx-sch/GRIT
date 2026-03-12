@@ -30,6 +30,7 @@ import {
   ReqUserPatchByIdDto,
   ReqUserDeleteAvatarDto,
   ResMyEventsDto,
+  ResMyInvitedEventsDto,
   ResUserDeleteSchema,
   ResUserPatchSchema,
 } from '@/user/user.schema';
@@ -86,6 +87,15 @@ export class UserController {
   @ZodSerializerDto(ResMyEventsDto)
   async getMyEvents(@GetUser('id') userId: number) {
     return await this.userService.userGetEvents(userId);
+  }
+
+  // Get user invited events
+  @Get('me/events/invited')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(ResMyInvitedEventsDto)
+  async getMyInvitedEvents(@GetUser('id') userId: number) {
+    return await this.userService.userGetInvitedEvents(userId);
   }
 
   // Delete logged in user

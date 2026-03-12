@@ -39,7 +39,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-	"email": "cindy@example.com",
+	"email": "alice@example.com",
 	"password": "0123456789"
 }
 ###
@@ -83,6 +83,11 @@ GET {{baseUrl}}/users/me/events
 Authorization: Bearer {{token}}
 ###
 
+# Get My Private Events (Attending, invited)
+GET {{baseUrl}}/users/me/events/private
+Authorization: Bearer {{token}}
+###
+
 
 # User attends an event
 PATCH {{baseUrl}}/users/me
@@ -91,7 +96,7 @@ Content-Type: application/json
 
 {
   "attending": {
-    "connect": [2]
+    "connect": [4]
   }
 }
 ###
@@ -162,19 +167,20 @@ content-type: application/json
 	"title": "Party at unkown's place!",
 	"startAt": "2026-05-01T18:00:00Z",
 	"endAt": "2026-05-02T02:00:00Z",
-	"isPublic": true,
+	"isPublic": false,
 	"isPublished": true
 }
 ###
 
 # Update event (using ID 1)
-PATCH {{baseUrl}}/events/1 HTTP/1.1
+PATCH {{baseUrl}}/events/2 HTTP/1.1
 Authorization: Bearer {{token}}
 content-type: application/json
 
 {
 	"endAt": "2025-01-02T02:00:33Z",
-	"locationId": 2
+	"locationId": 2,
+	"isPublic": false
 }
 ###
 
@@ -234,8 +240,8 @@ Authorization: Bearer {{token}}
 content-type: application/json
 
 {
-	"receiverId": "32",
-	"eventId": "2"
+	"receiverId": "2",
+	"eventId": "4"
 }
 ###
 

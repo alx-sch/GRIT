@@ -89,6 +89,7 @@ export class InvitesService {
   async updateInvite(id: string, userId: number, status: InviteStatus) {
     const invite = await this.prisma.eventInvite.findUnique({
       where: { id },
+      include: { event: { select: { isPublic: true } } },
     });
 
     if (!invite) {
@@ -99,33 +100,52 @@ export class InvitesService {
       throw new ForbiddenException('Only receiver can accept/decline this invite');
     }
 
-    const updatedInvite = await this.prisma.eventInvite.update({
-      where: { id },
-      data: { status },
-      include: {
-        event: { select: { id: true, title: true, imageKey: true, isPublic: true } },
-        sender: { select: { id: true, name: true, avatarKey: true } },
-        receiver: { select: { id: true, name: true, avatarKey: true } },
-      },
-    });
+    // If accepted, add to attendees + conversation
+    if (status === InviteStatus.ACCEPTED) {
+      try {
+        await this.prisma.$transaction(async (tx) => {
+          // Add to attendees
+          await tx.eventAttendee.create({
+            data: {
+              eventId: invite.eventId,
+              userId: invite.receiverId,
+            },
+          });
 
-    // If accepted, add to attendees
-    try {
-      if (status === InviteStatus.ACCEPTED) {
-        await this.prisma.eventAttendee.create({
-          data: {
-            eventId: invite.eventId,
-            userId: invite.receiverId,
-          },
+          // Add to conversation
+          const event = await tx.event.findUnique({
+            where: { id: invite.eventId },
+            select: { conversation: { select: { id: true } } },
+          });
+
+          if (event?.conversation) {
+            await tx.conversationParticipant.upsert({
+              where: {
+                conversationId_userId: {
+                  conversationId: event.conversation.id,
+                  userId: invite.receiverId,
+                },
+              },
+              create: {
+                conversationId: event.conversation.id,
+                userId: invite.receiverId,
+              },
+              update: {},
+            });
+          }
+
+          // PRIVATE: keep invite | PUBLIC: delete invite
+          if (invite.event.isPublic && status === InviteStatus.ACCEPTED) {
+            await tx.eventInvite.delete({ where: { id } });
+          }
         });
+      } catch (error) {
+        throw new ConflictException('You are already going to this event.');
       }
-    } catch {
-      throw new ConflictException('You are already going to this event.');
     }
 
-    // If declined AND public -> delete event invite
-    // Else -> keep event invite (so user still has access to see event)
-    if (status === InviteStatus.DECLINED && updatedInvite.event.isPublic) {
+    // If declined, ALWAYS delete (both private + public)
+    if (status === InviteStatus.DECLINED) {
       return await this.prisma.eventInvite.delete({
         where: { id },
         include: {
@@ -136,7 +156,14 @@ export class InvitesService {
       });
     }
 
-    return updatedInvite;
+    return await this.prisma.eventInvite.findUnique({
+      where: { id },
+      include: {
+        event: { select: { id: true, title: true, imageKey: true, isPublic: true } },
+        sender: { select: { id: true, name: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, avatarKey: true } },
+      },
+    });
   }
 
   /**

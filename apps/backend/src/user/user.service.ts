@@ -343,7 +343,7 @@ export class UserService {
 
   async userPatch(userId: number, data: ReqUserPatchDto) {
     // Wrap everything in a transaction (if one call fails, then they all roll back - making every
-    // call to the DB dependent on each other).
+    // call to the DB dependent on each other)
     return await this.prisma.$transaction(async (tx) => {
       const newData: Prisma.UserUpdateInput = {};
 
@@ -492,18 +492,36 @@ export class UserService {
     });
   }
 
+  /**
+   * Get events user is attending or owns
+   * (Public events only)
+   */
   async userGetEvents(userId: number) {
     const events = await this.prisma.event.findMany({
       where: {
-        attendees: {
-          some: { userId: userId },
-        },
+        OR: [
+          {
+            attendees: {
+              some: { userId: userId },
+            },
+          },
+          {
+            authorId: userId,
+          },
+        ],
       },
       include: {
         location: true,
         conversation: {
           select: {
             id: true,
+          },
+        },
+        author: {
+          select: {
+            id: true,
+            name: true,
+            avatarKey: true,
           },
         },
       },
@@ -524,6 +542,62 @@ export class UserService {
       conversationId: e.conversation?.id,
       isPublished: e.isPublished,
       isPublic: e.isPublic,
+      author: e.author,
+    }));
+  }
+
+  /**
+   * Get events user is invited to
+   * (Can be public or private)
+   */
+  async userGetInvitedEvents(userId: number) {
+    const events = await this.prisma.event.findMany({
+      where: {
+        invites: {
+          some: { receiverId: userId },
+        },
+      },
+      include: {
+        location: true,
+        conversation: {
+          select: {
+            id: true,
+          },
+        },
+        invites: {
+          where: { receiverId: userId },
+          select: {
+            id: true,
+            status: true,
+          },
+        },
+        author: {
+          select: {
+            id: true,
+            name: true,
+            avatarKey: true,
+          },
+        },
+      },
+      orderBy: {
+        startAt: 'asc',
+      },
+    });
+
+    return events.map((e) => ({
+      id: e.id,
+      title: e.title,
+      slug: e.slug,
+      startAt: e.startAt.toISOString(),
+      endAt: e.endAt.toISOString(),
+      isOrganizer: e.authorId === userId,
+      imageKey: e.imageKey,
+      location: e.location,
+      conversationId: e.conversation?.id,
+      isPublished: e.isPublished,
+      isPublic: e.isPublic,
+      author: e.author,
+      invite: e.invites[0] ?? null,
     }));
   }
 
