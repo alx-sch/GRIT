@@ -71,6 +71,14 @@ export const EventPageActions = ({
     friend.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // For each friend, determine their status
+  const getFriendStatus = (friendId: number) => {
+    if (eventAttendees.some((a) => a.id === friendId)) return 'ATTENDING';
+    if (sentInvites.has(friendId)) return 'INVITED';
+    if (invitingIds.has(friendId)) return 'SENDING';
+    return 'NOT_INVITED';
+  };
+
   return (
     <>
       <Card className="w-full border-0 bg-transparent shadow-none md:border md:bg-card md:shadow md:mt-5">
@@ -221,33 +229,35 @@ export const EventPageActions = ({
 
           <div className="flex-1 overflow-y-auto flex flex-col gap-2">
             {filteredFriends.length === 0 ? (
-              <div className="text-center py-8 text-sm opacity-50">No friends to invite</div>
+              <div className="text-center py-8 text-sm opacity-50">No friends</div>
             ) : (
-              filteredFriends.map((friend) => (
-                <div
-                  key={friend.id}
-                  className={cn(
-                    'flex items-center justify-between p-3 rounded border border-border hover:bg-accent transition-colors',
-                    sentInvites.has(friend.id) && 'opacity-50 bg-muted'
-                  )}
-                >
-                  <Text className="font-medium">{friend.name}</Text>
-                  <Button
-                    size="sm"
-                    disabled={sentInvites.has(friend.id) || invitingIds.has(friend.id)}
-                    variant={sentInvites.has(friend.id) ? 'outline' : 'default'}
-                    onClick={() => onInviteFriend(friend.id)}
+              filteredFriends.map((friend) => {
+                const status = getFriendStatus(friend.id);
+                const isDisabled = status !== 'NOT_INVITED';
+
+                return (
+                  <div
+                    key={friend.id}
+                    className={cn(
+                      'flex items-center justify-between p-3 rounded border border-border hover:bg-accent transition-colors',
+                      isDisabled && 'opacity-60 bg-muted'
+                    )}
                   >
-                    {sentInvites.has(friend.id)
-                      ? 'Invited ✓'
-                      : invitingIds.has(friend.id)
-                        ? 'Sending...'
-                        : invitesLoading
-                          ? 'Loading...'
-                          : 'Invite'}
-                  </Button>
-                </div>
-              ))
+                    <Text className="font-medium">{friend.name}</Text>
+                    <Button
+                      size="sm"
+                      disabled={isDisabled}
+                      variant={isDisabled ? 'outline' : 'default'}
+                      onClick={() => onInviteFriend(friend.id)}
+                    >
+                      {status === 'ATTENDING' && 'Already Going ✓'}
+                      {status === 'INVITED' && 'Invited ✓'}
+                      {status === 'SENDING' && 'Sending...'}
+                      {status === 'NOT_INVITED' && 'Invite'}
+                    </Button>
+                  </div>
+                );
+              })
             )}
           </div>
         </DialogContent>

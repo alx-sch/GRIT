@@ -166,6 +166,7 @@ export const useEventPage = () => {
     setInviteOpen(true);
   };
 
+  // Fetch friends
   useEffect(() => {
     const fetchFriends = async () => {
       try {
@@ -187,6 +188,7 @@ export const useEventPage = () => {
     }
   }, [currentUser?.id]);
 
+  // Fetch who have already been invited
   useEffect(() => {
     const fetchOutgoingInvites = async () => {
       try {
@@ -243,9 +245,6 @@ export const useEventPage = () => {
     shareText,
     shareUrl,
     copied,
-    invitableFriends: friends.filter(
-      (friend) => !event.attendees.some((attendee) => attendee.id === friend.id)
-      // Only contains friends who are NOT attending event
-    ),
+    invitableFriends: friends,
   };
 };

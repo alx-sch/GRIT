@@ -371,6 +371,13 @@ export class UserService {
             conversationId: e.conversation.id,
           },
         }));
+
+        await this.prisma.eventInvite.deleteMany({
+          where: {
+            eventId: { in: data.attending.connect },
+            receiverId: userId,
+          },
+        });
       }
 
       if (data.attending.disconnect?.length) {
