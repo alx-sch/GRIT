@@ -89,7 +89,6 @@ export class InvitesService {
   async updateInvite(id: string, userId: number, status: InviteStatus) {
     const invite = await this.prisma.eventInvite.findUnique({
       where: { id },
-      include: { event: { select: { isPublic: true } } },
     });
 
     if (!invite) {
@@ -115,7 +114,9 @@ export class InvitesService {
           // Add to conversation
           const event = await tx.event.findUnique({
             where: { id: invite.eventId },
-            select: { conversation: { select: { id: true } } },
+            select: {
+              conversation: { select: { id: true } },
+            },
           });
 
           if (event?.conversation) {
@@ -133,13 +134,9 @@ export class InvitesService {
               update: {},
             });
           }
-
-          // PRIVATE: keep invite | PUBLIC: delete invite
-          if (invite.event.isPublic && status === InviteStatus.ACCEPTED) {
-            await tx.eventInvite.delete({ where: { id } });
-          }
+          await tx.eventInvite.delete({ where: { id } });
         });
-      } catch (error) {
+      } catch {
         throw new ConflictException('You are already going to this event.');
       }
     }

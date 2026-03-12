@@ -14,20 +14,22 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Text } from '@/components/ui/typography';
 import { getEventImageUrl } from '@/lib/image_utils';
-import type { ResMyEvents } from '@grit/schema';
+import type { ResMyEvents, ResMyInvitedEvents } from '@grit/schema';
 import { Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getEventBadges } from '../utils/eventBadges';
 import { LocationButton } from './LocationButton';
 
 type ResMyEvent = ResMyEvents[number];
+type ResMyInvitedEvent = ResMyInvitedEvents[number];
+type EventType = ResMyEvent | ResMyInvitedEvent;
 
 interface MyEventCardProps {
-  event: ResMyEvent;
+  event: EventType;
   optimisticState?: { isPublished?: boolean; isPublic?: boolean };
-  onPublish: (eventId: number, eventSlug: string) => Promise<boolean>;
-  onUnpublish: (eventId: number) => Promise<boolean>;
-  onEdit: (eventSlug: string) => void;
+  onPublish?: (eventId: number, eventSlug: string) => Promise<boolean>;
+  onUnpublish?: (eventId: number) => Promise<boolean>;
+  onEdit?: (eventSlug: string) => void;
   onViewDetails: (eventSlug: string) => void;
 }
 
@@ -47,7 +49,7 @@ export function MyEventCard({
   const isPublic = optimisticState?.isPublic ?? event.isPublic;
   const isDraft = event.isOrganizer && !isPublished;
 
-  const badges = getEventBadges(event, isPublished, isPublic);
+  const badges = getEventBadges(event, isPublished, isPublic, !onEdit && !event.isOrganizer);
 
   const formatEventDate = (dateString: string) => {
     return new Date(dateString).toLocaleString(undefined, {
@@ -61,14 +63,14 @@ export function MyEventCard({
 
   const handlePublishConfirm = async () => {
     setIsLoading(true);
-    await onPublish(event.id, event.slug);
+    await onPublish?.(event.id, event.slug);
     setIsLoading(false);
     setPublishDialogOpen(false);
   };
 
   const handleUnpublishConfirm = async () => {
     setIsLoading(true);
-    await onUnpublish(event.id);
+    await onUnpublish?.(event.id);
     setIsLoading(false);
     setUnpublishDialogOpen(false);
   };
@@ -81,7 +83,8 @@ export function MyEventCard({
         }}
         className={cn(
           'hover:shadow-md transition-shadow overflow-hidden cursor-pointer',
-          isDraft && 'border-dashed border-red-500/40'
+          isDraft && 'border-dashed border-red-500/40',
+          !isPublic && !isDraft && 'border-dashed border-orange-500/40'
         )}
       >
         <CardContent className="p-0">
@@ -122,7 +125,7 @@ export function MyEventCard({
                   e.stopPropagation();
                 }}
               >
-                {isDraft && (
+                {isDraft && onPublish && (
                   <Button
                     variant="default"
                     size="sm"
@@ -135,7 +138,7 @@ export function MyEventCard({
                   </Button>
                 )}
 
-                {event.isOrganizer && isPublished && (
+                {event.isOrganizer && isPublished && onUnpublish && (
                   <Button
                     variant="destructive"
                     size="sm"
@@ -147,7 +150,7 @@ export function MyEventCard({
                     Unpublish
                   </Button>
                 )}
-                {event.isOrganizer && (
+                {event.isOrganizer && onEdit && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -167,53 +170,57 @@ export function MyEventCard({
         </CardContent>
       </Card>
 
-      <AlertDialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Publish Event?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will make your event visible to everyone. Attendees will be able to see and join
-              the event.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                void handlePublishConfirm();
-              }}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Publishing...' : 'Publish'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {onPublish && (
+        <AlertDialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Publish Event?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will make your event visible to everyone. Attendees will be able to see and
+                join the event.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => {
+                  e.preventDefault();
+                  void handlePublishConfirm();
+                }}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Publishing...' : 'Publish'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
 
-      <AlertDialog open={unpublishDialogOpen} onOpenChange={setUnpublishDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Unpublish Event?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will hide your event from the public. Existing attendees will still see it in
-              their events list.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                void handleUnpublishConfirm();
-              }}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Unpublishing...' : 'Unpublish'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {onUnpublish && (
+        <AlertDialog open={unpublishDialogOpen} onOpenChange={setUnpublishDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Unpublish Event?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will hide your event from the public. Existing attendees will still see it in
+                their events list.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => {
+                  e.preventDefault();
+                  void handleUnpublishConfirm();
+                }}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Unpublishing...' : 'Unpublish'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </>
   );
 }

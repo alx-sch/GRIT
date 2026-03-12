@@ -39,7 +39,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-	"email": "alice@example.com",
+	"email": "cindy@example.com",
 	"password": "0123456789"
 }
 ###
@@ -185,7 +185,7 @@ content-type: application/json
 ###
 
 # Delete event (using ID 4)
-DELETE {{baseUrl}}/events/2 HTTP/1.1
+DELETE {{baseUrl}}/events/4 HTTP/1.1
 Authorization: Bearer {{token}}
 ###
 
@@ -256,7 +256,7 @@ content-type: application/json
 ###
 
 # Delete event invite
-DELETE {{baseUrl}}/users/me/invites/389aa8b6-03d-40ae-afc0-9a482fe385eb
+DELETE {{baseUrl}}/users/me/invites/0ea182e7-e062-44b2-b93d-9cea44347661
 Authorization: Bearer {{token}}
 ###
 

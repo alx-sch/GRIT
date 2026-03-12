@@ -7,8 +7,8 @@ import { CalendarDays, Plus } from 'lucide-react';
 import { userService } from '@/services/userService';
 import { useNavigate } from 'react-router-dom';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
-import type { ResMyEvents } from '@grit/schema';
-import { useState } from 'react';
+import type { ResMyEvents, ResMyInvitedEvents } from '@grit/schema';
+import { useState, useEffect } from 'react';
 import { EmptyState } from './components/EmptyState';
 import { MyEventsSortDropdown, SortMode } from './components/MyEventsSortDropdown';
 import { MyEventCard } from './components/MyEventCard';
@@ -16,6 +16,7 @@ import { useEventActions } from './hooks/useEventActions';
 import { Text } from '@/components/ui/typography';
 
 type ResMyEvent = ResMyEvents[number];
+type ResMyInvitedEvent = ResMyInvitedEvents[number];
 
 export const myEventsLoader = async () => {
   return userService.getMyEvents();
@@ -25,7 +26,20 @@ export function Page() {
   const events = useTypedLoaderData<ResMyEvents>();
   const navigate = useNavigate();
   const [sortMode, setSortMode] = useState<SortMode>('drafts-first');
+  const [invitedEvents, setInvitedEvents] = useState<ResMyInvitedEvents>([]);
   const { publishEvent, unpublishEvent, optimisticUpdates } = useEventActions();
+
+  useEffect(() => {
+    const loadInvitedEvents = async () => {
+      try {
+        const data = await userService.getMyInvitedEvents();
+        setInvitedEvents(data);
+      } catch (error) {
+        console.error('Failed to load invited events:', error);
+      }
+    };
+    void loadInvitedEvents();
+  }, []);
 
   const now = new Date();
 
@@ -105,6 +119,31 @@ export function Page() {
     );
   };
 
+  const renderInvitationsList = (filteredEvents: ResMyInvitedEvent[]) => {
+    if (filteredEvents.length === 0) {
+      return (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+            <CalendarDays className="w-12 h-12 text-muted-foreground mb-3" />
+            <Text className="text-muted-foreground">No pending invitations</Text>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return (
+      <div className="grid gap-4">
+        {filteredEvents.map((event) => (
+          <MyEventCard
+            key={event.id}
+            event={event}
+            onViewDetails={(slug) => void navigate(`/events/${slug}`)}
+          />
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-8">
       <BackButton label="Back to Profile" onClick={() => void navigate('/profile')} />
@@ -137,6 +176,9 @@ export function Page() {
               <TabsTrigger value="organizing" variant="brutalist" className="text-xs md:text-sm">
                 Organizing ({organizingEvents.length})
               </TabsTrigger>
+              <TabsTrigger value="invitations" variant="brutalist" className="text-xs md:text-sm">
+                Invitations ({invitedEvents.length})
+              </TabsTrigger>
             </TabsList>
 
             <MyEventsSortDropdown value={sortMode} onChange={setSortMode} />
@@ -152,6 +194,10 @@ export function Page() {
 
           <TabsContent value="organizing" className="mt-6">
             {renderEventsList(organizingEvents)}
+          </TabsContent>
+
+          <TabsContent value="invitations" className="mt-6">
+            {renderInvitationsList(invitedEvents)}
           </TabsContent>
         </Tabs>
       )}
