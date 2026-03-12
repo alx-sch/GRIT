@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { UserAvatar } from '@/components/ui/user-avatar';
 import { Text } from '@/components/ui/typography';
-import { Ticket, Trash2, Upload, Edit, MapPin, Users, Eye, Calendar } from 'lucide-react';
+import { Ticket, Trash2, Upload, Edit, MapPin, Users, Eye, Calendar, Shuffle } from 'lucide-react';
 import { userService } from '@/services/userService';
 import { toast } from 'sonner';
 import type { CurrentUser } from '@/types/user';
@@ -21,6 +21,7 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
   const navigate = useNavigate();
   const [isUploading, setIsUploading] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
+  const [isSettingRandom, setIsSettingRandom] = useState(false);
   const [showCropDialog, setShowCropDialog] = useState(false);
   const [showOptionsDialog, setShowOptionsDialog] = useState(false);
   const [selectedImageSrc, setSelectedImageSrc] = useState<string>('');
@@ -96,7 +97,22 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
     }
   };
 
-  const hasCustomAvatar = user.avatarKey && !user.avatarKey.startsWith('default-');
+  const handleRandomAvatar = async () => {
+    setShowOptionsDialog(false);
+    setIsSettingRandom(true);
+    try {
+      const updatedUser = await userService.setRandomAvatar();
+      onAvatarUpdate(updatedUser);
+      toast.success('Random avatar generated!');
+    } catch (error) {
+      console.error('Failed to set random avatar:', error);
+      toast.error('Failed to generate random avatar. Please try again.');
+    } finally {
+      setIsSettingRandom(false);
+    }
+  };
+
+  const hasAnyAvatar = user.avatarKey !== null && user.avatarKey !== undefined;
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
@@ -133,10 +149,10 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
           <UserAvatar user={user} src={avatarUrl} size="xl" alt={user.name ?? 'User avatar'} />
           <div
             className={`absolute inset-0 bg-black/50 rounded-full transition-opacity flex items-center justify-center ${
-              isUploading || isRemoving ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+              isUploading || isRemoving || isSettingRandom ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
             }`}
           >
-            {isUploading || isRemoving ? (
+            {isUploading || isRemoving || isSettingRandom ? (
               <Text className="text-white text-sm">Saving...</Text>
             ) : (
               <Edit className="w-10 h-10 text-white" />
@@ -205,7 +221,17 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
               <Upload className="w-4 h-4" />
               Upload New Picture
             </Button>
-            {hasCustomAvatar && (
+            <Button
+              onClick={() => {
+                void handleRandomAvatar();
+              }}
+              className="w-full flex items-center justify-start gap-2"
+              variant="outline"
+            >
+              <Shuffle className="w-4 h-4" />
+              Choose Random Avatar
+            </Button>
+            {hasAnyAvatar && (
               <Button
                 onClick={() => {
                   void handleRemoveAvatar();
@@ -214,7 +240,7 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
                 variant="destructive"
               >
                 <Trash2 className="w-4 h-4" />
-                Remove Current Picture
+                Reset Avatar
               </Button>
             )}
           </div>

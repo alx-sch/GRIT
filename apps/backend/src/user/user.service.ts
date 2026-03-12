@@ -268,7 +268,7 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    if (currentUser.avatarKey) {
+    if (currentUser.avatarKey && !currentUser.avatarKey.startsWith('default-')) {
       try {
         await this.storage.deleteFile(currentUser.avatarKey, 'user-avatars');
       } catch (error) {
@@ -279,6 +279,58 @@ export class UserService {
     const updatedUser = await this.prisma.user.update({
       where: { id: userId },
       data: { avatarKey: null },
+      include: {
+        attending: {
+          include: {
+            event: {
+              include: { location: true },
+            },
+          },
+        },
+      },
+    });
+
+    return {
+      ...updatedUser,
+      createdAt: updatedUser.createdAt.toISOString(),
+      attending: updatedUser.attending.map((a) => ({
+        id: a.event.id,
+        title: a.event.title,
+        slug: a.event.slug,
+        startAt: a.event.startAt.toISOString(),
+        isOrganizer: a.event.authorId === updatedUser.id,
+        imageKey: a.event.imageKey,
+        location: a.event.location,
+      })),
+    };
+  }
+
+  async userSetRandomAvatar(userId: number): Promise<ResUserBaseDto> {
+    const currentUser = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { avatarKey: true },
+    });
+
+    if (!currentUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Clean up old custom avatar if exists (but not default- avatars)
+    if (currentUser.avatarKey && !currentUser.avatarKey.startsWith('default-')) {
+      try {
+        await this.storage.deleteFile(currentUser.avatarKey, 'user-avatars');
+      } catch (error) {
+        console.error(`Failed to delete old avatar: ${currentUser.avatarKey}`, error);
+      }
+    }
+
+    // Generate a random seed for the avatar
+    const randomSeed = randomBytes(16).toString('hex');
+    const avatarKey = `default-${randomSeed}`;
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: { avatarKey },
       include: {
         attending: {
           include: {

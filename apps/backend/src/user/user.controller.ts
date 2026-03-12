@@ -106,6 +106,15 @@ export class UserController {
     return await this.userService.userDeleteAvatar(userId);
   }
 
+  // Set random avatar
+  @Post('me/random-avatar')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(ResUserBaseDto)
+  async setRandomAvatar(@GetUser('id') userId: number): Promise<ResUserBaseDto> {
+    return await this.userService.userSetRandomAvatar(userId);
+  }
+
   // ADD IMAGE UPLOAD ROUTINE
   @Patch('me/upload-avatar')
   @ApiBearerAuth()

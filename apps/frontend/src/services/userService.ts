@@ -75,6 +75,11 @@ export const userService = {
     return response.data;
   },
 
+  setRandomAvatar: async (): Promise<UserBase> => {
+    const response = await api.post<UserBase>('users/me/random-avatar');
+    return response.data;
+  },
+
   deleteAccount: async (): Promise<void> => {
     await api.delete('users/me');
   },

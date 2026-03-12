@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Text } from '@/components/ui/typography';
 import { Calendar, Ticket, Users, CalendarCheck } from 'lucide-react';
 import { friendService } from '@/services/friendService';
