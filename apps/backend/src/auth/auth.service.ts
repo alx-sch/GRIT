@@ -94,7 +94,7 @@ export class AuthService {
           },
           create: {
             email,
-            name: `${firstName}-${nanoid(6)}`,
+            name: `${firstName}-${nanoid(3)}`,
             googleId: providerId,
             isConfirmed: true,
             password: null,
