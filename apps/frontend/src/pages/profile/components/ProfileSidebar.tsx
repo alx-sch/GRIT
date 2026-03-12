@@ -113,6 +113,7 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
   };
 
   const hasAnyAvatar = user.avatarKey !== null && user.avatarKey !== undefined;
+  const isGeneratedAvatar = !user.avatarKey || user.avatarKey.startsWith('default-');
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
@@ -141,23 +142,42 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
   return (
     <div className="w-full md:w-80 md:border-r-2 md:border-primary md:pr-8 space-y-6">
       <div className="flex flex-col items-center space-y-4">
-        <div
-          className="relative group cursor-pointer"
-          onClick={handleAvatarClick}
-          title="Click to edit profile picture"
-        >
-          <UserAvatar user={user} src={avatarUrl} size="xl" alt={user.name ?? 'User avatar'} />
+        <div className="relative">
           <div
-            className={`absolute inset-0 bg-black/50 rounded-full transition-opacity flex items-center justify-center ${
-              isUploading || isRemoving || isSettingRandom ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-            }`}
+            className="relative group cursor-pointer"
+            onClick={handleAvatarClick}
+            title="Click to edit profile picture"
           >
-            {isUploading || isRemoving || isSettingRandom ? (
-              <Text className="text-white text-sm">Saving...</Text>
-            ) : (
-              <Edit className="w-10 h-10 text-white" />
-            )}
+            <UserAvatar user={user} src={avatarUrl} size="xl" alt={user.name ?? 'User avatar'} />
+            <div
+              className={`absolute inset-0 bg-black/50 rounded-full transition-opacity flex items-center justify-center ${
+                isUploading || isRemoving || isSettingRandom
+                  ? 'opacity-100'
+                  : 'opacity-0 group-hover:opacity-100'
+              }`}
+            >
+              {isUploading || isRemoving || isSettingRandom ? (
+                <Text className="text-white text-sm">Saving...</Text>
+              ) : (
+                <Edit className="w-10 h-10 text-white" />
+              )}
+            </div>
           </div>
+
+          {/* Shuffle button - only for generated avatars */}
+          {isGeneratedAvatar && !isUploading && !isRemoving && !isSettingRandom && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                void handleRandomAvatar();
+              }}
+              className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-all flex items-center justify-center border-2 border-background"
+              title="Generate random avatar"
+              aria-label="Generate random avatar"
+            >
+              <Shuffle className="w-5 h-5" />
+            </button>
+          )}
         </div>
 
         <div className="text-center space-y-1">
