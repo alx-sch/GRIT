@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 import { useLoaderData, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-
+import axios from 'axios';
 import type { eventLoader } from './EventPage';
 
 export const useEventPage = () => {
@@ -149,8 +149,17 @@ export const useEventPage = () => {
 
       setSentInvites((prev) => new Set(prev).add(friendId));
       toast.success('Invite sent!');
-    } catch {
-      toast.error('Failed to send invite');
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const message = (error.response?.data as { message?: string })?.message;
+        if (typeof message === 'string') {
+          toast.error(message);
+        } else {
+          toast.error('Failed to send invite');
+        }
+      } else {
+        toast.error('Failed to send invite');
+      }
     } finally {
       setInvitingIds((prev) => {
         const next = new Set(prev);

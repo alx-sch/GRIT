@@ -38,7 +38,7 @@ export class InvitesService {
 
     // Check if sender is event owner (only if private event)
     if (event.authorId !== senderId && !event.isPublic) {
-      throw new ForbiddenException('Only event owner can send invites');
+      throw new ForbiddenException('Only event owner can send invites for private events');
     }
 
     // Check if the users are friends

@@ -161,7 +161,7 @@ export function Page() {
         )}
       </div>
 
-      {events.length === 0 ? (
+      {events.length === 0 && invitedEvents.length === 0 ? (
         <EmptyState />
       ) : (
         <Tabs defaultValue="upcoming" className="w-full">

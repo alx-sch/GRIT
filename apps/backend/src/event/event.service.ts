@@ -188,6 +188,8 @@ export class EventService {
       (!event_raw.isPublished && isOwner);
 
     if (!hasAccess) {
+      if (!event_raw.isPublished)
+        throw new NotFoundException('This event is under construction. Stay tuned!');
       throw new NotFoundException('Event not found');
     }
 
