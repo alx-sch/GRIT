@@ -19,7 +19,7 @@ export function Overview({ user }: OverviewProps) {
       try {
         const response = await friendService.listFriends();
         setFriendsCount(response.data.length);
-      } catch (error) {
+      } catch {
         setFriendsCount(0);
       } finally {
         setIsLoadingFriends(false);

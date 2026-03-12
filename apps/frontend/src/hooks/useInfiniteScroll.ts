@@ -27,7 +27,7 @@ export function useInfiniteScroll<T extends PaginatedItem>(
   // cursor).
   dependencies: unknown[] = [], // External values that trigger observer
   // recreation (e.g., searchParams, filters)
-  onError?: (error: unknown) => void, // Optional error callback for loadMore errors
+  onError?: (error: unknown) => void // Optional error callback for loadMore errors
 ) {
   const [items, setItems] = useState(() => initialItems); // All displayed items (initial + loaded)
   const [pagination, setPagination] = useState<Pagination>(() => initialPagination); // Current pagination state (nextCursor, hasMore)

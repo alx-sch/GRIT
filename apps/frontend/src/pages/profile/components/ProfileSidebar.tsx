@@ -1,15 +1,15 @@
-import { useState, useRef } from 'react';
-import { UserAvatar } from '@/components/ui/user-avatar';
-import { Text } from '@/components/ui/typography';
-import { Ticket, Trash2, Upload, Edit, MapPin, Users, Eye } from 'lucide-react';
-import { userService } from '@/services/userService';
-import { toast } from 'sonner';
-import type { CurrentUser } from '@/types/user';
-import { ImageCropDialog } from '@/components/ui/image-crop-dialog';
-import { validateImageFile, readFileAsDataURL } from '@/lib/image-crop-utils';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ImageCropDialog } from '@/components/ui/image-crop-dialog';
+import { Text } from '@/components/ui/typography';
+import { UserAvatar } from '@/components/ui/user-avatar';
+import { readFileAsDataURL, validateImageFile } from '@/lib/image-crop-utils';
+import { userService } from '@/services/userService';
+import type { CurrentUser } from '@/types/user';
+import { Edit, Eye, MapPin, Ticket, Trash2, Upload, Users } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface ProfileSidebarProps {
   user: CurrentUser;
@@ -49,7 +49,7 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
       const dataUrl = await readFileAsDataURL(file);
       setSelectedImageSrc(dataUrl);
       setShowCropDialog(true);
-    } catch (error) {
+    } catch {
       toast.error('Failed to read image file. Please try again.');
     } finally {
       if (fileInputRef.current) {
@@ -66,7 +66,7 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
       const updatedUser = await userService.uploadAvatar(croppedFile);
       onAvatarUpdate(updatedUser);
       toast.success('Profile picture updated successfully!');
-    } catch (error) {
+    } catch {
       toast.error('Failed to upload profile picture. Please try again.');
     } finally {
       setIsUploading(false);
@@ -86,7 +86,7 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
       const updatedUser = await userService.removeAvatar();
       onAvatarUpdate(updatedUser);
       toast.success('Profile picture reset to default');
-    } catch (error) {
+    } catch {
       toast.error('Failed to reset profile picture. Please try again.');
     } finally {
       setIsRemoving(false);

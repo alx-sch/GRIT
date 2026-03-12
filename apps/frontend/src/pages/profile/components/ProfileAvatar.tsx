@@ -42,7 +42,7 @@ export function ProfileAvatar({ user, avatarUrl, onAvatarUpdate }: ProfileAvatar
       const dataUrl = await readFileAsDataURL(file);
       setSelectedImageSrc(dataUrl);
       setShowCropDialog(true);
-    } catch (error) {
+    } catch {
       toast.error('Failed to read image file. Please try again.');
     } finally {
       // Reset file input
@@ -60,7 +60,7 @@ export function ProfileAvatar({ user, avatarUrl, onAvatarUpdate }: ProfileAvatar
       const updatedUser = await userService.uploadAvatar(croppedFile);
       onAvatarUpdate(updatedUser);
       toast.success('Profile picture updated successfully!');
-    } catch (error) {
+    } catch {
       toast.error('Failed to upload profile picture. Please try again.');
     } finally {
       setIsUploading(false);

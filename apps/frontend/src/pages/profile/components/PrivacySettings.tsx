@@ -31,7 +31,7 @@ export function PrivacySettings({ user, onPrivacyUpdate }: PrivacySettingsProps)
       onPrivacyUpdate(updatedUser);
       setHasChanges(false);
       toast.success('Privacy settings updated successfully!');
-    } catch (error) {
+    } catch {
       toast.error('Failed to update privacy settings');
     } finally {
       setIsSubmitting(false);

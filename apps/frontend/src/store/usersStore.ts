@@ -20,7 +20,6 @@ export const useUsersStore = create<UsersState>((set) => ({
       const response = await userService.getUsers();
       set({ users: response.data, loading: false });
     } catch (err: unknown) {
-
       let message = 'Failed to load users';
 
       if (axios.isAxiosError(err)) {

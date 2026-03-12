@@ -62,7 +62,7 @@ export default function PublicProfilePage() {
         setFriendshipStatus('pending_sent');
         toast.success('Friend request sent');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to send friend request');
     } finally {
       setIsLoading(false);
@@ -77,7 +77,7 @@ export default function PublicProfilePage() {
       await friendService.removeFriend(data.user.id);
       setFriendshipStatus('none');
       toast.success('Friend removed');
-    } catch (error) {
+    } catch {
       toast.error('Failed to remove friend');
     } finally {
       setIsLoading(false);
