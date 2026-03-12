@@ -249,7 +249,7 @@ export class InvitesService {
   }
 
   /**
-   * Deletes an event invite
+   * Deletes an event invite.
    */
   async deleteInvite(id: string, userId: number) {
     const eventInvite = await this.prisma.eventInvite.findUnique({ where: { id } });

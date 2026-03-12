@@ -182,10 +182,10 @@ export class EventService {
     const isAttending = event_raw.attendees.some((a) => a.user.id === userId);
     const isInvited = event_raw.invites.length > 0;
 
-    const hasAccess =
-      (event_raw.isPublished && event_raw.isPublic) ||
-      (event_raw.isPublished && !event_raw.isPublic && (isOwner || isInvited || isAttending)) ||
-      (!event_raw.isPublished && isOwner);
+    const hasAccess = // If any of these three lines evaluate to true, user has access:
+      (event_raw.isPublished && event_raw.isPublic) || // If event published and public.
+      (event_raw.isPublished && !event_raw.isPublic && (isOwner || isInvited || isAttending)) || // If event published and private, and user is owner, invited or attending.
+      (!event_raw.isPublished && isOwner); // If event is not published and user is owner.
 
     if (!hasAccess) {
       if (!event_raw.isPublished)

@@ -83,8 +83,7 @@ export function MyEventCard({
         }}
         className={cn(
           'hover:shadow-md transition-shadow overflow-hidden cursor-pointer',
-          isDraft && 'border-dashed border-red-500/40',
-          !isPublic && !isDraft && 'border-dashed border-orange-500/40'
+          isDraft && 'border-dashed border-red-500/40'
         )}
       >
         <CardContent className="p-0">

@@ -33,7 +33,7 @@ export class InvitesController {
     return this.invitesService.updateInvite(id, userId, body.status);
   }
 
-  // Delete an event invite
+  // Delete an event invite (nice to have, currently not used)
   @Delete(':id')
   @ZodSerializerDto(ResInviteDto)
   deleteInvite(@Param('id') id: string, @GetUser('id') userId: number) {
