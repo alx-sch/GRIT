@@ -5,7 +5,7 @@ import { sharedPortsSchema, AUTH_CONFIG } from '@grit/schema';
 const backendBaseSchema = sharedPortsSchema
   .extend({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-    APP_BASE_URL: z.string().optional(),
+    APP_BASE_URL: z.url().optional(),
 
     // Authentication & Security
     JWT_SECRET: z
