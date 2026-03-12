@@ -218,6 +218,9 @@ export const EventPageActions = ({
             <DialogTitle className="text-[12px] uppercase tracking-[0.3em] opacity-50 font-sans font-bold">
               Invite friends
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              Search and invite your friends to this event.
+            </DialogDescription>
           </DialogHeader>
 
           <Input
@@ -255,7 +258,7 @@ export const EventPageActions = ({
                       {status === 'ATTENDING' && 'Already Going ✓'}
                       {status === 'INVITED' && 'Invited ✓'}
                       {status === 'SENDING' && 'Sending...'}
-                      {status === 'NOT_INVITED' && invitesLoading ? 'Loading...' : 'Invite'}
+                      {status === 'NOT_INVITED' && (invitesLoading ? 'Loading...' : 'Invite')}
                     </Button>
                   </div>
                 );
