@@ -13,6 +13,7 @@ interface PrivateProfileViewProps {
   onAddFriend: () => void;
   onRemoveFriend: () => void;
   onAcceptRequest: () => void;
+  onCancelRequest: () => void;
 }
 
 export function PrivateProfileView({
@@ -23,6 +24,7 @@ export function PrivateProfileView({
   onAddFriend,
   onRemoveFriend,
   onAcceptRequest,
+  onCancelRequest,
 }: PrivateProfileViewProps) {
   return (
     <div className="space-y-8">
@@ -35,6 +37,7 @@ export function PrivateProfileView({
         onAddFriend={onAddFriend}
         onRemoveFriend={onRemoveFriend}
         onAcceptRequest={onAcceptRequest}
+        onCancelRequest={onCancelRequest}
       />
       <div className="bg-card rounded-lg border p-8 text-center space-y-4">
         <Lock className="w-12 h-12 mx-auto text-muted-foreground" />

@@ -14,6 +14,7 @@ interface ProfileHeaderProps {
   onAddFriend?: () => void;
   onRemoveFriend?: () => void;
   onAcceptRequest?: () => void;
+  onCancelRequest?: () => void;
 }
 
 export function ProfileHeader({
@@ -24,6 +25,7 @@ export function ProfileHeader({
   onAddFriend,
   onRemoveFriend,
   onAcceptRequest,
+  onCancelRequest,
 }: ProfileHeaderProps) {
   const memberSince = format(new Date(user.createdAt), 'MMMM yyyy');
 
@@ -42,6 +44,7 @@ export function ProfileHeader({
               onAddFriend={onAddFriend}
               onRemoveFriend={onRemoveFriend}
               onAcceptRequest={onAcceptRequest}
+              onCancelRequest={onCancelRequest}
             />
           )}
         </div>

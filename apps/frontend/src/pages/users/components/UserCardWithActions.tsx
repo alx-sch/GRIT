@@ -12,12 +12,14 @@ export function UserCardWithActions({
   friendshipStatus,
   isLoading,
   onAddFriend,
+  onCancelRequest,
 }: {
   user: ResUserPublic;
   currentUserId?: number;
   friendshipStatus: FriendshipStatus;
   isLoading: boolean;
   onAddFriend: (userId: number) => Promise<void>;
+  onCancelRequest?: (userId: number) => Promise<void>;
 }) {
   const isOwnProfile = currentUserId === user.id;
   const isLoggedIn = !!currentUserId;
@@ -36,6 +38,13 @@ export function UserCardWithActions({
               onAddFriend={() => {
                 void onAddFriend(user.id);
               }}
+              onCancelRequest={
+                onCancelRequest
+                  ? () => {
+                      void onCancelRequest(user.id);
+                    }
+                  : undefined
+              }
             />
           )}
           <Button variant="outline" size="sm" asChild>

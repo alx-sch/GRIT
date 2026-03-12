@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import type { FriendshipStatus } from '@/types/friends';
-import { Clock, UserCheck, UserMinus, UserPlus } from 'lucide-react';
+import { Clock, UserCheck, UserMinus, UserPlus, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface FriendButtonProps {
@@ -9,6 +9,7 @@ interface FriendButtonProps {
   onAddFriend: () => void;
   onRemoveFriend?: () => void;
   onAcceptRequest?: () => void;
+  onCancelRequest?: () => void;
   size?: 'default' | 'sm';
   acceptHref?: string;
 }
@@ -19,6 +20,7 @@ export function FriendButton({
   onAddFriend,
   onRemoveFriend,
   onAcceptRequest,
+  onCancelRequest,
   size = 'default',
   acceptHref,
 }: FriendButtonProps) {
@@ -34,6 +36,14 @@ export function FriendButton({
   }
 
   if (friendshipStatus === 'pending_sent') {
+    if (onCancelRequest) {
+      return (
+        <Button variant="outline" size={size} disabled={isLoading} onClick={onCancelRequest}>
+          <X className={isIconOnly ? 'h-4 w-4' : 'mr-2 h-4 w-4'} />
+          {!isIconOnly && 'Cancel Request'}
+        </Button>
+      );
+    }
     return (
       <Button variant="outline" size={size} disabled>
         <Clock className={isIconOnly ? 'h-4 w-4' : 'mr-2 h-4 w-4'} />
