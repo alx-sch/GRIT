@@ -1,6 +1,7 @@
 import { DefaultLayout } from '@/components/layout/DefaultLayout';
 import { ProtectedLayout, protectedLayoutLoader } from '@/components/layout/ProtectedLayout';
 import { ChatFeedLayout, ChatFeedLoader } from '@/features/chat/ChatFeedLayout';
+import AdminPage, { adminLoader } from '@/pages/admin/Page';
 import { ChatFeedPage } from '@/pages/chat/ChatFeedPage';
 import { ChatPage } from '@/pages/chat/ChatPage';
 import CreateEventPage, { eventCreationLoader } from '@/pages/create/event/Page';
@@ -15,12 +16,11 @@ import { Page as ProfilePage, profileLoader } from '@/pages/profile/Page';
 import PublicProfilePage, { publicProfileLoader } from '@/pages/public-profile/Page';
 import { RegisterPage, registerPageAction, registerPageLoader } from '@/pages/register/Page';
 import Users, { usersLoader } from '@/pages/users/Page';
+import { useCurrentUserStore } from '@/store/currentUserStore';
 import type { NavRoute } from '@/types/navroute';
 import { createBrowserRouter, redirect } from 'react-router-dom';
 import EditEventPage, { editEventLoader } from './pages/events/EditEventPage';
 import FriendsPage, { friendsLoader } from './pages/my-friends/Page';
-import AdminPage, { adminLoader } from '@/pages/admin/Page';
-import { useCurrentUserStore } from '@/store/currentUserStore';
 
 export const useBaseNavConfig = (): NavRoute[] => {
   const user = useCurrentUserStore((s) => s.user);
@@ -43,10 +43,12 @@ export const router = createBrowserRouter([
   {
     Component: DefaultLayout,
     ErrorBoundary: ErrorPage,
+    HydrateFallback: () => null,
     children: [
       {
         index: true,
         loader: () => redirect('/events'),
+        Component: () => null,
       },
       {
         path: 'design',
