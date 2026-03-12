@@ -84,6 +84,10 @@ export const useEventPage = () => {
   };
 
   const handleChat = () => {
+    if (!currentUser) {
+      void navigate('/login?redirect=' + encodeURIComponent(`/events/${String(event.id)}`));
+      return;
+    }
     if (!isAttending) {
       toast.warning('You need to be attending the event to access the chat');
       return;
@@ -170,6 +174,10 @@ export const useEventPage = () => {
   };
 
   const handleInvite = () => {
+    if (!currentUser) {
+      void navigate('/login?redirect=' + encodeURIComponent(`/events/${String(event.id)}`));
+      return;
+    }
     setInviteOpen(true);
   };
 
