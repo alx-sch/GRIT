@@ -167,16 +167,34 @@ export class EventService {
           select: { user: { select: { id: true, name: true, avatarKey: true } } },
         },
         conversation: { select: { id: true } },
+        invites: {
+          where: { receiverId: userId },
+          select: { id: true },
+        },
       },
     });
 
-    if (!event_raw || (!event_raw.isPublished && event_raw.authorId !== userId)) {
+    if (!event_raw) {
+      throw new NotFoundException('Event not found');
+    }
+
+    const isOwner = event_raw.authorId === userId;
+    const isAttending = event_raw.attendees.some((a) => a.user.id === userId);
+    const isInvited = event_raw.invites.length > 0;
+
+    const hasAccess =
+      (event_raw.isPublished && event_raw.isPublic) ||
+      (event_raw.isPublished && !event_raw.isPublic && (isOwner || isInvited || isAttending)) ||
+      (!event_raw.isPublished && isOwner);
+
+    if (!hasAccess) {
       throw new NotFoundException('Event not found');
     }
 
     return {
       ...event_raw,
       attendees: event_raw.attendees.map((a) => a.user),
+      invites: undefined,
     };
   }
 
