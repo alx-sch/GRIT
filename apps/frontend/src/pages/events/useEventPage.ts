@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import axios from 'axios';
 import type { eventLoader } from './EventPage';
+import { useEventActions } from '@/pages/my-events/hooks/useEventActions';
 
 export const useEventPage = () => {
   const event = useLoaderData<typeof eventLoader>();
@@ -31,6 +32,9 @@ export const useEventPage = () => {
   const [sentInvites, setSentInvites] = useState<Set<number>>(new Set());
   const [inviteOpen, setInviteOpen] = useState(false);
   const [invitesLoading, setInvitesLoading] = useState(false);
+  const [isInvited, setIsInvited] = useState(false);
+  const [inviteId, setInviteId] = useState<string | null>(null);
+  const { acceptInvite, declineInvite } = useEventActions();
 
   const navigate = useNavigate();
 
@@ -181,6 +185,28 @@ export const useEventPage = () => {
     setInviteOpen(true);
   };
 
+  const handleAcceptInvite = async (): Promise<boolean> => {
+    if (!inviteId) return false;
+    const success = await acceptInvite(inviteId);
+    if (success) {
+      setIsInvited(false);
+      setInviteId(null);
+      setIsAttending(true);
+      setCountAttending((prev) => prev + 1);
+    }
+    return success;
+  };
+
+  const handleDeclineInvite = async (): Promise<boolean> => {
+    if (!inviteId) return false;
+    const success = await declineInvite(inviteId);
+    if (success) {
+      setIsInvited(false);
+      setInviteId(null);
+    }
+    return success;
+  };
+
   // Fetch friends
   useEffect(() => {
     const fetchFriends = async () => {
@@ -203,7 +229,7 @@ export const useEventPage = () => {
     }
   }, [currentUser?.id]);
 
-  // Fetch who have already been invited
+  // Fetch which friends have already been invited to this event
   useEffect(() => {
     const fetchOutgoingInvites = async () => {
       try {
@@ -223,6 +249,36 @@ export const useEventPage = () => {
     }
   }, [currentUser?.id, event.id]);
 
+  // Fetch incoming invites to check if user is invited to this event
+  useEffect(() => {
+    const fetchInvites = async () => {
+      if (!currentUser) {
+        setIsInvited(false);
+        setInviteId(null);
+        return;
+      }
+
+      try {
+        const invites = await userService.getMyInvitedEvents();
+        const eventInvite = invites.find((inv) => inv.id === event.id);
+
+        if (eventInvite?.invite) {
+          setIsInvited(true);
+          setInviteId(eventInvite.invite.id);
+        } else {
+          setIsInvited(false);
+          setInviteId(null);
+        }
+      } catch (error) {
+        console.error('Failed to fetch invites', error);
+        setIsInvited(false);
+        setInviteId(null);
+      }
+    };
+
+    void fetchInvites();
+  }, [currentUser?.id, event.id]);
+
   return {
     event,
     isAuthor,
@@ -239,6 +295,10 @@ export const useEventPage = () => {
     shareOpen,
     inviteOpen,
     setInviteOpen,
+    isInvited,
+    inviteId,
+    handleAcceptInvite,
+    handleDeclineInvite,
     invitingIds,
     sentInvites,
     setShareOpen,

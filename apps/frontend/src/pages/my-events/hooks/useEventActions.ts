@@ -87,7 +87,7 @@ export function useEventActions() {
   const acceptInvite = async (inviteId: string): Promise<boolean> => {
     try {
       await inviteService.updateInvite(inviteId, { status: InviteStatus.ACCEPTED });
-      toast.success('Invitation accepted.');
+      toast.info('Invitation accepted.');
       void revalidator.revalidate();
       return true;
     } catch {
@@ -101,7 +101,7 @@ export function useEventActions() {
   const declineInvite = async (inviteId: string): Promise<boolean> => {
     try {
       await inviteService.updateInvite(inviteId, { status: InviteStatus.DECLINED });
-      toast.success('Invitation declined.');
+      toast.info('Invitation declined.');
       void revalidator.revalidate();
       return true;
     } catch {

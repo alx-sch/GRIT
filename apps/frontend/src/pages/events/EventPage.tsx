@@ -20,6 +20,7 @@ import { HomeIcon, Pencil, Trash2, User } from 'lucide-react';
 import { Link, LoaderFunctionArgs, useNavigate } from 'react-router-dom';
 import { EventPageActions } from './components/EventPageActions';
 import { EventPageFiles } from './components/EventPageFiles';
+import { EventAttendanceDropdown } from './components/EventAttendanceDropdown';
 import { useEventPage } from './useEventPage';
 
 export const eventLoader = async ({ params }: LoaderFunctionArgs) => {
@@ -56,6 +57,10 @@ export const EventPage = () => {
     invitingIds,
     sentInvites,
     invitableFriends,
+    isInvited,
+    inviteId,
+    handleAcceptInvite,
+    handleDeclineInvite,
     handlePrev,
     handleNext,
     handleShare,
@@ -80,7 +85,6 @@ export const EventPage = () => {
   const locationLabel = addressCity !== '' ? addressCity : country !== '' ? country : 'TBA';
   const canInvite = event.isPublic || isAuthor;
 
-  // Added a handler here because of back button bug (it needed to be clicked two times to go back to /events).
   const handleBackClick = () => {
     void navigate('/events');
   };
@@ -202,41 +206,49 @@ export const EventPage = () => {
             </div>
           </div>
 
-          {/* Action buttons */}
-          <EventPageActions
-            canInvite={canInvite}
-            isAttending={isAttending}
-            isLoading={isLoading}
-            invitingIds={invitingIds}
-            sentInvites={sentInvites}
-            onInviteFriend={handleInviteFriend}
-            shareOpen={shareOpen}
-            inviteOpen={inviteOpen}
-            invitableFriends={invitableFriends}
-            onInviteOpenChange={setInviteOpen}
-            onShareOpenChange={setShareOpen}
-            invitesLoading={invitesLoading}
-            eventAttendees={event.attendees}
-            onGoing={() => {
-              void handleGoing();
-            }}
-            onInvite={() => {
-              handleInvite();
-            }}
-            onShare={() => {
-              handleShare();
-            }}
-            onChat={handleChat}
-            onCopyLink={() => {
-              void handleCopyLink();
-            }}
-            copied={copied}
-            eventTitle={event.title}
-            eventDate={formattedDate}
-            eventLocation={location?.name ?? 'TBA'}
-            shareText={shareText}
-            shareUrl={shareUrl}
-          />
+          {/* Action buttons - CONDITIONAL RENDERING */}
+          {isInvited && inviteId ? (
+            <EventAttendanceDropdown
+              onAccept={handleAcceptInvite}
+              onDecline={handleDeclineInvite}
+              isLoading={isLoading}
+            />
+          ) : (
+            <EventPageActions
+              canInvite={canInvite}
+              isAttending={isAttending}
+              isLoading={isLoading}
+              invitingIds={invitingIds}
+              sentInvites={sentInvites}
+              onInviteFriend={handleInviteFriend}
+              shareOpen={shareOpen}
+              inviteOpen={inviteOpen}
+              invitableFriends={invitableFriends}
+              onInviteOpenChange={setInviteOpen}
+              onShareOpenChange={setShareOpen}
+              invitesLoading={invitesLoading}
+              eventAttendees={event.attendees}
+              onGoing={() => {
+                void handleGoing();
+              }}
+              onInvite={() => {
+                handleInvite();
+              }}
+              onShare={() => {
+                handleShare();
+              }}
+              onChat={handleChat}
+              onCopyLink={() => {
+                void handleCopyLink();
+              }}
+              copied={copied}
+              eventTitle={event.title}
+              eventDate={formattedDate}
+              eventLocation={location?.name ?? 'TBA'}
+              shareText={shareText}
+              shareUrl={shareUrl}
+            />
+          )}
 
           {/* Event image */}
           {event.imageKey && (

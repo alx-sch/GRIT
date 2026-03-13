@@ -155,7 +155,7 @@ export class InvitesService {
       env.NODE_ENV === 'production' ? 'https://grit.social' : 'http://localhost:5173';
     const eventUrl = `${frontendUrl}/events/${String(eventId)}`;
 
-    // Send automated message
+    // Send automated message (store in DB).
     const messageId = randomUUID();
     await this.chatService.saveMessage({
       id: messageId,
