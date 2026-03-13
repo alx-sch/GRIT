@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Text } from '@/components/ui/typography';
 import { Calendar, Ticket, Users, CalendarCheck } from 'lucide-react';
 import { friendService } from '@/services/friendService';
@@ -29,12 +29,6 @@ export function Overview({ user }: OverviewProps) {
 
     void loadFriends();
   }, []);
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-  };
 
   const totalEvents = user.attending?.length ?? 0;
   const hostingEvents = user.attending?.filter((event) => event.isOrganizer).length ?? 0;
@@ -81,25 +75,10 @@ export function Overview({ user }: OverviewProps) {
         })}
       </div>
 
-      {/* Member Since */}
-      <Card className="p-4">
-        <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-muted-foreground" />
-          <Text className="text-sm">
-            Member since <span className="font-semibold">{formatDate(user.createdAt)}</span>
-          </Text>
-        </div>
-      </Card>
-
       {/* Events Preview */}
       <Card>
         <CardHeader>
           <CardTitle>My Events</CardTitle>
-          <CardDescription>
-            {totalEvents > 0
-              ? `${String(totalEvents)} event${totalEvents === 1 ? '' : 's'}`
-              : 'Events you are attending'}
-          </CardDescription>
         </CardHeader>
         <CardContent>
           <MyEvents events={user.attending ?? []} variant="standalone" />
