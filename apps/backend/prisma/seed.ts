@@ -7,7 +7,7 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient, User } from '@prisma/client';
+import { PrismaClient, User, Location } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
 import { Pool } from 'pg';
@@ -147,8 +147,8 @@ async function main() {
   // seed much more users into db for testing
   for (let i = 1; i <= TEST_RECORD_COUNT; i++) {
     usersToCreate.push({
-      email: `test${i}@example.com`,
-      name: `Test User ${i}`,
+      email: `test${String(i)}@example.com`,
+      name: `Test User ${String(i)}`,
       password: DEFAULT_TEST_PASSWORD,
       image: null,
     });
@@ -229,7 +229,7 @@ async function main() {
   // seed much more locations for testing
   for (let i = 1; i <= TEST_RECORD_COUNT; i++) {
     locationsToCreate.push({
-      name: `Test Location ${i}`,
+      name: `Test Location ${String(i)}`,
       city: 'Berlin',
       country: 'Germany',
       // spread locations out
@@ -240,9 +240,9 @@ async function main() {
     });
   }
 
-  let gritHqId: any = 0;
-  let superCoolId: any = 0;
-  const testLocationIds: any[] = [];
+  let gritHqId: Location['id'] | null = null;
+  let superCoolId: Location['id'] | null = null;
+  const testLocationIds: Location['id'][] = [];
 
   for (const loc of locationsToCreate) {
     const existing = await prisma.location.findFirst({
@@ -322,11 +322,11 @@ async function main() {
     endDate.setHours(startDate.getHours() + 4);
 
     eventsToCreate.push({
-      title: `Test Party ${i}`,
-      slug: eventGenerateSlug(`Test Party ${i}`),
+      title: `Test Party ${String(i)}`,
+      slug: eventGenerateSlug(`Test Party ${String(i)}`),
       locationId: testLocationIds[i - 1],
       authorId: alice.id,
-      content: `This is auto-generated test party number ${i}.`,
+      content: `This is auto-generated test party number ${String(i)}.`,
       isPublic: true,
       isPublished: true,
       startAt: startDate,
