@@ -175,7 +175,7 @@ export class EventService {
     });
 
     if (!event_raw) {
-      throw new NotFoundException('Event not found');
+      throw new NotFoundException(`Event "${idOrSlug}" not found`);
     }
 
     const isOwner = event_raw.authorId === userId;
@@ -190,7 +190,7 @@ export class EventService {
     if (!hasAccess) {
       if (!event_raw.isPublished)
         throw new NotFoundException('This event is under construction. Stay tuned!');
-      throw new NotFoundException('Event not found');
+      throw new NotFoundException(`Event "${idOrSlug}" not found`);
     }
 
     return {
