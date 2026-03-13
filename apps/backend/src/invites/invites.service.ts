@@ -187,6 +187,15 @@ export class InvitesService {
     // If accepted, add to attendees + conversation
     if (status === InviteStatus.ACCEPTED) {
       try {
+        const fullInvite = await this.prisma.eventInvite.findUnique({
+          where: { id },
+          include: {
+            event: { select: { id: true, title: true, imageKey: true, isPublic: true } },
+            sender: { select: { id: true, name: true, avatarKey: true } },
+            receiver: { select: { id: true, name: true, avatarKey: true } },
+          },
+        });
+
         await this.prisma.$transaction(async (tx) => {
           // Add to attendees
           await tx.eventAttendee.create({
@@ -221,12 +230,14 @@ export class InvitesService {
           }
           await tx.eventInvite.delete({ where: { id } });
         });
+
+        return fullInvite;
       } catch {
         throw new ConflictException('You are already going to this event.');
       }
     }
 
-    // If declined, ALWAYS delete (both private + public)
+    // If declined, delete and return
     if (status === InviteStatus.DECLINED) {
       return await this.prisma.eventInvite.delete({
         where: { id },
@@ -238,6 +249,7 @@ export class InvitesService {
       });
     }
 
+    // Fallback
     return await this.prisma.eventInvite.findUnique({
       where: { id },
       include: {
@@ -247,9 +259,8 @@ export class InvitesService {
       },
     });
   }
-
   /**
-   * Deletes an event invite.
+   * Deletes an event invite
    */
   async deleteInvite(id: string, userId: number) {
     const eventInvite = await this.prisma.eventInvite.findUnique({ where: { id } });

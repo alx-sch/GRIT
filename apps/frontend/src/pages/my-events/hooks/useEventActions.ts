@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate, useRevalidator } from 'react-router-dom';
 import { eventService } from '@/services/eventService';
+import { inviteService } from '@/services/inviteService';
 import { validateEventForPublish } from '@/lib/event-validation';
 import { toast } from 'sonner';
+import { InviteStatus } from '@grit/schema';
 
 export type OptimisticUpdates = Record<number, { isPublished?: boolean; isPublic?: boolean }>;
 
@@ -82,6 +84,34 @@ export function useEventActions() {
     }
   };
 
+  const acceptInvite = async (inviteId: string): Promise<boolean> => {
+    try {
+      await inviteService.updateInvite(inviteId, { status: InviteStatus.ACCEPTED });
+      toast.success('Invitation accepted.');
+      void revalidator.revalidate();
+      return true;
+    } catch {
+      toast.error('Failed to accept invitation.', {
+        description: 'Please try again later.',
+      });
+      return false;
+    }
+  };
+
+  const declineInvite = async (inviteId: string): Promise<boolean> => {
+    try {
+      await inviteService.updateInvite(inviteId, { status: InviteStatus.DECLINED });
+      toast.success('Invitation declined.');
+      void revalidator.revalidate();
+      return true;
+    } catch {
+      toast.error('Failed to decline invitation.', {
+        description: 'Please try again later.',
+      });
+      return false;
+    }
+  };
+
   const revertOptimisticUpdate = (eventId: number) => {
     setOptimisticUpdates((prev) => {
       const newUpdates = { ...prev };
@@ -94,6 +124,8 @@ export function useEventActions() {
   return {
     publishEvent,
     unpublishEvent,
+    acceptInvite,
+    declineInvite,
     optimisticUpdates,
     setOptimisticUpdates,
     revertOptimisticUpdate,

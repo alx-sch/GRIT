@@ -29,6 +29,10 @@ interface MyEventCardProps {
   optimisticState?: { isPublished?: boolean; isPublic?: boolean };
   onPublish?: (eventId: number, eventSlug: string) => Promise<boolean>;
   onUnpublish?: (eventId: number) => Promise<boolean>;
+  onAccept?: (inviteId: string) => Promise<boolean>;
+  onDecline?: (inviteId: string) => Promise<boolean>;
+  onAcceptSuccess?: () => void;
+  onDeclineSuccess?: () => void;
   onEdit?: (eventSlug: string) => void;
   onViewDetails: (eventSlug: string) => void;
 }
@@ -37,6 +41,10 @@ export function MyEventCard({
   event,
   optimisticState,
   onPublish,
+  onAccept,
+  onDecline,
+  onAcceptSuccess,
+  onDeclineSuccess,
   onUnpublish,
   onEdit,
   onViewDetails,
@@ -59,6 +67,34 @@ export function MyEventCard({
       hour: 'numeric',
       minute: '2-digit',
     });
+  };
+
+  function isInvitedEvent(
+    event: EventType
+  ): event is ResMyInvitedEvent & { invite: NonNullable<ResMyInvitedEvent['invite']> } {
+    return 'invite' in event && event.invite !== null && event.invite !== undefined;
+  }
+
+  const handleAccept = async () => {
+    setIsLoading(true);
+    if (isInvitedEvent(event) && event.invite) {
+      const success = await onAccept?.(event.invite.id);
+      if (success) {
+        onAcceptSuccess?.();
+      }
+    }
+    setIsLoading(false);
+  };
+
+  const handleDecline = async () => {
+    setIsLoading(true);
+    if (isInvitedEvent(event) && event.invite) {
+      const success = await onDecline?.(event.invite.id);
+      if (success) {
+        onDeclineSuccess?.();
+      }
+    }
+    setIsLoading(false);
   };
 
   const handlePublishConfirm = async () => {
@@ -161,6 +197,30 @@ export function MyEventCard({
                   >
                     <Pencil className="w-4 h-4 mr-2" />
                     <span>Edit</span>
+                  </Button>
+                )}
+                {onAccept && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 md:flex-none md:w-auto md:min-w-35"
+                    onClick={() => {
+                      void handleAccept();
+                    }}
+                  >
+                    Accept
+                  </Button>
+                )}
+                {onDecline && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="flex-1 md:flex-none md:w-auto md:min-w-35"
+                    onClick={() => {
+                      void handleDecline();
+                    }}
+                  >
+                    Decline
                   </Button>
                 )}
               </div>

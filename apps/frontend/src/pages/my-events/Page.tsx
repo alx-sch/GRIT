@@ -28,6 +28,8 @@ export function Page() {
   const [sortMode, setSortMode] = useState<SortMode>('drafts-first');
   const [invitedEvents, setInvitedEvents] = useState<ResMyInvitedEvents>([]);
   const { publishEvent, unpublishEvent, optimisticUpdates } = useEventActions();
+  const { acceptInvite } = useEventActions();
+  const { declineInvite } = useEventActions();
 
   useEffect(() => {
     const loadInvitedEvents = async () => {
@@ -137,6 +139,14 @@ export function Page() {
           <MyEventCard
             key={event.id}
             event={event}
+            onAccept={acceptInvite}
+            onDecline={declineInvite}
+            onAcceptSuccess={() => {
+              setInvitedEvents((prev) => prev.filter((e) => e.id !== event.id));
+            }}
+            onDeclineSuccess={() => {
+              setInvitedEvents((prev) => prev.filter((e) => e.id !== event.id));
+            }}
             onViewDetails={(slug) => void navigate(`/events/${slug}`)}
           />
         ))}
