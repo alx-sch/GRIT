@@ -15,6 +15,10 @@ import * as bcrypt from 'bcrypt';
 import { getPublicS3Policy, generateS3Key } from '@/storage/storage.utils';
 import { eventGenerateSlug } from '@/event/event.utils';
 
+//#############
+//## HELPER ###
+//#############
+
 // Setup the Postgres connection
 const pool = new Pool({ connectionString: env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -96,9 +100,15 @@ async function uploadToBucket(bucketName: string, localFilePath: string, origina
   }
 }
 
+//##############
+//## SEEDING ###
+//##############
+
 async function main() {
   console.log('--- Seeding database...');
 
+  const TEST_RECORD_COUNT = 1000;
+  const DEFAULT_TEST_PASSWORD = 'password123';
   const AVATAR_BUCKET = 'user-avatars';
   const EVENT_BUCKET = 'event-images';
 
@@ -119,10 +129,30 @@ async function main() {
       image: null,
       isAdmin: true,
     },
-    { email: 'alice@example.com', name: 'Alice', password: '0123456789', image: 'avatar-1.jpg' },
-    { email: 'bob@example.com', name: 'Bob', password: '12345678pw', image: 'avatar-2.jpg' },
-    { email: 'cindy@example.com', name: 'Cindy', password: '0123456789', image: null },
+    {
+      email: 'alice@example.com',
+      name: 'Alice',
+      password: DEFAULT_TEST_PASSWORD,
+      image: 'avatar-1.jpg',
+    },
+    {
+      email: 'bob@example.com',
+      name: 'Bob',
+      password: DEFAULT_TEST_PASSWORD,
+      image: 'avatar-2.jpg',
+    },
+    { email: 'cindy@example.com', name: 'Cindy', password: DEFAULT_TEST_PASSWORD, image: null },
   ];
+
+  // seed much more users into db for testing
+  for (let i = 1; i <= TEST_RECORD_COUNT; i++) {
+    usersToCreate.push({
+      email: `test${i}@example.com`,
+      name: `Test User ${i}`,
+      password: DEFAULT_TEST_PASSWORD,
+      image: null,
+    });
+  }
 
   // upsert: "Update or Insert" - prevents errors if the user already exists
   for (const u of usersToCreate) {
@@ -140,7 +170,7 @@ async function main() {
         isAdmin: u.isAdmin,
       },
     });
-    console.log(`👤 Processed User: ${user.name} (${String(user.id)})`);
+    //console.log(`👤 Processed User: ${user.name} (${String(user.id)})`);
 
     // Upload Image (Only if one is provided)
     if (u.image && !user.avatarKey) {
@@ -196,22 +226,44 @@ async function main() {
     },
   ];
 
-  let gritHqId = 0;
+  // seed much more locations for testing
+  for (let i = 1; i <= TEST_RECORD_COUNT; i++) {
+    locationsToCreate.push({
+      name: `Test Location ${i}`,
+      city: 'Berlin',
+      country: 'Germany',
+      // spread locations out
+      longitude: 13.45 + i * 0.001,
+      latitude: 52.5 + i * 0.001,
+      authorId: alice.id,
+      isPublic: true,
+    });
+  }
+
+  let gritHqId: any = 0;
+  let superCoolId: any = 0;
+  const testLocationIds: any[] = [];
 
   for (const loc of locationsToCreate) {
     const existing = await prisma.location.findFirst({
       where: { name: loc.name },
     });
 
+    let currentLocId;
+
     if (!existing) {
       const createdLoc = await prisma.location.create({
         data: loc,
       });
-      console.log(`📍 Created Location: ${createdLoc.name} `);
-      if (loc.name === 'GRIT HQ') gritHqId = createdLoc.id;
+      currentLocId = createdLoc.id;
     } else {
-      console.log(`⏩ Location '${loc.name}' already exists. Skipping.`);
-      gritHqId = existing.id;
+      currentLocId = existing.id;
+    }
+
+    if (loc.name === 'GRIT HQ') gritHqId = currentLocId;
+    if (loc.name === 'Super Cool Event Space') superCoolId = currentLocId;
+    if (loc.name.startsWith('Test Location')) {
+      testLocationIds.push(currentLocId);
     }
   }
 
@@ -239,16 +291,18 @@ async function main() {
       slug: eventGenerateSlug('Private Strategy Meeting'),
       authorId: alice.id,
       content: 'Discussing SECRETS!',
+      locationId: null,
       isPublic: false,
       isPublished: false,
-      startAt: new Date('2026-02-28T10:00:00Z'),
-      endAt: new Date('2026-02-28T12:00:00Z'),
+      startAt: new Date('2025-04-01T10:00:00Z'),
+      endAt: new Date('2025-04-01T12:00:00Z'),
       image: null as string | null,
     },
     {
       title: 'Alice in Wonderland',
       slug: eventGenerateSlug('Alice in Wonderland'),
       authorId: alice.id,
+      locationId: superCoolId,
       content: 'We’re all mad here!',
       isPublic: true,
       isPublished: true,
@@ -258,14 +312,36 @@ async function main() {
     },
   ];
 
+  // add much more events for testing (pagination etc)
+  for (let i = 1; i <= TEST_RECORD_COUNT; i++) {
+    const startDate = new Date('2024-04-01T18:00:00Z');
+    // spread out starting dates
+    startDate.setDate(startDate.getDate() + i);
+
+    const endDate = new Date(startDate);
+    endDate.setHours(startDate.getHours() + 4);
+
+    eventsToCreate.push({
+      title: `Test Party ${i}`,
+      slug: eventGenerateSlug(`Test Party ${i}`),
+      locationId: testLocationIds[i - 1],
+      authorId: alice.id,
+      content: `This is auto-generated test party number ${i}.`,
+      isPublic: true,
+      isPublished: true,
+      startAt: startDate,
+      endAt: endDate,
+      image: null as string | null,
+    });
+  }
+
   for (const e of eventsToCreate) {
-    // Simple check to avoid duplicate events if seed run twice
+    // simple check to avoid duplicate events if seed run twice
     const existingEvent = await prisma.event.findFirst({
       where: { title: e.title, authorId: e.authorId },
     });
 
     if (!existingEvent) {
-      // Extract image from event data (not a DB field)
       const { image } = e;
 
       const event = await prisma.event.create({
@@ -273,6 +349,7 @@ async function main() {
           title: e.title,
           slug: e.slug,
           authorId: e.authorId,
+          locationId: e.locationId,
           startAt: e.startAt,
           endAt: e.endAt,
           isPublic: e.isPublic,
@@ -294,7 +371,7 @@ async function main() {
         },
       });
 
-      console.log(`📅 Created Event: ${e.title} for User ${String(e.authorId)}`);
+      //console.log(`📅 Created Event: ${e.title} for User ${String(e.authorId)}`);
 
       // Upload image if specified
       if (image) {
