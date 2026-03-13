@@ -1,7 +1,18 @@
 import { useState, useRef } from 'react';
 import { UserAvatar } from '@/components/ui/user-avatar';
 import { Text } from '@/components/ui/typography';
-import { Ticket, Trash2, Upload, Edit, MapPin, Users, Eye, Calendar, Shuffle } from 'lucide-react';
+import {
+  Ticket,
+  Trash2,
+  Upload,
+  Edit,
+  MapPin,
+  Users,
+  Eye,
+  Calendar,
+  Shuffle,
+  Loader2,
+} from 'lucide-react';
 import { userService } from '@/services/userService';
 import { toast } from 'sonner';
 import type { CurrentUser } from '@/types/user';
@@ -10,6 +21,7 @@ import { validateImageFile, readFileAsDataURL } from '@/lib/image-crop-utils';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 
 interface ProfileSidebarProps {
   user: CurrentUser;
@@ -108,7 +120,9 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
       console.error('Failed to set random avatar:', error);
       toast.error('Failed to generate random avatar. Please try again.');
     } finally {
-      setIsSettingRandom(false);
+      setTimeout(() => {
+        setIsSettingRandom(false);
+      }, 500);
     }
   };
 
@@ -139,43 +153,51 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
     },
   ];
 
+  const isBusy = isSettingRandom || isUploading || isRemoving;
+
   return (
     <div className="w-full md:w-80 md:border-r-2 md:border-primary md:pr-8 space-y-6">
       <div className="flex flex-col items-center space-y-4">
         <div className="relative">
-          <div
-            className="relative group cursor-pointer"
-            onClick={handleAvatarClick}
-            title="Click to edit profile picture"
-          >
+          <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
+            {/* Avatar picture */}
             <UserAvatar user={user} src={avatarUrl} size="xl" alt={user.name ?? 'User avatar'} />
-            <div
-              className={`absolute inset-0 bg-black/50 rounded-full transition-opacity flex items-center justify-center ${
-                isUploading || isRemoving || isSettingRandom
-                  ? 'opacity-100'
-                  : 'opacity-0 group-hover:opacity-100'
-              }`}
-            >
-              {isUploading || isRemoving || isSettingRandom ? (
-                <Text className="text-white text-sm">Saving...</Text>
-              ) : (
+
+            {/* OVERLAY 1: The normal Hover state (Edit Pencil) */}
+            {!isBusy && (
+              <div className="absolute inset-0 bg-black/50 rounded-full transition-opacity flex items-center justify-center opacity-0 group-hover:opacity-100">
                 <Edit className="w-10 h-10 text-white" />
-              )}
-            </div>
+              </div>
+            )}
+
+            {/* OVERLAY 2: The Busy state (Saving...) */}
+            {isBusy && (
+              <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-100">
+                <Text className="text-white text-sm">Saving...</Text>
+              </div>
+            )}
           </div>
 
           {/* Shuffle button - only for generated avatars */}
-          {isGeneratedAvatar && !isUploading && !isRemoving && !isSettingRandom && (
+          {isGeneratedAvatar && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
+                if (isBusy) return;
                 void handleRandomAvatar();
               }}
-              className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-all flex items-center justify-center border-2 border-background"
+              className={cn(
+                'absolute bottom-0 right-0 w-7 h-7 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center border-2 border-background transition-all',
+                isBusy ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary/90'
+              )}
               title="Generate random avatar"
               aria-label="Generate random avatar"
             >
-              <Shuffle className="w-5 h-5" />
+              {isSettingRandom ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Shuffle className="w-4 h-4" />
+              )}
             </button>
           )}
         </div>
