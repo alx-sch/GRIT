@@ -145,11 +145,11 @@ async function main() {
   ];
 
   // seed much more users into db for testing
-  console.log(`Seeding ${String(TEST_RECORD_COUNT)} test user...`);
+  console.log(`Seeding ${String(TEST_RECORD_COUNT)} test users...`);
   for (let i = 1; i <= TEST_RECORD_COUNT; i++) {
     usersToCreate.push({
       email: `test${String(i)}@example.com`,
-      name: `Test User ${String(i)}`,
+      name: `TestUser${String(i)}`,
       password: DEFAULT_TEST_PASSWORD,
       image: null,
     });
@@ -317,7 +317,7 @@ async function main() {
   // add much more events for testing (pagination etc)
   console.log(`Seeding ${String(TEST_RECORD_COUNT)} test events...`);
   for (let i = 1; i <= TEST_RECORD_COUNT; i++) {
-    const startDate = new Date('2024-04-01T18:00:00Z');
+    const startDate = new Date('2025-10-01T18:00:00Z');
     // spread out starting dates
     startDate.setDate(startDate.getDate() + i);
 
