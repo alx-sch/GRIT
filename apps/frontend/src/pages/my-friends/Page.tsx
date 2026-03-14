@@ -76,6 +76,16 @@ export default function FriendsPage() {
     }
   }
 
+  async function cancel(requestId: string) {
+    try {
+      await friendService.cancelRequest(requestId);
+      toast.info('Friend request canceled');
+      void revalidate();
+    } catch {
+      toast.error('Failed to cancel friend request');
+    }
+  }
+
   async function accept(requestId: string) {
     try {
       await friendService.acceptRequest(requestId);
@@ -136,6 +146,7 @@ export default function FriendsPage() {
         onAccept={accept}
         onDecline={decline}
       />
+      <OutgoingSection requests={friends.pendingOutgoing.data} onCancel={cancel} />
       <FriendsSection friends={friends.friendsList.data} onChat={startChat} onRemove={remove} />
     </div>
   );
@@ -263,6 +274,40 @@ function PendingSection({ requests, onAccept, onDecline }: PendingSectionProps) 
                   <Check className="h-4 w-4" />
                 </Button>
                 <Button variant="secondary" size="sm" onClick={() => void onDecline(req.id)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </>
+            }
+          />
+        ))}
+      </UserGrid>
+    </div>
+  );
+}
+
+interface OutgoingSectionProps {
+  requests: ResFriendRequest[];
+  onCancel: (requestId: string) => Promise<void>;
+}
+
+function OutgoingSection({ requests, onCancel }: OutgoingSectionProps) {
+  if (requests.length === 0) return null;
+  return (
+    <div className="flex flex-col gap-4">
+      <Heading level={3}>Sent Requests</Heading>
+      <UserGrid>
+        {requests.map((req) => (
+          <UserCard
+            key={req.id}
+            user={req.receiver}
+            actions={
+              <>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to={`/users/${req.receiver.id}`}>
+                    <Eye className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button variant="secondary" size="sm" onClick={() => void onCancel(req.id)}>
                   <X className="h-4 w-4" />
                 </Button>
               </>

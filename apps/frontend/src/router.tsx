@@ -46,7 +46,11 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        loader: () => redirect('/events'),
+        loader: ({ request }) => {
+          const url = new URL(request.url);
+          const searchParams = url.searchParams.toString();
+          return redirect(`/events${searchParams ? `?${searchParams}` : ''}`);
+        },
       },
       {
         path: 'design',

@@ -470,49 +470,69 @@ export class EventService {
     if (duplicate) {
       throw new BadRequestException(`Identical event already exists`);
     }
-    const slug = eventGenerateSlug(data.title);
-    const createdEvent = await this.prisma.event.create({
-      data: {
-        title: data.title,
-        slug: slug,
-        content: data.content,
-        startAt: data.startAt,
-        endAt: data.endAt,
-        isPublic: data.isPublic,
-        isPublished: data.isPublished,
-        imageKey: data.imageKey,
-        attendees: {
-          create: {
-            userId: data.authorId,
-          },
-        },
-        author: {
-          connect: { id: data.authorId },
-        },
-        conversation: {
-          create: {
-            type: ConversationType.EVENT,
-            createdBy: data.authorId,
-            participants: {
-              create: [{ userId: data.authorId }],
-            },
-          },
-        },
-        ...(data.locationId
-          ? {
-              location: {
-                connect: { id: data.locationId },
+
+    let attempts = 0;
+    const maxAttempts = 3;
+
+    while (attempts < maxAttempts) {
+      try {
+        const slug = eventGenerateSlug(data.title);
+        const createdEvent = await this.prisma.event.create({
+          data: {
+            title: data.title,
+            slug: slug,
+            content: data.content,
+            startAt: data.startAt,
+            endAt: data.endAt,
+            isPublic: data.isPublic,
+            isPublished: data.isPublished,
+            imageKey: data.imageKey,
+            attendees: {
+              create: {
+                userId: data.authorId,
               },
+            },
+            author: {
+              connect: { id: data.authorId },
+            },
+            conversation: {
+              create: {
+                type: ConversationType.EVENT,
+                createdBy: data.authorId,
+                participants: {
+                  create: [{ userId: data.authorId }],
+                },
+              },
+            },
+            ...(data.locationId
+              ? {
+                  location: {
+                    connect: { id: data.locationId },
+                  },
+                }
+              : {}),
+          },
+          include: {
+            author: true,
+            location: true,
+          },
+        });
+        await this.chatGateway.resyncUserRooms(data.authorId);
+        return createdEvent;
+      } catch (error: unknown) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+          if (error.code === 'P2002') {
+            const target = error.meta?.target as string[] | undefined;
+            if (target?.includes('slug')) {
+              attempts++;
+              continue;
             }
-          : {}),
-      },
-      include: {
-        author: true,
-        location: true,
-      },
-    });
-    await this.chatGateway.resyncUserRooms(data.authorId);
-    return createdEvent;
+          }
+        }
+        throw error;
+      }
+    }
+    throw new Error('Could not generate a unique event slug after multiple attempts.');
   }
 
   async eventExists(id: number) {

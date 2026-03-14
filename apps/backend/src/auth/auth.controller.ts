@@ -10,6 +10,7 @@ import {
   ParseIntPipe,
   ForbiddenException,
   UseGuards,
+  ConflictException,
 } from '@nestjs/common';
 import { AuthService } from '@/auth/auth.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -44,8 +45,26 @@ export class AuthController {
   }
 
   @Get('confirm')
-  async confirm(@Query() query: ReqConfirmEmailDto) {
-    return this.authService.confirmEmail(query.token);
+  async confirm(@Query() query: ReqConfirmEmailDto, @Res() res: Response) {
+    const appBaseUrl = this.configService.get<string>('APP_BASE_URL');
+    const fePort = this.configService.get<number>('FE_PORT');
+    const frontendUrl = appBaseUrl ?? `http://localhost:${String(fePort)}`;
+
+    try {
+      await this.authService.confirmEmail(query.token);
+      // Success - email confirmed for the first time
+      res.redirect(`${frontendUrl}/login?confirmed=true`);
+      return;
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        // Token valid, but email already confirmed
+        res.redirect(`${frontendUrl}/login?already_confirmed=true`);
+        return;
+      }
+      // Invalid or expired token
+      res.redirect(`${frontendUrl}/login?error=true`);
+      return;
+    }
   }
 
   @Post('login')
@@ -87,7 +106,9 @@ export class AuthController {
     const result = this.authService.login(user);
 
     // Redirect back to frontend with the token
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:5173';
+    const appBaseUrl = this.configService.get<string>('APP_BASE_URL');
+    const fePort = this.configService.get<number>('FE_PORT') ?? 5173;
+    const frontendUrl = appBaseUrl ?? `http://localhost:${String(fePort)}`;
     res.redirect(`${frontendUrl}/login?token=${result.accessToken}`);
   }
 }

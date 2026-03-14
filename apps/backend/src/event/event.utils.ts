@@ -114,9 +114,10 @@ export function eventCursorFilter(input: ReqEventGetPublishedDto) {
  * ==================================================
  */
 
+// "nanoid" uses '-' and '_' --> exclude these by using a custom alphabet
 const generateNanoId = customAlphabet(
   '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
-  6
+  3
 );
 
 /**

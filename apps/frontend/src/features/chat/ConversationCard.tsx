@@ -34,6 +34,7 @@ export const ConversationCard = ({ conversation, isActive }: ConversationCardPro
   const isEvent = conversation.type === 'EVENT';
   const eventSlug = conversation.event?.slug;
   const hasEvent = isEvent && eventSlug;
+  const isValidOtherUser = otherUser && otherUser.id !== null;
 
   const avatarUser =
     conversation.type === 'DIRECT'
@@ -80,7 +81,7 @@ export const ConversationCard = ({ conversation, isActive }: ConversationCardPro
                 </div>
               )}
             </div>
-            {isDirect && otherUser ? (
+            {isDirect && isValidOtherUser ? (
               <Link to={`/users/${otherUser.id}`}>{avatarEl}</Link>
             ) : hasEvent ? (
               <Link to={`/events/${eventSlug}`}>{avatarEl}</Link>
@@ -89,7 +90,7 @@ export const ConversationCard = ({ conversation, isActive }: ConversationCardPro
             )}
           </div>
           <div className="w-full">
-            {isDirect && otherUser ? (
+            {isDirect && isValidOtherUser ? (
               <Link
                 to={`/users/${otherUser.id}`}
                 className="font-medium flex items-center leading-tight hover:underline"
