@@ -17,7 +17,7 @@ import { Heading, Text } from '@/components/ui/typography';
 import { getEventImageUrl } from '@/lib/image_utils';
 import { eventService } from '@/services/eventService';
 import { APIProvider } from '@vis.gl/react-google-maps';
-import { HomeIcon, Pencil, Trash2, User } from 'lucide-react';
+import { HomeIcon, Loader2, Pencil, Trash2, User } from 'lucide-react';
 import { Link, LoaderFunctionArgs, useNavigate } from 'react-router-dom';
 import { EventPageActions } from './components/EventPageActions';
 import { EventPageFiles } from './components/EventPageFiles';
@@ -41,6 +41,7 @@ export const EventPage = () => {
     countAttending,
     isLoading,
     invitesLoading,
+    isInviteCheckLoading,
     isMapOpen,
     setIsMapOpen,
     selectedImageIndex,
@@ -208,7 +209,19 @@ export const EventPage = () => {
           </div>
 
           {/* Action buttons - CONDITIONAL RENDERING */}
-          {isInvited && inviteId ? (
+          {isInviteCheckLoading ? (
+            <Card className="w-full border-0 bg-transparent shadow-none md:border md:bg-card md:shadow md:mt-5">
+              <CardHeader className="hidden md:block">
+                <CardTitle className="flex uppercase items-center text-xl gap-2">
+                  <span className="font-semibold">&gt;</span>
+                  <Text className="text-xl font-heading">Menu</Text>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-row justify-center items-center pt-3 py-6">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </CardContent>
+            </Card>
+          ) : isInvited && inviteId ? (
             <Card className="w-full border-0 bg-transparent shadow-none md:border md:bg-card md:shadow md:mt-5">
               <CardHeader className="hidden md:block">
                 <CardTitle className="flex uppercase items-center text-xl gap-2">
