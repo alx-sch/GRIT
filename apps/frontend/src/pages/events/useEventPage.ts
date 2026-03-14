@@ -34,6 +34,7 @@ export const useEventPage = () => {
   const [invitesLoading, setInvitesLoading] = useState(false);
   const [isInvited, setIsInvited] = useState(false);
   const [inviteId, setInviteId] = useState<string | null>(null);
+  const [isInviteCheckLoading, setIsInviteCheckLoading] = useState(true);
   const { acceptInvite, declineInvite } = useEventActions();
 
   const navigate = useNavigate();
@@ -255,9 +256,11 @@ export const useEventPage = () => {
       if (!currentUser) {
         setIsInvited(false);
         setInviteId(null);
+        setIsInviteCheckLoading(false);
         return;
       }
 
+      setIsInviteCheckLoading(true);
       try {
         const invites = await userService.getMyInvitedEvents();
         const eventInvite = invites.find((inv) => inv.id === event.id);
@@ -273,6 +276,8 @@ export const useEventPage = () => {
         console.error('Failed to fetch invites', error);
         setIsInvited(false);
         setInviteId(null);
+      } finally {
+        setIsInviteCheckLoading(false);
       }
     };
 
@@ -289,6 +294,7 @@ export const useEventPage = () => {
     isLoading,
     isMapOpen,
     invitesLoading,
+    isInviteCheckLoading,
     setIsMapOpen,
     selectedImageIndex,
     setSelectedImageIndex,

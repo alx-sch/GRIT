@@ -151,8 +151,7 @@ export class InvitesService {
     }
 
     // Create base URL depending on production / development
-    const frontendUrl =
-      env.NODE_ENV === 'production' ? 'https://grit.social' : 'http://localhost:5173';
+    const frontendUrl = env.APP_BASE_URL;
     const eventUrl = `${frontendUrl}/events/${String(eventId)}`;
 
     // Send automated message (store in DB).

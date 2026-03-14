@@ -394,7 +394,9 @@ function FriendsSection({ friends, onChat, onRemove }: FriendsSectionProps) {
           {sortDirection === 'asc' ? (
             <ArrowUpAZ className="h-4 w-4" />
           ) : (
-            <ArrowDownZA className="h-4 w-4" />
+            <>
+              <ArrowDownZA className="h-4 w-4" />
+            </>
           )}
         </Button>
       </div>

@@ -40,8 +40,8 @@ export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
     eventService.getEvents(query),
     locationService.getLocations(),
 
-    //Only fetch friends list if user is logged-in
-    token ? friendService.listFriends({ limit: '100' }).catch(() => null) : Promise.resolve(null),
+    // Only fetch friends list if user is logged-in
+    token ? friendService.listFriends().catch(() => null) : Promise.resolve(null),
   ]);
 
   const friendsIds = new Set(friendsData?.data.map((f) => f.friend.id) ?? []);
