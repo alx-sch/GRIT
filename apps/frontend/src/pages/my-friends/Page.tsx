@@ -28,7 +28,16 @@ import {
   ResFriendRequest,
   ResUserPublic,
 } from '@grit/schema';
-import { Check, MessageCircleMore, UserPlus, UserX, X, Eye } from 'lucide-react';
+import {
+  Check,
+  MessageCircleMore,
+  UserPlus,
+  UserX,
+  X,
+  Eye,
+  ArrowUpAZ,
+  ArrowDownZA,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useRevalidator, Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -326,6 +335,8 @@ interface FriendsSectionProps {
 }
 
 function FriendsSection({ friends, onChat, onRemove }: FriendsSectionProps) {
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
   if (friends.length === 0) {
     return (
       <EmptyState
@@ -334,11 +345,47 @@ function FriendsSection({ friends, onChat, onRemove }: FriendsSectionProps) {
       />
     );
   }
+
+  // Sort friends alphabetically by name
+  const sortedFriends = [...friends].sort((a, b) => {
+    const nameA = a.friend.name.toLowerCase();
+    const nameB = b.friend.name.toLowerCase();
+    if (sortDirection === 'asc') {
+      return nameA.localeCompare(nameB);
+    } else {
+      return nameB.localeCompare(nameA);
+    }
+  });
+
+  const toggleSort = () => {
+    setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+  };
+
   return (
     <div className="flex flex-col gap-4">
-      <Heading level={3}>All Friends</Heading>
+      <div className="flex items-center justify-between">
+        <Heading level={3}>All Friends</Heading>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleSort}
+          className="gap-2"
+          title={sortDirection === 'asc' ? 'Sort Z → A' : 'Sort A → Z'}
+        >
+          <span className="hidden sm:inline">Sort</span>
+          {sortDirection === 'asc' ? (
+            <>
+              <ArrowUpAZ className="h-4 w-4" />
+            </>
+          ) : (
+            <>
+              <ArrowDownZA className="h-4 w-4" />
+            </>
+          )}``
+        </Button>
+      </div>
       <UserGrid>
-        {friends.map((friend) => (
+        {sortedFriends.map((friend) => (
           <UserCard
             key={friend.id}
             user={friend.friend}
