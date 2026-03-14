@@ -1,13 +1,16 @@
 import { eventService } from '@/services/eventService';
 import { userService } from '@/services/userService';
+import { inviteService } from '@/services/inviteService';
+import { friendService } from '@/services/friendService';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import type { CurrentUser } from '@/types/user';
 import { useEffect, useState } from 'react';
 import { useLoaderData, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-
+import axios from 'axios';
 import type { eventLoader } from './EventPage';
+import { useEventActions } from '@/pages/my-events/hooks/useEventActions';
 
 export const useEventPage = () => {
   const event = useLoaderData<typeof eventLoader>();
@@ -25,6 +28,15 @@ export const useEventPage = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [invitingIds, setInvitingIds] = useState<Set<number>>(new Set());
+  const [sentInvites, setSentInvites] = useState<Set<number>>(new Set());
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [invitesLoading, setInvitesLoading] = useState(false);
+  const [isInvited, setIsInvited] = useState(false);
+  const [inviteId, setInviteId] = useState<string | null>(null);
+  const [isInviteCheckLoading, setIsInviteCheckLoading] = useState(true);
+  const { acceptInvite, declineInvite } = useEventActions();
+
   const navigate = useNavigate();
 
   const formattedDate = format(new Date(event.startAt), 'MMMM d, yyyy | p');
@@ -42,6 +54,7 @@ export const useEventPage = () => {
 
   const imageFiles = event.files.filter((f) => f.mimeType.startsWith('image/'));
   const otherFiles = event.files.filter((f) => !f.mimeType.startsWith('image/'));
+  const [friends, setFriends] = useState<{ id: number; name: string; avatarKey?: string }[]>([]);
 
   const handlePrev = () => {
     setSelectedImageIndex((i) => {
@@ -76,6 +89,10 @@ export const useEventPage = () => {
   };
 
   const handleChat = () => {
+    if (!currentUser) {
+      void navigate('/login?redirect=' + encodeURIComponent(`/events/${String(event.id)}`));
+      return;
+    }
     if (!isAttending) {
       toast.warning('You need to be attending the event to access the chat');
       return;
@@ -130,6 +147,143 @@ export const useEventPage = () => {
     }
   };
 
+  const handleInviteFriend = async (friendId: number) => {
+    try {
+      setInvitingIds((prev) => new Set(prev).add(friendId));
+
+      await inviteService.sendInvite({
+        eventId: event.id,
+        receiverId: friendId,
+      });
+
+      setSentInvites((prev) => new Set(prev).add(friendId));
+      toast.success('Invite sent!');
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const message = (error.response?.data as { message?: string })?.message;
+        if (typeof message === 'string') {
+          toast.error(message);
+        } else {
+          toast.error('Failed to send invite');
+        }
+      } else {
+        toast.error('Failed to send invite');
+      }
+    } finally {
+      setInvitingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(friendId);
+        return next;
+      });
+    }
+  };
+
+  const handleInvite = () => {
+    if (!currentUser) {
+      void navigate('/login?redirect=' + encodeURIComponent(`/events/${String(event.id)}`));
+      return;
+    }
+    setInviteOpen(true);
+  };
+
+  const handleAcceptInvite = async (): Promise<boolean> => {
+    if (!inviteId) return false;
+    const success = await acceptInvite(inviteId);
+    if (success) {
+      setIsInvited(false);
+      setInviteId(null);
+      setIsAttending(true);
+      setCountAttending((prev) => prev + 1);
+    }
+    return success;
+  };
+
+  const handleDeclineInvite = async (): Promise<boolean> => {
+    if (!inviteId) return false;
+    const success = await declineInvite(inviteId);
+    if (success) {
+      setIsInvited(false);
+      setInviteId(null);
+    }
+    return success;
+  };
+
+  // Fetch friends
+  useEffect(() => {
+    const fetchFriends = async () => {
+      try {
+        const response = await friendService.listFriends();
+        // Map the response to extract just the friend data
+        const friendsList = response.data.map((friendship) => ({
+          id: friendship.friend.id,
+          name: friendship.friend.name,
+          avatarKey: friendship.friend.avatarKey ?? undefined,
+        }));
+        setFriends(friendsList);
+      } catch (error) {
+        console.error('Failed to fetch friends', error);
+      }
+    };
+
+    if (currentUser) {
+      void fetchFriends();
+    }
+  }, [currentUser?.id]);
+
+  // Fetch which friends have already been invited to this event
+  useEffect(() => {
+    const fetchOutgoingInvites = async () => {
+      try {
+        setInvitesLoading(true);
+        const invites = await inviteService.listOutgoingInvites(String(event.id));
+        const sentFriendIds = new Set(invites.map((invite) => invite.receiverId));
+        setSentInvites(sentFriendIds);
+      } catch (error) {
+        console.error('Failed to fetch invites', error);
+      } finally {
+        setInvitesLoading(false);
+      }
+    };
+
+    if (currentUser) {
+      void fetchOutgoingInvites();
+    }
+  }, [currentUser?.id, event.id]);
+
+  // Fetch incoming invites to check if user is invited to this event
+  useEffect(() => {
+    const fetchInvites = async () => {
+      if (!currentUser) {
+        setIsInvited(false);
+        setInviteId(null);
+        setIsInviteCheckLoading(false);
+        return;
+      }
+
+      setIsInviteCheckLoading(true);
+      try {
+        const invites = await userService.getMyInvitedEvents();
+        const eventInvite = invites.find((inv) => inv.id === event.id);
+
+        if (eventInvite?.invite) {
+          setIsInvited(true);
+          setInviteId(eventInvite.invite.id);
+        } else {
+          setIsInvited(false);
+          setInviteId(null);
+        }
+      } catch (error) {
+        console.error('Failed to fetch invites', error);
+        setIsInvited(false);
+        setInviteId(null);
+      } finally {
+        setIsInviteCheckLoading(false);
+      }
+    };
+
+    void fetchInvites();
+  }, [currentUser?.id, event.id]);
+
   return {
     event,
     isAuthor,
@@ -139,10 +293,20 @@ export const useEventPage = () => {
     countAttending,
     isLoading,
     isMapOpen,
+    invitesLoading,
+    isInviteCheckLoading,
     setIsMapOpen,
     selectedImageIndex,
     setSelectedImageIndex,
     shareOpen,
+    inviteOpen,
+    setInviteOpen,
+    isInvited,
+    inviteId,
+    handleAcceptInvite,
+    handleDeclineInvite,
+    invitingIds,
+    sentInvites,
     setShareOpen,
     formattedDate,
     location,
@@ -152,6 +316,8 @@ export const useEventPage = () => {
     handlePrev,
     handleNext,
     handleShare,
+    handleInvite,
+    handleInviteFriend,
     handleCopyLink,
     handleChat,
     handleGoing,
@@ -160,5 +326,6 @@ export const useEventPage = () => {
     shareText,
     shareUrl,
     copied,
+    invitableFriends: friends,
   };
 };

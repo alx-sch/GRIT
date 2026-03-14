@@ -24,6 +24,7 @@ import { AuthModule } from '@/auth/auth.module';
 import { ChatModule } from './chat/chat.module';
 import { ConversationModule } from './conversation/conversation.module';
 import { FriendsModule } from './friends/friends.module';
+import { InvitesModule } from './invites/invites.module';
 
 /**
  * Filter for NestJS's default error handling for enrichment with Zod and Prisma errors
@@ -68,6 +69,7 @@ class HttpExceptionFilter extends BaseExceptionFilter {
     ChatModule,
     ConversationModule,
     FriendsModule,
+    InvitesModule,
   ],
   controllers: [AppController],
   providers: [

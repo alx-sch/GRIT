@@ -29,6 +29,34 @@ export const ResMyEventSchema = z.object({
 export const ResMyEventsSchema = z.array(ResMyEventSchema);
 export type ResMyEvents = z.infer<typeof ResMyEventsSchema>;
 
+export const ResMyInvitedEventSchema = z.object({
+  id: z.number().int().positive(),
+  title: z.string(),
+  slug: z.string(),
+  startAt: z.iso.datetime(),
+  endAt: z.iso.datetime(),
+  isOrganizer: z.boolean(),
+  imageKey: z.string().nullable().optional(),
+  location: ResEventLocationSchema.nullable().optional(),
+  conversationId: z.string().optional(),
+  isPublished: z.boolean(),
+  isPublic: z.boolean(),
+  author: z.object({
+    id: z.number().int().positive(),
+    name: z.string(),
+    avatarKey: z.string().nullable().optional(),
+  }),
+  invite: z
+    .object({
+      id: z.string(),
+      status: z.string(),
+    })
+    .nullable()
+    .optional(),
+});
+export const ResMyInvitedEventsSchema = z.array(ResMyInvitedEventSchema);
+export type ResMyInvitedEvents = z.infer<typeof ResMyInvitedEventsSchema>;
+
 export const ResUserBaseSchema = z.object({
   id: z.number().int().positive(),
   name: z.string(),
