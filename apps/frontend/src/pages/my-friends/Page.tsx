@@ -381,7 +381,8 @@ function FriendsSection({ friends, onChat, onRemove }: FriendsSectionProps) {
             <>
               <ArrowDownZA className="h-4 w-4" />
             </>
-          )}``
+          )}
+          ``
         </Button>
       </div>
       <UserGrid>
