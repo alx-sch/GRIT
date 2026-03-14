@@ -107,7 +107,7 @@ async function uploadToBucket(bucketName: string, localFilePath: string, origina
 async function main() {
   console.log('--- Seeding database...');
 
-  const TEST_RECORD_COUNT = 1000;
+  const TEST_RECORD_COUNT = 500;
   const DEFAULT_TEST_PASSWORD = 'password123';
   const AVATAR_BUCKET = 'user-avatars';
   const EVENT_BUCKET = 'event-images';
@@ -145,6 +145,7 @@ async function main() {
   ];
 
   // seed much more users into db for testing
+  console.log(`Seeding ${String(TEST_RECORD_COUNT)} test user...`);
   for (let i = 1; i <= TEST_RECORD_COUNT; i++) {
     usersToCreate.push({
       email: `test${String(i)}@example.com`,
@@ -227,6 +228,7 @@ async function main() {
   ];
 
   // seed much more locations for testing
+  console.log(`Seeding ${String(TEST_RECORD_COUNT)} test locations...`);
   for (let i = 1; i <= TEST_RECORD_COUNT; i++) {
     locationsToCreate.push({
       name: `Test Location ${String(i)}`,
@@ -313,6 +315,7 @@ async function main() {
   ];
 
   // add much more events for testing (pagination etc)
+  console.log(`Seeding ${String(TEST_RECORD_COUNT)} test events...`);
   for (let i = 1; i <= TEST_RECORD_COUNT; i++) {
     const startDate = new Date('2024-04-01T18:00:00Z');
     // spread out starting dates
@@ -439,9 +442,9 @@ async function main() {
     if (attendee?.name) console.log(`✅ ${attendee.name} is now attending the Party`);
   }
 
-  //////////////////////
+  ////////////////////////
   // FRIENDSHIP SEEDING //
-  //////////////////////
+  ////////////////////////
 
   console.log('--- Seeding Friendships ---');
 
@@ -522,6 +525,42 @@ async function main() {
       }),
     ]);
     console.log(`👫 Bob & Cindy are now friends`);
+  }
+
+  ///////////////////////////////////////////
+  // ALICE <-> ALL TEST USERS FRIENDSHIPS  //
+  ///////////////////////////////////////////
+
+  console.log('--- Seeding Alice & Test User Friendships ---');
+
+  // grab all auto-generates test users
+  const testUsers = await prisma.user.findMany({
+    where: {
+      email: {
+        startsWith: 'test',
+      },
+    },
+    select: { id: true }, // only need their IDs
+  });
+
+  // Build the array of bidirectional friendships
+  const bulkFriendships = [];
+  for (const testUser of testUsers) {
+    // Alice -> Test User
+    bulkFriendships.push({ userId: aliceFromDb.id, friendId: testUser.id });
+    // Test User -> Alice
+    bulkFriendships.push({ userId: testUser.id, friendId: aliceFromDb.id });
+  }
+
+  // Bulk insert them
+  if (bulkFriendships.length > 0) {
+    await prisma.friends.createMany({
+      data: bulkFriendships,
+      skipDuplicates: true,
+    });
+    console.log(
+      `👫 Alice is now friends with ${String(testUsers.length)} test users! Popular girl.`
+    );
   }
 }
 
