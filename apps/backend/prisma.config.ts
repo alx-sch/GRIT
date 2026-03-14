@@ -17,6 +17,6 @@ export default defineConfig({
   },
   migrations: {
     path: './prisma/migrations',
-    seed: 'tsx --tsconfig tsconfig.json prisma/seed.ts',
+    seed: 'tsx --no-deprecation --tsconfig tsconfig.json prisma/seed.ts',
   },
 });
