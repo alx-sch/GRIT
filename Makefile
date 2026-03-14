@@ -167,7 +167,7 @@ clean-backup:
 
 # Helper to wipe Turbo's stale daemon files
 clean-turbo:
-	@echo "$(BOLD)$(YELLOW)--- Cleaning stale Turbo daemons ...$(RESET)"
+	@echo "$(BOLD)$(YELLOW)--- Cleaning stale Turbo daemons...$(RESET)"
 	@rm -rf /tmp/turbod/
 
 # Cleans everything related to this project: builds, node_modules, DB container, volumes, backups:
@@ -259,54 +259,54 @@ test: clean-turbo test-be test-fe
 
 # Run all Tests for backend only
 test-be:
-	@echo "$(BOLD)$(YELLOW)--- Starting Backend Tests ...$(RESET)"
+	@echo "$(BOLD)$(YELLOW)--- Starting Backend Tests...$(RESET)"
 	@$(MAKE) --no-print-directory test-be-unit
 # 	@$(MAKE) test-be-integration
 	@$(MAKE) --no-print-directory test-be-e2e
 
 # Separate commands for unit, integration and e2e test for faster and cheaper failing in CI
 test-be-unit: install-be
-	@echo "$(BOLD)$(YELLOW)--- Running Backend Unit Tests ...$(RESET)"
+	@echo "$(BOLD)$(YELLOW)--- Running Backend Unit Tests...$(RESET)"
 	@pnpm --filter @grit/backend exec prisma generate --no-hints
 	@NODE_ENV=test turbo test:unit --filter=@grit/backend --no-update-notifier
 
 test-be-integration: install-be test-be-testdb-init
-	@echo "$(BOLD)$(YELLOW)--- Running Backend Integration Tests ...$(RESET)"
+	@echo "$(BOLD)$(YELLOW)--- Running Backend Integration Tests...$(RESET)"
 	@pnpm --filter @grit/backend exec prisma generate --no-hints
 	@NODE_ENV=test turbo test:integration --filter=@grit/backend --no-update-notifier
 	@$(MAKE) test-be-testdb-remove
 
 test-be-e2e: install-be test-be-testdb-init
-	@echo "$(BOLD)$(YELLOW)--- Running Backend E2E Tests ...$(RESET)"
+	@echo "$(BOLD)$(YELLOW)--- Running Backend E2E Tests...$(RESET)"
 	@pnpm --filter @grit/backend exec prisma generate --no-hints
 	@NODE_ENV=test pnpm --filter @grit/backend test:e2e
 	@$(MAKE) test-be-testdb-remove
 
 # Helper commands
 test-be-testdb-init: start-postgres
-	@echo "$(BOLD)$(YELLOW)--- Creating Test Database ...$(RESET)"
+	@echo "$(BOLD)$(YELLOW)--- Creating Test Database...$(RESET)"
 	@$(DC) exec -T postgres-db psql -h 127.0.0.1 -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
 	@$(DC) exec -T postgres-db psql -h 127.0.0.1 -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
 	@NODE_ENV=test pnpm --filter @grit/backend exec prisma db push
 
 test-be-testdb-remove:
-	@echo "$(BOLD)$(YELLOW)--- Removing Test Database ...$(RESET)"
+	@echo "$(BOLD)$(YELLOW)--- Removing Test Database...$(RESET)"
 	@$(DC) exec -T postgres-db psql -h 127.0.0.1 -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
 
 ## Frontend ##
 
 test-fe:
-	@echo "$(BOLD)$(YELLOW)--- Starting Tests ...$(RESET)"
+	@echo "$(BOLD)$(YELLOW)--- Starting Tests...$(RESET)"
 	@$(MAKE) --no-print-directory test-fe-integration
 	@$(MAKE) --no-print-directory test-fe-e2e
 
 # Helper
 test-fe-integration: install-fe
-	@echo "$(BOLD)$(YELLOW)--- Running Frontend Integration Tests ...$(RESET)"
+	@echo "$(BOLD)$(YELLOW)--- Running Frontend Integration Tests...$(RESET)"
 	@NODE_ENV=test turbo test:integration --filter=@grit/frontend --no-update-notifier
 
 test-fe-e2e: install-fe install-playwright
-	@echo "$(BOLD)$(YELLOW)--- Running Frontend E2E Tests ...$(RESET)"
+	@echo "$(BOLD)$(YELLOW)--- Running Frontend E2E Tests...$(RESET)"
 	@pnpm --filter @grit/frontend exec playwright test
 
 #############################
