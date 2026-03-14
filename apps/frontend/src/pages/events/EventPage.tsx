@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { BackButton } from '@/components/ui/backButton';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { GmapPreview } from '@/components/ui/gmapPreview';
 import { Heading, Text } from '@/components/ui/typography';
 import { getEventImageUrl } from '@/lib/image_utils';
@@ -208,11 +209,21 @@ export const EventPage = () => {
 
           {/* Action buttons - CONDITIONAL RENDERING */}
           {isInvited && inviteId ? (
-            <EventAttendanceDropdown
-              onAccept={handleAcceptInvite}
-              onDecline={handleDeclineInvite}
-              isLoading={isLoading}
-            />
+            <Card className="w-full border-0 bg-transparent shadow-none md:border md:bg-card md:shadow md:mt-5">
+              <CardHeader className="hidden md:block">
+                <CardTitle className="flex uppercase items-center text-xl gap-2">
+                  <span className="font-semibold">&gt;</span>
+                  <Text className="text-xl font-heading">Menu</Text>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-row justify-between items-center pt-3">
+                <EventAttendanceDropdown
+                  onAccept={handleAcceptInvite}
+                  onDecline={handleDeclineInvite}
+                  isLoading={isLoading}
+                />
+              </CardContent>
+            </Card>
           ) : (
             <EventPageActions
               canInvite={canInvite}

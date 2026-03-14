@@ -39,16 +39,16 @@ export function EventAttendanceDropdown({
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="default" disabled={isLoading || isSubmitting}>
+        <Button variant="default" disabled={isLoading || isSubmitting} className="w-full">
           Respond to Invite
           <ChevronDown className="w-4 h-4 ml-2" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
+      <DropdownMenuContent align="center" className="min-w-32">
         <DropdownMenuItem
           onClick={() => void handleAccept()}
           disabled={isSubmitting}
-          className="cursor-pointer"
+          className="cursor-pointer justify-center"
         >
           <Check className="w-4 h-4 mr-2 text-green-600" />
           <span>Accept</span>
@@ -56,7 +56,7 @@ export function EventAttendanceDropdown({
         <DropdownMenuItem
           onClick={() => void handleDecline()}
           disabled={isSubmitting}
-          className="cursor-pointer"
+          className="cursor-pointer justify-center"
         >
           <X className="w-4 h-4 mr-2 text-red-600" />
           <span>Decline</span>
