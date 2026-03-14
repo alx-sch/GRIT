@@ -1,6 +1,8 @@
 import { Page } from '@/pages/my-events/Page';
 import { userService } from '@/services/userService';
 import { eventService } from '@/services/eventService';
+import { friendService } from '@/services/friendService';
+import { inviteService } from '@/services/inviteService';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
@@ -10,12 +12,25 @@ import type { ResMyEvents } from '@grit/schema';
 vi.mock('@/services/userService', () => ({
   userService: {
     getMyEvents: vi.fn(),
+    getMyInvitedEvents: vi.fn(),
   },
 }));
 
 vi.mock('@/services/eventService', () => ({
   eventService: {
     patchEvent: vi.fn(),
+  },
+}));
+
+vi.mock('@/services/friendService', () => ({
+  friendService: {
+    listFriends: vi.fn(),
+  },
+}));
+
+vi.mock('@/services/inviteService', () => ({
+  inviteService: {
+    listOutgoingInvites: vi.fn(),
   },
 }));
 
@@ -77,6 +92,9 @@ describe('My Events Page', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(userService.getMyInvitedEvents).mockResolvedValue([] as never);
+    vi.mocked(friendService.listFriends).mockResolvedValue({ data: [] } as never);
+    vi.mocked(inviteService.listOutgoingInvites).mockResolvedValue([] as never);
   });
 
   const renderPage = async (events: ResMyEvents = []) => {
