@@ -68,8 +68,8 @@ async function fetchAllFriends(): Promise<ResFriendBase[]> {
 
 export const friendsLoader = async (): Promise<FriendsLoaderData> => {
   const [pendingIncoming, pendingOutgoing, friendsList] = await Promise.all([
-    friendService.listIncomingRequests({ limit: '100' }),
-    friendService.listOutgoingRequests({ limit: '100' }),
+    friendService.listIncomingRequests({ limit: PAGE_SIZE }),
+    friendService.listOutgoingRequests({ limit: PAGE_SIZE }),
     fetchAllFriends(),
   ]);
   return { pendingIncoming, pendingOutgoing, friendsList };
