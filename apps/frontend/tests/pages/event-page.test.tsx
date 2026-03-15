@@ -129,10 +129,27 @@ describe('EventPage', () => {
   function renderEventPage() {
     const router = createMemoryRouter(
       [
-        { path: '/events/:id', Component: EventPage, loader: eventLoader },
-        { path: '/login', Component: () => <div>Login Page</div> },
-        { path: '/chat/:id', Component: () => <div>Chat Page</div> },
-        { path: '/events', Component: () => <div>Events Feed</div> },
+        {
+          path: '/events/:id',
+          Component: EventPage,
+          loader: eventLoader,
+          HydrateFallback: () => <div>Loading...</div>,
+        },
+        {
+          path: '/login',
+          Component: () => <div>Login Page</div>,
+          HydrateFallback: () => <div>Loading...</div>,
+        },
+        {
+          path: '/chat/:id',
+          Component: () => <div>Chat Page</div>,
+          HydrateFallback: () => <div>Loading...</div>,
+        },
+        {
+          path: '/events',
+          Component: () => <div>Events Feed</div>,
+          HydrateFallback: () => <div>Loading...</div>,
+        },
       ],
       { initialEntries: ['/events/1'] }
     );
@@ -239,8 +256,10 @@ describe('EventPage', () => {
         expect(screen.getByRole('heading', { name: /test event/i })).toBeInTheDocument();
       });
       // Only action buttons (Going, Invite, Share, Chat + Back) — no edit/delete
-      const buttons = screen.getAllByRole('button');
-      expect(buttons).toHaveLength(5);
+      await waitFor(() => {
+        const buttons = screen.getAllByRole('button');
+        expect(buttons).toHaveLength(5);
+      });
     });
   });
 

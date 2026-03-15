@@ -10,6 +10,8 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useState } from 'react';
 import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 import { TimeSelect } from '@/components/ui/time-select';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 export interface DatePickerProps {
   selected?: DateRange;
@@ -193,6 +195,10 @@ export function DatePicker({
       <Drawer open={open} onOpenChange={setOpen}>
         <DrawerTrigger asChild>{trigger}</DrawerTrigger>
         <DrawerContent className="flex flex flex-col items-center p-2 pb-8">
+          <VisuallyHidden>
+            <DialogTitle>Select date</DialogTitle>
+            <DialogDescription>Use the calendar below to select a date.</DialogDescription>
+          </VisuallyHidden>
           {mobileSelectionSummary}
           <div className="flex justify-center w-full">{calendarWithTime}</div>
           <div className="w-full flex justify-end mt-4 px-2">
@@ -216,6 +222,10 @@ export function DatePicker({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>{trigger}</PopoverTrigger>
       <PopoverContent className="w-auto p-0 border-0 shadow-none" align="end" collisionPadding={16}>
+        <VisuallyHidden>
+          <DialogTitle>Select date</DialogTitle>
+          <DialogDescription>Use the calendar below to select a date.</DialogDescription>
+        </VisuallyHidden>
         {calendarWithTime}
       </PopoverContent>
     </Popover>
