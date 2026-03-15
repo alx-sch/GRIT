@@ -60,7 +60,7 @@ async function fetchAllFriends(): Promise<ResFriendBase[]> {
     const result = await friendService.listFriends({ limit: PAGE_SIZE, cursor });
     allFriends.push(...result.data);
     hasMore = result.pagination.hasMore;
-    cursor = result.pagination.nextCursor || undefined;
+    cursor = result.pagination.nextCursor ?? undefined;
   }
 
   return allFriends;

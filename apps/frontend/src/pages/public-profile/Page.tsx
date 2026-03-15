@@ -12,6 +12,23 @@ import { PrivateProfileView } from './components/PrivateProfileView';
 import { ProfileHeader } from './components/ProfileHeader';
 import { ProfileTabs } from './components/ProfileTabs';
 
+const fetchAllRequests = async (
+  type: 'incoming' | 'outgoing',
+  accumulated: any[] = [],
+  cursor?: string
+): Promise<any[]> => {
+  const service =
+    type === 'incoming' ? friendService.listIncomingRequests : friendService.listOutgoingRequests;
+
+  const response = await service({ limit: '100', cursor });
+  const all = [...accumulated, ...response.data];
+
+  if (response.pagination.hasMore && response.pagination.nextCursor) {
+    return fetchAllRequests(type, all, response.pagination.nextCursor);
+  }
+  return all;
+};
+
 export const publicProfileLoader = async ({ params }: LoaderFunctionArgs) => {
   const id = parseInt(params.id ?? '', 10);
   if (isNaN(id)) {
