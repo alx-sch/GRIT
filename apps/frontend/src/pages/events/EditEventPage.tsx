@@ -9,6 +9,7 @@ import { EventBase } from '@/types/event';
 import { LocationBase } from '@/types/location';
 import { useMemo } from 'react';
 import { LoaderFunctionArgs, useRevalidator } from 'react-router-dom';
+import { toast } from 'sonner';
 
 export const editEventLoader = async ({ params }: LoaderFunctionArgs) => {
   if (!params.id) throw new Response('Not Found', { status: 404 });
@@ -43,10 +44,18 @@ export default function EditEventPage() {
     pagination: locationPagination,
     loadMore,
     addItem: addLocation,
-  } = useInfiniteScroll(locationsWithSelected, initialPagination, async (cursor) => {
-    const res = await locationService.getLocations({ cursor });
-    return { data: res.data, pagination: res.pagination };
-  });
+  } = useInfiniteScroll(
+    locationsWithSelected,
+    initialPagination,
+    async (cursor) => {
+      const res = await locationService.getLocations({ cursor });
+      return { data: res.data, pagination: res.pagination };
+    },
+    [],
+    () => {
+      toast.error('Failed to load more locations. Please try again.');
+    }
+  );
 
   const handleLocationMenuScrollToBottom = () => {
     if (locationPagination.hasMore && !isLoadingLocations) {

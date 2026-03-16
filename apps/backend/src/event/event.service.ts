@@ -35,7 +35,7 @@ export class EventService {
    * HELPER: Resolves an event ID from either a numeric ID string or a Slug.
    * Also checks if user has permission to delete event
    */
-  private async resolveEventId(idOrSlug: string): Promise<number> {
+  async resolveEventId(idOrSlug: string): Promise<number> {
     const event = await this.prisma.event.findFirst({
       where: {
         OR: [{ slug: idOrSlug }, { id: isNaN(Number(idOrSlug)) ? undefined : Number(idOrSlug) }],
@@ -106,7 +106,7 @@ export class EventService {
     // First two functions -----> event.utils.ts
     const where: Prisma.EventWhereInput = eventSearchFilter(input, userId);
     const cursorFilter = eventCursorFilter(input);
-    const finalWhere = { ...where, ...cursorFilter };
+    const finalWhere = { ...where, ...cursorFilter, isPublished: true };
     const { limit, sort } = input;
     const orderByMap: Record<string, object[]> = {
       'date-asc': [{ startAt: 'asc' }, { id: 'asc' }],
@@ -182,16 +182,36 @@ export class EventService {
           select: { user: { select: { id: true, name: true, avatarKey: true } } },
         },
         conversation: { select: { id: true } },
+        invites: {
+          where: { receiverId: userId },
+          select: { id: true },
+        },
       },
     });
 
-    if (!event_raw || (!event_raw.isPublished && event_raw.authorId !== userId)) {
-      throw new NotFoundException('Event not found');
+    if (!event_raw) {
+      throw new NotFoundException(`Event "${idOrSlug}" not found`);
+    }
+
+    const isOwner = event_raw.authorId === userId;
+    const isAttending = event_raw.attendees.some((a) => a.user.id === userId);
+    const isInvited = event_raw.invites.length > 0;
+
+    const hasAccess = // If any of these three lines evaluate to true, user has access:
+      (event_raw.isPublished && event_raw.isPublic) || // If event published and public.
+      (event_raw.isPublished && !event_raw.isPublic && (isOwner || isInvited || isAttending)) || // If event published and private, and user is owner, invited or attending.
+      (!event_raw.isPublished && isOwner); // If event is not published and user is owner.
+
+    if (!hasAccess) {
+      if (!event_raw.isPublished)
+        throw new NotFoundException('This event is under construction. Stay tuned!');
+      throw new NotFoundException(`Event "${idOrSlug}" not found`);
     }
 
     return {
       ...event_raw,
       attendees: event_raw.attendees.map((a) => a.user),
+      invites: undefined,
     };
   }
 
@@ -465,49 +485,69 @@ export class EventService {
     if (duplicate) {
       throw new BadRequestException(`Identical event already exists`);
     }
-    const slug = eventGenerateSlug(data.title);
-    const createdEvent = await this.prisma.event.create({
-      data: {
-        title: data.title,
-        slug: slug,
-        content: data.content,
-        startAt: data.startAt,
-        endAt: data.endAt,
-        isPublic: data.isPublic,
-        isPublished: data.isPublished,
-        imageKey: data.imageKey,
-        attendees: {
-          create: {
-            userId: data.authorId,
-          },
-        },
-        author: {
-          connect: { id: data.authorId },
-        },
-        conversation: {
-          create: {
-            type: ConversationType.EVENT,
-            createdBy: data.authorId,
-            participants: {
-              create: [{ userId: data.authorId }],
-            },
-          },
-        },
-        ...(data.locationId
-          ? {
-              location: {
-                connect: { id: data.locationId },
+
+    let attempts = 0;
+    const maxAttempts = 3;
+
+    while (attempts < maxAttempts) {
+      try {
+        const slug = eventGenerateSlug(data.title);
+        const createdEvent = await this.prisma.event.create({
+          data: {
+            title: data.title,
+            slug: slug,
+            content: data.content,
+            startAt: data.startAt,
+            endAt: data.endAt,
+            isPublic: data.isPublic,
+            isPublished: data.isPublished,
+            imageKey: data.imageKey,
+            attendees: {
+              create: {
+                userId: data.authorId,
               },
+            },
+            author: {
+              connect: { id: data.authorId },
+            },
+            conversation: {
+              create: {
+                type: ConversationType.EVENT,
+                createdBy: data.authorId,
+                participants: {
+                  create: [{ userId: data.authorId }],
+                },
+              },
+            },
+            ...(data.locationId
+              ? {
+                  location: {
+                    connect: { id: data.locationId },
+                  },
+                }
+              : {}),
+          },
+          include: {
+            author: true,
+            location: true,
+          },
+        });
+        await this.chatGateway.resyncUserRooms(data.authorId);
+        return createdEvent;
+      } catch (error: unknown) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+          if (error.code === 'P2002') {
+            const target = error.meta?.target as string[] | undefined;
+            if (target?.includes('slug')) {
+              attempts++;
+              continue;
             }
-          : {}),
-      },
-      include: {
-        author: true,
-        location: true,
-      },
-    });
-    await this.chatGateway.resyncUserRooms(data.authorId);
-    return createdEvent;
+          }
+        }
+        throw error;
+      }
+    }
+    throw new Error('Could not generate a unique event slug after multiple attempts.');
   }
 
   async eventExists(id: number) {

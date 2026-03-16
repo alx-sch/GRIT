@@ -66,7 +66,6 @@ export function ImageCropDialog({
 
       onCropComplete(croppedFile);
     } catch (error) {
-      console.error('Error cropping image:', error);
       alert(error instanceof Error ? error.message : 'Failed to crop image. Please try again.');
     } finally {
       setIsProcessing(false);

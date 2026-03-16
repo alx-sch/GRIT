@@ -1,5 +1,15 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, User, LogOut, Calendar, ChevronDown, Users, MessageSquare } from 'lucide-react';
+import {
+  Menu,
+  X,
+  User,
+  LogOut,
+  Calendar,
+  ChevronDown,
+  Users,
+  MessageSquare,
+  Loader2,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   NavigationMenu,
@@ -38,6 +48,7 @@ export function Navbar() {
   const navConfig: NavRoute[] = [...useBaseNavConfig()];
   const isLoggedIn = useAuthStore((s) => !!s.token);
   const user = useCurrentUserStore((s) => s.user);
+  const isAvatarTransitioning = useCurrentUserStore((s) => s.isAvatarTransitioning);
   const displayName = user?.name ?? user?.email ?? 'User';
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -140,7 +151,15 @@ export function Navbar() {
                         isActive('/profile') ? 'text-foreground' : ''
                       )}
                     >
-                      <UserAvatar user={user ?? {}} size="xs" />
+                      <div className="relative">
+                        <UserAvatar user={user ?? {}} size="xs" />
+                        {/* Transitioning overlay */}
+                        {isAvatarTransitioning && (
+                          <div className="absolute inset-0 bg-black/80 rounded-full flex items-center justify-center">
+                            <Loader2 className="w-3 h-3 text-white animate-spin" />
+                          </div>
+                        )}
+                      </div>
                       <span className="normal-case">{displayName}</span>
                     </button>
                     <AnimatedUnderline
@@ -199,7 +218,15 @@ export function Navbar() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <div className="flex items-center gap-3 pb-4 mb-4 border-b border-border cursor-pointer">
-                      <UserAvatar user={user ?? {}} size="sm" />
+                      <div className="relative">
+                        <UserAvatar user={user ?? {}} size="sm" />
+                        {/* Transitioning overlay */}
+                        {isAvatarTransitioning && (
+                          <div className="absolute inset-0 bg-black/80 rounded-full flex items-center justify-center">
+                            <Loader2 className="w-4 h-4 text-white animate-spin" />
+                          </div>
+                        )}
+                      </div>
                       <div className="flex flex-col flex-1">
                         <span className="font-semibold">{displayName}</span>
                       </div>

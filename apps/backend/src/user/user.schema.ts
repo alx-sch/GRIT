@@ -1,4 +1,9 @@
-import { ResUserBaseSchema, ResUserEventsSchema, ResMyEventsSchema } from '@grit/schema';
+import {
+  ResUserBaseSchema,
+  ResUserEventsSchema,
+  ResMyEventsSchema,
+  ResMyInvitedEventsSchema,
+} from '@grit/schema';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
@@ -94,6 +99,7 @@ export class ResUserPostDto extends createZodDto(ResUserPostSchema) {}
 export class ReqUserPostDto extends createZodDto(ReqUserPostSchema) {}
 export class ResUserEventsDto extends createZodDto(ResUserEventsSchema) {}
 export class ResMyEventsDto extends createZodDto(ResMyEventsSchema) {}
+export class ResMyInvitedEventsDto extends createZodDto(ResMyInvitedEventsSchema) {}
 export class ReqUserConfirmDto extends createZodDto(ReqUserConfirmSchema) {}
 export class ReqUserGetByIdDto extends createZodDto(ReqUserGetByIdSchema) {}
 export class ReqUserDeleteAvatarDto extends createZodDto(ReqUserDeleteAvatarSchema) {}

@@ -47,9 +47,6 @@ const envValidation = frontendEnvSchema.safeParse({
 });
 
 if (!envValidation.success) {
-  const pretty = z.prettifyError(envValidation.error);
-  console.error('❌ Invalid Frontend Environment Variables:');
-  console.error(pretty);
   throw new Error('Invalid environment variables');
 }
 

@@ -38,6 +38,11 @@ export const friendService = {
     return response.data;
   },
 
+  cancelRequest: async (requestId: string): Promise<FriendRequestBase> => {
+    const response = await api.delete<FriendRequestBase>(`/users/me/friends/requests/${requestId}`);
+    return response.data;
+  },
+
   removeFriend: async (friendId: number): Promise<FriendBase> => {
     const response = await api.delete<FriendBase>(`/users/me/friends/${String(friendId)}`);
     return response.data;

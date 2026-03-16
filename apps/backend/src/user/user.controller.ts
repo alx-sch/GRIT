@@ -30,6 +30,7 @@ import {
   ReqUserPatchByIdDto,
   ReqUserDeleteAvatarDto,
   ResMyEventsDto,
+  ResMyInvitedEventsDto,
   ResUserDeleteSchema,
   ResUserPatchSchema,
 } from '@/user/user.schema';
@@ -88,6 +89,15 @@ export class UserController {
     return await this.userService.userGetEvents(userId);
   }
 
+  // Get user invited events
+  @Get('me/events/invited')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(ResMyInvitedEventsDto)
+  async getMyInvitedEvents(@GetUser('id') userId: number) {
+    return await this.userService.userGetInvitedEvents(userId);
+  }
+
   // Delete logged in user
   @Delete('me')
   @ApiBearerAuth()
@@ -104,6 +114,15 @@ export class UserController {
   @ZodSerializerDto(ResUserBaseDto)
   async deleteAvatar(@GetUser('id') userId: number): Promise<ResUserBaseDto> {
     return await this.userService.userDeleteAvatar(userId);
+  }
+
+  // Set random avatar
+  @Post('me/random-avatar')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ZodSerializerDto(ResUserBaseDto)
+  async setRandomAvatar(@GetUser('id') userId: number): Promise<ResUserBaseDto> {
+    return await this.userService.userSetRandomAvatar(userId);
   }
 
   // ADD IMAGE UPLOAD ROUTINE

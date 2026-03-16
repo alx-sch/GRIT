@@ -12,6 +12,7 @@ import { isAxiosError } from 'axios';
 import { AlertCircleIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { Control, SubmitHandler, useForm, useWatch } from 'react-hook-form';
+import { toast } from 'sonner';
 
 //Key for local Storage
 const DRAFT_KEY = 'location-draft';
@@ -96,8 +97,10 @@ export default function LocationForm({ onSuccess, onCancel }: LocationFormProps)
       const newLocation = await locationService.postLocation(payload);
       localStorage.removeItem(DRAFT_KEY);
       onSuccess(newLocation);
+      toast.success('New location created');
     } catch (error) {
       let message = 'Something went wrong. Please try again.';
+      toast.error(message);
       if (isAxiosError(error)) {
         const data = error.response?.data as { message?: string } | undefined;
         if (data?.message) {
