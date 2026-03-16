@@ -30,6 +30,7 @@
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@radix-ui/react-visually-hidden": "^1.2.4",
     "@vis.gl/react-google-maps": "^1.7.1",
     "axios": "^1.6.0",
     "class-variance-authority": "^0.7.1",

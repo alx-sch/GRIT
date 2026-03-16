@@ -7,8 +7,8 @@ import { CalendarDays, Plus } from 'lucide-react';
 import { userService } from '@/services/userService';
 import { useNavigate } from 'react-router-dom';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
-import type { ResMyEvents } from '@grit/schema';
-import { useState } from 'react';
+import type { ResMyEvents, ResMyInvitedEvents } from '@grit/schema';
+import { useState, useEffect } from 'react';
 import { EmptyState } from './components/EmptyState';
 import { MyEventsSortDropdown, SortMode } from './components/MyEventsSortDropdown';
 import { MyEventCard } from './components/MyEventCard';
@@ -16,6 +16,7 @@ import { useEventActions } from './hooks/useEventActions';
 import { Text } from '@/components/ui/typography';
 
 type ResMyEvent = ResMyEvents[number];
+type ResMyInvitedEvent = ResMyInvitedEvents[number];
 
 export const myEventsLoader = async () => {
   return userService.getMyEvents();
@@ -25,7 +26,22 @@ export function Page() {
   const events = useTypedLoaderData<ResMyEvents>();
   const navigate = useNavigate();
   const [sortMode, setSortMode] = useState<SortMode>('drafts-first');
+  const [invitedEvents, setInvitedEvents] = useState<ResMyInvitedEvents>([]);
   const { publishEvent, unpublishEvent, optimisticUpdates } = useEventActions();
+  const { acceptInvite } = useEventActions();
+  const { declineInvite } = useEventActions();
+
+  useEffect(() => {
+    const loadInvitedEvents = async () => {
+      try {
+        const data = await userService.getMyInvitedEvents();
+        setInvitedEvents(data);
+      } catch (error) {
+        console.error('Failed to load invited events:', error);
+      }
+    };
+    void loadInvitedEvents();
+  }, []);
 
   const now = new Date();
 
@@ -105,6 +121,39 @@ export function Page() {
     );
   };
 
+  const renderInvitationsList = (filteredEvents: ResMyInvitedEvent[]) => {
+    if (filteredEvents.length === 0) {
+      return (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+            <CalendarDays className="w-12 h-12 text-muted-foreground mb-3" />
+            <Text className="text-muted-foreground">No pending invitations</Text>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return (
+      <div className="grid gap-4">
+        {filteredEvents.map((event) => (
+          <MyEventCard
+            key={event.id}
+            event={event}
+            onAccept={acceptInvite}
+            onDecline={declineInvite}
+            onAcceptSuccess={() => {
+              setInvitedEvents((prev) => prev.filter((e) => e.id !== event.id));
+            }}
+            onDeclineSuccess={() => {
+              setInvitedEvents((prev) => prev.filter((e) => e.id !== event.id));
+            }}
+            onViewDetails={(slug) => void navigate(`/events/${slug}`)}
+          />
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-8">
       <BackButton label="Back to Profile" onClick={() => void navigate('/profile')} />
@@ -122,20 +171,35 @@ export function Page() {
         )}
       </div>
 
-      {events.length === 0 ? (
+      {events.length === 0 && invitedEvents.length === 0 ? (
         <EmptyState />
       ) : (
         <Tabs defaultValue="upcoming" className="w-full">
           <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center md:gap-2">
-            <TabsList variant="brutalist" className="w-full md:w-auto">
-              <TabsTrigger value="upcoming" variant="brutalist" className="text-xs md:text-sm">
+            <TabsList variant="brutalist" className="w-full md:w-auto overflow-x-auto">
+              <TabsTrigger
+                value="upcoming"
+                variant="brutalist"
+                className="text-xs md:text-sm shrink-0"
+              >
                 Upcoming ({upcomingEvents.length})
               </TabsTrigger>
-              <TabsTrigger value="past" variant="brutalist" className="text-xs md:text-sm">
-                Past ({pastEvents.length})
-              </TabsTrigger>
-              <TabsTrigger value="organizing" variant="brutalist" className="text-xs md:text-sm">
+              <TabsTrigger
+                value="organizing"
+                variant="brutalist"
+                className="text-xs md:text-sm shrink-0"
+              >
                 Organizing ({organizingEvents.length})
+              </TabsTrigger>
+              <TabsTrigger
+                value="invitations"
+                variant="brutalist"
+                className="text-xs md:text-sm shrink-0"
+              >
+                Invitations ({invitedEvents.length})
+              </TabsTrigger>
+              <TabsTrigger value="past" variant="brutalist" className="text-xs md:text-sm shrink-0">
+                Past ({pastEvents.length})
               </TabsTrigger>
             </TabsList>
 
@@ -152,6 +216,10 @@ export function Page() {
 
           <TabsContent value="organizing" className="mt-6">
             {renderEventsList(organizingEvents)}
+          </TabsContent>
+
+          <TabsContent value="invitations" className="mt-6">
+            {renderInvitationsList(invitedEvents)}
           </TabsContent>
         </Tabs>
       )}

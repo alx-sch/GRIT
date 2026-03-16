@@ -63,7 +63,10 @@ export function Page() {
     );
   }
 
-  const avatarUrl = user.avatarKey ? getAvatarImageUrl(user.avatarKey) : undefined;
+  const avatarUrl =
+    user.avatarKey && !user.avatarKey.startsWith('default-')
+      ? getAvatarImageUrl(user.avatarKey)
+      : undefined;
 
   return (
     <div className="space-y-8">

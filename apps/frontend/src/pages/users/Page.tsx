@@ -16,6 +16,7 @@ import { UserCardWithActions } from './components/UserCardWithActions';
 interface UsersLoaderData {
   users: UserResponse;
   friendshipStatuses: Record<number, FriendshipStatus>;
+  requestIds: Record<number, string>;
 }
 
 export const usersLoader = async ({ request }: LoaderFunctionArgs): Promise<UsersLoaderData> => {
@@ -26,6 +27,7 @@ export const usersLoader = async ({ request }: LoaderFunctionArgs): Promise<User
   const token = useAuthStore.getState().token;
 
   const friendshipStatuses: Record<number, FriendshipStatus> = {};
+  const requestIds: Record<number, string> = {};
   if (token) {
     try {
       const [friends, outgoing, incoming] = await Promise.all([
@@ -39,25 +41,32 @@ export const usersLoader = async ({ request }: LoaderFunctionArgs): Promise<User
       }
       for (const request of outgoing.data) {
         friendshipStatuses[request.receiverId] = 'pending_sent';
+        requestIds[request.receiverId] = request.id;
       }
       for (const request of incoming.data) {
         friendshipStatuses[request.requesterId] = 'pending_received';
+        requestIds[request.requesterId] = request.id;
       }
     } catch {
       // Not logged in or error fetching - leave statuses empty
     }
   }
 
-  return { users, friendshipStatuses };
+  return { users, friendshipStatuses, requestIds };
 };
 
 export default function Users() {
-  const { users, friendshipStatuses: initialStatuses } = useTypedLoaderData<UsersLoaderData>();
+  const {
+    users,
+    friendshipStatuses: initialStatuses,
+    requestIds: initialRequestIds,
+  } = useTypedLoaderData<UsersLoaderData>();
   const currentUser = useCurrentUserStore((s) => s.user);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [friendshipStatuses, setFriendshipStatuses] =
     useState<Record<number, FriendshipStatus>>(initialStatuses);
+  const [requestIds, setRequestIds] = useState<Record<number, string>>(initialRequestIds);
   const [loadingUsers, setLoadingUsers] = useState<Record<number, boolean>>({});
 
   const filteredUsers = useMemo(() => {
@@ -70,11 +79,28 @@ export default function Users() {
   const handleAddFriend = async (userId: number) => {
     setLoadingUsers((prev) => ({ ...prev, [userId]: true }));
     try {
-      await friendService.sendRequest(userId);
+      const response = await friendService.sendRequest(userId);
       setFriendshipStatuses((prev) => ({ ...prev, [userId]: 'pending_sent' }));
+      setRequestIds((prev) => ({ ...prev, [userId]: response.id }));
       toast.success('Friend request sent');
     } catch {
       toast.error('Failed to send friend request');
+    } finally {
+      setLoadingUsers((prev) => ({ ...prev, [userId]: false }));
+    }
+  };
+
+  const handleCancelRequest = async (userId: number) => {
+    const requestId = requestIds[userId];
+    if (!requestId) return;
+
+    setLoadingUsers((prev) => ({ ...prev, [userId]: true }));
+    try {
+      await friendService.cancelRequest(requestId);
+      setFriendshipStatuses((prev) => ({ ...prev, [userId]: 'none' }));
+      toast.info('Friend request canceled');
+    } catch {
+      toast.error('Failed to cancel friend request');
     } finally {
       setLoadingUsers((prev) => ({ ...prev, [userId]: false }));
     }
@@ -108,6 +134,7 @@ export default function Users() {
                 friendshipStatus={friendshipStatuses[user.id] ?? 'none'}
                 isLoading={loadingUsers[user.id] ?? false}
                 onAddFriend={handleAddFriend}
+                onCancelRequest={handleCancelRequest}
               />
             ))}
           </div>

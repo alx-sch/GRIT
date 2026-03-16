@@ -57,13 +57,12 @@ const backendBaseSchema = sharedPortsSchema
     HTTPS_PORT: z.coerce.number().default(443),
   })
   .transform((data) => {
-    const cleanBaseUrl = data.APP_BASE_URL?.replace(/\/$/, '');
+    const rawBaseUrl = data.APP_BASE_URL ?? `http://localhost:${String(data.FE_PORT)}`;
+    const cleanBaseUrl = rawBaseUrl.replace(/\/$/, '');
     const isBackendContainer = data.MINIO_HOST === 'minio';
 
-    const frontendUrl = cleanBaseUrl ?? `http://localhost:${String(data.FE_PORT)}`;
-    const apiBaseUrl = cleanBaseUrl
-      ? `${cleanBaseUrl}/api`
-      : `http://localhost:${String(data.BE_PORT)}`;
+    const frontendUrl = cleanBaseUrl;
+    const apiBaseUrl = `${cleanBaseUrl}/api`;
 
     const internalMinio = isBackendContainer ? `http://minio:9000` : `http://localhost:9000`;
 
@@ -77,7 +76,7 @@ const backendBaseSchema = sharedPortsSchema
 
     return {
       ...data,
-      FRONTEND_URL: frontendUrl,
+      APP_BASE_URL: cleanBaseUrl,
       API_BASE_URL: apiBaseUrl,
       MINIO_ENDPOINT: publicMinio,
       MINIO_INTERNAL_URL: internalMinio,

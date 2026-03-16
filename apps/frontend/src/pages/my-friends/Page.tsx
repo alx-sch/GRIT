@@ -21,14 +21,23 @@ import { conversationService } from '@/services/conversationService';
 import { friendService } from '@/services/friendService';
 import { userService } from '@/services/userService';
 import { useCurrentUserStore } from '@/store/currentUserStore';
-import { FriendRequestResponse, FriendResponse } from '@/types/friends';
+import { FriendRequestResponse } from '@/types/friends';
 import {
   ResConversationSingleId,
   ResFriendBase,
   ResFriendRequest,
   ResUserPublic,
 } from '@grit/schema';
-import { Check, MessageCircleMore, UserPlus, UserX, X, Eye } from 'lucide-react';
+import {
+  Check,
+  MessageCircleMore,
+  UserPlus,
+  UserX,
+  X,
+  Eye,
+  ArrowUpAZ,
+  ArrowDownZA,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useRevalidator, Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -36,14 +45,32 @@ import { toast } from 'sonner';
 interface FriendsLoaderData {
   pendingIncoming: FriendRequestResponse;
   pendingOutgoing: FriendRequestResponse;
-  friendsList: FriendResponse;
+  friendsList: ResFriendBase[];
+}
+
+const PAGE_SIZE = '100';
+
+// Helper function to fetch all friends recursively
+async function fetchAllFriends(): Promise<ResFriendBase[]> {
+  const allFriends: ResFriendBase[] = [];
+  let cursor: string | undefined;
+  let hasMore = true;
+
+  while (hasMore) {
+    const result = await friendService.listFriends({ limit: PAGE_SIZE, cursor });
+    allFriends.push(...result.data);
+    hasMore = result.pagination.hasMore;
+    cursor = result.pagination.nextCursor ?? undefined;
+  }
+
+  return allFriends;
 }
 
 export const friendsLoader = async (): Promise<FriendsLoaderData> => {
   const [pendingIncoming, pendingOutgoing, friendsList] = await Promise.all([
-    friendService.listIncomingRequests({ limit: '100' }),
-    friendService.listOutgoingRequests({ limit: '100' }),
-    friendService.listFriends({ limit: '100' }),
+    friendService.listIncomingRequests({ limit: PAGE_SIZE }),
+    friendService.listOutgoingRequests({ limit: PAGE_SIZE }),
+    fetchAllFriends(),
   ]);
   return { pendingIncoming, pendingOutgoing, friendsList };
 };
@@ -61,7 +88,7 @@ export default function FriendsPage() {
   }, []);
 
   //Cross-reference users to determine User Card actions
-  const friendIds = new Set(friends.friendsList.data.map((f) => f.friendId));
+  const friendIds = new Set(friends.friendsList.map((f) => f.friendId));
   const outgoingIds = new Set(friends.pendingOutgoing.data.map((r) => r.receiverId));
   const incomingIds = new Set(friends.pendingIncoming.data.map((r) => r.requesterId));
 
@@ -73,6 +100,16 @@ export default function FriendsPage() {
       void revalidate();
     } catch {
       toast.error('Failed to send friend request');
+    }
+  }
+
+  async function cancel(requestId: string) {
+    try {
+      await friendService.cancelRequest(requestId);
+      toast.info('Friend request canceled');
+      void revalidate();
+    } catch {
+      toast.error('Failed to cancel friend request');
     }
   }
 
@@ -136,7 +173,8 @@ export default function FriendsPage() {
         onAccept={accept}
         onDecline={decline}
       />
-      <FriendsSection friends={friends.friendsList.data} onChat={startChat} onRemove={remove} />
+      <OutgoingSection requests={friends.pendingOutgoing.data} onCancel={cancel} />
+      <FriendsSection friends={friends.friendsList} onChat={startChat} onRemove={remove} />
     </div>
   );
 }
@@ -274,6 +312,40 @@ function PendingSection({ requests, onAccept, onDecline }: PendingSectionProps) 
   );
 }
 
+interface OutgoingSectionProps {
+  requests: ResFriendRequest[];
+  onCancel: (requestId: string) => Promise<void>;
+}
+
+function OutgoingSection({ requests, onCancel }: OutgoingSectionProps) {
+  if (requests.length === 0) return null;
+  return (
+    <div className="flex flex-col gap-4">
+      <Heading level={3}>Sent Requests</Heading>
+      <UserGrid>
+        {requests.map((req) => (
+          <UserCard
+            key={req.id}
+            user={req.receiver}
+            actions={
+              <>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to={`/users/${req.receiver.id}`}>
+                    <Eye className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button variant="secondary" size="sm" onClick={() => void onCancel(req.id)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </>
+            }
+          />
+        ))}
+      </UserGrid>
+    </div>
+  );
+}
+
 interface FriendsSectionProps {
   friends: ResFriendBase[];
   onChat: (friendUserId: number) => Promise<void>;
@@ -281,6 +353,8 @@ interface FriendsSectionProps {
 }
 
 function FriendsSection({ friends, onChat, onRemove }: FriendsSectionProps) {
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
   if (friends.length === 0) {
     return (
       <EmptyState
@@ -289,11 +363,45 @@ function FriendsSection({ friends, onChat, onRemove }: FriendsSectionProps) {
       />
     );
   }
+
+  // Sort friends alphabetically by name
+  const sortedFriends = [...friends].sort((a, b) => {
+    const nameA = a.friend.name.toLowerCase();
+    const nameB = b.friend.name.toLowerCase();
+    if (sortDirection === 'asc') {
+      return nameA.localeCompare(nameB);
+    } else {
+      return nameB.localeCompare(nameA);
+    }
+  });
+
+  const toggleSort = () => {
+    setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+  };
+
   return (
     <div className="flex flex-col gap-4">
-      <Heading level={3}>All Friends</Heading>
+      <div className="flex items-center justify-between">
+        <Heading level={3}>All Friends ({friends.length})</Heading>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleSort}
+          className="gap-2"
+          title={sortDirection === 'asc' ? 'Sort Z → A' : 'Sort A → Z'}
+        >
+          <span className="hidden sm:inline">Sort</span>
+          {sortDirection === 'asc' ? (
+            <ArrowUpAZ className="h-4 w-4" />
+          ) : (
+            <>
+              <ArrowDownZA className="h-4 w-4" />
+            </>
+          )}
+        </Button>
+      </div>
       <UserGrid>
-        {friends.map((friend) => (
+        {sortedFriends.map((friend) => (
           <UserCard
             key={friend.id}
             user={friend.friend}

@@ -240,6 +240,34 @@ export class FriendsService {
     });
   }
 
+  async cancelRequest(id: string, userId: number) {
+    // Find friend request
+    const friendRequest = await this.prisma.friendRequest.findFirst({
+      where: { id: id },
+      include: {
+        requester: { select: { id: true, name: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, avatarKey: true } },
+      },
+    });
+
+    if (!friendRequest) {
+      throw new BadRequestException('Friend request does not exist.');
+    }
+
+    if (friendRequest.requesterId !== userId) {
+      throw new BadRequestException('You can only cancel friend requests you sent.');
+    }
+
+    // Delete friend request
+    return await this.prisma.friendRequest.delete({
+      where: { id },
+      include: {
+        requester: { select: { id: true, name: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, avatarKey: true } },
+      },
+    });
+  }
+
   async removeFriend(userId: number, friendId: number) {
     if (userId === friendId) {
       throw new BadRequestException('You can not delete yourself as a friend.');

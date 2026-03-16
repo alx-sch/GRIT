@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
-import { type ResChatMessage } from '@grit/schema';
 import { useSocket } from '@/providers/socketProvider';
 import { chatStore } from '@/store/chatStore';
+import { type ResChatMessage } from '@grit/schema';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 export function useChat(conversationId: string) {
   const [messages, setMessages] = useState<ResChatMessage[]>([]);
@@ -18,7 +19,8 @@ export function useChat(conversationId: string) {
     };
 
     const handleMessage = (msg: ResChatMessage) => {
-      // TODO This conversationId check should be implemented for all message types to prevent mixed messages on fast navigation
+      // TODO This conversationId check should be implemented for all message
+      // types to prevent mixed messages on fast navigation
       if (msg.conversationId !== conversationId) return;
       setMessages((prev) => [...prev, msg]);
     };
@@ -37,6 +39,7 @@ export function useChat(conversationId: string) {
 
     const handleError = (err: { message: string }) => {
       setMessages([]);
+      toast.error('Message failed to send');
       setErrorMessage(err.message ?? 'Error');
     };
 

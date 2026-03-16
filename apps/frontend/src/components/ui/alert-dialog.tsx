@@ -1,10 +1,8 @@
 import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog';
-
 import * as React from 'react';
-
 import { buttonVariants } from '@/components/ui/button';
-
 import { cn } from '@/lib/utils';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 function AlertDialog({ ...props }: React.ComponentProps<typeof AlertDialogPrimitive.Root>) {
   return <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />;
@@ -38,8 +36,9 @@ function AlertDialogOverlay({
 
 function AlertDialogContent({
   className,
+  children,
   ...props
-}: React.ComponentProps<typeof AlertDialogPrimitive.Content>) {
+}: React.ComponentProps<typeof AlertDialogPrimitive.Content> & { className?: string }) {
   return (
     <AlertDialogPortal>
       <AlertDialogOverlay />
@@ -50,7 +49,12 @@ function AlertDialogContent({
           className
         )}
         {...props}
-      />
+      >
+        <VisuallyHidden>
+          <AlertDialogDescription>Alert confirmation dialog</AlertDialogDescription>
+        </VisuallyHidden>
+        {children}
+      </AlertDialogPrimitive.Content>
     </AlertDialogPortal>
   );
 }

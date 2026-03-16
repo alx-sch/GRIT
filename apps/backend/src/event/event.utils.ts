@@ -45,9 +45,15 @@ export function eventSearchFilter(input: ReqEventGetPublishedDto, userId?: numbe
   // 1. Public events (visible to everyone)
   // 2. Private events where the user is the author
   // 3. Private events where the user is attending
+  // 4. Private events where the user is invited
   const visibilityFilter: Prisma.EventWhereInput = userId
     ? {
-        OR: [{ isPublic: true }, { authorId: userId }, { attendees: { some: { userId } } }],
+        OR: [
+          { isPublic: true },
+          { authorId: userId },
+          { attendees: { some: { userId } } },
+          { invites: { some: { receiverId: userId } } },
+        ],
       }
     : { isPublic: true };
 
@@ -114,9 +120,10 @@ export function eventCursorFilter(input: ReqEventGetPublishedDto) {
  * ==================================================
  */
 
+// "nanoid" uses '-' and '_' --> exclude these by using a custom alphabet
 const generateNanoId = customAlphabet(
   '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
-  6
+  3
 );
 
 /**

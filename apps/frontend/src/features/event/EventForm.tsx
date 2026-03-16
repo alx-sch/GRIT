@@ -343,6 +343,7 @@ export default function EventForm({
         <SheetContent
           side="right"
           className="flex flex-col w-full h-full sm:w-full [&>button]:hidden overflow-hidden border-l-0 sm:max-w-md"
+          aria-describedby={undefined}
         >
           <SheetHeader className="flex flex-row items-center justify-between border-b-2 border-border pb-4 mb-2 space-y-0 text-left">
             <SheetTitle className="font-bold uppercase tracking-wider">Add New Location</SheetTitle>

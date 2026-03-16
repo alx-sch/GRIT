@@ -7,6 +7,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { act } from 'react';
 
 // Mock services
 vi.mock('@/services/eventService', () => ({
@@ -101,6 +102,7 @@ describe('Event Creation Page', () => {
           path: '/create/event',
           Component: EventCreation,
           loader: eventCreationLoader,
+          HydrateFallback: () => <div>Loading...</div>,
         },
         {
           path: '/events/',
@@ -111,7 +113,7 @@ describe('Event Creation Page', () => {
         initialEntries: ['/create/event'],
       }
     );
-    return { router, ...render(<RouterProvider router={router} />) };
+    return { user, router, ...render(<RouterProvider router={router} />) };
   }
 
   describe('Basic Rendering', () => {
@@ -369,25 +371,25 @@ describe('Event Creation Page', () => {
   describe('Draft Persistence', () => {
     it('saves form data to localStorage when title changes', async () => {
       vi.useFakeTimers({ shouldAdvanceTime: true });
-      renderEventCreation();
+      const { user } = renderEventCreation();
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/give your event a catchy name/i)).toBeInTheDocument();
       });
 
       const titleInput = screen.getByPlaceholderText(/give your event a catchy name/i);
-      await user.type(titleInput, 'My Draft Event');
-
-      // Wait for debounce (1 second)
-      vi.advanceTimersByTime(1100);
-
-      await waitFor(() => {
-        const saved = localStorage.getItem('event-draft');
-        expect(saved).not.toBeNull();
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const draft = JSON.parse(saved!) as Record<string, unknown>;
-        expect(draft.title).toBe('My Draft Event');
+      await act(async () => {
+        await user.type(titleInput, 'My Draft Event');
       });
+
+      act(() => {
+        vi.runAllTimers();
+      });
+
+      const savedData = localStorage.getItem('event-draft');
+
+      expect(savedData).not.toBeNull();
+      expect(savedData).toContain('My Draft Event');
 
       vi.useRealTimers();
     });

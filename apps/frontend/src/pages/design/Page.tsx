@@ -52,9 +52,7 @@ export default function Design() {
       description: "We've sent a confirmation email to your inbox.",
       action: {
         label: 'Undo',
-        onClick: () => {
-          console.log('Undo');
-        },
+        onClick: () => undefined,
       },
     });
   };
@@ -302,12 +300,7 @@ export default function Design() {
               <CardTitle>File Upload</CardTitle>
             </CardHeader>
             <CardContent>
-              <FileUpload
-                onChange={() => {
-                  console.log('File changed');
-                }}
-                aspectRatio="square"
-              ></FileUpload>
+              <FileUpload onChange={() => undefined} aspectRatio="square"></FileUpload>
             </CardContent>
           </Card>
         </div>

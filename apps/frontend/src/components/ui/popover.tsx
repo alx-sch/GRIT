@@ -22,6 +22,7 @@ function PopoverContent({
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Content
         data-slot="popover-content"
+        aria-describedby={undefined}
         align={align}
         sideOffset={sideOffset}
         className={cn(

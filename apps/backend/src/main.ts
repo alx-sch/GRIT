@@ -22,7 +22,7 @@ async function bootstrap() {
 
   const baseBEUrl = `http://localhost:${String(env.BE_PORT)}`;
   const minioUrl = `http://localhost:${String(env.MINIO_DASHBOARD_PORT || 9001)}`;
-  const frontendUrl = `http://localhost:${String(env.FE_PORT || 5173)}`;
+  const frontendUrl = `http://localhost:${String(env.FE_PORT)}`;
 
   const c = {
     reset: '\x1b[0m',

@@ -1,7 +1,9 @@
-import type { ResMyEvents } from '@grit/schema';
 import { Check } from 'lucide-react';
+import type { ResMyEvents, ResMyInvitedEvents } from '@grit/schema';
 
 type ResMyEvent = ResMyEvents[number];
+type ResMyInvitedEvent = ResMyInvitedEvents[number];
+type EventType = ResMyEvent | ResMyInvitedEvent;
 
 export interface EventBadge {
   label: string;
@@ -11,9 +13,10 @@ export interface EventBadge {
 }
 
 export function getEventBadges(
-  event: ResMyEvent,
+  event: EventType,
   isPublished: boolean,
-  isPublic: boolean
+  isPublic: boolean,
+  isInvited?: boolean
 ): EventBadge[] {
   const now = new Date();
   const isDraft = event.isOrganizer && !isPublished;
@@ -31,9 +34,14 @@ export function getEventBadges(
       show: event.isOrganizer && isPublished,
     },
     {
+      label: 'Invited',
+      variant: 'default' as const,
+      show: isInvited ?? false,
+    },
+    {
       label: isUpcoming ? 'Going' : 'Attended',
       variant: isUpcoming ? ('success' as const) : ('secondary' as const),
-      show: !event.isOrganizer,
+      show: !event.isOrganizer && !isInvited,
       icon: isUpcoming ? <Check className="w-3 h-3 mr-1" /> : undefined,
     },
     {
