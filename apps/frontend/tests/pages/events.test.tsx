@@ -9,6 +9,7 @@ import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { format } from 'date-fns';
 import { vi } from 'vitest';
+import { act } from 'react';
 
 /* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
 
@@ -194,6 +195,7 @@ describe('Event Feed Page', () => {
           path: '/events',
           Component: EventFeed,
           loader: eventsLoader,
+          HydrateFallback: () => <div>Loading...</div>,
         },
       ],
       {
@@ -248,8 +250,9 @@ describe('Event Feed Page', () => {
       });
 
       vi.mocked(eventService.getEvents).mockClear();
-
-      await router.navigate('/events?location_id=1');
+      await act(async () => {
+        await router.navigate('/events?location_id=1');
+      });
 
       await waitFor(() => {
         expect(router.state.location.search).toBe('?location_id=1');
@@ -366,7 +369,14 @@ describe('Event Feed Page', () => {
 
     it('populates search input from URL on initial load', async () => {
       const router = createMemoryRouter(
-        [{ path: '/events', Component: EventFeed, loader: eventsLoader }],
+        [
+          {
+            path: '/events',
+            Component: EventFeed,
+            loader: eventsLoader,
+            HydrateFallback: () => <div>Loading...</div>,
+          },
+        ],
         { initialEntries: ['/events?search=beer'] }
       );
 
@@ -401,7 +411,9 @@ describe('Event Feed Page', () => {
       vi.clearAllMocks();
 
       // Navigate to URL with date params
-      await router.navigate('/events?start_from=2026-06-15&start_until=2026-06-20');
+      await act(async () => {
+        await router.navigate('/events?start_from=2026-06-15&start_until=2026-06-20');
+      });
 
       // Wait for navigation to complete
       await waitFor(() => {
@@ -423,7 +435,14 @@ describe('Event Feed Page', () => {
 
     it('displays selected date range from URL params', async () => {
       const router = createMemoryRouter(
-        [{ path: '/events', Component: EventFeed, loader: eventsLoader }],
+        [
+          {
+            path: '/events',
+            Component: EventFeed,
+            loader: eventsLoader,
+            HydrateFallback: () => <div>Loading...</div>,
+          },
+        ],
         { initialEntries: ['/events?start_from=2026-06-15&start_until=2026-06-20'] }
       );
 

@@ -21,7 +21,7 @@ import { conversationService } from '@/services/conversationService';
 import { friendService } from '@/services/friendService';
 import { userService } from '@/services/userService';
 import { useCurrentUserStore } from '@/store/currentUserStore';
-import { FriendRequestResponse, FriendResponse } from '@/types/friends';
+import { FriendRequestResponse } from '@/types/friends';
 import {
   ResConversationSingleId,
   ResFriendBase,
@@ -45,14 +45,32 @@ import { toast } from 'sonner';
 interface FriendsLoaderData {
   pendingIncoming: FriendRequestResponse;
   pendingOutgoing: FriendRequestResponse;
-  friendsList: FriendResponse;
+  friendsList: ResFriendBase[];
+}
+
+const PAGE_SIZE = '100';
+
+// Helper function to fetch all friends recursively
+async function fetchAllFriends(): Promise<ResFriendBase[]> {
+  const allFriends: ResFriendBase[] = [];
+  let cursor: string | undefined;
+  let hasMore = true;
+
+  while (hasMore) {
+    const result = await friendService.listFriends({ limit: PAGE_SIZE, cursor });
+    allFriends.push(...result.data);
+    hasMore = result.pagination.hasMore;
+    cursor = result.pagination.nextCursor ?? undefined;
+  }
+
+  return allFriends;
 }
 
 export const friendsLoader = async (): Promise<FriendsLoaderData> => {
   const [pendingIncoming, pendingOutgoing, friendsList] = await Promise.all([
-    friendService.listIncomingRequests({ limit: '100' }),
-    friendService.listOutgoingRequests({ limit: '100' }),
-    friendService.listFriends({ limit: '100' }),
+    friendService.listIncomingRequests({ limit: PAGE_SIZE }),
+    friendService.listOutgoingRequests({ limit: PAGE_SIZE }),
+    fetchAllFriends(),
   ]);
   return { pendingIncoming, pendingOutgoing, friendsList };
 };
@@ -70,7 +88,7 @@ export default function FriendsPage() {
   }, []);
 
   //Cross-reference users to determine User Card actions
-  const friendIds = new Set(friends.friendsList.data.map((f) => f.friendId));
+  const friendIds = new Set(friends.friendsList.map((f) => f.friendId));
   const outgoingIds = new Set(friends.pendingOutgoing.data.map((r) => r.receiverId));
   const incomingIds = new Set(friends.pendingIncoming.data.map((r) => r.requesterId));
 
@@ -156,7 +174,7 @@ export default function FriendsPage() {
         onDecline={decline}
       />
       <OutgoingSection requests={friends.pendingOutgoing.data} onCancel={cancel} />
-      <FriendsSection friends={friends.friendsList.data} onChat={startChat} onRemove={remove} />
+      <FriendsSection friends={friends.friendsList} onChat={startChat} onRemove={remove} />
     </div>
   );
 }
@@ -364,7 +382,7 @@ function FriendsSection({ friends, onChat, onRemove }: FriendsSectionProps) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <Heading level={3}>All Friends</Heading>
+        <Heading level={3}>All Friends ({friends.length})</Heading>
         <Button
           variant="outline"
           size="sm"
@@ -374,9 +392,7 @@ function FriendsSection({ friends, onChat, onRemove }: FriendsSectionProps) {
         >
           <span className="hidden sm:inline">Sort</span>
           {sortDirection === 'asc' ? (
-            <>
-              <ArrowUpAZ className="h-4 w-4" />
-            </>
+            <ArrowUpAZ className="h-4 w-4" />
           ) : (
             <>
               <ArrowDownZA className="h-4 w-4" />

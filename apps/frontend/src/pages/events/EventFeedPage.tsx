@@ -31,20 +31,54 @@ const buildEventQuery = (searchParams: URLSearchParams, cursor?: string | null) 
   sort: searchParams.get('sort') ?? 'date-asc',
 });
 
+interface FriendData {
+  friend: {
+    id: number;
+  };
+}
+
+const fetchAllFriends = async (
+  accumulated: FriendData[] = [],
+  cursor?: string
+): Promise<FriendData[]> => {
+  const response = await friendService.listFriends({
+    limit: '100',
+    cursor,
+  });
+
+  const allFriends = [...accumulated, ...response.data];
+
+  if (response.pagination.hasMore && response.pagination.nextCursor) {
+    return fetchAllFriends(allFriends, response.pagination.nextCursor);
+  }
+
+  return allFriends;
+};
+
 export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const query = buildEventQuery(url.searchParams);
   const token = useAuthStore.getState().token;
 
-  const [events, locationsResponse, friendsData] = await Promise.all([
+  const [events, locationsResponse] = await Promise.all([
     eventService.getEvents(query),
     locationService.getLocations(),
 
-    //Only fetch friends list if user is logged-in
-    token ? friendService.listFriends({ limit: '100' }).catch(() => null) : Promise.resolve(null),
+    // Only fetch friends list if user is logged-in
+    token ? friendService.listFriends().catch(() => null) : Promise.resolve(null),
   ]);
 
-  const friendsIds = new Set(friendsData?.data.map((f) => f.friend.id) ?? []);
+  let friendsIds = new Set<number>();
+
+  if (token) {
+    try {
+      const allFriendsData = await fetchAllFriends();
+      // Ensure IDs are treated as numbers for the Set comparison
+      friendsIds = new Set(allFriendsData.map((f) => f.friend.id));
+    } catch (error) {
+      console.error('Failed to fetch friends list:', error);
+    }
+  }
 
   return {
     events,

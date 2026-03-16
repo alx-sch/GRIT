@@ -8,8 +8,15 @@ import { DateRange, Matcher } from 'react-day-picker';
 import { format } from 'date-fns';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useState } from 'react';
-import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTrigger,
+  DrawerTitle,
+  DrawerDescription,
+} from '@/components/ui/drawer';
 import { TimeSelect } from '@/components/ui/time-select';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 export interface DatePickerProps {
   selected?: DateRange;
@@ -193,6 +200,10 @@ export function DatePicker({
       <Drawer open={open} onOpenChange={setOpen}>
         <DrawerTrigger asChild>{trigger}</DrawerTrigger>
         <DrawerContent className="flex flex flex-col items-center p-2 pb-8">
+          <VisuallyHidden>
+            <DrawerTitle>Select date</DrawerTitle>
+            <DrawerDescription>Use the calendar below to select a date.</DrawerDescription>
+          </VisuallyHidden>
           {mobileSelectionSummary}
           <div className="flex justify-center w-full">{calendarWithTime}</div>
           <div className="w-full flex justify-end mt-4 px-2">

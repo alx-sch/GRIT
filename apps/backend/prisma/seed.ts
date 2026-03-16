@@ -269,7 +269,7 @@ async function main() {
       skipDuplicates: true,
     });
   } else {
-    console.log(`⏩ Found ${String(existingTestLocationsCount)} test locations. Skipping.`);
+    console.log(`Found ${String(existingTestLocationsCount)} test locations. Skipping.`);
   }
 
   const testLocations = await prisma.location.findMany({
@@ -286,7 +286,7 @@ async function main() {
   // EVENT SEEDING & CONVERSATIONS //
   ///////////////////////////////////
 
-  console.log('--- Seeding Events & Matching Conversations...');
+  console.log('--- Seeding Events & Chats...');
 
   const coreEvents = [
     {
@@ -466,7 +466,7 @@ async function main() {
       });
     }
   } else {
-    console.log(`Found ${String(existingTestEventsCount)} in DB. Skipping generation.`);
+    console.log(`Found ${String(existingTestEventsCount)} test events. Skipping.`);
   }
 
   ////////////////////////
