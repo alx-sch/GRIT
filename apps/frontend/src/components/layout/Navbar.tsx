@@ -163,132 +163,21 @@ export function Navbar() {
                           isActive('/profile') ? 'text-foreground' : ''
                         )}
                       >
-                        {link.label}
-                        <AnimatedUnderline isActive={isActive(link.path)} />
-                      </Link>
-                    </NavigationMenuLink>
-                  </NavigationMenuItem>
-                ))}
-            </NavigationMenuList>
-          </NavigationMenu>
-          {!isLoggedIn && (
-            <Link to="/login">
-              <Button className="text-base font-bold">Login</Button>
-            </Link>
-          )}
-          {isLoggedIn && (
-            <>
-              <div className="relative group">
-                <Link
-                  to="/chat"
-                  className={cn(
-                    navigationMenuTriggerStyle(),
-                    'relative bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent',
-                    'rounded-none text-base font-bold h-auto px-4 pb-1',
-                    'flex items-center justify-center',
-                    isActive('/chat') ? 'text-foreground' : ''
-                  )}
-                  aria-label="Chat"
-                >
-                  <MessageSquare className="h-6 w-6" strokeWidth={2.5} />
-                  {hasUnread && (
-                    <div className="absolute top-1 right-1 bg-primary w-2 h-2 rounded-full border border-card"></div>
-                  )}
-                </Link>
-                <AnimatedUnderline isActive={location.pathname.startsWith('/chat')} />
-              </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <div className="relative group">
-                    <button
-                      className={cn(
-                        navigationMenuTriggerStyle(),
-                        'relative bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent',
-                        'rounded-none text-base font-bold h-auto px-4 pb-1',
-                        'flex items-center gap-2 cursor-pointer',
-                        isActive('/profile') ? 'text-foreground' : ''
-                      )}
-                    >
-                      <div className="relative">
-                        <UserAvatar user={user ?? {}} size="xs" />
-                        {/* Transitioning overlay */}
-                        {isAvatarTransitioning && (
-                          <div className="absolute inset-0 bg-black/80 rounded-full flex items-center justify-center">
-                            <Loader2 className="w-3 h-3 text-white animate-spin" />
-                          </div>
-                        )}
-                      </div>
-                      <span className="normal-case">{displayName}</span>
-                    </button>
-                    <AnimatedUnderline
-                      isActive={location.pathname.startsWith('/profile')}
-                      className="pointer-events-none"
-                    />
-                  </div>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => void navigate('/profile')}>
-                    <User className="mr-2 h-4 w-4" />
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => void navigate('/profile/my-events')}>
-                    <Calendar className="mr-2 h-4 w-4" />
-                    My events
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => void navigate('/profile/my-friends')}>
-                    <Users className="mr-2 h-4 w-4" />
-                    My friends
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={handleLogout}
-                    className="text-red-600 focus:text-red-600"
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
-          )}
-        </div>
-
-        <div className="md:hidden flex items-center gap-2">
-          {!isLoggedIn && (
-            <Link to="/login">
-              <Button className="h-10">Login</Button>
-            </Link>
-          )}
-
-          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle menu</span>
-              </Button>
-            </SheetTrigger>
-
-            <SheetContent
-              side="right"
-              className="w-75 border-l-2 border-border sm:w-100 [&>button]:hidden"
-            >
-              {isLoggedIn && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <div className="flex items-center gap-3 pb-4 mb-4 border-b border-border cursor-pointer">
-                      <div className="relative">
-                        <UserAvatar user={user ?? {}} size="sm" />
-                        {/* Transitioning overlay */}
-                        {isAvatarTransitioning && (
-                          <div className="absolute inset-0 bg-black/80 rounded-full flex items-center justify-center">
-                            <Loader2 className="w-4 h-4 text-white animate-spin" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex flex-col flex-1">
-                        <span className="font-semibold">{displayName}</span>
-                      </div>
-                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                        <div className="relative">
+                          <UserAvatar user={user ?? {}} size="xs" />
+                          {/* Transitioning overlay */}
+                          {isAvatarTransitioning && (
+                            <div className="absolute inset-0 bg-black/80 rounded-full flex items-center justify-center">
+                              <Loader2 className="w-3 h-3 text-white animate-spin" />
+                            </div>
+                          )}
+                        </div>
+                        <span className="normal-case">{displayName}</span>
+                      </button>
+                      <AnimatedUnderline
+                        isActive={location.pathname.startsWith('/profile')}
+                        className="pointer-events-none"
+                      />
                     </div>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
@@ -318,6 +207,7 @@ export function Navbar() {
             )}
           </div>
 
+          {/* Mobile nav */}
           <div className="md:hidden flex items-center gap-2">
             <GlobalSearchTrigger
               variant="mobile"
@@ -347,7 +237,15 @@ export function Navbar() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <div className="flex items-center gap-3 pb-4 mb-4 border-b border-border cursor-pointer">
-                        <UserAvatar user={user ?? {}} size="sm" />
+                        <div className="relative">
+                          <UserAvatar user={user ?? {}} size="sm" />
+                          {/* Transitioning overlay */}
+                          {isAvatarTransitioning && (
+                            <div className="absolute inset-0 bg-black/80 rounded-full flex items-center justify-center">
+                              <Loader2 className="w-4 h-4 text-white animate-spin" />
+                            </div>
+                          )}
+                        </div>
                         <div className="flex flex-col flex-1">
                           <span className="font-semibold">{displayName}</span>
                         </div>
