@@ -223,7 +223,7 @@ describe('Events E2E', () => {
 
       expect(res.body).toStrictEqual({
         statusCode: 404,
-        message: 'Event not found',
+        message: 'This event is under construction. Stay tuned!',
         error: 'Not Found',
       });
     });

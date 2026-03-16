@@ -154,6 +154,24 @@ export class UserService {
       throw new ConflictException('Name unknown is reserved for deleted users');
     }
 
+    // Check if email already exists
+    const existingEmail = await this.prisma.user.findUnique({
+      where: { email: data.email },
+    });
+
+    if (existingEmail) {
+      throw new ConflictException('Email already in use');
+    }
+
+    // Check if name already exists
+    const existingName = await this.prisma.user.findFirst({
+      where: { name: data.name },
+    });
+
+    if (existingName) {
+      throw new ConflictException('Username already taken');
+    }
+
     const user = await this.prisma.user.create({
       data: {
         name: data.name,
@@ -190,36 +208,18 @@ export class UserService {
       throw new NotFoundException('Invalid or expired confirmation token.');
     }
 
-    const updatedUser = await this.prisma.user.update({
+    if (user.isConfirmed) {
+      throw new ConflictException('Email already confirmed.');
+    }
+
+    await this.prisma.user.update({
       where: { id: user.id },
       data: {
         isConfirmed: true,
-        confirmationToken: null,
-      },
-      include: {
-        attending: {
-          include: {
-            event: {
-              include: { location: true },
-            },
-          },
-        },
       },
     });
 
-    return {
-      ...updatedUser,
-      createdAt: updatedUser.createdAt.toISOString(),
-      attending: updatedUser.attending.map((a) => ({
-        id: a.event.id,
-        title: a.event.title,
-        slug: a.event.slug,
-        startAt: a.event.startAt.toISOString(),
-        isOrganizer: a.event.authorId === updatedUser.id,
-        imageKey: a.event.imageKey,
-        location: a.event.location,
-      })),
-    };
+    return { success: true };
   }
 
   async userUpdateAvatar(userId: number, file: Express.Multer.File): Promise<ResUserBaseDto> {
@@ -286,7 +286,7 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    if (currentUser.avatarKey) {
+    if (currentUser.avatarKey && !currentUser.avatarKey.startsWith('default-')) {
       try {
         await this.storage.deleteFile(currentUser.avatarKey, 'user-avatars');
       } catch (error) {
@@ -323,103 +323,32 @@ export class UserService {
     };
   }
 
-  async userPatch(userId: number, data: ReqUserPatchDto) {
-    const newData: Prisma.UserUpdateInput = {};
-    if (data.name !== undefined) newData.name = data.name;
-    if (data.bio !== undefined) newData.bio = data.bio;
-    if (data.city !== undefined) newData.city = data.city;
-    if (data.country !== undefined) newData.country = data.country;
-    if (data.isProfilePublic !== undefined) newData.isProfilePublic = data.isProfilePublic;
-
-    if (data.attending) {
-      const attendingOps: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput = {};
-      const membershipOps: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput = {};
-
-      if (data.attending.connect?.length) {
-        const events = await this.prisma.event.findMany({
-          where: { id: { in: data.attending.connect } },
-          select: {
-            id: true,
-            conversation: { select: { id: true } },
-          },
-        });
-
-        if (events.length !== data.attending.connect.length) {
-          throw new NotFoundException('One or more events not found');
-        }
-
-        for (const event of events) {
-          if (!event.conversation) {
-            throw new Error(`Event ${String(event.id)} has no conversation`);
-          }
-        }
-
-        attendingOps.create = events.map((e) => ({
-          eventId: e.id,
-        }));
-
-        membershipOps.connectOrCreate = events.map((e) => ({
-          where: {
-            conversationId_userId: {
-              // @ts-expect-error we validated above that conversation exists.
-              conversationId: e.conversation.id,
-              userId,
-            },
-          },
-          create: {
-            // @ts-expect-error we validated above that conversation exists.
-            conversationId: e.conversation.id,
-          },
-        }));
-      }
-
-      if (data.attending.disconnect?.length) {
-        const events = await this.prisma.event.findMany({
-          where: { id: { in: data.attending.disconnect } },
-          select: {
-            id: true,
-            conversation: { select: { id: true } },
-          },
-        });
-
-        if (events.length !== data.attending.disconnect.length) {
-          throw new NotFoundException('One or more events not found');
-        }
-
-        for (const event of events) {
-          if (!event.conversation) {
-            throw new Error(`Event ${String(event.id)} has no conversation`);
-          }
-        }
-
-        attendingOps.deleteMany = data.attending.disconnect.map((eventId) => ({
-          eventId,
-          userId,
-        }));
-
-        membershipOps.deleteMany = events.map((e) => ({
-          // @ts-expect-error we validated above that conversation exists.
-          conversationId: e.conversation.id,
-          userId,
-        }));
-      }
-
-      if (Object.keys(attendingOps).length) {
-        newData.attending = attendingOps;
-      }
-
-      if (Object.keys(membershipOps).length) {
-        newData.convMemberships = membershipOps;
-      }
-    }
-
-    if (Object.keys(newData).length === 0) {
-      throw new BadRequestException('No fields to update');
-    }
-
-    const user_raw = await this.prisma.user.update({
+  async userSetRandomAvatar(userId: number): Promise<ResUserBaseDto> {
+    const currentUser = await this.prisma.user.findUnique({
       where: { id: userId },
-      data: newData,
+      select: { avatarKey: true },
+    });
+
+    if (!currentUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Clean up old custom avatar if exists (but not default- avatars)
+    if (currentUser.avatarKey && !currentUser.avatarKey.startsWith('default-')) {
+      try {
+        await this.storage.deleteFile(currentUser.avatarKey, 'user-avatars');
+      } catch (error) {
+        console.error(`Failed to delete old avatar: ${currentUser.avatarKey}`, error);
+      }
+    }
+
+    // Generate a random seed for the avatar
+    const randomSeed = randomBytes(16).toString('hex');
+    const avatarKey = `default-${randomSeed}`;
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: { avatarKey },
       include: {
         attending: {
           include: {
@@ -431,36 +360,202 @@ export class UserService {
       },
     });
 
-    // After updating the user we need to resync the chat rooms he is in
-    await this.chatGateway.resyncUserRooms(userId);
-
     return {
-      ...user_raw,
-      createdAt: user_raw.createdAt.toISOString(),
-      attending: user_raw.attending.map((a) => ({
+      ...updatedUser,
+      createdAt: updatedUser.createdAt.toISOString(),
+      attending: updatedUser.attending.map((a) => ({
         id: a.event.id,
         title: a.event.title,
         slug: a.event.slug,
         startAt: a.event.startAt.toISOString(),
-        isOrganizer: a.event.authorId === userId,
+        isOrganizer: a.event.authorId === updatedUser.id,
         imageKey: a.event.imageKey,
         location: a.event.location,
       })),
     };
   }
 
+  async userPatch(userId: number, data: ReqUserPatchDto) {
+    // Wrap everything in a transaction (if one call fails, then they all roll back - making every
+    // call to the DB dependent on each other)
+    return await this.prisma.$transaction(async (tx) => {
+      const newData: Prisma.UserUpdateInput = {};
+
+      if (data.name !== undefined) {
+        if (data.name.toUpperCase() === 'UNKNOWN')
+          throw new ConflictException('Username already taken');
+
+        // Check if name already exists
+        const existingName = await tx.user.findFirst({
+          where: { name: data.name, id: { not: userId } },
+        });
+
+        if (existingName) {
+          throw new ConflictException('Username already taken');
+        }
+        newData.name = data.name;
+      }
+      if (data.bio !== undefined) newData.bio = data.bio;
+      if (data.city !== undefined) newData.city = data.city;
+      if (data.country !== undefined) newData.country = data.country;
+      if (data.isProfilePublic !== undefined) newData.isProfilePublic = data.isProfilePublic;
+
+      if (data.attending) {
+        const attendingOps: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput = {};
+        const membershipOps: Prisma.ConversationParticipantUpdateManyWithoutUserNestedInput = {};
+
+        if (data.attending.connect?.length) {
+          const events = await tx.event.findMany({
+            where: { id: { in: data.attending.connect } },
+            select: {
+              id: true,
+              conversation: { select: { id: true } },
+            },
+          });
+
+          if (events.length !== data.attending.connect.length) {
+            throw new NotFoundException('One or more events not found');
+          }
+
+          for (const event of events) {
+            if (!event.conversation) {
+              throw new Error(`Event ${String(event.id)} has no conversation`);
+            }
+          }
+
+          attendingOps.create = events.map((e) => ({
+            eventId: e.id,
+          }));
+
+          membershipOps.connectOrCreate = events.map((e) => ({
+            where: {
+              conversationId_userId: {
+                // @ts-expect-error we validated above that conversation exists.
+                conversationId: e.conversation.id,
+                userId,
+              },
+            },
+            create: {
+              // @ts-expect-error we validated above that conversation exists.
+              conversationId: e.conversation.id,
+            },
+          }));
+
+          await tx.eventInvite.deleteMany({
+            where: {
+              eventId: { in: data.attending.connect },
+              receiverId: userId,
+            },
+          });
+        }
+
+        if (data.attending.disconnect?.length) {
+          const events = await tx.event.findMany({
+            where: { id: { in: data.attending.disconnect } },
+            select: {
+              id: true,
+              conversation: { select: { id: true } },
+            },
+          });
+
+          if (events.length !== data.attending.disconnect.length) {
+            throw new NotFoundException('One or more events not found');
+          }
+
+          for (const event of events) {
+            if (!event.conversation) {
+              throw new Error(`Event ${String(event.id)} has no conversation`);
+            }
+          }
+
+          attendingOps.deleteMany = data.attending.disconnect.map((eventId) => ({
+            eventId,
+            userId,
+          }));
+
+          membershipOps.deleteMany = events.map((e) => ({
+            // @ts-expect-error we validated above that conversation exists.
+            conversationId: e.conversation.id,
+            userId,
+          }));
+        }
+
+        if (Object.keys(attendingOps).length) {
+          newData.attending = attendingOps;
+        }
+
+        if (Object.keys(membershipOps).length) {
+          newData.convMemberships = membershipOps;
+        }
+      }
+
+      if (Object.keys(newData).length === 0) {
+        throw new BadRequestException('No fields to update');
+      }
+
+      const user_raw = await tx.user.update({
+        where: { id: userId },
+        data: newData,
+        include: {
+          attending: {
+            include: {
+              event: {
+                include: { location: true },
+              },
+            },
+          },
+        },
+      });
+
+      // After updating the user we need to resync the chat rooms he is in
+      await this.chatGateway.resyncUserRooms(userId);
+
+      return {
+        ...user_raw,
+        createdAt: user_raw.createdAt.toISOString(),
+        attending: user_raw.attending.map((a) => ({
+          id: a.event.id,
+          title: a.event.title,
+          slug: a.event.slug,
+          startAt: a.event.startAt.toISOString(),
+          isOrganizer: a.event.authorId === userId,
+          imageKey: a.event.imageKey,
+          location: a.event.location,
+        })),
+      };
+    });
+  }
+
+  /**
+   * Get events user is attending or owns
+   * (Public events only)
+   */
   async userGetEvents(userId: number) {
     const events = await this.prisma.event.findMany({
       where: {
-        attendees: {
-          some: { userId: userId },
-        },
+        OR: [
+          {
+            attendees: {
+              some: { userId: userId },
+            },
+          },
+          {
+            authorId: userId,
+          },
+        ],
       },
       include: {
         location: true,
         conversation: {
           select: {
             id: true,
+          },
+        },
+        author: {
+          select: {
+            id: true,
+            name: true,
+            avatarKey: true,
           },
         },
       },
@@ -481,6 +576,62 @@ export class UserService {
       conversationId: e.conversation?.id,
       isPublished: e.isPublished,
       isPublic: e.isPublic,
+      author: e.author,
+    }));
+  }
+
+  /**
+   * Get events user is invited to
+   * (Can be public or private)
+   */
+  async userGetInvitedEvents(userId: number) {
+    const events = await this.prisma.event.findMany({
+      where: {
+        invites: {
+          some: { receiverId: userId },
+        },
+      },
+      include: {
+        location: true,
+        conversation: {
+          select: {
+            id: true,
+          },
+        },
+        invites: {
+          where: { receiverId: userId },
+          select: {
+            id: true,
+            status: true,
+          },
+        },
+        author: {
+          select: {
+            id: true,
+            name: true,
+            avatarKey: true,
+          },
+        },
+      },
+      orderBy: {
+        startAt: 'asc',
+      },
+    });
+
+    return events.map((e) => ({
+      id: e.id,
+      title: e.title,
+      slug: e.slug,
+      startAt: e.startAt.toISOString(),
+      endAt: e.endAt.toISOString(),
+      isOrganizer: e.authorId === userId,
+      imageKey: e.imageKey,
+      location: e.location,
+      conversationId: e.conversation?.id,
+      isPublished: e.isPublished,
+      isPublic: e.isPublic,
+      author: e.author,
+      invite: e.invites[0] ?? null,
     }));
   }
 

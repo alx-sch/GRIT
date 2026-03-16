@@ -40,6 +40,13 @@ export class FriendsController {
     return this.friendsService.declineRequest(id, userId);
   }
 
+  // Cancel a friend request (for the sender)
+  @Delete('requests/:id')
+  @ZodSerializerDto(ResFriendRequestDto)
+  cancel(@Param('id') id: string, @GetUser('id') userId: number) {
+    return this.friendsService.cancelRequest(id, userId);
+  }
+
   // Delete a friend
   @Delete(':friendId')
   @ZodSerializerDto(ResFriendDto)

@@ -1,6 +1,8 @@
 import { eventLoader, EventPage } from '@/pages/events/EventPage';
 import { eventService } from '@/services/eventService';
 import { userService } from '@/services/userService';
+import { friendService } from '@/services/friendService';
+import { inviteService } from '@/services/inviteService';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
@@ -20,6 +22,19 @@ vi.mock('@/services/userService', () => ({
   userService: {
     attendEvent: vi.fn(),
     unattendEvent: vi.fn(),
+    getMyInvitedEvents: vi.fn(),
+  },
+}));
+
+vi.mock('@/services/friendService', () => ({
+  friendService: {
+    listFriends: vi.fn(),
+  },
+}));
+
+vi.mock('@/services/inviteService', () => ({
+  inviteService: {
+    listOutgoingInvites: vi.fn(),
   },
 }));
 
@@ -103,6 +118,9 @@ describe('EventPage', () => {
     user = userEvent.setup();
     vi.clearAllMocks();
     vi.mocked(eventService.getEvent).mockResolvedValue(mockEvent as never);
+    vi.mocked(userService.getMyInvitedEvents).mockResolvedValue([] as never);
+    vi.mocked(friendService.listFriends).mockResolvedValue({ data: [] } as never);
+    vi.mocked(inviteService.listOutgoingInvites).mockResolvedValue([] as never);
     mockCurrentUserStore.useCurrentUserStore.mockImplementation(
       (selector: (s: object) => unknown) => selector({ user: null })
     );
@@ -111,10 +129,27 @@ describe('EventPage', () => {
   function renderEventPage() {
     const router = createMemoryRouter(
       [
-        { path: '/events/:id', Component: EventPage, loader: eventLoader },
-        { path: '/login', Component: () => <div>Login Page</div> },
-        { path: '/chat/:id', Component: () => <div>Chat Page</div> },
-        { path: '/events', Component: () => <div>Events Feed</div> },
+        {
+          path: '/events/:id',
+          Component: EventPage,
+          loader: eventLoader,
+          HydrateFallback: () => <div>Loading...</div>,
+        },
+        {
+          path: '/login',
+          Component: () => <div>Login Page</div>,
+          HydrateFallback: () => <div>Loading...</div>,
+        },
+        {
+          path: '/chat/:id',
+          Component: () => <div>Chat Page</div>,
+          HydrateFallback: () => <div>Loading...</div>,
+        },
+        {
+          path: '/events',
+          Component: () => <div>Events Feed</div>,
+          HydrateFallback: () => <div>Loading...</div>,
+        },
       ],
       { initialEntries: ['/events/1'] }
     );
@@ -221,8 +256,10 @@ describe('EventPage', () => {
         expect(screen.getByRole('heading', { name: /test event/i })).toBeInTheDocument();
       });
       // Only action buttons (Going, Invite, Share, Chat + Back) — no edit/delete
-      const buttons = screen.getAllByRole('button');
-      expect(buttons).toHaveLength(5);
+      await waitFor(() => {
+        const buttons = screen.getAllByRole('button');
+        expect(buttons).toHaveLength(5);
+      });
     });
   });
 

@@ -14,9 +14,9 @@ POST {{baseUrl}}/auth/register
 Content-Type: application/json
 
 {
-	"name": "test",
-	"email": "test@example.com",
-	"password": "password123",
+	"name": "test8",
+	"email": "test8@example.com",
+	"password": "password123"
 }
 ###
 
@@ -83,6 +83,11 @@ GET {{baseUrl}}/users/me/events
 Authorization: Bearer {{token}}
 ###
 
+# Get My Private Events (Attending, invited)
+GET {{baseUrl}}/users/me/events/private
+Authorization: Bearer {{token}}
+###
+
 
 # User attends an event
 PATCH {{baseUrl}}/users/me
@@ -91,7 +96,7 @@ Content-Type: application/json
 
 {
   "attending": {
-    "connect": [2]
+    "connect": [4]
   }
 }
 ###
@@ -162,24 +167,25 @@ content-type: application/json
 	"title": "Party at unkown's place!",
 	"startAt": "2026-05-01T18:00:00Z",
 	"endAt": "2026-05-02T02:00:00Z",
-	"isPublic": true,
+	"isPublic": false,
 	"isPublished": true
 }
 ###
 
 # Update event (using ID 1)
-PATCH {{baseUrl}}/events/1 HTTP/1.1
+PATCH {{baseUrl}}/events/2 HTTP/1.1
 Authorization: Bearer {{token}}
 content-type: application/json
 
 {
 	"endAt": "2025-01-02T02:00:33Z",
-	"locationId": 2
+	"locationId": 2,
+	"isPublic": false
 }
 ###
 
 # Delete event (using ID 4)
-DELETE {{baseUrl}}/events/2 HTTP/1.1
+DELETE {{baseUrl}}/events/4 HTTP/1.1
 Authorization: Bearer {{token}}
 ###
 
@@ -223,6 +229,44 @@ Authorization: Bearer {{token}}
 
 # Remove friend
 DELETE {{baseUrl}}/users/me/friends/2 HTTP/1.1
+Authorization: Bearer {{token}}
+###
+
+// ========== EVENT INVITES ========== //
+
+# Send event invite
+POST {{baseUrl}}/users/me/invites HTTP/1.1
+Authorization: Bearer {{token}}
+content-type: application/json
+
+{
+	"receiverId": "2",
+	"eventId": "4"
+}
+###
+
+# Accept/decline event invite
+POST {{baseUrl}}/users/me/invites/c7c4bc33-a038-462e-a9f9-4cf5b6f0aa52 HTTP/1.1
+Authorization: Bearer {{token}}
+content-type: application/json
+
+{
+	"status": "ACCEPTED"
+}
+###
+
+# Delete event invite
+DELETE {{baseUrl}}/users/me/invites/0ea182e7-e062-44b2-b93d-9cea44347661
+Authorization: Bearer {{token}}
+###
+
+# Get list of incoming event invites
+GET {{baseUrl}}/users/me/invites/incoming HTTP/1.1
+Authorization: Bearer {{token}}
+###
+
+# Get list of outgoing event invites
+GET {{baseUrl}}/users/me/invites/outgoing HTTP/1.1
 Authorization: Bearer {{token}}
 ###
 

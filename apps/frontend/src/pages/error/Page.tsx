@@ -27,7 +27,9 @@ export default function ErrorPage() {
 
     if (status === 404) {
       title = 'Not Found';
-      message = "We couldn't find the data you were looking for.";
+      if (!data?.message) {
+        message = "We couldn't find the data you were looking for.";
+      }
       Icon = FileQuestion;
     } else if (status === 401 || status === 403) {
       title = 'Access Denied';

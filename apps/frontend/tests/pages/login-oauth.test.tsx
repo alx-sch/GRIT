@@ -35,6 +35,7 @@ describe('Login OAuth Flow', () => {
           path: '/login',
           element: <LoginPage />,
           loader: loginPageLoader,
+          HydrateFallback: () => <div>Loading...</div>,
         },
         {
           path: '/events',
@@ -74,6 +75,7 @@ describe('Login OAuth Flow', () => {
           path: '/login',
           element: <LoginPage />,
           loader: loginPageLoader,
+          HydrateFallback: () => <div>Loading...</div>,
         },
       ],
       {
@@ -110,6 +112,7 @@ describe('Login OAuth Flow', () => {
           path: '/login',
           element: <LoginPage />,
           loader: loginPageLoader,
+          HydrateFallback: () => <div>Loading...</div>,
         },
         {
           path: '/events',

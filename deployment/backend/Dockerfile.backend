@@ -2,34 +2,32 @@
 # --- Stage 1: Build ---
 FROM    node:20-alpine AS builder
 
+RUN     corepack enable pnpm
+
 WORKDIR /app
 
-RUN     npm install -g pnpm
+COPY    pnpm-lock.yaml ./
 
-# Copy root config files
+# Fetch dependencies into the virtual store (Cached unless lockfile changes)
+RUN     pnpm fetch
+
+# Copy the rest of the workspace configs and source code
 COPY    pnpm-workspace.yaml pnpm-lock.yaml package.json tsconfig.json .npmrc ./
-
-# Copy all packages
 COPY    packages packages
 COPY    apps apps
 
 # Install dependencies
-RUN     pnpm install --frozen-lockfile
+RUN     pnpm install --offline --frozen-lockfile
 
-# Build shared packages
-RUN     pnpm --filter @grit/schema build
-
-## Generate Prisma Client
-# Tells Zod not to validate envars (not presend during image build) -> avoids zod warning / stop
+# Generate Prisma client
 ARG     SKIP_ENV_VALIDATION=true
-# This creates the TypeScript types for the database
 RUN     pnpm --filter @grit/backend exec prisma generate
 
-# Build the project (TypeScript to JavaScript)
+# Build all required packages
+RUN     pnpm --filter @grit/schema build
 RUN     pnpm --filter @grit/backend build
 
-# This creates a standalone folder with package.json + prod-only node_modules
-# It also bundles the shared schema into node_modules automatically.
+# Isolate the backend package with its production dependencies
 RUN     pnpm --filter @grit/backend --prod deploy /app/pruned
 
 # Find the .prisma folder and copy it to the clean production folder
@@ -37,6 +35,8 @@ RUN     cp -r $(find . -type d -name ".prisma" -print -quit) /app/pruned/node_mo
 
 # --- Stage 2: Run ---
 FROM    node:20-alpine AS runner
+
+ENV     NODE_ENV=production
 
 WORKDIR /app
 

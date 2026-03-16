@@ -127,9 +127,6 @@ export function EventCard({ event, friendsIds }: EventCardProps) {
 
           {/* Action buttons */}
           <div className="flex items-center gap-2 w-full">
-            <Button variant="default" className="flex-1">
-              Invite
-            </Button>
             <Button
               variant="outline"
               className="flex-1"

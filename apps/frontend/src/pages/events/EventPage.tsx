@@ -11,15 +11,17 @@ import {
 } from '@/components/ui/alert-dialog';
 import { BackButton } from '@/components/ui/backButton';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { GmapPreview } from '@/components/ui/gmapPreview';
 import { Heading, Text } from '@/components/ui/typography';
 import { getEventImageUrl } from '@/lib/image_utils';
 import { eventService } from '@/services/eventService';
 import { APIProvider } from '@vis.gl/react-google-maps';
-import { HomeIcon, Pencil, Trash2, User } from 'lucide-react';
+import { HomeIcon, Loader2, Pencil, Trash2, User } from 'lucide-react';
 import { Link, LoaderFunctionArgs, useNavigate } from 'react-router-dom';
 import { EventPageActions } from './components/EventPageActions';
 import { EventPageFiles } from './components/EventPageFiles';
+import { EventAttendanceDropdown } from './components/EventAttendanceDropdown';
 import { useEventPage } from './useEventPage';
 
 export const eventLoader = async ({ params }: LoaderFunctionArgs) => {
@@ -38,6 +40,8 @@ export const EventPage = () => {
     isAttending,
     countAttending,
     isLoading,
+    invitesLoading,
+    isInviteCheckLoading,
     isMapOpen,
     setIsMapOpen,
     selectedImageIndex,
@@ -49,11 +53,23 @@ export const EventPage = () => {
     locationText,
     imageFiles,
     otherFiles,
+    isAuthor,
+    inviteOpen,
+    setInviteOpen,
+    invitingIds,
+    sentInvites,
+    invitableFriends,
+    isInvited,
+    inviteId,
+    handleAcceptInvite,
+    handleDeclineInvite,
     handlePrev,
     handleNext,
     handleShare,
     handleCopyLink,
     handleChat,
+    handleInvite,
+    handleInviteFriend,
     handleGoing,
     handleDelete,
     shareText,
@@ -69,8 +85,8 @@ export const EventPage = () => {
   const country = location?.country?.trim() ?? '';
 
   const locationLabel = addressCity !== '' ? addressCity : country !== '' ? country : 'TBA';
+  const canInvite = event.isPublic || isAuthor;
 
-  // Added a handler here because of back button bug (it needed to be clicked two times to go back to /events).
   const handleBackClick = () => {
     void navigate('/events');
   };
@@ -193,29 +209,71 @@ export const EventPage = () => {
             </div>
           </div>
 
-          {/* Action buttons */}
-          <EventPageActions
-            isAttending={isAttending}
-            isLoading={isLoading}
-            shareOpen={shareOpen}
-            onShareOpenChange={setShareOpen}
-            onGoing={() => {
-              void handleGoing();
-            }}
-            onShare={() => {
-              handleShare();
-            }}
-            onChat={handleChat}
-            onCopyLink={() => {
-              void handleCopyLink();
-            }}
-            copied={copied}
-            eventTitle={event.title}
-            eventDate={formattedDate}
-            eventLocation={location?.name ?? 'TBA'}
-            shareText={shareText}
-            shareUrl={shareUrl}
-          />
+          {/* Action buttons - CONDITIONAL RENDERING */}
+          {isInviteCheckLoading ? (
+            <Card className="w-full border-0 bg-transparent shadow-none md:border md:bg-card md:shadow md:mt-5">
+              <CardHeader className="hidden md:block">
+                <CardTitle className="flex uppercase items-center text-xl gap-2">
+                  <span className="font-semibold">&gt;</span>
+                  <Text className="text-xl font-heading">Menu</Text>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-row justify-center items-center pt-3 py-6">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </CardContent>
+            </Card>
+          ) : isInvited && inviteId ? (
+            <Card className="w-full border-0 bg-transparent shadow-none md:border md:bg-card md:shadow md:mt-5">
+              <CardHeader className="hidden md:block">
+                <CardTitle className="flex uppercase items-center text-xl gap-2">
+                  <span className="font-semibold">&gt;</span>
+                  <Text className="text-xl font-heading">Menu</Text>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-row justify-between items-center pt-3">
+                <EventAttendanceDropdown
+                  onAccept={handleAcceptInvite}
+                  onDecline={handleDeclineInvite}
+                  isLoading={isLoading}
+                />
+              </CardContent>
+            </Card>
+          ) : (
+            <EventPageActions
+              canInvite={canInvite}
+              isAttending={isAttending}
+              isLoading={isLoading}
+              invitingIds={invitingIds}
+              sentInvites={sentInvites}
+              onInviteFriend={handleInviteFriend}
+              shareOpen={shareOpen}
+              inviteOpen={inviteOpen}
+              invitableFriends={invitableFriends}
+              onInviteOpenChange={setInviteOpen}
+              onShareOpenChange={setShareOpen}
+              invitesLoading={invitesLoading}
+              eventAttendees={event.attendees}
+              onGoing={() => {
+                void handleGoing();
+              }}
+              onInvite={() => {
+                handleInvite();
+              }}
+              onShare={() => {
+                handleShare();
+              }}
+              onChat={handleChat}
+              onCopyLink={() => {
+                void handleCopyLink();
+              }}
+              copied={copied}
+              eventTitle={event.title}
+              eventDate={formattedDate}
+              eventLocation={location?.name ?? 'TBA'}
+              shareText={shareText}
+              shareUrl={shareUrl}
+            />
+          )}
 
           {/* Event image */}
           {event.imageKey && (
