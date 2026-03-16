@@ -143,14 +143,19 @@ export function useEventForm({ initialData, locations, onSuccess }: UseEventForm
       localStorage.removeItem(DRAFT_KEY);
 
       if (isEditMode) {
-        toast.success('Event updated successfully!');
+        const statusMessage = data.isPublished
+          ? 'Event updated and published!'
+          : 'Draft updated successfully!';
+
+        toast.success(statusMessage);
         onSuccess?.();
         void navigate('../', { replace: true });
-      } else if (!parsed.data.isPublished) {
-        toast.success('Event created as draft');
-        void navigate(`/events/${result.slug}`, { replace: true });
       } else {
-        toast.success('Event published successfully!');
+        const statusMessage = data.isPublished
+          ? 'Event published successfully!'
+          : 'Event created as draft';
+
+        toast.success(statusMessage);
         void navigate(`/events/${result.slug}`, { replace: true });
       }
     } catch (error) {
