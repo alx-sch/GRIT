@@ -290,7 +290,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     await this.assertUserInConversation(body.conversationId, client.data.userId);
 
-    const rows = await this.chatService.loadMessages(body.conversationId, 5, {
+    const rows = await this.chatService.loadMessages(body.conversationId, 15, {
       createdAt: new Date(body.cursorSentAt),
       id: body.cursorId,
     });
