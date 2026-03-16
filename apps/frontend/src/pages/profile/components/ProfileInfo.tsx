@@ -66,8 +66,7 @@ export function ProfileInfo({ user, onProfileUpdate }: ProfileInfoProps) {
       onProfileUpdate(updatedUser);
       toast.success('Profile updated successfully!');
       setIsEditing(false);
-    } catch (error){
-
+    } catch (error) {
       if (axios.isAxiosError(error)) {
         const message = (error.response?.data as { message?: string })?.message;
         if (message === 'Username already taken') {

@@ -22,6 +22,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useCurrentUserStore } from '@/store/currentUserStore';
+import { validateImageFile, readFileAsDataURL } from '@/lib/image-crop-utils';
 
 interface ProfileSidebarProps {
   user: CurrentUser;
