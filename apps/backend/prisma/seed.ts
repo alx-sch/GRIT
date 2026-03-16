@@ -44,7 +44,7 @@ async function ensureBucket(bucketName: string) {
   console.log(`Checking for bucket: ${bucketName}...`);
   try {
     await s3.send(new HeadBucketCommand({ Bucket: bucketName }));
-    console.log(`✅ Bucket ' ${bucketName}' exists.`);
+    // console.log(`✅ Bucket ' ${bucketName}' exists.`);
   } catch (error: unknown) {
     const isS3Error = (err: unknown): err is S3Error =>
       typeof err === 'object' && err !== null && '$metadata' in err;
@@ -54,7 +54,7 @@ async function ensureBucket(bucketName: string) {
       (error.name === 'NotFound' || (isS3Error(error) && error.$metadata?.httpStatusCode === 404));
 
     if (isNotFound) {
-      console.log(`Bucket not found. Creating '${bucketName}'...`);
+      // console.log(`Bucket not found. Creating '${bucketName}'...`);
       await s3.send(new CreateBucketCommand({ Bucket: bucketName }));
       await s3.send(
         new PutBucketPolicyCommand({
@@ -62,8 +62,9 @@ async function ensureBucket(bucketName: string) {
           Policy: getPublicS3Policy(bucketName),
         })
       );
-      console.log(`✅ Bucket '${bucketName}' created.`);
+      // console.log(`✅ Bucket '${bucketName}' created.`);
     } else {
+      console.error(`❌ Unexpected error with bucket '${bucketName}':`, error);
       throw error;
     }
   }
@@ -91,8 +92,8 @@ async function uploadToBucket(bucketName: string, localFilePath: string, origina
         ContentType: 'image/jpeg',
       })
     );
-    const fileName = path.basename(localFilePath);
-    console.log(`⬆️  Uploaded: ${fileName} (Bucket: ${bucketName})`);
+    // const fileName = path.basename(localFilePath);
+    // console.log(`⬆️  Uploaded: ${fileName} (Bucket: ${bucketName})`);
     return s3Key;
   } catch (error) {
     console.error(`❌ Upload failed for ${s3Key}:`, error);
@@ -107,7 +108,7 @@ async function uploadToBucket(bucketName: string, localFilePath: string, origina
 async function main() {
   console.log('--- Seeding database...');
 
-  const TEST_RECORD_COUNT = 500;
+  const TEST_RECORD_COUNT = 1000;
   const DEFAULT_TEST_PASSWORD = 'password123';
   const AVATAR_BUCKET = 'user-avatars';
   const EVENT_BUCKET = 'event-images';
@@ -119,16 +120,10 @@ async function main() {
   // USER SEEDING //
   //////////////////
 
-  console.log('--- Seeding Users ---');
+  console.log('--- Seeding Users...');
 
-  const usersToCreate = [
-    {
-      email: 'admin@example.com',
-      name: 'Admin',
-      password: 'admin123',
-      image: null,
-      isAdmin: true,
-    },
+  const coreUsers = [
+    { email: 'admin@example.com', name: 'Admin', password: 'admin123', image: null, isAdmin: true },
     {
       email: 'alice@example.com',
       name: 'Alice',
@@ -144,21 +139,9 @@ async function main() {
     { email: 'cindy@example.com', name: 'Cindy', password: DEFAULT_TEST_PASSWORD, image: null },
   ];
 
-  // seed much more users into db for testing
-  console.log(`Seeding ${String(TEST_RECORD_COUNT)} test user...`);
-  for (let i = 1; i <= TEST_RECORD_COUNT; i++) {
-    usersToCreate.push({
-      email: `test${String(i)}@example.com`,
-      name: `Test User ${String(i)}`,
-      password: DEFAULT_TEST_PASSWORD,
-      image: null,
-    });
-  }
-
-  // upsert: "Update or Insert" - prevents errors if the user already exists
-  for (const u of usersToCreate) {
+  // Process Core Users (Since they need avatars and specific upserts)
+  for (const u of coreUsers) {
     const hashedPassword = await bcrypt.hash(u.password, 10);
-    // Create User in DB
     const user = await prisma.user.upsert({
       where: { email: u.email },
       update: { name: u.name, password: hashedPassword, isConfirmed: true },
@@ -167,30 +150,49 @@ async function main() {
         name: u.name,
         password: hashedPassword,
         isConfirmed: true,
-        confirmationToken: null,
-        isAdmin: u.isAdmin,
+        isAdmin: u.isAdmin ?? false,
       },
     });
-    //console.log(`👤 Processed User: ${user.name} (${String(user.id)})`);
 
-    // Upload Image (Only if one is provided)
     if (u.image && !user.avatarKey) {
-      // Where is the file on the machine?
       const localPath = path.join(__dirname, 'seed-assets', u.image);
-
-      // Where should it go in MinIO?
       const bucketKey = await uploadToBucket(AVATAR_BUCKET, localPath, u.image);
-
       if (bucketKey) {
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { avatarKey: bucketKey },
-        });
-        console.log(`   📝 Saved to DB: ${bucketKey}`);
+        await prisma.user.update({ where: { id: user.id }, data: { avatarKey: bucketKey } });
       }
-    } else if (u.image && user.avatarKey) {
-      console.log(`   ⏩ User ${user.name} already has an avatar. Skipping upload.`);
     }
+  }
+
+  // TEST USER seeding
+  const existingTestUsersCount = await prisma.user.count({
+    where: { email: { startsWith: 'test' } },
+  });
+
+  if (existingTestUsersCount === 0) {
+    console.log(`Seeding ${String(TEST_RECORD_COUNT)} test user...`);
+    // Pre-hash the test password exactly ONCE
+    const testHashedPassword = await bcrypt.hash(DEFAULT_TEST_PASSWORD, 10);
+
+    // Bulk insert all test users in a single database trip
+    const testUsersData = [];
+    for (let i = 1; i <= TEST_RECORD_COUNT; i++) {
+      testUsersData.push({
+        email: `test${String(i)}@example.com`,
+        name: `TestUser${String(i)}`,
+        password: testHashedPassword, // use pre-calculated hash to save time
+        isConfirmed: true,
+        isAdmin: false,
+        bio: `This is auto-generated test user ${String(i)}.`,
+      });
+    }
+
+    // Push test users to db in a single query
+    await prisma.user.createMany({
+      data: testUsersData,
+      skipDuplicates: true,
+    });
+  } else {
+    console.log(`Found ${String(existingTestUsersCount)} test users. Skipping.`);
   }
 
   const alice = await prisma.user.findUnique({ where: { email: 'alice@example.com' } });
@@ -204,9 +206,9 @@ async function main() {
   // LOCATION SEEDING //
   //////////////////////
 
-  console.log('--- Seeding Locations ---');
+  console.log('--- Seeding Locations...');
 
-  const locationsToCreate = [
+  const coreLocations = [
     {
       name: 'GRIT HQ',
       city: 'Berlin',
@@ -226,56 +228,67 @@ async function main() {
       isPublic: true,
     },
   ];
-
-  // seed much more locations for testing
-  console.log(`Seeding ${String(TEST_RECORD_COUNT)} test locations...`);
-  for (let i = 1; i <= TEST_RECORD_COUNT; i++) {
-    locationsToCreate.push({
-      name: `Test Location ${String(i)}`,
-      city: 'Berlin',
-      country: 'Germany',
-      // spread locations out
-      longitude: 13.45 + i * 0.001,
-      latitude: 52.5 + i * 0.001,
-      authorId: alice.id,
-      isPublic: true,
-    });
-  }
-
   let gritHqId: Location['id'] | null = null;
   let superCoolId: Location['id'] | null = null;
-  const testLocationIds: Location['id'][] = [];
 
-  for (const loc of locationsToCreate) {
-    const existing = await prisma.location.findFirst({
-      where: { name: loc.name },
-    });
-
+  for (const loc of coreLocations) {
+    const existing = await prisma.location.findFirst({ where: { name: loc.name } });
     let currentLocId;
-
     if (!existing) {
-      const createdLoc = await prisma.location.create({
-        data: loc,
-      });
+      const createdLoc = await prisma.location.create({ data: loc });
       currentLocId = createdLoc.id;
     } else {
       currentLocId = existing.id;
     }
-
     if (loc.name === 'GRIT HQ') gritHqId = currentLocId;
     if (loc.name === 'Super Cool Event Space') superCoolId = currentLocId;
-    if (loc.name.startsWith('Test Location')) {
-      testLocationIds.push(currentLocId);
+  }
+
+  // Bulk Insert Test Locations
+  const existingTestLocationsCount = await prisma.location.count({
+    where: { name: { startsWith: 'Test Location' } },
+  });
+
+  if (existingTestLocationsCount === 0) {
+    console.log(`Seeding ${String(TEST_RECORD_COUNT)} test locations...`);
+    const testLocationsData = [];
+    for (let i = 1; i <= TEST_RECORD_COUNT; i++) {
+      testLocationsData.push({
+        name: `Test Location ${String(i)}`,
+        city: 'Berlin',
+        country: 'Germany',
+        longitude: 13.45 + i * 0.001,
+        latitude: 52.5 + i * 0.001,
+        authorId: alice.id,
+        isPublic: true,
+      });
     }
+
+    await prisma.location.createMany({
+      data: testLocationsData,
+      skipDuplicates: true,
+    });
+  } else {
+    console.log(`⏩ Found ${String(existingTestLocationsCount)} test locations. Skipping.`);
+  }
+
+  const testLocations = await prisma.location.findMany({
+    where: { name: { startsWith: 'Test Location' } },
+    select: { id: true, name: true },
+  });
+
+  const locationMap = new Map<string, number>();
+  for (const loc of testLocations) {
+    locationMap.set(loc.name, loc.id);
   }
 
   ///////////////////////////////////
   // EVENT SEEDING & CONVERSATIONS //
   ///////////////////////////////////
 
-  console.log('--- Seeding Events & Matching Conversations ---');
+  console.log('--- Seeding Events & Matching Conversations...');
 
-  const eventsToCreate = [
+  const coreEvents = [
     {
       title: 'Grit Launch Party',
       slug: eventGenerateSlug('Grit Launch Party'),
@@ -286,7 +299,7 @@ async function main() {
       isPublished: true,
       startAt: new Date('2026-04-01T18:00:00Z'),
       endAt: new Date('2026-04-01T22:00:00Z'),
-      image: 'grit-launch.jpg', // local filename in seed-assets
+      image: 'grit-launch.jpg',
     },
     {
       title: 'Private Strategy Meeting',
@@ -298,7 +311,7 @@ async function main() {
       isPublished: false,
       startAt: new Date('2025-04-01T10:00:00Z'),
       endAt: new Date('2025-04-01T12:00:00Z'),
-      image: null as string | null,
+      image: null,
     },
     {
       title: 'Alice in Wonderland',
@@ -308,95 +321,159 @@ async function main() {
       content: 'We’re all mad here!',
       isPublic: true,
       isPublished: true,
-      startAt: new Date('2027-02-15T10:00:00Z'),
-      endAt: new Date('2027-02-15T12:00:00Z'),
-      image: null as string | null,
+      startAt: new Date('2026-04-01T10:00:00Z'),
+      endAt: new Date('2027-04-01T12:00:00Z'),
+      image: null,
     },
   ];
 
-  // add much more events for testing (pagination etc)
-  console.log(`Seeding ${String(TEST_RECORD_COUNT)} test events...`);
-  for (let i = 1; i <= TEST_RECORD_COUNT; i++) {
-    const startDate = new Date('2024-04-01T18:00:00Z');
-    // spread out starting dates
-    startDate.setDate(startDate.getDate() + i);
-
-    const endDate = new Date(startDate);
-    endDate.setHours(startDate.getHours() + 4);
-
-    eventsToCreate.push({
-      title: `Test Party ${String(i)}`,
-      slug: eventGenerateSlug(`Test Party ${String(i)}`),
-      locationId: testLocationIds[i - 1],
-      authorId: alice.id,
-      content: `This is auto-generated test party number ${String(i)}.`,
-      isPublic: true,
-      isPublished: true,
-      startAt: startDate,
-      endAt: endDate,
-      image: null as string | null,
-    });
-  }
-
-  for (const e of eventsToCreate) {
-    // simple check to avoid duplicate events if seed run twice
+  for (const e of coreEvents) {
     const existingEvent = await prisma.event.findFirst({
       where: { title: e.title, authorId: e.authorId },
     });
-
     if (!existingEvent) {
-      const { image } = e;
-
+      const { image, ...eventData } = e; // pull 'image' out of object
       const event = await prisma.event.create({
         data: {
-          title: e.title,
-          slug: e.slug,
-          authorId: e.authorId,
-          locationId: e.locationId,
-          startAt: e.startAt,
-          endAt: e.endAt,
-          isPublic: e.isPublic,
-          isPublished: e.isPublished,
-
-          attendees: {
-            create: [{ userId: e.authorId }],
-          },
-
+          ...eventData,
+          attendees: { create: [{ userId: e.authorId }] },
           conversation: {
             create: {
               type: 'EVENT',
               createdBy: e.authorId,
-              participants: {
-                create: [{ userId: e.authorId }],
-              },
+              participants: { create: [{ userId: e.authorId }] },
             },
           },
         },
       });
 
-      //console.log(`📅 Created Event: ${e.title} for User ${String(e.authorId)}`);
-
-      // Upload image if specified
       if (image) {
         const localPath = path.join(__dirname, 'seed-assets', image);
         const bucketKey = await uploadToBucket(EVENT_BUCKET, localPath, image);
-
         if (bucketKey) {
-          await prisma.event.update({
-            where: { id: event.id },
-            data: { imageKey: bucketKey },
-          });
-          console.log(`   📝 Event image saved: ${bucketKey}`);
+          await prisma.event.update({ where: { id: event.id }, data: { imageKey: bucketKey } });
         }
       }
     }
+  }
+
+  // Bulk insert test events
+  const existingTestEventsCount = await prisma.event.count({
+    where: { title: { startsWith: 'Test Party' } },
+  });
+
+  if (existingTestEventsCount === 0) {
+    console.log(`Seeding ${String(TEST_RECORD_COUNT)} test events...`);
+    const testEventsData = [];
+
+    for (let i = 1; i <= TEST_RECORD_COUNT; i++) {
+      const startDate = new Date('2025-12-01T18:00:00Z');
+      startDate.setDate(startDate.getDate() + i);
+      const endDate = new Date(startDate);
+      endDate.setHours(startDate.getHours() + 4);
+
+      testEventsData.push({
+        title: `Test Party ${String(i)}`,
+        slug: eventGenerateSlug(`Test Party ${String(i)}`),
+        locationId: locationMap.get(`Test Location ${String(i)}`) ?? null,
+        authorId: alice.id,
+        content: `This is auto-generated test party number ${String(i)}.`,
+        isPublic: true,
+        isPublished: true,
+        startAt: startDate,
+        endAt: endDate,
+      });
+    }
+
+    await prisma.event.createMany({
+      data: testEventsData,
+      skipDuplicates: true,
+    });
+
+    // Get test events back to link attendees and conversations
+    const testEventsFromDb = await prisma.event.findMany({
+      where: { title: { startsWith: 'Test Party' } },
+      select: { id: true, authorId: true },
+    });
+
+    if (testEventsFromDb.length > 0) {
+      // Setup the arrays with the authors (who must be attending their own events)
+      const eventAttendeeData = testEventsFromDb.flatMap((e) =>
+        e.authorId !== null ? [{ eventId: e.id, userId: e.authorId }] : []
+      );
+
+      // Create the conversations for these events
+      await prisma.conversation.createMany({
+        data: testEventsFromDb.map((e) => ({
+          type: 'EVENT',
+          createdBy: e.authorId,
+          eventId: e.id,
+        })),
+        skipDuplicates: true,
+      });
+
+      // Fetch the conversations back so we know IDs
+      const eventConversations = await prisma.conversation.findMany({
+        where: { eventId: { in: testEventsFromDb.map((e) => e.id) } },
+        select: { id: true, createdBy: true, eventId: true }, // Ensure we grab eventId too!
+      });
+
+      const participantData = eventConversations.flatMap((c) =>
+        c.createdBy !== null ? [{ conversationId: c.id, userId: c.createdBy }] : []
+      );
+
+      const allTestUsers = await prisma.user.findMany({
+        where: { email: { startsWith: 'test' } },
+        select: { id: true },
+      });
+
+      const eventToConvMap = new Map(eventConversations.map((c) => [c.eventId, c.id]));
+
+      for (const event of testEventsFromDb) {
+        // Pick random number of attendees for this specific event (between 0 and 100)
+        const numAttendees = Math.floor(Math.random() * 100);
+        const randomUserIds = new Set<number>();
+
+        // Keep picking random test users until target number is hit
+        while (randomUserIds.size < numAttendees && randomUserIds.size < allTestUsers.length) {
+          const randomIndex = Math.floor(Math.random() * allTestUsers.length);
+          randomUserIds.add(allTestUsers[randomIndex].id);
+        }
+
+        const conversationId = eventToConvMap.get(event.id);
+
+        for (const userId of randomUserIds) {
+          // Prevent adding the author twice if they were randomly selected
+          if (userId === event.authorId) continue;
+
+          // Push to our bulk arrays
+          eventAttendeeData.push({ eventId: event.id, userId });
+          if (conversationId) {
+            participantData.push({ conversationId, userId });
+          }
+        }
+      }
+
+      // Execute the massive bulk inserts!
+      await prisma.eventAttendee.createMany({
+        data: eventAttendeeData,
+        skipDuplicates: true,
+      });
+
+      await prisma.conversationParticipant.createMany({
+        data: participantData,
+        skipDuplicates: true,
+      });
+    }
+  } else {
+    console.log(`Found ${String(existingTestEventsCount)} in DB. Skipping generation.`);
   }
 
   ////////////////////////
   // ATTENDANCE SEEDING //
   ////////////////////////
 
-  console.log('--- Seeding Attendance ---');
+  console.log('--- Seeding Attendance...');
 
   const aliceFromDb = await prisma.user.findUnique({ where: { email: 'alice@example.com' } });
   const bobFromDb = await prisma.user.findUnique({ where: { email: 'bob@example.com' } });
@@ -438,15 +515,15 @@ async function main() {
     skipDuplicates: true,
   });
 
-  for (const attendee of attendees) {
-    if (attendee?.name) console.log(`✅ ${attendee.name} is now attending the Party`);
-  }
+  // for (const attendee of attendees) {
+  //   if (attendee?.name) console.log(`✅ ${attendee.name} is now attending the Party`);
+  // }
 
   ////////////////////////
   // FRIENDSHIP SEEDING //
   ////////////////////////
 
-  console.log('--- Seeding Friendships ---');
+  console.log('--- Seeding Friendships...');
 
   if (!aliceFromDb || !bobFromDb || !cindyFromDb) {
     throw new Error('Seed users not found');
@@ -474,7 +551,7 @@ async function main() {
         },
       }),
     ]);
-    console.log(`👫 Alice & Bob are now friends`);
+    // console.log(`👫 Alice & Bob are now friends`);
   }
 
   // Alice <-> Cindy friendship
@@ -499,7 +576,7 @@ async function main() {
         },
       }),
     ]);
-    console.log(`👫 Alice & Cindy are now friends`);
+    // console.log(`👫 Alice & Cindy are now friends`);
   }
 
   // Bob <-> Cindy friendship
@@ -524,14 +601,12 @@ async function main() {
         },
       }),
     ]);
-    console.log(`👫 Bob & Cindy are now friends`);
+    // console.log(`👫 Bob & Cindy are now friends`);
   }
 
   ///////////////////////////////////////////
   // ALICE <-> ALL TEST USERS FRIENDSHIPS  //
   ///////////////////////////////////////////
-
-  console.log('--- Seeding Alice & Test User Friendships ---');
 
   // grab all auto-generates test users
   const testUsers = await prisma.user.findMany({
@@ -558,9 +633,9 @@ async function main() {
       data: bulkFriendships,
       skipDuplicates: true,
     });
-    console.log(
-      `👫 Alice is now friends with ${String(testUsers.length)} test users! Popular girl.`
-    );
+    // console.log(
+    //   `👫 Alice is now friends with ${String(testUsers.length)} test users! Popular girl.`
+    // );
   }
 }
 
