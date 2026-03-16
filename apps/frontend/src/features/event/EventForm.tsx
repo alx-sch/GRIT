@@ -37,6 +37,7 @@ interface EventFormProps {
   onLocationMenuScrollToBottom?: () => void;
   isLoadingLocations?: boolean;
   onLocationCreated?: (location: LocationBase) => void;
+  onSuccess?: () => void;
 }
 
 export default function EventForm({
@@ -45,6 +46,7 @@ export default function EventForm({
   onLocationMenuScrollToBottom,
   isLoadingLocations,
   onLocationCreated,
+  onSuccess,
 }: EventFormProps) {
   const {
     control,
@@ -80,7 +82,7 @@ export default function EventForm({
     showRootError,
     rootErrorMessage,
     existingImageUrl,
-  } = useEventForm({ initialData, locations });
+  } = useEventForm({ initialData, locations, onSuccess });
 
   const locationOptionsCombobox = useMemo(
     () => [
@@ -103,7 +105,7 @@ export default function EventForm({
             control={control}
             name="isPublic"
             render={({ field: { onChange, value } }) => (
-              <div className="flex flex-row gap-4 md:gap-12 w-full items-center">
+              <div className="flex flex-row max-[400px]:flex-col gap-2 sm:gap-2 md:gap-12 w-full items-center">
                 <Button
                   type="button"
                   variant={!value ? 'selected' : 'secondary'}
@@ -111,7 +113,7 @@ export default function EventForm({
                   onClick={() => {
                     onChange(false);
                   }}
-                  className="font-sans text-lg md:text-2xl md:py-8 md:px-12 flex-1"
+                  className="font-sans text-lg md:text-2xl md:py-8 md:px-12 flex-1 w-full"
                 >
                   Private
                 </Button>
@@ -123,7 +125,7 @@ export default function EventForm({
                   onClick={() => {
                     onChange(true);
                   }}
-                  className="font-sans text-lg md:text-2xl md:py-8 md:px-12 flex-1"
+                  className="font-sans text-lg md:text-2xl md:py-8 md:px-12 flex-1 w-full"
                 >
                   Public
                 </Button>
@@ -312,7 +314,7 @@ export default function EventForm({
             <AlertTitle className="text-sm">{rootErrorMessage}</AlertTitle>
           </Alert>
         )}
-        <div className="flex flex-row gap-4 md:gap-12">
+        <div className="flex flex-row gap-4 md:gap-12 max-[400px]:flex-col">
           <Button
             type="button"
             variant="secondary"

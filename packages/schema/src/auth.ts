@@ -16,6 +16,6 @@ export const LoginSchema = z.object({
 export type LoginInput = z.infer<typeof LoginSchema>;
 
 export const RegisterSchema = LoginSchema.extend({
-  name: z.string(),
+  name: z.string().min(1, 'Name is required').max(50, 'Name must be less than 100 characters'),
 });
 export type RegisterInput = z.infer<typeof RegisterSchema>;

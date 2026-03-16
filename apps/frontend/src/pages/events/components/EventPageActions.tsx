@@ -11,13 +11,25 @@ import { Text } from '@/components/ui/typography';
 import { FaFacebook, FaTelegram, FaWhatsapp, FaXTwitter } from 'react-icons/fa6';
 import { QRCodeSVG } from 'qrcode.react';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
+import { Input } from '@/components/ui/input';
 
 interface EventPageActionsProps {
   isAttending: boolean | null;
   isLoading: boolean;
   shareOpen: boolean;
+  inviteOpen: boolean;
+  invitableFriends: { id: number; name: string; avatarKey?: string }[];
+  sentInvites: Set<number>;
+  invitingIds: Set<number>;
+  eventAttendees?: { id: number }[];
+  invitesLoading?: boolean;
+  canInvite?: boolean;
+  onInviteOpenChange: (open: boolean) => void;
   onShareOpenChange: (open: boolean) => void;
+  onInviteFriend: (friendId: number) => Promise<void>;
   onGoing: () => void;
+  onInvite: () => void;
   onShare: () => void;
   onChat: () => void;
   onCopyLink: () => void;
@@ -33,11 +45,21 @@ export const EventPageActions = ({
   isAttending,
   isLoading,
   shareOpen,
+  inviteOpen,
+  sentInvites,
+  eventAttendees = [],
+  invitesLoading,
+  canInvite,
   onShareOpenChange,
+  onInviteOpenChange,
   onGoing,
+  onInvite,
   onShare,
   onChat,
   onCopyLink,
+  onInviteFriend,
+  invitableFriends,
+  invitingIds,
   shareText,
   shareUrl,
   eventTitle,
@@ -45,6 +67,20 @@ export const EventPageActions = ({
   eventLocation,
   copied,
 }: EventPageActionsProps) => {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredFriends = invitableFriends.filter((friend) =>
+    friend.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // For each friend, determine their status
+  const getFriendStatus = (friendId: number) => {
+    if (eventAttendees.some((a) => a.id === friendId)) return 'ATTENDING';
+    if (sentInvites.has(friendId)) return 'INVITED';
+    if (invitingIds.has(friendId)) return 'SENDING';
+    return 'NOT_INVITED';
+  };
+
   return (
     <>
       <Card className="w-full border-0 bg-transparent shadow-none md:border md:bg-card md:shadow md:mt-5">
@@ -66,7 +102,13 @@ export const EventPageActions = ({
             >
               {isAttending ? 'Going ✓' : 'Going'}
             </Button>
-            <Button variant="secondary" className="flex-1">
+            <Button
+              onClick={onInvite}
+              disabled={!canInvite || isLoading}
+              variant="secondary"
+              className="flex-1"
+              title={!canInvite ? 'Only event owner can invite to private events' : ''}
+            >
               Invite
             </Button>
             <Button variant="secondary" className="flex-1" onClick={onShare}>
@@ -174,6 +216,62 @@ export const EventPageActions = ({
                 </a>
               </Button>
             ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* INVITE DIALOG */}
+      <Dialog open={inviteOpen} onOpenChange={onInviteOpenChange}>
+        <DialogContent className="max-w-sm flex flex-col gap-4 p-4 max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="text-[12px] uppercase tracking-[0.3em] opacity-50 font-sans font-bold">
+              Invite friends
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              Search and invite your friends to this event.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Input
+            placeholder="Search friends..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+            }}
+            className="text-sm"
+          />
+
+          <div className="flex-1 overflow-y-auto flex flex-col gap-2">
+            {filteredFriends.length === 0 ? (
+              <div className="text-center py-8 text-sm opacity-50">No friends</div>
+            ) : (
+              filteredFriends.map((friend) => {
+                const status = getFriendStatus(friend.id);
+                const isDisabled = status !== 'NOT_INVITED';
+
+                return (
+                  <div
+                    key={friend.id}
+                    className={cn(
+                      'flex items-center justify-between p-3 rounded border border-border hover:bg-accent transition-colors',
+                      isDisabled && 'opacity-60 bg-muted'
+                    )}
+                  >
+                    <Text className="font-medium">{friend.name}</Text>
+                    <Button
+                      size="sm"
+                      disabled={isDisabled}
+                      variant={isDisabled ? 'outline' : 'default'}
+                      onClick={() => void onInviteFriend(friend.id)}
+                    >
+                      {status === 'ATTENDING' && 'Already Going ✓'}
+                      {status === 'INVITED' && 'Invited ✓'}
+                      {status === 'SENDING' && 'Sending...'}
+                      {status === 'NOT_INVITED' && (invitesLoading ? 'Loading...' : 'Invite')}
+                    </Button>
+                  </div>
+                );
+              })
+            )}
           </div>
         </DialogContent>
       </Dialog>

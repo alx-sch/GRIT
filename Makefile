@@ -285,13 +285,13 @@ test-be-e2e: install-be test-be-testdb-init
 # Helper commands
 test-be-testdb-init: start-postgres
 	@echo "$(BOLD)$(YELLOW)--- Creating Test Database ...$(RESET)"
-	@$(DC) exec postgres-db psql -h 127.0.0.1 -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
-	@$(DC) exec postgres-db psql -h 127.0.0.1 -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
+	@$(DC) exec -T postgres-db psql -h 127.0.0.1 -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
+	@$(DC) exec -T postgres-db psql -h 127.0.0.1 -U $(POSTGRES_USER) -d postgres -c "CREATE DATABASE $(POSTGRES_DB)_test;"
 	@NODE_ENV=test pnpm --filter @grit/backend exec prisma db push
 
 test-be-testdb-remove:
 	@echo "$(BOLD)$(YELLOW)--- Removing Test Database ...$(RESET)"
-	@$(DC) exec postgres-db psql -h 127.0.0.1 -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
+	@$(DC) exec -T postgres-db psql -h 127.0.0.1 -U $(POSTGRES_USER) -d postgres -c "DROP DATABASE IF EXISTS $(POSTGRES_DB)_test;"
 
 ## Frontend ##
 
@@ -351,7 +351,7 @@ start-postgres: install-be
 	@echo "$(BOLD)$(YELLOW)--- Starting Postgres [DOCKER]...$(RESET)"
 	@$(DC) up -d postgres-db --no-build
 	@echo "$(BOLD)$(YELLOW)--- Waiting for Postgres to accept connections...$(RESET)"
-	@RETRIES=30; \
+	@RETRIES=10; \
 	PG_CONTAINER=$$($(DC) ps -q postgres-db); \
 	until docker exec $$PG_CONTAINER psql -h 127.0.0.1 -U $(POSTGRES_USER) -d postgres -c '\q' > /dev/null 2>&1; do \
 		RETRIES=$$((RETRIES - 1)); \
@@ -360,7 +360,7 @@ start-postgres: install-be
 			exit 1; \
 		fi; \
 		echo "Waiting for Postgres... ($$RETRIES attempts left)"; \
-		sleep 1; \
+		sleep 2; \
 	done; \
 	echo "$(GREEN)Postgres is ready!$(RESET)"
 
@@ -368,7 +368,7 @@ start-postgres: install-be
 start-minio: install-be
 	@echo "$(BOLD)$(YELLOW)--- Starting MinIO [DOCKER]...$(RESET)"
 	@$(DC) up -d minio --no-build
-	@echo "$(BOLD)$(YELLOW)--- Waiting for MinIO to wake up...$(RESET)"
+	@echo "$(BOLD)$(YELLOW)--- Waiting for MinIO to accept connections...$(RESET)"
 	@RETRIES=10; \
 	MINIO_CONTAINER=$$($(DC) ps -q minio); \
 	while [ $$RETRIES -gt 0 ]; do \
@@ -378,7 +378,7 @@ start-minio: install-be
 		fi; \
 		echo "Waiting for MinIO... ($$RETRIES attempts left)"; \
 		RETRIES=$$((RETRIES - 1)); \
-		sleep 1; \
+		sleep 2; \
 	done; \
 	if [ $$RETRIES -eq 0 ]; then \
 		echo "$(RED)Timeout waiting for MinIO.$(RESET)"; \

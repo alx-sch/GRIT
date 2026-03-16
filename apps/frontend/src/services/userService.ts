@@ -2,10 +2,12 @@ import api from '@/lib/api';
 import type { UserBase, UserResponse } from '@/types/user';
 import {
   ResMyEvents,
+  ResMyInvitedEvents,
   ResUserPublicSchema,
   ResUserPublicEventsSchema,
   ResFriendshipStatusSchema,
 } from '@grit/schema';
+import { useCurrentUserStore } from '@/store/currentUserStore';
 
 interface GetUsersParams {
   limit?: string;
@@ -37,6 +39,11 @@ export const userService = {
     return response.data;
   },
 
+  getMyInvitedEvents: async (): Promise<ResMyInvitedEvents> => {
+    const response = await api.get<ResMyInvitedEvents>('users/me/events/invited');
+    return response.data;
+  },
+
   attendEvent: async (eventId: number): Promise<UserBase> => {
     const response = await api.patch<UserBase>('users/me', { attending: { connect: [eventId] } });
     return response.data;
@@ -61,6 +68,7 @@ export const userService = {
   },
 
   uploadAvatar: async (file: File): Promise<UserBase> => {
+    useCurrentUserStore.getState().setAvatarTransitioning(true);
     const formData = new FormData();
     formData.append('file', file);
     const response = await api.patch<UserBase>('users/me/upload-avatar', formData, {
@@ -68,11 +76,36 @@ export const userService = {
         'Content-Type': 'multipart/form-data',
       },
     });
+
+    // Keep transitioning state for 500ms to allow avatar to load smoothly
+    setTimeout(() => {
+      useCurrentUserStore.getState().setAvatarTransitioning(false);
+    }, 500);
+
     return response.data;
   },
 
   removeAvatar: async (): Promise<UserBase> => {
+    useCurrentUserStore.getState().setAvatarTransitioning(true);
     const response = await api.delete<UserBase>('users/me/avatar');
+
+    // Keep transitioning state for 500ms to allow avatar to load smoothly
+    setTimeout(() => {
+      useCurrentUserStore.getState().setAvatarTransitioning(false);
+    }, 500);
+
+    return response.data;
+  },
+
+  setRandomAvatar: async (): Promise<UserBase> => {
+    useCurrentUserStore.getState().setAvatarTransitioning(true);
+    const response = await api.post<UserBase>('users/me/random-avatar');
+
+    // Keep transitioning state for 500ms to allow avatar to load smoothly
+    setTimeout(() => {
+      useCurrentUserStore.getState().setAvatarTransitioning(false);
+    }, 500);
+
     return response.data;
   },
 

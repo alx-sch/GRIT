@@ -1,9 +1,10 @@
-import { ReqEventGetPublishedDto } from './event.schema';
-import { Prisma } from '@prisma/client';
 import { BadRequestException } from '@nestjs/common';
-import slugify from 'slugify';
+import { Prisma } from '@prisma/client';
 import { customAlphabet } from 'nanoid';
-import { removeStopwords, eng, deu, fra, spa } from 'stopword';
+import slugify from 'slugify';
+import { deu, eng, fra, removeStopwords, spa } from 'stopword';
+
+import { ReqEventGetPublishedDto } from './event.schema';
 
 /**
  * ==================================================
@@ -12,7 +13,8 @@ import { removeStopwords, eng, deu, fra, spa } from 'stopword';
  *
  * Cursors are encoded to a single Base64 string to:
  * 1. Hide raw database values (startAt dates and IDs) from the URL.
- * 2. Prevent users from accidentally modifying the cursor and breaking pagination.
+ * 2. Prevent users from accidentally modifying the cursor and breaking
+ * pagination.
  *
  * Example WITHOUT encoding:
  * GET /events?limit=20&cursor=2025-01-22T10:00:00.000Z|41
@@ -112,14 +114,16 @@ export function eventCursorFilter(input: ReqEventGetPublishedDto) {
  * ==================================================
  */
 
+// "nanoid" uses '-' and '_' --> exclude these by using a custom alphabet
 const generateNanoId = customAlphabet(
   '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
-  6
+  3
 );
 
 /**
  * Generates a unique, URL-friendly slug for an event.
- * Combines the title with a random suffix to support anonymous sharing and prevent URL guessing.
+ * Combines the title with a random suffix to support anonymous sharing and
+ * prevent URL guessing.
  *
  * Example:
  * - Title: "   💕 A cool Valentine's Party for Singles and more in Berlin!! 💕"

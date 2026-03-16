@@ -30,11 +30,8 @@ interface UserAvatarUser {
 interface UserAvatarProps {
   user: UserAvatarUser;
   size?: AvatarSize;
-  /** Pre-resolved image URL. When provided, takes precedence over deriving from user.avatarKey. */
   src?: string;
-  /** Extra className applied to the Avatar root (use for shape overrides, borders, etc.) */
   className?: string;
-  /** Extra className applied to the AvatarFallback (use for text size overrides, shape, etc.) */
   fallbackClassName?: string;
   alt?: string;
 }
@@ -47,8 +44,32 @@ export function UserAvatar({
   fallbackClassName,
   alt,
 }: UserAvatarProps) {
-  const src = srcProp ?? (user.avatarKey ? getAvatarImageUrl(user.avatarKey) : undefined);
-  const seed = user.name ?? user.email ?? 'user';
+  // Handle avatar logic:
+  // - If srcProp is provided, use it (URL)
+  // - If avatarKey starts with 'default-', extract the seed and use for dicebear generation
+  // - Otherwise if avatarKey exists, use it as S3 URL
+  // - Fall back to name/email as seed
+  let src: string | undefined = srcProp;
+  let seed: string;
+
+  if (!srcProp) {
+    if (user.avatarKey?.startsWith('default-')) {
+      // Extract the random seed from 'default-{seed}'
+      seed = user.avatarKey.substring('default-'.length);
+      src = undefined; // Let AvatarImage generate from seed
+    } else if (user.avatarKey) {
+      // Get S3 URL of uploaded avatar
+      src = getAvatarImageUrl(user.avatarKey);
+      seed = user.name ?? user.email ?? 'user';
+    } else {
+      // No avatar at all - use name/email as seed
+      src = undefined;
+      seed = user.name ?? user.email ?? 'user';
+    }
+  } else {
+    seed = user.name ?? user.email ?? 'user';
+  }
+
   const displayName = user.name ?? user.email ?? undefined;
 
   return (

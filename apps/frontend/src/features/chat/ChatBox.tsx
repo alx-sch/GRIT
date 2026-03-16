@@ -5,13 +5,33 @@ import { useChat } from '@/features/chat/useChat';
 import { ChatBubble } from '@/features/chat/ChatBubble';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircleIcon } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+
+import { AlertCircleIcon, Trash2 } from 'lucide-react';
 import { useSocket } from '@/providers/socketProvider';
 import { chatStore } from '@/store/chatStore';
 
 export const ChatBox = ({ conversationId }: { conversationId: string }) => {
-  const { messages, getHistory, sendMessage, loadMore, sendNewLastReadAt, hasMore, errorMessage } =
-    useChat(conversationId);
+  const {
+    messages,
+    getHistory,
+    sendMessage,
+    loadMore,
+    deleteMessage,
+    sendNewLastReadAt,
+    hasMore,
+    errorMessage,
+    isAdmin,
+  } = useChat(conversationId);
   const [input, setInput] = useState('');
   const [isNearBottom, setIsNearBottom] = useState(true);
   const [hasNewMessages, setHasNewMessages] = useState(false);
@@ -135,14 +155,17 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
       viewport.scrollTop < 100 &&
       hasMore &&
       !isInitialLoad.current &&
-      !isLoadingMoreHistory.current
+      !isLoadingMoreHistory.current &&
+      messages.length > 0
     ) {
       isLoadingMoreHistory.current = true;
       const oldest = messages[0];
-      loadMore({
-        createdAt: oldest.createdAt,
-        id: oldest.id,
-      });
+      if (oldest) {
+        loadMore({
+          createdAt: oldest.createdAt,
+          id: oldest.id,
+        });
+      }
     }
 
     return () => {
@@ -172,6 +195,7 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
       </Alert>
     );
   }
+
   return (
     <>
       <div className="relative">
@@ -180,10 +204,44 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
           className="h-[calc(95vh-350px)] overflow-y-auto border border-input px-4 mb-4"
         >
           {messages.map((message) => (
-            <ChatBubble key={message.id} message={message} />
+            <div key={message.id} className="group relative">
+              <ChatBubble message={message} />
+
+              {isAdmin && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button
+                      className="absolute top-2 right-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-1 hover:bg-destructive hover:text-destructive-foreground rounded"
+                      title="Delete message"
+                      aria-label="Delete message"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete message?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete this message? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogAction
+                      onClick={() => {
+                        deleteMessage(message.id);
+                      }}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Delete
+                    </AlertDialogAction>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </div>
           ))}
           <div ref={bottomRef} />
         </div>
+
         {hasNewMessages && (
           <div className="absolute bottom-4 flex justify-center w-full">
             <Button

@@ -3,10 +3,14 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { ReqFriendRequestsGetAllDto, ReqFriendsGetAllDto } from './friends.schema';
 import { friendsCursorFilter, friendsEncodeCursor } from './friends.utils';
+import { ChatGateway } from '@/chat/chat.gateway';
 
 @Injectable()
 export class FriendsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly chatGateway: ChatGateway
+  ) {}
 
   async sendRequest(requesterId: number, receiverId: number) {
     // Prevent sending request to self
@@ -144,13 +148,21 @@ export class FriendsService {
     const hasMore = friends.length > limit;
     const slicedData = hasMore ? friends.slice(0, limit) : friends;
 
+    const slicedDataEnriched = slicedData.map((el) => ({
+      ...el,
+      friend: {
+        ...el.friend,
+        onlineStatus: this.chatGateway.getSingleConnectionStatus(el.friend.id),
+      },
+    }));
+
     return {
-      data: slicedData,
+      data: slicedDataEnriched,
       pagination: {
         nextCursor: hasMore
           ? friendsEncodeCursor(
-              slicedData[slicedData.length - 1].createdAt,
-              slicedData[slicedData.length - 1].id
+              slicedDataEnriched[slicedDataEnriched.length - 1].createdAt,
+              slicedDataEnriched[slicedDataEnriched.length - 1].id
             )
           : null,
         hasMore,
@@ -216,6 +228,34 @@ export class FriendsService {
 
     if (friendRequest.receiverId !== userId) {
       throw new BadRequestException('You can only decline friend requests sent to you.');
+    }
+
+    // Delete friend request
+    return await this.prisma.friendRequest.delete({
+      where: { id },
+      include: {
+        requester: { select: { id: true, name: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, avatarKey: true } },
+      },
+    });
+  }
+
+  async cancelRequest(id: string, userId: number) {
+    // Find friend request
+    const friendRequest = await this.prisma.friendRequest.findFirst({
+      where: { id: id },
+      include: {
+        requester: { select: { id: true, name: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, avatarKey: true } },
+      },
+    });
+
+    if (!friendRequest) {
+      throw new BadRequestException('Friend request does not exist.');
+    }
+
+    if (friendRequest.requesterId !== userId) {
+      throw new BadRequestException('You can only cancel friend requests you sent.');
     }
 
     // Delete friend request

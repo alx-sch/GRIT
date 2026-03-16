@@ -27,10 +27,12 @@ RUN     pnpm install --frozen-lockfile --filter @grit/frontend...
 COPY    apps/frontend ./apps/frontend
 
 ARG     VITE_GOOGLE_MAPS_API
+ARG     APP_NAME
 ARG     APP_BASE_URL
 
 ENV     VITE_GOOGLE_MAPS_API=$VITE_GOOGLE_MAPS_API
 ENV     VITE_APP_BASE_URL=$APP_BASE_URL
+ENV     APP_NAME=$APP_NAME
 
 # Build the frontend
 RUN     pnpm --filter @grit/frontend build

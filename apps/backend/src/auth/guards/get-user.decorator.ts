@@ -1,4 +1,5 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { User } from '@/auth/interfaces/user.interface';
 import { Request } from 'express';
 
 /**
@@ -21,11 +22,7 @@ import { Request } from 'express';
 
 // The shape of the user that Passport/JWT puts on the request
 interface RequestWithUser {
-  user: {
-    id: number;
-    email: string;
-    // Add other fields if needed
-  };
+  user: User;
 }
 
 export const GetUser = createParamDecorator((data: string | undefined, ctx: ExecutionContext) => {

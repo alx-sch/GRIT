@@ -7,13 +7,17 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient, User } from '@prisma/client';
+import { PrismaClient, User, Location } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
 import { Pool } from 'pg';
 import * as bcrypt from 'bcrypt';
 import { getPublicS3Policy, generateS3Key } from '@/storage/storage.utils';
 import { eventGenerateSlug } from '@/event/event.utils';
+
+//#############
+//## HELPER ###
+//#############
 
 // Setup the Postgres connection
 const pool = new Pool({ connectionString: env.DATABASE_URL });
@@ -96,9 +100,15 @@ async function uploadToBucket(bucketName: string, localFilePath: string, origina
   }
 }
 
+//##############
+//## SEEDING ###
+//##############
+
 async function main() {
   console.log('--- Seeding database...');
 
+  const TEST_RECORD_COUNT = 500;
+  const DEFAULT_TEST_PASSWORD = 'password123';
   const AVATAR_BUCKET = 'user-avatars';
   const EVENT_BUCKET = 'event-images';
 
@@ -112,10 +122,38 @@ async function main() {
   console.log('--- Seeding Users ---');
 
   const usersToCreate = [
-    { email: 'alice@example.com', name: 'Alice', password: '0123456789', image: 'avatar-1.jpg' },
-    { email: 'bob@example.com', name: 'Bob', password: '12345678pw', image: 'avatar-2.jpg' },
-    { email: 'cindy@example.com', name: 'Cindy', password: '0123456789', image: null },
+    {
+      email: 'admin@example.com',
+      name: 'Admin',
+      password: 'admin123',
+      image: null,
+      isAdmin: true,
+    },
+    {
+      email: 'alice@example.com',
+      name: 'Alice',
+      password: DEFAULT_TEST_PASSWORD,
+      image: 'avatar-1.jpg',
+    },
+    {
+      email: 'bob@example.com',
+      name: 'Bob',
+      password: DEFAULT_TEST_PASSWORD,
+      image: 'avatar-2.jpg',
+    },
+    { email: 'cindy@example.com', name: 'Cindy', password: DEFAULT_TEST_PASSWORD, image: null },
   ];
+
+  // seed much more users into db for testing
+  console.log(`Seeding ${String(TEST_RECORD_COUNT)} test user...`);
+  for (let i = 1; i <= TEST_RECORD_COUNT; i++) {
+    usersToCreate.push({
+      email: `test${String(i)}@example.com`,
+      name: `Test User ${String(i)}`,
+      password: DEFAULT_TEST_PASSWORD,
+      image: null,
+    });
+  }
 
   // upsert: "Update or Insert" - prevents errors if the user already exists
   for (const u of usersToCreate) {
@@ -130,9 +168,10 @@ async function main() {
         password: hashedPassword,
         isConfirmed: true,
         confirmationToken: null,
+        isAdmin: u.isAdmin,
       },
     });
-    console.log(`👤 Processed User: ${user.name} (${String(user.id)})`);
+    //console.log(`👤 Processed User: ${user.name} (${String(user.id)})`);
 
     // Upload Image (Only if one is provided)
     if (u.image && !user.avatarKey) {
@@ -188,22 +227,45 @@ async function main() {
     },
   ];
 
-  let gritHqId = 0;
+  // seed much more locations for testing
+  console.log(`Seeding ${String(TEST_RECORD_COUNT)} test locations...`);
+  for (let i = 1; i <= TEST_RECORD_COUNT; i++) {
+    locationsToCreate.push({
+      name: `Test Location ${String(i)}`,
+      city: 'Berlin',
+      country: 'Germany',
+      // spread locations out
+      longitude: 13.45 + i * 0.001,
+      latitude: 52.5 + i * 0.001,
+      authorId: alice.id,
+      isPublic: true,
+    });
+  }
+
+  let gritHqId: Location['id'] | null = null;
+  let superCoolId: Location['id'] | null = null;
+  const testLocationIds: Location['id'][] = [];
 
   for (const loc of locationsToCreate) {
     const existing = await prisma.location.findFirst({
       where: { name: loc.name },
     });
 
+    let currentLocId;
+
     if (!existing) {
       const createdLoc = await prisma.location.create({
         data: loc,
       });
-      console.log(`📍 Created Location: ${createdLoc.name} `);
-      if (loc.name === 'GRIT HQ') gritHqId = createdLoc.id;
+      currentLocId = createdLoc.id;
     } else {
-      console.log(`⏩ Location '${loc.name}' already exists. Skipping.`);
-      gritHqId = existing.id;
+      currentLocId = existing.id;
+    }
+
+    if (loc.name === 'GRIT HQ') gritHqId = currentLocId;
+    if (loc.name === 'Super Cool Event Space') superCoolId = currentLocId;
+    if (loc.name.startsWith('Test Location')) {
+      testLocationIds.push(currentLocId);
     }
   }
 
@@ -231,16 +293,18 @@ async function main() {
       slug: eventGenerateSlug('Private Strategy Meeting'),
       authorId: alice.id,
       content: 'Discussing SECRETS!',
+      locationId: null,
       isPublic: false,
       isPublished: false,
-      startAt: new Date('2026-02-28T10:00:00Z'),
-      endAt: new Date('2026-02-28T12:00:00Z'),
+      startAt: new Date('2025-04-01T10:00:00Z'),
+      endAt: new Date('2025-04-01T12:00:00Z'),
       image: null as string | null,
     },
     {
       title: 'Alice in Wonderland',
       slug: eventGenerateSlug('Alice in Wonderland'),
       authorId: alice.id,
+      locationId: superCoolId,
       content: 'We’re all mad here!',
       isPublic: true,
       isPublished: true,
@@ -250,14 +314,37 @@ async function main() {
     },
   ];
 
+  // add much more events for testing (pagination etc)
+  console.log(`Seeding ${String(TEST_RECORD_COUNT)} test events...`);
+  for (let i = 1; i <= TEST_RECORD_COUNT; i++) {
+    const startDate = new Date('2024-04-01T18:00:00Z');
+    // spread out starting dates
+    startDate.setDate(startDate.getDate() + i);
+
+    const endDate = new Date(startDate);
+    endDate.setHours(startDate.getHours() + 4);
+
+    eventsToCreate.push({
+      title: `Test Party ${String(i)}`,
+      slug: eventGenerateSlug(`Test Party ${String(i)}`),
+      locationId: testLocationIds[i - 1],
+      authorId: alice.id,
+      content: `This is auto-generated test party number ${String(i)}.`,
+      isPublic: true,
+      isPublished: true,
+      startAt: startDate,
+      endAt: endDate,
+      image: null as string | null,
+    });
+  }
+
   for (const e of eventsToCreate) {
-    // Simple check to avoid duplicate events if seed run twice
+    // simple check to avoid duplicate events if seed run twice
     const existingEvent = await prisma.event.findFirst({
       where: { title: e.title, authorId: e.authorId },
     });
 
     if (!existingEvent) {
-      // Extract image from event data (not a DB field)
       const { image } = e;
 
       const event = await prisma.event.create({
@@ -265,6 +352,7 @@ async function main() {
           title: e.title,
           slug: e.slug,
           authorId: e.authorId,
+          locationId: e.locationId,
           startAt: e.startAt,
           endAt: e.endAt,
           isPublic: e.isPublic,
@@ -286,7 +374,7 @@ async function main() {
         },
       });
 
-      console.log(`📅 Created Event: ${e.title} for User ${String(e.authorId)}`);
+      //console.log(`📅 Created Event: ${e.title} for User ${String(e.authorId)}`);
 
       // Upload image if specified
       if (image) {
@@ -312,6 +400,7 @@ async function main() {
 
   const aliceFromDb = await prisma.user.findUnique({ where: { email: 'alice@example.com' } });
   const bobFromDb = await prisma.user.findUnique({ where: { email: 'bob@example.com' } });
+  const cindyFromDb = await prisma.user.findUnique({ where: { email: 'cindy@example.com' } });
   const party = await prisma.event.findFirst({ where: { title: 'Grit Launch Party' } });
 
   const attendees = [aliceFromDb, bobFromDb];
@@ -351,6 +440,127 @@ async function main() {
 
   for (const attendee of attendees) {
     if (attendee?.name) console.log(`✅ ${attendee.name} is now attending the Party`);
+  }
+
+  ////////////////////////
+  // FRIENDSHIP SEEDING //
+  ////////////////////////
+
+  console.log('--- Seeding Friendships ---');
+
+  if (!aliceFromDb || !bobFromDb || !cindyFromDb) {
+    throw new Error('Seed users not found');
+  }
+
+  // Alice <-> Bob friendship
+  const aliceAndBob = await prisma.friends.findFirst({
+    where: {
+      userId: aliceFromDb.id,
+      friendId: bobFromDb.id,
+    },
+  });
+  if (!aliceAndBob) {
+    await prisma.$transaction([
+      prisma.friends.create({
+        data: {
+          userId: aliceFromDb.id,
+          friendId: bobFromDb.id,
+        },
+      }),
+      prisma.friends.create({
+        data: {
+          userId: bobFromDb.id,
+          friendId: aliceFromDb.id,
+        },
+      }),
+    ]);
+    console.log(`👫 Alice & Bob are now friends`);
+  }
+
+  // Alice <-> Cindy friendship
+  const aliceAndCindy = await prisma.friends.findFirst({
+    where: {
+      userId: aliceFromDb.id,
+      friendId: cindyFromDb.id,
+    },
+  });
+  if (!aliceAndCindy) {
+    await prisma.$transaction([
+      prisma.friends.create({
+        data: {
+          userId: aliceFromDb.id,
+          friendId: cindyFromDb.id,
+        },
+      }),
+      prisma.friends.create({
+        data: {
+          userId: cindyFromDb.id,
+          friendId: aliceFromDb.id,
+        },
+      }),
+    ]);
+    console.log(`👫 Alice & Cindy are now friends`);
+  }
+
+  // Bob <-> Cindy friendship
+  const bobAndCindy = await prisma.friends.findFirst({
+    where: {
+      userId: bobFromDb.id,
+      friendId: cindyFromDb.id,
+    },
+  });
+  if (!bobAndCindy) {
+    await prisma.$transaction([
+      prisma.friends.create({
+        data: {
+          userId: bobFromDb.id,
+          friendId: cindyFromDb.id,
+        },
+      }),
+      prisma.friends.create({
+        data: {
+          userId: cindyFromDb.id,
+          friendId: bobFromDb.id,
+        },
+      }),
+    ]);
+    console.log(`👫 Bob & Cindy are now friends`);
+  }
+
+  ///////////////////////////////////////////
+  // ALICE <-> ALL TEST USERS FRIENDSHIPS  //
+  ///////////////////////////////////////////
+
+  console.log('--- Seeding Alice & Test User Friendships ---');
+
+  // grab all auto-generates test users
+  const testUsers = await prisma.user.findMany({
+    where: {
+      email: {
+        startsWith: 'test',
+      },
+    },
+    select: { id: true }, // only need their IDs
+  });
+
+  // Build the array of bidirectional friendships
+  const bulkFriendships = [];
+  for (const testUser of testUsers) {
+    // Alice -> Test User
+    bulkFriendships.push({ userId: aliceFromDb.id, friendId: testUser.id });
+    // Test User -> Alice
+    bulkFriendships.push({ userId: testUser.id, friendId: aliceFromDb.id });
+  }
+
+  // Bulk insert them
+  if (bulkFriendships.length > 0) {
+    await prisma.friends.createMany({
+      data: bulkFriendships,
+      skipDuplicates: true,
+    });
+    console.log(
+      `👫 Alice is now friends with ${String(testUsers.length)} test users! Popular girl.`
+    );
   }
 }
 

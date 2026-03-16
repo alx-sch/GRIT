@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     envDir: path.resolve(__dirname, '../../'),
-    envPrefix: ['VITE_'],
+    envPrefix: ['VITE_', 'APP_NAME'],
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
@@ -24,6 +24,8 @@ export default defineConfig(({ mode }) => {
       watch: {
         ignored: ['**/node_modules/**', '**/dist/**'],
       },
+      sourcemapIgnoreList: (sourcePath) => sourcePath.includes('node_modules'),
+
       proxy: {
         '/s3': {
           target: 'http://localhost:9000',

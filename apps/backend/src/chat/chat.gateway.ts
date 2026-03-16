@@ -6,6 +6,7 @@ import {
   WebSocketGateway,
   WsException,
   OnGatewayConnection,
+  OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket, type DefaultEventsMap } from 'socket.io';
 import { ChatService } from '@/chat/chat.service';
@@ -22,6 +23,7 @@ interface SocketData {
   userId: number;
   userName: string;
   userAvatarKey?: string;
+  isAdmin: boolean;
   conversationId?: string;
 }
 
@@ -50,11 +52,11 @@ export class AllWsExceptionsFilter implements WsExceptionFilter {
 @UseFilters(new AllWsExceptionsFilter())
 @WebSocketGateway({
   cors: {
-    origin: [env.FRONTEND_URL, 'http://localhost:5173'],
+    origin: [env.APP_BASE_URL, `http://localhost:${String(env.FE_PORT)}`],
     credentials: true,
   },
 })
-export class ChatGateway implements OnGatewayConnection {
+export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // In userSockets we will store which socket belongs to which user id
   private userSockets = new Map<number, Set<string>>();
 
@@ -83,7 +85,8 @@ export class ChatGateway implements OnGatewayConnection {
         try {
           userId = this.jwtService.verify<{ sub: number }>(token).sub;
         } catch {
-          return null;
+          next(new Error('Unauthorized'));
+          return;
         }
         if (!userId) {
           next(new Error('Unauthorized'));
@@ -101,6 +104,7 @@ export class ChatGateway implements OnGatewayConnection {
         client.data.userId = user.id;
         client.data.userName = user.name;
         client.data.userAvatarKey = user.avatarKey ?? undefined;
+        client.data.isAdmin = user.isAdmin;
 
         next();
       })();
@@ -194,6 +198,23 @@ export class ChatGateway implements OnGatewayConnection {
     this.userSockets.get(userId)?.add(client.id);
 
     await this.syncSocketConversations(client, userId);
+  }
+
+  handleDisconnect(client: AppSocket) {
+    const userId = client.data.userId;
+    if (!userId) return;
+
+    const sockets = this.userSockets.get(userId);
+    if (!sockets) return;
+
+    sockets.delete(client.id);
+
+    // Fallback in any case
+    if (sockets.size === 0) this.userSockets.delete(userId);
+  }
+
+  getSingleConnectionStatus(userId: number) {
+    return this.userSockets.has(userId);
   }
 
   async resyncUserRooms(userId: number) {
@@ -299,5 +320,44 @@ export class ChatGateway implements OnGatewayConnection {
         lastReadAt: new Date(), // backend authoritative time
       },
     });
+  }
+
+  @SubscribeMessage('delete_message')
+  async handleDeleteMessage(
+    @MessageBody() body: { messageId: string; conversationId: string },
+    @ConnectedSocket() client: AppSocket
+  ) {
+    // Only admins can delete
+    if (!client.data.isAdmin) {
+      throw new WsException('Only admins can delete messages');
+    }
+
+    // Verify user is in this conversation
+    await this.assertUserInConversation(body.conversationId, client.data.userId);
+
+    // Verify message exists in this conversation
+    const message = await this.prisma.chatMessage.findUnique({
+      where: { id: body.messageId },
+      select: { conversationId: true },
+    });
+
+    if (!message) {
+      throw new WsException('Message not found');
+    }
+
+    if (message.conversationId !== body.conversationId) {
+      throw new WsException('Message not in this conversation');
+    }
+
+    // Delete it
+    await this.chatService.deleteMessage(body.messageId);
+
+    // Broadcast deletion to all users in the conversation
+    this.server.to(body.conversationId).emit('message_deleted', { messageId: body.messageId });
+  }
+
+  @SubscribeMessage('requestUserInfo')
+  handleRequestUserInfo(@ConnectedSocket() client: AppSocket) {
+    client.emit('user_info', { isAdmin: client.data.isAdmin });
   }
 }

@@ -1,3 +1,14 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Heading, Text } from '@/components/ui/typography';
@@ -12,12 +23,21 @@ import { userService } from '@/services/userService';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import { FriendRequestResponse, FriendResponse } from '@/types/friends';
 import {
+  ResConversationSingleId,
   ResFriendBase,
   ResFriendRequest,
   ResUserPublic,
-  ResConversationSingleId,
 } from '@grit/schema';
-import { Check, MessageCircleMore, UserPlus, UserX, X, Eye } from 'lucide-react';
+import {
+  Check,
+  MessageCircleMore,
+  UserPlus,
+  UserX,
+  X,
+  Eye,
+  ArrowUpAZ,
+  ArrowDownZA,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useRevalidator, Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -58,15 +78,27 @@ export default function FriendsPage() {
   async function sendRequest(userId: number) {
     try {
       await friendService.sendRequest(userId);
+      toast.info('Friend request sent');
       void revalidate();
     } catch {
       toast.error('Failed to send friend request');
     }
   }
 
+  async function cancel(requestId: string) {
+    try {
+      await friendService.cancelRequest(requestId);
+      toast.info('Friend request canceled');
+      void revalidate();
+    } catch {
+      toast.error('Failed to cancel friend request');
+    }
+  }
+
   async function accept(requestId: string) {
     try {
       await friendService.acceptRequest(requestId);
+      toast.info('Friend request accepted');
       void revalidate();
     } catch {
       toast.error('Failed to accept friend request');
@@ -76,6 +108,7 @@ export default function FriendsPage() {
   async function decline(requestId: string) {
     try {
       await friendService.declineRequest(requestId);
+      toast.info('Friend request declined');
       void revalidate();
     } catch {
       toast.error('Failed to decline friend request');
@@ -85,6 +118,7 @@ export default function FriendsPage() {
   async function remove(friendId: number) {
     try {
       await friendService.removeFriend(friendId);
+      toast.info('Friend removed');
       void revalidate();
     } catch {
       toast.error('Failed to remove friend');
@@ -121,6 +155,7 @@ export default function FriendsPage() {
         onAccept={accept}
         onDecline={decline}
       />
+      <OutgoingSection requests={friends.pendingOutgoing.data} onCancel={cancel} />
       <FriendsSection friends={friends.friendsList.data} onChat={startChat} onRemove={remove} />
     </div>
   );
@@ -259,6 +294,40 @@ function PendingSection({ requests, onAccept, onDecline }: PendingSectionProps) 
   );
 }
 
+interface OutgoingSectionProps {
+  requests: ResFriendRequest[];
+  onCancel: (requestId: string) => Promise<void>;
+}
+
+function OutgoingSection({ requests, onCancel }: OutgoingSectionProps) {
+  if (requests.length === 0) return null;
+  return (
+    <div className="flex flex-col gap-4">
+      <Heading level={3}>Sent Requests</Heading>
+      <UserGrid>
+        {requests.map((req) => (
+          <UserCard
+            key={req.id}
+            user={req.receiver}
+            actions={
+              <>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to={`/users/${req.receiver.id}`}>
+                    <Eye className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button variant="secondary" size="sm" onClick={() => void onCancel(req.id)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </>
+            }
+          />
+        ))}
+      </UserGrid>
+    </div>
+  );
+}
+
 interface FriendsSectionProps {
   friends: ResFriendBase[];
   onChat: (friendUserId: number) => Promise<void>;
@@ -266,6 +335,8 @@ interface FriendsSectionProps {
 }
 
 function FriendsSection({ friends, onChat, onRemove }: FriendsSectionProps) {
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
   if (friends.length === 0) {
     return (
       <EmptyState
@@ -274,11 +345,48 @@ function FriendsSection({ friends, onChat, onRemove }: FriendsSectionProps) {
       />
     );
   }
+
+  // Sort friends alphabetically by name
+  const sortedFriends = [...friends].sort((a, b) => {
+    const nameA = a.friend.name.toLowerCase();
+    const nameB = b.friend.name.toLowerCase();
+    if (sortDirection === 'asc') {
+      return nameA.localeCompare(nameB);
+    } else {
+      return nameB.localeCompare(nameA);
+    }
+  });
+
+  const toggleSort = () => {
+    setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+  };
+
   return (
     <div className="flex flex-col gap-4">
-      <Heading level={3}>All Friends</Heading>
+      <div className="flex items-center justify-between">
+        <Heading level={3}>All Friends</Heading>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleSort}
+          className="gap-2"
+          title={sortDirection === 'asc' ? 'Sort Z → A' : 'Sort A → Z'}
+        >
+          <span className="hidden sm:inline">Sort</span>
+          {sortDirection === 'asc' ? (
+            <>
+              <ArrowUpAZ className="h-4 w-4" />
+            </>
+          ) : (
+            <>
+              <ArrowDownZA className="h-4 w-4" />
+            </>
+          )}
+          ``
+        </Button>
+      </div>
       <UserGrid>
-        {friends.map((friend) => (
+        {sortedFriends.map((friend) => (
           <UserCard
             key={friend.id}
             user={friend.friend}
@@ -297,14 +405,32 @@ function FriendsSection({ friends, onChat, onRemove }: FriendsSectionProps) {
                 >
                   <MessageCircleMore className="h-4 w-4" />
                 </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  title="Remove friend"
-                  onClick={() => void onRemove(friend.friendId)}
-                >
-                  <UserX className="h-4 w-4" />
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm" title="Remove friend">
+                      <UserX className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Remove this friend?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will remove {friend.friend.name} from
+                        your friends.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => {
+                          void onRemove(friend.friendId);
+                        }}
+                      >
+                        Remove friend
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </>
             }
           />

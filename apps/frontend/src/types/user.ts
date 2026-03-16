@@ -11,5 +11,8 @@ export type {
 export type CurrentUser = Partial<ResUserBase> & {
   id: number;
   email: string;
-  name: string;
+  avatarKey?: string | null;
+  name?: string | null;
+  createdAt?: string;
+  isAdmin?: boolean;
 };

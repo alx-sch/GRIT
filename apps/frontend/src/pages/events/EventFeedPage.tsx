@@ -1,14 +1,17 @@
 import { Button } from '@/components/ui/button';
 import { Combobox, ComboboxOptions } from '@/components/ui/combobox';
 import { DatePicker } from '@/components/ui/datepicker';
+import { EmptyState } from '@/components/ui/emptyState';
 import { Input } from '@/components/ui/input';
 import { Heading } from '@/components/ui/typography';
-import { EmptyState } from '@/components/ui/emptyState';
 import { useDebounce } from '@/hooks/useDebounce';
+import { Pagination, useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { EventCard } from '@/pages/events/components/EventCard';
 import { eventService } from '@/services/eventService';
+import { friendService } from '@/services/friendService';
 import { locationService } from '@/services/locationService';
+import { useAuthStore } from '@/store/authStore';
 import { EventResponse } from '@/types/event';
 import { LocationBase } from '@/types/location';
 import { format, parse } from 'date-fns';
@@ -16,7 +19,6 @@ import { ArrowUpDown, MapPinIcon, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { DateRange } from 'react-day-picker';
 import { LoaderFunctionArgs, useNavigate, useSearchParams } from 'react-router-dom';
-import { Pagination, useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 
 const buildEventQuery = (searchParams: URLSearchParams, cursor?: string | null) => ({
   search: searchParams.get('search') ?? undefined,
@@ -32,15 +34,23 @@ const buildEventQuery = (searchParams: URLSearchParams, cursor?: string | null) 
 export const eventsLoader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const query = buildEventQuery(url.searchParams);
+  const token = useAuthStore.getState().token;
 
-  const [events, locationsResponse] = await Promise.all([
+  const [events, locationsResponse, friendsData] = await Promise.all([
     eventService.getEvents(query),
     locationService.getLocations(),
+
+    //Only fetch friends list if user is logged-in
+    token ? friendService.listFriends({ limit: '100' }).catch(() => null) : Promise.resolve(null),
   ]);
+
+  const friendsIds = new Set(friendsData?.data.map((f) => f.friend.id) ?? []);
+
   return {
     events,
     locations: locationsResponse.data,
     locationsPagination: locationsResponse.pagination,
+    friendsIds,
   };
 };
 
@@ -54,10 +64,11 @@ const sortOptions: ComboboxOptions[] = [
 ];
 
 export default function EventFeedPage() {
-  const { events, locations, locationsPagination } = useTypedLoaderData<{
+  const { events, locations, locationsPagination, friendsIds } = useTypedLoaderData<{
     events: EventResponse;
     locations: LocationBase[];
     locationsPagination: Pagination;
+    friendsIds: Set<number>;
   }>();
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -197,10 +208,10 @@ export default function EventFeedPage() {
         </Button>
       </div>
 
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-2">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center md:gap-2">
         <Input
           placeholder="Search events..."
-          className="w-full md:w-sm md:shrink-0"
+          className="w-full lg:w-sm lg:shrink-0"
           value={searchInput}
           onChange={handleSearchChange}
           clearable
@@ -209,7 +220,7 @@ export default function EventFeedPage() {
           }}
         />
 
-        <div className="flex items-center justify-between md:justify-end gap-1 md:gap-2 md:flex-1 min-w-0">
+        <div className="flex flex-wrap lg:flex-nowrap items-center justify-between lg:justify-end gap-0 lg:gap-2 lg:flex-1 min-w-0">
           <Combobox
             options={locationOptionsCombobox}
             value={selectedLocation ?? undefined}
@@ -221,7 +232,7 @@ export default function EventFeedPage() {
             icon={MapPinIcon}
             onMenuScrollToBottom={handleLocationMenuScrollToBottom} // When close to reaching the end of dropdown
             isLoading={isLoadingLocations}
-            className="w-auto min-w-0 md:min-w-32 md:flex-none text-xs md:text-base max-w-xs truncate font-normal max-w-[33%] md:shrink"
+            className="w-auto min-w-0 md:min-w-32 md:flex-none text-xs md:text-base max-w-xs truncate font-normal md:shrink"
           />
 
           <div className="w-[1.5px] h-5 bg-border/60 shrink-0 dark:bg-white/20" />
@@ -231,7 +242,7 @@ export default function EventFeedPage() {
             onSelect={handleDateSelect}
             placeholder="Date"
             variant="ghost"
-            className="min-w-0 md:flex-none text-xs md:text-base truncate font-normal max-w-[33%] md:shrink-0"
+            className="min-w-0 md:flex-none text-xs md:text-base truncate font-normal md:shrink-0"
           ></DatePicker>
 
           <div className="w-[1.5px] h-5 bg-border/60 shrink-0 dark:bg-white/20" />
@@ -244,15 +255,15 @@ export default function EventFeedPage() {
             variant="ghost"
             icon={ArrowUpDown}
             showSearch={false}
-            className="w-auto min-w-0 md:flex-none text-xs md:text-base font-normal max-w-[33%] md:shrink-0"
+            className="w-auto min-w-0 md:flex-none text-xs md:text-base font-normal md:shrink-0"
           />
         </div>
       </div>
       {items.length > 0 ? (
         <>
-          <div className="grid gap-6 justify-start md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {items.map((event) => (
-              <EventCard key={event.id} event={event} />
+              <EventCard key={event.id} event={event} friendsIds={friendsIds} />
             ))}
           </div>
           <div ref={sentinelRef} />

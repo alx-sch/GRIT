@@ -35,6 +35,42 @@ const preparedToasts = [
     message: 'Account created',
     description: 'You can now log in',
   },
+  {
+    param: 'confirmed',
+    type: 'success',
+    message: 'Email confirmed!',
+    description: 'You can now log in to your account.',
+  },
+  {
+    param: 'confirmed_logged_in',
+    type: 'success',
+    message: 'Email confirmed!',
+    description: 'Your account is now verified.',
+  },
+  {
+    param: 'already_confirmed',
+    type: 'success',
+    message: 'Already verified',
+    description: 'Please log in to access your account.',
+  },
+  {
+    param: 'already_confirmed_logged_in',
+    type: 'success',
+    message: 'Already verified',
+    description: "You're all set!",
+  },
+  {
+    param: 'error',
+    type: 'error',
+    message: 'Invalid link',
+    description: 'This confirmation link is invalid or has expired.',
+  },
+  {
+    param: 'error_logged_in',
+    type: 'error',
+    message: 'Invalid link',
+    description: 'This confirmation link is invalid or has expired.',
+  },
 ] as const;
 
 export function useRouteToasts() {
