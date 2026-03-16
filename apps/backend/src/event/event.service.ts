@@ -91,7 +91,7 @@ export class EventService {
     // First two functions -----> event.utils.ts
     const where: Prisma.EventWhereInput = eventSearchFilter(input, userId);
     const cursorFilter = eventCursorFilter(input);
-    const finalWhere = { ...where, ...cursorFilter, isPublic: true, isPublished: true };
+    const finalWhere = { ...where, ...cursorFilter, isPublished: true };
     const { limit, sort } = input;
     const orderByMap: Record<string, object[]> = {
       'date-asc': [{ startAt: 'asc' }, { id: 'asc' }],

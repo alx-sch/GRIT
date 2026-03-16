@@ -25,8 +25,9 @@ export function useInfiniteScroll<T extends PaginatedItem>(
     pagination: Pagination;
   }>, // A function parameter (function that fetches next page of items using
   // cursor).
-  dependencies: unknown[] = [] // External values that trigger observer
+  dependencies: unknown[] = [], // External values that trigger observer
   // recreation (e.g., searchParams, filters)
+  onError?: (error: unknown) => void // Optional error callback for loadMore errors
 ) {
   const [items, setItems] = useState(() => initialItems); // All displayed items (initial + loaded)
   const [pagination, setPagination] = useState<Pagination>(() => initialPagination); // Current pagination state (nextCursor, hasMore)
@@ -50,7 +51,7 @@ export function useInfiniteScroll<T extends PaginatedItem>(
       });
       setPagination(newPagination);
     } catch (err) {
-      console.error('Failed to load more items', err);
+      onError?.(err);
     } finally {
       setIsLoading(false);
     }

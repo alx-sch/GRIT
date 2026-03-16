@@ -1,4 +1,6 @@
-import { useState, useRef } from 'react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ImageCropDialog } from '@/components/ui/image-crop-dialog';
 import { UserAvatar } from '@/components/ui/user-avatar';
 import { Text } from '@/components/ui/typography';
 import {
@@ -14,15 +16,13 @@ import {
   Loader2,
 } from 'lucide-react';
 import { userService } from '@/services/userService';
-import { toast } from 'sonner';
 import type { CurrentUser } from '@/types/user';
-import { ImageCropDialog } from '@/components/ui/image-crop-dialog';
-import { validateImageFile, readFileAsDataURL } from '@/lib/image-crop-utils';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useCurrentUserStore } from '@/store/currentUserStore';
+import { validateImageFile, readFileAsDataURL } from '@/lib/image-crop-utils';
 
 interface ProfileSidebarProps {
   user: CurrentUser;
@@ -61,8 +61,7 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
       const dataUrl = await readFileAsDataURL(file);
       setSelectedImageSrc(dataUrl);
       setShowCropDialog(true);
-    } catch (error) {
-      console.error('Failed to read image file:', error);
+    } catch {
       toast.error('Failed to read image file. Please try again.');
     } finally {
       if (fileInputRef.current) {
@@ -78,8 +77,7 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
       const updatedUser = await userService.uploadAvatar(croppedFile);
       onAvatarUpdate(updatedUser);
       toast.success('Profile picture updated successfully!');
-    } catch (error) {
-      console.error('Avatar upload failed:', error);
+    } catch {
       toast.error('Failed to upload profile picture. Please try again.');
     } finally {
       setSelectedImageSrc('');
@@ -97,8 +95,7 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
       const updatedUser = await userService.removeAvatar();
       onAvatarUpdate(updatedUser);
       toast.success('Profile picture reset to default');
-    } catch (error) {
-      console.error('Failed to remove avatar:', error);
+    } catch {
       toast.error('Failed to reset profile picture. Please try again.');
     }
   };

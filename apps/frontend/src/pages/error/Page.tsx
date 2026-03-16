@@ -1,7 +1,7 @@
-import { useRouteError, isRouteErrorResponse } from 'react-router-dom';
-import { isAxiosError } from 'axios';
 import { Button } from '@/components/ui/button';
-import { FileQuestion, AlertTriangle, Lock } from 'lucide-react';
+import { isAxiosError } from 'axios';
+import { AlertTriangle, FileQuestion, Lock } from 'lucide-react';
+import { isRouteErrorResponse, useRouteError } from 'react-router-dom';
 
 interface ApiErrorResponse {
   message?: string;
@@ -9,7 +9,6 @@ interface ApiErrorResponse {
 
 export default function ErrorPage() {
   const error = useRouteError();
-  console.error('ErrorPage caught:', error);
 
   let title = 'Something went wrong';
   let message = 'An unexpected error occurred.';

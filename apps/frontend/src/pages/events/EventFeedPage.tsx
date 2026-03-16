@@ -19,6 +19,7 @@ import { ArrowUpDown, MapPinIcon, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { DateRange } from 'react-day-picker';
 import { LoaderFunctionArgs, useNavigate, useSearchParams } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const buildEventQuery = (searchParams: URLSearchParams, cursor?: string | null) => ({
   search: searchParams.get('search') ?? undefined,
@@ -123,7 +124,10 @@ export default function EventFeedPage() {
       const res = await eventService.getEvents(buildEventQuery(searchParams, cursor));
       return { data: res.data, pagination: res.pagination };
     },
-    [searchParams]
+    [searchParams],
+    () => {
+      toast.error('Failed to load more events. Please try again.');
+    }
   );
 
   // Locations infinite scroll
@@ -132,10 +136,18 @@ export default function EventFeedPage() {
     isLoading: isLoadingLocations,
     pagination: locationPagination,
     loadMore: loadMore,
-  } = useInfiniteScroll(locations, locationsPagination, async (cursor) => {
-    const res = await locationService.getLocations({ cursor });
-    return { data: res.data, pagination: res.pagination };
-  });
+  } = useInfiniteScroll(
+    locations,
+    locationsPagination,
+    async (cursor) => {
+      const res = await locationService.getLocations({ cursor });
+      return { data: res.data, pagination: res.pagination };
+    },
+    [],
+    () => {
+      toast.error('Failed to load more locations. Please try again.');
+    }
+  );
 
   const locationOptionsCombobox: ComboboxOptions[] = locationItems.map(({ id, name }) => ({
     value: String(id),
