@@ -21,6 +21,7 @@ import type { NavRoute } from '@/types/navroute';
 import { createBrowserRouter, redirect } from 'react-router-dom';
 import EditEventPage, { editEventLoader } from './pages/events/EditEventPage';
 import FriendsPage, { friendsLoader } from './pages/my-friends/Page';
+import { ToSPage } from './pages/legal/ToSPages';
 
 export const useBaseNavConfig = (): NavRoute[] => {
   const user = useCurrentUserStore((s) => s.user);
@@ -185,6 +186,10 @@ export const router = createBrowserRouter([
             loader: eventCreationLoader,
           },
         ],
+      },
+      {
+        path: 'terms-of-service',
+        Component: ToSPage,
       },
     ],
   },
