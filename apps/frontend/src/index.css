@@ -174,9 +174,11 @@
 }
 
 .legalPages h1,
-h2,
-h3,
-p {
+.legalPages h2,
+.legalPages h3,
+.legalPages p,
+.legalPages ul,
+.legalPages ol {
   margin-bottom: 1rem;
 }
 

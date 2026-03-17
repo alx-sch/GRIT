@@ -95,7 +95,7 @@ export const ToSPage = () => {
         <li>
           <p>
             <strong>Website</strong> refers to grit.social, accessible at{' '}
-            <a href="https://grit.social" target="_blank">
+            <a href="https://grit.social" target="_blank" rel="noreferrer">
               https://grit.social
             </a>
           </p>
@@ -451,7 +451,7 @@ export const ToSPage = () => {
 
       <p>
         We value the privacy and security of your data. Please review our Privacy Policy at{' '}
-        <a href="https://grit.social/data-privacy" target="_blank">
+        <a href="https://grit.social/data-privacy" target="_blank" rel="noreferrer">
           https://grit.social/data-privacy
         </a>
         . By using the Services, you agree to the terms of our Privacy Policy, which is incorporated
@@ -617,7 +617,7 @@ export const ToSPage = () => {
       <p>
         If you have any questions about these Terms and Conditions, You can contact us by writing an
         email to this page on our website:{' '}
-        <a href="mailto:hello@grit.social" target="_blank">
+        <a href="mailto:hello@grit.social" target="_blank" rel="noreferrer">
           hello@grit.social
         </a>
       </p>

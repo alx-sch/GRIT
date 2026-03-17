@@ -67,7 +67,7 @@ export class EventService {
 
     // We send a message to the people who might still be in the chat, that the chat was just deleted
     if (eventData.conversation)
-      this.chatGateway.handleConversationDeletion(eventData.conversation.id);
+      await this.chatGateway.handleConversationDeletion(eventData.conversation.id);
 
     // We delete the event we remove all user sockets from the room and send initial messages again
     await Promise.all(

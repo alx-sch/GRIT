@@ -16,9 +16,16 @@ export const ImprintPage = () => {
 
       <h2>Represented by</h2>
       <p>
-        [Full Name 1]
+        Alexander Schenk
         <br />
-        [Full Name 2]
+        Dovydas Musulas
+        <br />
+        Audrey Billoteau
+        <br />
+        Natalie Rekedal Holbrook
+        <br />
+        Johannes Dach
+        <br />
       </p>
 
       <h2>Contact</h2>
@@ -28,7 +35,7 @@ export const ImprintPage = () => {
 
       <h2>Responsible for Content according to § 55 para. 2 MStV</h2>
       <p>
-        [Full Name 1]
+        Johannes Dach
         <br />
         Harzer Str. 42
         <br />
