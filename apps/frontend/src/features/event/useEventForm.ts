@@ -74,6 +74,13 @@ export function useEventForm({ initialData, locations, onSuccess }: UseEventForm
   const [existingFiles, setExistingFiles] = useState(initialData?.files ?? []);
   const [filesToDelete, setFilesToDelete] = useState<number[]>([]);
 
+  // Upload status strip
+  const [uploadStatus, setUploadStatus] = useState<{
+    uploading: boolean;
+    done: number;
+    total: number;
+  }>({ uploading: false, done: 0, total: 0 });
+
   // Draft Restore
   useEffect(() => {
     if (isEditMode) return;
@@ -113,12 +120,24 @@ export function useEventForm({ initialData, locations, onSuccess }: UseEventForm
         ? await eventService.patchEvent(String(initialData.id), payload)
         : await eventService.postEvent(payload);
 
+      const totalUploads = (imageFile ? 1 : 0) + additionalFiles.length;
+
+      if (totalUploads > 0) {
+        setUploadStatus({ uploading: true, done: 0, total: totalUploads });
+      }
+      let done = 0;
+      const tick = () => {
+        done += 1;
+        setUploadStatus({ uploading: true, done, total: totalUploads });
+      };
+
       if (imageFile) {
         try {
           await eventService.uploadEventImage(result.id, imageFile, setImageUploadProgress);
         } catch {
           toast.warning('Event created, but image upload failed');
         }
+        tick();
       } else if (isEditMode && imageRemoved && initialData.imageKey) {
         try {
           await eventService.deleteEventImage(result.id);
@@ -132,6 +151,7 @@ export function useEventForm({ initialData, locations, onSuccess }: UseEventForm
         } catch {
           toast.warning(`Failed to upload ${file.name}`);
         }
+        tick();
       }
       for (const fileId of filesToDelete) {
         try {
@@ -140,6 +160,8 @@ export function useEventForm({ initialData, locations, onSuccess }: UseEventForm
           toast.warning(`Failed to delete a file`);
         }
       }
+
+      setUploadStatus({ uploading: false, done: 0, total: 0 });
       localStorage.removeItem(DRAFT_KEY);
 
       if (isEditMode) {
@@ -289,6 +311,7 @@ export function useEventForm({ initialData, locations, onSuccess }: UseEventForm
     filesUploadProgress,
     setFilesUploadProgress,
     existingFiles,
+    uploadStatus,
     handleRemoveExistingFile,
     // dates
     startAtValue,
