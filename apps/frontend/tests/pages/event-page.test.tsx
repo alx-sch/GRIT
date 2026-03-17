@@ -235,10 +235,12 @@ describe('EventPage', () => {
         (selector: (s: object) => unknown) => selector({ user: mockUsers.bob })
       );
       renderEventPage();
+
+      // Wait for the actual action buttons to appear (not the loading spinner)
       await waitFor(() => {
-        expect(screen.getByRole('heading', { name: /test event/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /^going$/i })).toBeInTheDocument();
       });
-      // Only action buttons (Going, Invite, Share, Chat + Back) — no edit/delete
+
       const buttons = screen.getAllByRole('button');
       expect(buttons).toHaveLength(5);
     });

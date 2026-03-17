@@ -1,32 +1,4 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import {
-  Menu,
-  X,
-  User,
-  LogOut,
-  Calendar,
-  ChevronDown,
-  Users,
-  MessageSquare,
-  Loader2,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  navigationMenuTriggerStyle,
-} from '@/components/ui/navigation-menu';
 import { Button } from '@/components/ui/button';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-  SheetClose,
-} from '@/components/ui/sheet';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,16 +6,34 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  navigationMenuTriggerStyle,
+} from '@/components/ui/navigation-menu';
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { GlobalSearch, GlobalSearchTrigger } from '@/features/search/GlobalSearch';
+import { cn } from '@/lib/utils';
 import { useBaseNavConfig } from '@/router';
 import { useAuthStore } from '@/store/authStore';
+import { chatStore } from '@/store/chatStore';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import type { NavRoute } from '@/types/navroute';
-import { UserAvatar } from '../ui/user-avatar';
-import { AnimatedUnderline } from '../ui/animatedUnderline';
-import { chatStore } from '@/store/chatStore';
+import { Calendar, Loader2, LogOut, Menu, MessageSquare, User, Users, X } from 'lucide-react';
 import { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { AnimatedUnderline } from '../ui/animatedUnderline';
+import { UserAvatar } from '../ui/user-avatar';
 import { Container } from './Container';
-import { GlobalSearch, GlobalSearchTrigger } from '@/features/search/GlobalSearch';
 
 export function Navbar() {
   const navConfig: NavRoute[] = [...useBaseNavConfig()];
@@ -233,68 +223,6 @@ export function Navbar() {
                 side="right"
                 className="w-75 border-l-2 border-border sm:w-100 [&>button]:hidden"
               >
-                {isLoggedIn && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <div className="flex items-center gap-3 pb-4 mb-4 border-b border-border cursor-pointer">
-                        <div className="relative">
-                          <UserAvatar user={user ?? {}} size="sm" />
-                          {/* Transitioning overlay */}
-                          {isAvatarTransitioning && (
-                            <div className="absolute inset-0 bg-black/80 rounded-full flex items-center justify-center">
-                              <Loader2 className="w-4 h-4 text-white animate-spin" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex flex-col flex-1">
-                          <span className="font-semibold">{displayName}</span>
-                        </div>
-                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-48">
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setMobileMenuOpen(false);
-                          void navigate('/profile');
-                        }}
-                      >
-                        <User className="mr-2 h-4 w-4" />
-                        Profile
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setMobileMenuOpen(false);
-                          void navigate('/profile/my-events');
-                        }}
-                      >
-                        <Calendar className="mr-2 h-4 w-4" />
-                        My events
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setMobileMenuOpen(false);
-                          void navigate('/profile/my-friends');
-                        }}
-                      >
-                        <Users className="mr-2 h-4 w-4" />
-                        My friends
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setMobileMenuOpen(false);
-                          handleLogout();
-                        }}
-                        className="text-red-600 focus:text-red-600"
-                      >
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Logout
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-
                 <SheetHeader className="flex flex-row items-center justify-between pb-4 mb-4 space-y-0 text-left -mt-2">
                   <SheetTitle className="font-bold uppercase tracking-wider">Menu</SheetTitle>
                   <SheetClose asChild>
@@ -323,24 +251,96 @@ export function Navbar() {
                         </Link>
                       </SheetClose>
                     ))}
+
                   {isLoggedIn && (
-                    <SheetClose asChild>
-                      <Link
-                        to="/chat"
-                        className={cn(
-                          'text-xl font-bold px-2 py-2 transition-all relative',
-                          location.pathname.startsWith('/chat')
-                            ? 'bg-foreground text-background'
-                            : 'hover:underline underline-offset-4'
-                        )}
-                      >
-                        <span className="flex items-center gap-2">
-                          <MessageSquare className="h-5 w-5" />
-                          Chat
-                          {hasUnread && <div className="bg-primary w-2 h-2 rounded-full"></div>}
-                        </span>
-                      </Link>
-                    </SheetClose>
+                    <>
+                      {/* Profile subsection */}
+                      <div className="border-t border-border pt-4 mt-2 flex flex-col gap-4">
+                        {/* User identity header */}
+                        <div className="flex items-center gap-3 px-2">
+                          <div className="relative">
+                            <UserAvatar user={user ?? {}} size="sm" />
+                            {isAvatarTransitioning && (
+                              <div className="absolute inset-0 bg-black/80 rounded-full flex items-center justify-center">
+                                <Loader2 className="w-4 h-4 text-white animate-spin" />
+                              </div>
+                            )}
+                          </div>
+                          <span className="font-semibold">{displayName}</span>
+                        </div>
+
+                        <SheetClose asChild>
+                          <Link
+                            to="/chat"
+                            className={cn(
+                              'text-xl font-bold px-2 py-2 transition-all relative',
+                              location.pathname.startsWith('/chat')
+                                ? 'bg-foreground text-background'
+                                : 'hover:underline underline-offset-4'
+                            )}
+                          >
+                            <span className="flex items-center gap-2">
+                              <MessageSquare className="h-5 w-5" />
+                              Chat
+                              {hasUnread && <div className="bg-primary w-2 h-2 rounded-full"></div>}
+                            </span>
+                          </Link>
+                        </SheetClose>
+
+                        <SheetClose asChild>
+                          <Link
+                            to="/profile"
+                            className={cn(
+                              'text-xl font-bold px-2 py-2 transition-all flex items-center gap-2',
+                              isActive('/profile')
+                                ? 'bg-foreground text-background'
+                                : 'hover:underline underline-offset-4'
+                            )}
+                          >
+                            <User className="h-5 w-5" />
+                            Profile
+                          </Link>
+                        </SheetClose>
+                        <SheetClose asChild>
+                          <Link
+                            to="/profile/my-events"
+                            className={cn(
+                              'text-xl font-bold px-2 py-2 transition-all flex items-center gap-2',
+                              isActive('/profile/my-events')
+                                ? 'bg-foreground text-background'
+                                : 'hover:underline underline-offset-4'
+                            )}
+                          >
+                            <Calendar className="h-5 w-5" />
+                            My Events
+                          </Link>
+                        </SheetClose>
+                        <SheetClose asChild>
+                          <Link
+                            to="/profile/my-friends"
+                            className={cn(
+                              'text-xl font-bold px-2 py-2 transition-all flex items-center gap-2',
+                              isActive('/profile/my-friends')
+                                ? 'bg-foreground text-background'
+                                : 'hover:underline underline-offset-4'
+                            )}
+                          >
+                            <Users className="h-5 w-5" />
+                            My Friends
+                          </Link>
+                        </SheetClose>
+                        <button
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            handleLogout();
+                          }}
+                          className="text-xl font-bold px-2 py-2 transition-all flex items-center gap-2 text-red-600 hover:underline underline-offset-4 text-left"
+                        >
+                          <LogOut className="h-5 w-5" />
+                          Logout
+                        </button>
+                      </div>
+                    </>
                   )}
                 </div>
               </SheetContent>

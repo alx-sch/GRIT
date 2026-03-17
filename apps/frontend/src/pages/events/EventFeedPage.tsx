@@ -16,7 +16,7 @@ import { EventResponse } from '@/types/event';
 import { LocationBase } from '@/types/location';
 import { format, parse } from 'date-fns';
 import { ArrowUpDown, MapPinIcon, Plus } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DateRange } from 'react-day-picker';
 import { LoaderFunctionArgs, useNavigate, useSearchParams } from 'react-router-dom';
 
