@@ -1,6 +1,7 @@
 import { DefaultLayout } from '@/components/layout/DefaultLayout';
 import { ProtectedLayout, protectedLayoutLoader } from '@/components/layout/ProtectedLayout';
 import { ChatFeedLayout, ChatFeedLoader } from '@/features/chat/ChatFeedLayout';
+import AdminPage, { adminLoader } from '@/pages/admin/Page';
 import { ChatFeedPage } from '@/pages/chat/ChatFeedPage';
 import { ChatPage } from '@/pages/chat/ChatPage';
 import CreateEventPage, { eventCreationLoader } from '@/pages/create/event/Page';
@@ -18,8 +19,6 @@ import type { NavRoute } from '@/types/navroute';
 import { createBrowserRouter, redirect } from 'react-router-dom';
 import EditEventPage, { editEventLoader } from './pages/events/EditEventPage';
 import FriendsPage, { friendsLoader } from './pages/my-friends/Page';
-import AdminPage, { adminLoader } from '@/pages/admin/Page';
-import { useCurrentUserStore } from '@/store/currentUserStore';
 
 export const useBaseNavConfig = (): NavRoute[] => {
   const user = useCurrentUserStore((s) => s.user);
@@ -38,6 +37,7 @@ export const router = createBrowserRouter([
   {
     Component: DefaultLayout,
     ErrorBoundary: ErrorPage,
+    HydrateFallback: () => null,
     children: [
       {
         index: true,
@@ -46,6 +46,7 @@ export const router = createBrowserRouter([
           const searchParams = url.searchParams.toString();
           return redirect(`/events${searchParams ? `?${searchParams}` : ''}`);
         },
+        Component: () => null,
       },
       {
         path: 'design',

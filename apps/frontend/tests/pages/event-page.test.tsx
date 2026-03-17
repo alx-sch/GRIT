@@ -129,10 +129,27 @@ describe('EventPage', () => {
   function renderEventPage() {
     const router = createMemoryRouter(
       [
-        { path: '/events/:id', Component: EventPage, loader: eventLoader },
-        { path: '/login', Component: () => <div>Login Page</div> },
-        { path: '/chat/:id', Component: () => <div>Chat Page</div> },
-        { path: '/events', Component: () => <div>Events Feed</div> },
+        {
+          path: '/events/:id',
+          Component: EventPage,
+          loader: eventLoader,
+          HydrateFallback: () => <div>Loading...</div>,
+        },
+        {
+          path: '/login',
+          Component: () => <div>Login Page</div>,
+          HydrateFallback: () => <div>Loading...</div>,
+        },
+        {
+          path: '/chat/:id',
+          Component: () => <div>Chat Page</div>,
+          HydrateFallback: () => <div>Loading...</div>,
+        },
+        {
+          path: '/events',
+          Component: () => <div>Events Feed</div>,
+          HydrateFallback: () => <div>Loading...</div>,
+        },
       ],
       { initialEntries: ['/events/1'] }
     );
@@ -236,13 +253,11 @@ describe('EventPage', () => {
       );
       renderEventPage();
 
-      // Wait for the actual action buttons to appear (not the loading spinner)
+      // Only action buttons (Going, Invite, Share, Chat + Back) — no edit/delete
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /^going$/i })).toBeInTheDocument();
+        const buttons = screen.getAllByRole('button');
+        expect(buttons).toHaveLength(5);
       });
-
-      const buttons = screen.getAllByRole('button');
-      expect(buttons).toHaveLength(5);
     });
   });
 

@@ -35,6 +35,7 @@ describe('Login OAuth Flow', () => {
           path: '/login',
           element: <LoginPage />,
           loader: loginPageLoader,
+          HydrateFallback: () => <div>Loading...</div>,
         },
         {
           path: '/events',
@@ -66,9 +67,6 @@ describe('Login OAuth Flow', () => {
   });
 
   it('handles error when OAuth token fetch fails', async () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {
-      // Intentionally empty - suppress console.error in test
-    });
     vi.mocked(authService.me).mockRejectedValue(new Error('Invalid token'));
 
     const router = createMemoryRouter(
@@ -77,6 +75,7 @@ describe('Login OAuth Flow', () => {
           path: '/login',
           element: <LoginPage />,
           loader: loginPageLoader,
+          HydrateFallback: () => <div>Loading...</div>,
         },
       ],
       {
@@ -91,10 +90,8 @@ describe('Login OAuth Flow', () => {
     });
 
     await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith('OAuth login failed:', expect.any(Error));
+      expect(router.state.location.search).toBe('?error=oauth_failed');
     });
-
-    consoleSpy.mockRestore();
   });
 
   it('does not process OAuth if already logged in', async () => {
@@ -115,6 +112,7 @@ describe('Login OAuth Flow', () => {
           path: '/login',
           element: <LoginPage />,
           loader: loginPageLoader,
+          HydrateFallback: () => <div>Loading...</div>,
         },
         {
           path: '/events',

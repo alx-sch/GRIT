@@ -206,6 +206,7 @@ export const EventPage = () => {
                   </Text>
                 </Link>
               )}
+              {!event.author && <Text className="text-lg">Unknown</Text>}
             </div>
 
             {/* Going */}

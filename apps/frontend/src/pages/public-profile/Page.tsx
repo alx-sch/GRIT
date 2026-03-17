@@ -12,6 +12,28 @@ import { PrivateProfileView } from './components/PrivateProfileView';
 import { ProfileHeader } from './components/ProfileHeader';
 import { ProfileTabs } from './components/ProfileTabs';
 
+interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    hasMore: boolean;
+    nextCursor: string | null;
+  };
+}
+
+const fetchAllRequests = async <T,>(
+  serviceFn: (params: { limit: string; cursor?: string }) => Promise<PaginatedResponse<T>>,
+  accumulated: T[] = [],
+  cursor?: string
+): Promise<T[]> => {
+  const response = await serviceFn({ limit: '100', cursor });
+  const all = [...accumulated, ...response.data];
+
+  if (response.pagination.hasMore && response.pagination.nextCursor) {
+    return fetchAllRequests(serviceFn, all, response.pagination.nextCursor);
+  }
+  return all;
+};
+
 export const publicProfileLoader = async ({ params }: LoaderFunctionArgs) => {
   const id = parseInt(params.id ?? '', 10);
   if (isNaN(id)) {
@@ -37,8 +59,8 @@ export const publicProfileLoader = async ({ params }: LoaderFunctionArgs) => {
 
       // If there's a pending received request, fetch the request details to get the ID
       if (status === 'pending_received') {
-        const incomingRequests = await friendService.listIncomingRequests({ limit: '100' });
-        const request = incomingRequests.data.find((req) => req.requesterId === id);
+        const incomingRequests = await fetchAllRequests(friendService.listIncomingRequests);
+        const request = incomingRequests.find((req) => req.requesterId === id);
         if (request) {
           friendRequestId = request.id;
         }
@@ -46,15 +68,14 @@ export const publicProfileLoader = async ({ params }: LoaderFunctionArgs) => {
 
       // If there's a pending sent request, fetch the request details to get the ID
       if (status === 'pending_sent') {
-        const outgoingRequests = await friendService.listOutgoingRequests({ limit: '100' });
-        const request = outgoingRequests.data.find((req) => req.receiverId === id);
+        const outgoingRequests = await fetchAllRequests(friendService.listOutgoingRequests);
+        const request = outgoingRequests.find((req) => req.receiverId === id);
         if (request) {
           friendRequestId = request.id;
         }
       }
-    } catch (error) {
+    } catch {
       // Network error or other issue - log but don't block page load
-      console.error('Failed to fetch friendship status:', error);
       friendshipStatus = 'none';
     }
   }
@@ -84,8 +105,7 @@ export default function PublicProfilePage() {
         setFriendRequestId(response.id);
         toast.success('Friend request sent');
       }
-    } catch (error) {
-      console.error('Failed to send friend request:', error);
+    } catch {
       toast.error('Failed to send friend request');
     } finally {
       setIsLoading(false);
@@ -100,8 +120,7 @@ export default function PublicProfilePage() {
       await friendService.removeFriend(data.user.id);
       setFriendshipStatus('none');
       toast.success('Friend removed');
-    } catch (error) {
-      console.error('Failed to remove friend:', error);
+    } catch {
       toast.error('Failed to remove friend');
     } finally {
       setIsLoading(false);

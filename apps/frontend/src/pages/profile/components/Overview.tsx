@@ -19,8 +19,7 @@ export function Overview({ user }: OverviewProps) {
       try {
         const response = await friendService.listFriends();
         setFriendsCount(response.data.length);
-      } catch (error) {
-        console.error('Failed to load friends:', error);
+      } catch {
         setFriendsCount(0);
       } finally {
         setIsLoadingFriends(false);

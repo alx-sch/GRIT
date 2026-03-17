@@ -106,6 +106,7 @@ describe('My Events Page', () => {
           path: '/my-events',
           element: <Page />,
           loader: () => Promise.resolve(events),
+          HydrateFallback: () => <div>Loading...</div>,
         },
       ],
       {

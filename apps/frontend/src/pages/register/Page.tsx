@@ -15,6 +15,7 @@ import { RegisterSchema } from '@grit/schema';
 import { AlertCircle } from 'lucide-react';
 import { Form, Link, redirect, useActionData, useNavigation } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { toast } from 'sonner';
 
 const LocalRegisterSchema = RegisterSchema.extend({
   email: z.email('Please enter a valid email address'),
@@ -64,6 +65,7 @@ export async function registerPageAction({ request }: { request: Request }) {
     useCurrentUserStore.getState().setUser(loginData.user);
 
     // Clean up URL and redirect to /events with success toast
+    toast.success('Account created successfully!');
     return redirect('/events?logged_in=true');
   } catch (err) {
     if (axios.isAxiosError(err)) {
