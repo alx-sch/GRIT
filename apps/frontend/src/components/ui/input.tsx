@@ -96,6 +96,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               // 7. CLEARABLE PADDING
               clearable && 'pr-10'
             )}
+            style={{ fontSize: '16px' }}
             ref={inputRef}
             {...props}
           />
@@ -146,6 +147,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
           className
         )}
+        style={{ fontSize: '16px' }}
         ref={inputRef}
         {...props}
       />

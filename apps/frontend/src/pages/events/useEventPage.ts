@@ -1,16 +1,16 @@
+import { formatEventDateTimeStack } from '@/lib/time_utils';
+import { useEventActions } from '@/pages/my-events/hooks/useEventActions';
 import { eventService } from '@/services/eventService';
-import { userService } from '@/services/userService';
-import { inviteService } from '@/services/inviteService';
 import { friendService } from '@/services/friendService';
+import { inviteService } from '@/services/inviteService';
+import { userService } from '@/services/userService';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import type { CurrentUser } from '@/types/user';
+import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useLoaderData, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
-import axios from 'axios';
 import type { eventLoader } from './EventPage';
-import { useEventActions } from '@/pages/my-events/hooks/useEventActions';
 
 export const useEventPage = () => {
   const event = useLoaderData<typeof eventLoader>();
@@ -39,7 +39,7 @@ export const useEventPage = () => {
 
   const navigate = useNavigate();
 
-  const formattedDate = format(new Date(event.startAt), 'MMMM d, yyyy | p');
+  const { dateLine, timeLine } = formatEventDateTimeStack(event.startAt, event.endAt);
 
   const location = event.location;
   const cityPostal = [location?.postalCode, location?.city].map((s) => s?.trim()).filter(Boolean);
@@ -308,7 +308,8 @@ export const useEventPage = () => {
     invitingIds,
     sentInvites,
     setShareOpen,
-    formattedDate,
+    dateLine,
+    timeLine,
     location,
     locationText,
     imageFiles,

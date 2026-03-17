@@ -23,14 +23,7 @@ import { AnimatedUnderline } from '@/components/ui/animatedUnderline';
 import { Heading } from '@/components/ui/typography';
 import type { EventBase } from '@/types/event';
 import type { ResUserPublic } from '@grit/schema';
-
-function formatEventDate(startAt: string): string {
-  return new Date(startAt).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-}
+import { formatEventDate } from '@/lib/time_utils';
 
 function formatUserLocation(user: ResUserPublic): string {
   if (user.city && user.country) return `${user.city}, ${user.country}`;
@@ -140,8 +133,9 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
 
   const handleSeeAll = (basePath: string) => {
     onOpenChange(false);
+    const targetPath = basePath === '/users' ? '/profile/my-friends' : basePath;
     requestAnimationFrame(() => {
-      void navigate(`${basePath}?search=${encodeURIComponent(query)}`);
+      void navigate(`${targetPath}?search=${encodeURIComponent(query)}`);
     });
   };
 
@@ -152,7 +146,6 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     debouncedQuery.length >= MIN_QUERY_LENGTH &&
     (query !== debouncedQuery || fetchedFor !== debouncedQuery);
 
-  // Derive displayed results — clear them when query drops below minimum
   const displayedEvents = debouncedQuery.length >= MIN_QUERY_LENGTH ? results.events : [];
   const displayedUsers = debouncedQuery.length >= MIN_QUERY_LENGTH ? results.users : [];
 
