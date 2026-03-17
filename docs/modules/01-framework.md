@@ -1,11 +1,11 @@
 # Module 01 — Use a Framework for Both the Frontend and Backend
 
-| Attribute | Value |
-|---|---|
-| **Category** | IV.1 |
-| **Type** | Major |
-| **Points** | 2 |
-| **Status** | Done |
+| Attribute      | Value                                  |
+| -------------- | -------------------------------------- |
+| **Category**   | IV.1                                   |
+| **Type**       | Major                                  |
+| **Points**     | 2                                      |
+| **Status**     | Done                                   |
 | **Developers** | alx-sch (backend), dovy-mus (frontend) |
 
 ---

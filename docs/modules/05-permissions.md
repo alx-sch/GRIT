@@ -1,13 +1,13 @@
 # Module 05 — Advanced Permissions System
 
-| Attribute | Value |
-|---|---|
-| **Category** | IV.3 |
-| **Type** | Major |
-| **Points** | 2 |
-| **Status** | Done |
-| **Notes** | CRUD, Roles management |
-| **Developers** | Busedame |
+| Attribute      | Value                  |
+| -------------- | ---------------------- |
+| **Category**   | IV.3                   |
+| **Type**       | Major                  |
+| **Points**     | 2                      |
+| **Status**     | Done                   |
+| **Notes**      | CRUD, Roles management |
+| **Developers** | Busedame               |
 
 ---
 
@@ -27,13 +27,13 @@ In a social event platform, different actors need different capabilities. An eve
 
 ### Roles
 
-| Role | Description |
-|---|---|
-| **Anonymous** | Not authenticated. Can browse published public events and public profiles. |
-| **Authenticated user** | Logged in. Can create events, attend events, send friend requests, chat, invite friends. |
-| **Event author** | Creator of a specific event. Can edit, publish/unpublish, delete, and invite anyone to their event. |
-| **Invited user** | Received an event invite. Can view private events they are invited to; see accept/decline UI. |
-| **Admin** | Platform administrator. Can manage any content regardless of ownership. |
+| Role                   | Description                                                                                         |
+| ---------------------- | --------------------------------------------------------------------------------------------------- |
+| **Anonymous**          | Not authenticated. Can browse published public events and public profiles.                          |
+| **Authenticated user** | Logged in. Can create events, attend events, send friend requests, chat, invite friends.            |
+| **Event author**       | Creator of a specific event. Can edit, publish/unpublish, delete, and invite anyone to their event. |
+| **Invited user**       | Received an event invite. Can view private events they are invited to; see accept/decline UI.       |
+| **Admin**              | Platform administrator. Can manage any content regardless of ownership.                             |
 
 ### Authentication Guards (NestJS)
 
@@ -55,11 +55,11 @@ Applied to: event edit/delete/publish, file upload/delete, location edit/delete,
 
 ### Event Visibility Rules
 
-| Event state | Who can see it |
-|---|---|
-| Published + public | Everyone (anonymous included) |
+| Event state         | Who can see it                            |
+| ------------------- | ----------------------------------------- |
+| Published + public  | Everyone (anonymous included)             |
 | Published + private | Author, attendees, and invited users only |
-| Draft | Author only |
+| Draft               | Author only                               |
 
 The event feed page shows only **published + public** events. Private events (even if published) do not appear in the feed — only in the My Events / Invitations tabs for relevant users.
 
@@ -74,12 +74,12 @@ Both the profile endpoint and the hosted events endpoint enforce the same privac
 
 ### Event Invite Permissions
 
-| Scenario | Can Invite? |
-|---|---|
-| Public event, any authenticated user | Yes |
-| Private event, event author | Yes |
-| Private event, non-author | No (button greyed out in UI) |
-| Event is a draft | No |
+| Scenario                             | Can Invite?                  |
+| ------------------------------------ | ---------------------------- |
+| Public event, any authenticated user | Yes                          |
+| Private event, event author          | Yes                          |
+| Private event, non-author            | No (button greyed out in UI) |
+| Event is a draft                     | No                           |
 
 Only **friends** of the current user can be invited. The friend picker shows each friend's status: Invite / Invited / Already going.
 

@@ -1,11 +1,11 @@
 # Module 04 — Allow Users to Interact with Other Users
 
-| Attribute | Value |
-|---|---|
-| **Category** | IV.1 |
-| **Type** | Major |
-| **Points** | 2 |
-| **Status** | Done |
+| Attribute      | Value                                                                                                                                                                                            |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Category**   | IV.1                                                                                                                                                                                             |
+| **Type**       | Major                                                                                                                                                                                            |
+| **Points**     | 2                                                                                                                                                                                                |
+| **Status**     | Done                                                                                                                                                                                             |
 | **Developers** | Busedame (friends backend, invite system, sort), AudreyBil (friends frontend, event attend/unattend), johdac (direct messages, online status), dovy-mus (public profiles, friendship status API) |
 
 ---
@@ -27,10 +27,12 @@ A social event platform only becomes social when users can find and connect with
 ### Public User Profiles
 
 **Endpoints:**
+
 - `GET /users/:id` — Returns public profile data (name, avatar, bio, city, country, hosted events)
 - `GET /users/:id/events` — Returns published events hosted by this user
 
 Privacy rules:
+
 - `isProfilePublic = true` (default): visible to all authenticated users.
 - `isProfilePublic = false`: visible only to self and confirmed friends.
 - Non-friends accessing a private profile receive `404` (not `403`) to prevent user enumeration.
@@ -40,6 +42,7 @@ Privacy rules:
 **Endpoint:** `GET /users?search=<query>&limit=<n>&cursor=<cursor>`
 
 Keyword search with cursor-based pagination. Used in:
+
 - The **Friends page** search box.
 - The **Global search** (⌘K) to show up to 5 matching users.
 
@@ -88,6 +91,7 @@ Powers the action buttons on public profile pages and user cards in the friends 
 ### Friends Page (Frontend)
 
 Three sections driven by three parallel loader calls:
+
 - **Friend search**: debounced 500ms input, filters out existing friends and the current user.
 - **Pending requests**: incoming requests with Accept / Decline buttons.
 - **Your friends**: confirmed friends with Chat and Remove buttons; **sort button** (A→Z / Z→A) to order alphabetically.
@@ -131,6 +135,7 @@ model EventInvite {
 **Endpoint:** `PATCH /users/me` with `{ attending: eventId }` / `{ unattending: eventId }`
 
 When a user marks themselves as attending:
+
 - Added to `EventAttendee` join table.
 - Automatically added to the event's `Conversation` as a participant.
 - WebSocket synced to the event's chat room.
@@ -147,6 +152,7 @@ The `ChatGateway` maintains a `userId → socketId` map. The friends overview qu
 ### Cascading Deletes
 
 When a user is deleted:
+
 - Friend requests and friendships deleted.
 - Event invites (sent and received) deleted.
 - Conversation participations deleted.

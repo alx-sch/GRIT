@@ -1,11 +1,11 @@
 # Module 11 — A Complete Notification System
 
-| Attribute | Value |
-|---|---|
-| **Category** | IV.1 |
-| **Type** | Minor |
-| **Points** | 1 |
-| **Status** | Done |
+| Attribute      | Value                                                                                                                                                                |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Category**   | IV.1                                                                                                                                                                 |
+| **Type**       | Minor                                                                                                                                                                |
+| **Points**     | 1                                                                                                                                                                    |
+| **Status**     | Done                                                                                                                                                                 |
 | **Developers** | johdac (route-based toast system, chat unread indicators), AudreyBil (action toasts, conditional draft/publish toasts), alx-sch (email confirmation flow and toasts) |
 
 ---
@@ -32,24 +32,24 @@ The `<Toaster>` component is mounted once in `DefaultLayout.tsx` and available g
 
 #### Action Toasts
 
-| Action | Toast |
-|---|---|
-| Attend event | "You are going to [Event Name]!" |
-| Unattend event | "You are no longer going to [Event Name]" |
-| Publish event | "Event published successfully" |
-| Save as draft | "Event saved as draft" |
-| Send friend request | "Friend request sent" |
-| Accept friend request | "You are now friends with [Name]" |
-| Decline friend request | "Friend request declined" |
-| Remove friend | "Removed [Name] from your friends" |
-| Send event invite | "Invite sent to [Name]" |
-| Accept event invite | "You are now attending [Event Name]" |
-| Decline event invite | "Invite declined" |
-| Upload image | "Image uploaded" |
-| Upload image fail | "Image upload failed — event created without image" |
-| Chat (unattended event) | "You must attend this event to access the chat" |
-| Not logged in (Going/Invite/Chat) | Redirect to login page |
-| API error | Dynamic error message from backend response |
+| Action                            | Toast                                               |
+| --------------------------------- | --------------------------------------------------- |
+| Attend event                      | "You are going to [Event Name]!"                    |
+| Unattend event                    | "You are no longer going to [Event Name]"           |
+| Publish event                     | "Event published successfully"                      |
+| Save as draft                     | "Event saved as draft"                              |
+| Send friend request               | "Friend request sent"                               |
+| Accept friend request             | "You are now friends with [Name]"                   |
+| Decline friend request            | "Friend request declined"                           |
+| Remove friend                     | "Removed [Name] from your friends"                  |
+| Send event invite                 | "Invite sent to [Name]"                             |
+| Accept event invite               | "You are now attending [Event Name]"                |
+| Decline event invite              | "Invite declined"                                   |
+| Upload image                      | "Image uploaded"                                    |
+| Upload image fail                 | "Image upload failed — event created without image" |
+| Chat (unattended event)           | "You must attend this event to access the chat"     |
+| Not logged in (Going/Invite/Chat) | Redirect to login page                              |
+| API error                         | Dynamic error message from backend response         |
 
 #### Conditional Draft vs. Published Toasts
 
@@ -85,6 +85,7 @@ This approach is decentralized — any loader or action can append a `?toastKey=
 #### Email Confirmation Toasts (Contextual)
 
 The email confirmation link can be clicked in 4 states:
+
 - Already confirmed + logged in → info toast: "Your email is already confirmed"
 - Already confirmed + not logged in → info toast: "Your email is already confirmed. Please log in."
 - Just confirmed + logged in → success toast: "Email confirmed!"
@@ -124,6 +125,7 @@ For production: replace with real SMTP credentials. No code changes needed.
 ### Unread Chat Indicators
 
 The chat notification surface is part of the WebSocket module (Module 03) but presented as a notification:
+
 - **Orange dot** on the "Chat" navbar icon when any conversation has unread messages.
 - **"New messages ↓" banner** inside a conversation when the user has scrolled up and new messages arrive.
 

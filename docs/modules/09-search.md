@@ -1,12 +1,12 @@
 # Module 09 — Implement Advanced Search Functionality
 
-| Attribute | Value |
-|---|---|
-| **Category** | IV.1 |
-| **Type** | Minor |
-| **Points** | 1 |
-| **Status** | Done |
-| **Notes** | Filters, sorting, pagination |
+| Attribute      | Value                                                                                                                 |
+| -------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **Category**   | IV.1                                                                                                                  |
+| **Type**       | Minor                                                                                                                 |
+| **Points**     | 1                                                                                                                     |
+| **Status**     | Done                                                                                                                  |
+| **Notes**      | Filters, sorting, pagination                                                                                          |
 | **Developers** | AudreyBil (event feed filters/sorting), Busedame (cursor-based pagination, infinite scroll), dovy-mus (global search) |
 
 ---
@@ -32,9 +32,10 @@ As the number of events grows, a flat list becomes unusable. Users need to find 
 All query parameters are validated by Zod in `ReqEventGetPublishedDto`. Zod also transforms values — for example, date strings are converted to `Date` objects with time-of-day adjustments:
 
 ```ts
-start_until: z.string().datetime()
-  .transform(s => new Date(s.replace('T00:00:00', 'T23:59:59')))
-  .optional()
+start_until: z.string()
+  .datetime()
+  .transform((s) => new Date(s.replace('T00:00:00', 'T23:59:59')))
+  .optional();
 ```
 
 #### Keyword Search
@@ -46,7 +47,7 @@ where: {
   OR: [
     { title: { contains: search, mode: 'insensitive' } },
     { content: { contains: search, mode: 'insensitive' } },
-  ]
+  ];
 }
 ```
 
@@ -57,13 +58,13 @@ where: {
 
 #### Sorting Options
 
-| `sortBy` | `sortOrder` | Description |
-|---|---|---|
-| `date` | `asc` | Earliest events first (default) |
-| `date` | `desc` | Latest events first |
-| `name` | `asc` | A → Z by title |
-| `name` | `desc` | Z → A by title |
-| `popularity` | — | Most attendees first |
+| `sortBy`     | `sortOrder` | Description                     |
+| ------------ | ----------- | ------------------------------- |
+| `date`       | `asc`       | Earliest events first (default) |
+| `date`       | `desc`      | Latest events first             |
+| `name`       | `asc`       | A → Z by title                  |
+| `name`       | `desc`      | Z → A by title                  |
+| `popularity` | —           | Most attendees first            |
 
 #### Location Filter
 
@@ -84,10 +85,7 @@ const nextCursor = Buffer.from(cursorValue).toString('base64');
 
 ```ts
 where: {
-  OR: [
-    { startAt: { gt: cursorDate } },
-    { startAt: cursorDate, id: { gt: cursorId } },
-  ]
+  OR: [{ startAt: { gt: cursorDate } }, { startAt: cursorDate, id: { gt: cursorId } }];
 }
 ```
 
@@ -95,7 +93,9 @@ where: {
 
 ```json
 {
-  "data": [ /* events */ ],
+  "data": [
+    /* events */
+  ],
   "pagination": {
     "nextCursor": "MjAyNi0wMS0yNFQxMjowMDowMC4wMDBafDQ=",
     "hasMore": true
@@ -112,6 +112,7 @@ The cursor is opaque (base64-encoded) to discourage manual modification.
 **Location combobox:** Uses a `scroll` event listener on the dropdown list. When the user scrolls within 100px of the bottom, the next page is loaded.
 
 **Custom `useInfiniteScroll` hook** manages:
+
 - The accumulated items array
 - Loading state and `hasMore` flag
 - A `loadMore` function
@@ -122,6 +123,7 @@ The cursor is opaque (base64-encoded) to discourage manual modification.
 A command-palette style search dialog accessible from anywhere via `⌘K` (Mac) or `Ctrl+K` (Windows/Linux) or by clicking the search icon in the navbar.
 
 **Behavior:**
+
 1. Opens a `CommandDialog` (cmdk-based, styled to match the app design system).
 2. User types — input is debounced (300ms) before firing API calls.
 3. Events and users are searched **in parallel** (`Promise.all`).

@@ -1,11 +1,11 @@
 # Module 12 — Module of Choice: Monorepo
 
-| Attribute | Value |
-|---|---|
-| **Category** | IV.10 |
-| **Type** | Minor |
-| **Points** | 1 |
-| **Status** | Done |
+| Attribute      | Value                                                                                                            |
+| -------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Category**   | IV.10                                                                                                            |
+| **Type**       | Minor                                                                                                            |
+| **Points**     | 1                                                                                                                |
+| **Status**     | Done                                                                                                             |
 | **Developers** | dovy-mus (Turborepo setup, migration tooling), alx-sch (pnpm workspace config, shared package, production build) |
 
 ---

@@ -1,11 +1,11 @@
 # Module 08 — Implement Remote Authentication with OAuth 2.0
 
-| Attribute | Value |
-|---|---|
-| **Category** | IV.3 |
-| **Type** | Minor |
-| **Points** | 1 |
-| **Status** | Done |
+| Attribute      | Value   |
+| -------------- | ------- |
+| **Category**   | IV.3    |
+| **Type**       | Minor   |
+| **Points**     | 1       |
+| **Status**     | Done    |
 | **Developers** | alx-sch |
 
 ---
@@ -73,14 +73,15 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 
 **Endpoints:**
 
-| Endpoint | Purpose |
-|---|---|
-| `GET /auth/google` | Initiates the Google OAuth handshake |
+| Endpoint                    | Purpose                                        |
+| --------------------------- | ---------------------------------------------- |
+| `GET /auth/google`          | Initiates the Google OAuth handshake           |
 | `GET /auth/google/callback` | Handles the redirect from Google after consent |
 
 ### User Upsert Logic
 
 `validateOAuthUser` in `AuthService` performs an upsert:
+
 1. Looks up the user by `googleId` first, then by `email`.
 2. If found → updates `googleId` if missing (links existing account).
 3. If not found → creates a new user:

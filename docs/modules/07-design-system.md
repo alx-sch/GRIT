@@ -1,12 +1,12 @@
 # Module 07 — Custom-Made Design System
 
-| Attribute | Value |
-|---|---|
-| **Category** | IV.1 |
-| **Type** | Minor |
-| **Points** | 1 |
-| **Status** | Done |
-| **Notes** | 10+ reusable components |
+| Attribute      | Value                                                                                             |
+| -------------- | ------------------------------------------------------------------------------------------------- |
+| **Category**   | IV.1                                                                                              |
+| **Type**       | Minor                                                                                             |
+| **Points**     | 1                                                                                                 |
+| **Status**     | Done                                                                                              |
+| **Notes**      | 10+ reusable components                                                                           |
 | **Developers** | dovy-mus (system architecture, OKLCH color scheme), AudreyBil (component library, UI refinements) |
 
 ---
@@ -30,6 +30,7 @@ A design system prevents visual inconsistency, reduces duplicated styling logic,
 GRIT uses **TailwindCSS v4** with a custom **OKLCH color space** instead of the default HSL/RGB system.
 
 OKLCH was chosen because:
+
 - Colors are represented closer to how human vision perceives them, producing more perceptually uniform scales.
 - Color manipulation (lightening, darkening) is predictable without unexpected hue shifts.
 - Better rendering on wide-gamut (P3) displays common on modern hardware.
@@ -55,27 +56,27 @@ Components live in `apps/frontend/src/components/ui/`.
 
 ### Core Components (10+)
 
-| Component | Description |
-|---|---|
-| `Button` | Variant system (default, outline, ghost, destructive) with `size` and `asChild`. Always sets `type` attribute to prevent accidental form submissions. |
-| `Input` | Styled input with optional `clearable` prop (shows ×). |
-| `Textarea` | Auto-styled multi-line input. |
-| `Dialog` | Modal dialog via `@radix-ui/react-dialog`. Used for confirmations, location preview, invite modal. |
-| `AlertDialog` | Destructive confirmation dialog (e.g., "Delete event?", "Remove friend?"). |
-| `DropdownMenu` | Context menus via `@radix-ui/react-dropdown-menu`. Used in navbar and invite accept/decline. |
-| `Combobox` | Searchable dropdown built on `cmdk`. Used for location selection with infinite scroll. |
-| `Tabs` | Tab navigation via `@radix-ui/react-tabs`. Used on My Events page (Upcoming/Organizing/Invitations/Past). |
-| `Switch` | Toggle via `@radix-ui/react-switch`. Used for public/private event toggle. |
-| `Avatar / UserAvatar` | Displays user avatar with fallback initials. Centralized to handle all edge cases. |
-| `FileUpload` | Drag-and-drop file upload with preview, progress bar, and client-side validation. |
-| `ImageCropDialog` | Modal image cropper using `react-easy-crop` — supports zoom, rotation, and grid. |
-| `DatePicker` | Responsive date picker: popover on desktop, drawer on mobile. |
-| `Toast (Sonner)` | Global toast notification system (see Module 11). |
-| `BackButton` | Consistent back navigation across pages. |
-| `EmptyState` | Standardized empty state UI with icon and message. |
-| `RadioCard` | Card-style radio button group. |
-| `PasswordInput` | Password field with show/hide toggle. |
-| `AnimatedUnderline` | Smooth CSS underline animation for navigation links. |
+| Component             | Description                                                                                                                                           |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Button`              | Variant system (default, outline, ghost, destructive) with `size` and `asChild`. Always sets `type` attribute to prevent accidental form submissions. |
+| `Input`               | Styled input with optional `clearable` prop (shows ×).                                                                                                |
+| `Textarea`            | Auto-styled multi-line input.                                                                                                                         |
+| `Dialog`              | Modal dialog via `@radix-ui/react-dialog`. Used for confirmations, location preview, invite modal.                                                    |
+| `AlertDialog`         | Destructive confirmation dialog (e.g., "Delete event?", "Remove friend?").                                                                            |
+| `DropdownMenu`        | Context menus via `@radix-ui/react-dropdown-menu`. Used in navbar and invite accept/decline.                                                          |
+| `Combobox`            | Searchable dropdown built on `cmdk`. Used for location selection with infinite scroll.                                                                |
+| `Tabs`                | Tab navigation via `@radix-ui/react-tabs`. Used on My Events page (Upcoming/Organizing/Invitations/Past).                                             |
+| `Switch`              | Toggle via `@radix-ui/react-switch`. Used for public/private event toggle.                                                                            |
+| `Avatar / UserAvatar` | Displays user avatar with fallback initials. Centralized to handle all edge cases.                                                                    |
+| `FileUpload`          | Drag-and-drop file upload with preview, progress bar, and client-side validation.                                                                     |
+| `ImageCropDialog`     | Modal image cropper using `react-easy-crop` — supports zoom, rotation, and grid.                                                                      |
+| `DatePicker`          | Responsive date picker: popover on desktop, drawer on mobile.                                                                                         |
+| `Toast (Sonner)`      | Global toast notification system (see Module 11).                                                                                                     |
+| `BackButton`          | Consistent back navigation across pages.                                                                                                              |
+| `EmptyState`          | Standardized empty state UI with icon and message.                                                                                                    |
+| `RadioCard`           | Card-style radio button group.                                                                                                                        |
+| `PasswordInput`       | Password field with show/hide toggle.                                                                                                                 |
+| `AnimatedUnderline`   | Smooth CSS underline animation for navigation links.                                                                                                  |
 
 ### Container System
 
@@ -94,6 +95,7 @@ Implemented via `next-themes`. A `ThemeProvider` wraps the app and toggles the `
 ### Responsive Design
 
 All components use Tailwind responsive prefixes (`sm:`, `md:`, `lg:`). Key responsive decisions:
+
 - Event feed filters collapse to icon-only on small screens.
 - Event form public/private toggle switches to `flex-col` on mobile.
 - Navbar has a mobile menu that closes automatically on route change.

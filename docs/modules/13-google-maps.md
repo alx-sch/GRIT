@@ -1,12 +1,12 @@
 # Module 13 — Module of Choice: Google Maps API
 
-| Attribute | Value |
-|---|---|
-| **Category** | IV.10 |
-| **Type** | Minor |
-| **Points** | 1 |
-| **Status** | Done |
-| **Notes** | Location with Google Maps API |
+| Attribute      | Value                                                                                  |
+| -------------- | -------------------------------------------------------------------------------------- |
+| **Category**   | IV.10                                                                                  |
+| **Type**       | Minor                                                                                  |
+| **Points**     | 1                                                                                      |
+| **Status**     | Done                                                                                   |
+| **Notes**      | Location with Google Maps API                                                          |
 | **Developers** | johdac (geocoding integration in location form), AudreyBil (map preview on event page) |
 
 ---
@@ -64,10 +64,7 @@ Clicking the location name on the event detail page opens a Google Maps dialog:
 - **Get directions** button — opens Google Maps in a new tab with the event as the destination.
 
 ```tsx
-<GoogleMap
-  center={{ lat: location.latitude, lng: location.longitude }}
-  zoom={15}
->
+<GoogleMap center={{ lat: location.latitude, lng: location.longitude }} zoom={15}>
   <Marker position={{ lat: location.latitude, lng: location.longitude }} />
 </GoogleMap>
 ```
@@ -87,6 +84,7 @@ Both fields are `Float` (double precision), providing sufficient accuracy for ev
 ### API Key Security
 
 `VITE_GOOGLE_MAPS_API` is a frontend environment variable embedded in the compiled bundle. To prevent abuse:
+
 - The key is restricted in Google Cloud Console to specific HTTP referrers (the app's domain).
 - API access is limited to the Maps JavaScript API and Places API.
 - Quota limits are configured in Google Cloud Console to cap costs.

@@ -1,11 +1,11 @@
 # Module 14 — Custom Module: CI/CD
 
-| Attribute | Value |
-|---|---|
-| **Category** | IV.10 |
-| **Type** | Minor |
-| **Points** | 1 |
-| **Status** | Done |
+| Attribute      | Value                                                                                                                                                                                           |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Category**   | IV.10                                                                                                                                                                                           |
+| **Type**       | Minor                                                                                                                                                                                           |
+| **Points**     | 1                                                                                                                                                                                               |
+| **Status**     | Done                                                                                                                                                                                            |
 | **Developers** | johdac (CD pipeline, Hetzner deployment), alx-sch (Docker production build, environment config, test suite cleanup), dovy-mus (CI pipeline improvements, test separation, Playwright artifacts) |
 
 ---
@@ -78,6 +78,7 @@ services:
 ```
 
 **Caddy** handles:
+
 - HTTPS termination (Let's Encrypt for production, self-signed for localhost)
 - HTTP → HTTPS redirect
 - Reverse-proxying `/api/*` to NestJS backend
@@ -93,7 +94,7 @@ The seeding script uses `createMany()` bulk inserts to create 1000+ test users, 
 ```ts
 await this.prisma.user.createMany({
   data: testUsers,
-  skipDuplicates: true,  // Idempotent — safe to re-run
+  skipDuplicates: true, // Idempotent — safe to re-run
 });
 ```
 

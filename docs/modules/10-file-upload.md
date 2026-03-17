@@ -1,11 +1,11 @@
 # Module 10 — File Upload and Management System
 
-| Attribute | Value |
-|---|---|
-| **Category** | IV.1 |
-| **Type** | Minor |
-| **Points** | 1 |
-| **Status** | Done |
+| Attribute      | Value                                                                                                                          |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| **Category**   | IV.1                                                                                                                           |
+| **Type**       | Minor                                                                                                                          |
+| **Points**     | 1                                                                                                                              |
+| **Status**     | Done                                                                                                                           |
 | **Developers** | AudreyBil (frontend FileUpload component, event image/PDF endpoints), alx-sch (MinIO storage infrastructure, avatar endpoints) |
 
 ---
@@ -27,6 +27,7 @@ Events are much more compelling with visual content. Cover images help users qui
 ### Storage Backend: MinIO
 
 **MinIO** is an S3-compatible object storage server running as a Docker container. It provides:
+
 - S3-compatible API — the same code works with AWS S3, DigitalOcean Spaces, or any S3-compatible service in production.
 - Separate **buckets** for different file types:
   - `avatars` — user profile pictures
@@ -44,11 +45,11 @@ await this.minioClient.putObject(bucket, key, buffer, { 'Content-Type': mimeType
 
 All file uploads go through **Multer** (NestJS file interceptor) with strict server-side validation:
 
-| Type | Max size | Allowed MIME types |
-|---|---|---|
-| Avatar | 5 MB | `image/*` |
-| Event cover image | 5 MB | `image/*` |
-| Event attachment | 10 MB | `image/*`, `application/pdf` |
+| Type              | Max size | Allowed MIME types           |
+| ----------------- | -------- | ---------------------------- |
+| Avatar            | 5 MB     | `image/*`                    |
+| Event cover image | 5 MB     | `image/*`                    |
+| Event attachment  | 10 MB    | `image/*`, `application/pdf` |
 
 A custom file type validator checks the MIME type. A fallback checks `Content-Type` from the request for edge cases where the file type validator fails (e.g., some PDF uploads from certain browsers):
 
@@ -60,13 +61,13 @@ if (!allowedTypes.includes(file.mimetype)) {
 
 ### Backend Endpoints
 
-| Endpoint | Purpose |
-|---|---|
-| `PATCH /users/me/avatar` | Upload user avatar |
-| `PATCH /events/:id/upload-image` | Upload event cover image |
-| `DELETE /events/:id/image` | Delete event cover image |
-| `POST /events/:id/files` | Upload event attachment (image or PDF) |
-| `DELETE /events/:id/files/:fileId` | Delete event attachment |
+| Endpoint                           | Purpose                                |
+| ---------------------------------- | -------------------------------------- |
+| `PATCH /users/me/avatar`           | Upload user avatar                     |
+| `PATCH /events/:id/upload-image`   | Upload event cover image               |
+| `DELETE /events/:id/image`         | Delete event cover image               |
+| `POST /events/:id/files`           | Upload event attachment (image or PDF) |
+| `DELETE /events/:id/files/:fileId` | Delete event attachment                |
 
 All mutating endpoints verify ownership (or admin role) before processing.
 
@@ -99,20 +100,25 @@ A reusable `FileUpload` component (`apps/frontend/src/components/ui/file-upload.
 - **Configurable** via `accept` and `maxSize` props:
 
 ```tsx
-{/* Image upload (default) */}
-<FileUpload onChange={setFile} />
+{
+  /* Image upload (default) */
+}
+<FileUpload onChange={setFile} />;
 
-{/* PDF upload */}
+{
+  /* PDF upload */
+}
 <FileUpload
   onChange={setFile}
   accept={{ 'application/pdf': ['.pdf'] }}
   maxSize={10 * 1024 * 1024}
-/>
+/>;
 ```
 
 ### Event Page: File Gallery
 
 Uploaded files displayed on the event detail page:
+
 - **Images**: thumbnails in a grid; clicking opens a **lightbox viewer**.
 - **PDFs**: download links with file name.
 

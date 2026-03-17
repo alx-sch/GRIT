@@ -1,11 +1,11 @@
 # Module 03 — Implement Real-Time Features using WebSockets
 
-| Attribute | Value |
-|---|---|
-| **Category** | IV.1 |
-| **Type** | Major |
-| **Points** | 2 |
-| **Status** | Done |
+| Attribute      | Value  |
+| -------------- | ------ |
+| **Category**   | IV.1   |
+| **Type**       | Major  |
+| **Points**     | 2      |
+| **Status**     | Done   |
 | **Developers** | johdac |
 
 ---
@@ -72,11 +72,13 @@ Each `Conversation` record in the database corresponds to a Socket.IO room (iden
 ### Sending and Receiving Messages
 
 **Client → Server** (`sendMessage` event):
+
 ```ts
 socket.emit('sendMessage', { conversationId, text });
 ```
 
 **Server → Client** (`messages` event):
+
 ```ts
 this.server.to(conversationId).emit('messages', savedMessage);
 ```
@@ -100,6 +102,7 @@ Friends' online status is derived from the `userId → socketId` map. When the f
 ### Handling New Conversations
 
 When a user starts a new direct message via `POST /conversations`, the backend:
+
 1. Creates or retrieves the `Conversation` record.
 2. Calls `resyncUserRooms` for **both** participants so they immediately receive messages from each other.
 

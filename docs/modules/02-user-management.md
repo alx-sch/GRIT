@@ -1,11 +1,11 @@
 # Module 02 — Standard User Management and Authentication
 
-| Attribute | Value |
-|---|---|
-| **Category** | IV.3 |
-| **Type** | Major |
-| **Points** | 2 |
-| **Status** | Done |
+| Attribute      | Value                                                                                                                                  |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **Category**   | IV.3                                                                                                                                   |
+| **Type**       | Major                                                                                                                                  |
+| **Points**     | 2                                                                                                                                      |
+| **Status**     | Done                                                                                                                                   |
 | **Developers** | alx-sch (backend auth, email), Busedame (auto-login on register), dovy-mus (frontend auth UI, profile), AudreyBil (profile editing UI) |
 
 ---
@@ -119,9 +119,9 @@ model User {
 
 ## Frontend Routes
 
-| Route | Purpose |
-|---|---|
-| `/register` | Registration form |
-| `/login` | Login form with optional `?redirect=` param |
-| `/profile` | Edit own profile, upload avatar |
-| `/users/:id` | View another user's public profile |
+| Route        | Purpose                                     |
+| ------------ | ------------------------------------------- |
+| `/register`  | Registration form                           |
+| `/login`     | Login form with optional `?redirect=` param |
+| `/profile`   | Edit own profile, upload avatar             |
+| `/users/:id` | View another user's public profile          |

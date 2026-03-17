@@ -207,16 +207,16 @@ enum InviteStatus {
 }
 
 model EventInvite {
-  id          String        @id @default(uuid())
-  status      InviteStatus  @default(PENDING)
-  eventId     Int
-  senderId    Int
-  receiverId  Int
-  event       Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  sender      User          @relation("InviteSender", fields: [senderId], references: [id], onDelete: Cascade)
-  receiver    User          @relation("InviteReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id         String       @id @default(uuid())
+  status     InviteStatus @default(PENDING)
+  eventId    Int
+  senderId   Int
+  receiverId Int
+  event      Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  sender     User         @relation("InviteSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver   User         @relation("InviteReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
 
   @@unique([eventId, receiverId])
   @@index([receiverId])

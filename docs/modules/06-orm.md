@@ -1,11 +1,11 @@
 # Module 06 — Use an ORM for the Database
 
-| Attribute | Value |
-|---|---|
-| **Category** | IV.1 |
-| **Type** | Minor |
-| **Points** | 1 |
-| **Status** | Done |
+| Attribute      | Value                                                                          |
+| -------------- | ------------------------------------------------------------------------------ |
+| **Category**   | IV.1                                                                           |
+| **Type**       | Minor                                                                          |
+| **Points**     | 1                                                                              |
+| **Status**     | Done                                                                           |
 | **Developers** | alx-sch (setup, production build), Busedame (schema evolution, test isolation) |
 
 ---
@@ -27,6 +27,7 @@ An ORM provides type-safe database access, automatic schema migrations, and prot
 ### ORM: Prisma v7
 
 **Prisma** was chosen for:
+
 - **Type safety**: The generated Prisma Client provides TypeScript types derived directly from the schema. Accessing a non-existent field is a compile-time error.
 - **Schema as documentation**: `schema.prisma` is the authoritative definition of all tables, columns, and relationships.
 - **Migration system**: `prisma migrate dev` creates timestamped, versioned SQL migration files. `prisma migrate deploy` applies them in production.
@@ -74,7 +75,7 @@ For large seeding operations, `prisma.createMany()` is used instead of individua
 // Seed 1000 test users efficiently
 await this.prisma.user.createMany({
   data: testUsers,
-  skipDuplicates: true,  // Idempotent — safe to re-run
+  skipDuplicates: true, // Idempotent — safe to re-run
 });
 ```
 
