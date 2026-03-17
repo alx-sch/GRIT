@@ -2,7 +2,12 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { ReqFriendRequestsGetAllDto, ReqFriendsGetAllDto } from './friends.schema';
-import { friendsCursorFilter, friendsEncodeCursor } from './friends.utils';
+import {
+  friendsCursorFilter,
+  friendsEncodeCursor,
+  friendNameEncodeCursor,
+  friendNameCursorFilter,
+} from './friends.utils';
 import { ChatGateway } from '@/chat/chat.gateway';
 
 @Injectable()
@@ -133,12 +138,12 @@ export class FriendsService {
   }
 
   async listFriends(id: number, input: ReqFriendsGetAllDto) {
-    const cursorFilter = friendsCursorFilter(input);
+    const cursorFilter = friendNameCursorFilter(input);
     const { limit } = input;
 
     const friends = await this.prisma.friends.findMany({
       where: { userId: id, ...cursorFilter },
-      orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+      orderBy: [{ friend: { name: 'asc' } }, { id: 'asc' }],
       take: limit + 1,
       include: {
         friend: { select: { id: true, name: true, avatarKey: true } },
@@ -160,8 +165,8 @@ export class FriendsService {
       data: slicedDataEnriched,
       pagination: {
         nextCursor: hasMore
-          ? friendsEncodeCursor(
-              slicedDataEnriched[slicedDataEnriched.length - 1].createdAt,
+          ? friendNameEncodeCursor(
+              slicedDataEnriched[slicedDataEnriched.length - 1].friend.name,
               slicedDataEnriched[slicedDataEnriched.length - 1].id
             )
           : null,
