@@ -249,11 +249,17 @@ describe('User E2E', () => {
         .get('/users/me/events')
         .set('Authorization', `Bearer ${token1}`)
         .expect(200);
-      expect(res.body).toMatchObject([
-        {
-          title: event.title,
+      expect(res.body).toMatchObject({
+        data: [
+          {
+            title: event.title,
+          },
+        ],
+        pagination: {
+          hasMore: false,
+          nextCursor: null,
         },
-      ]);
+      });
     });
 
     it('return 401 unauthorized access (no valid accesstoken)', async () => {

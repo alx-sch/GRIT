@@ -92,8 +92,8 @@ export default function Users() {
         } else {
           newSearchParams.delete('search');
         }
-        navigate(`?${newSearchParams.toString()}`, { replace: true });
-      } catch (error) {
+        void navigate(`?${newSearchParams.toString()}`, { replace: true });
+      } catch {
         toast.error('Failed to search users');
       } finally {
         setIsSearching(false);
