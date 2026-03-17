@@ -529,6 +529,7 @@ Event ──< EventInvite
 | 12 | [Module of choice — Monorepo](./docs/modules/12-monorepo.md) | IV.10 | Minor | 1 | Done | dovy-mus, alx-sch |
 | 13 | [Module of choice — Google Maps API](./docs/modules/13-google-maps.md) | IV.10 | Minor | 1 | Done | johdac, AudreyBil |
 | 14 | [Module of choice — CI/CD](./docs/modules/14-cicd.md) | IV.10 | Minor | 1 | Done | johdac, alx-sch, dovy-mus |
+| 15 | [Support additional browsers](./docs/modules/15-browsers.md) | IV.2 | Minor | 1 | Done | everyone |
 
 **Total: 19 pts** (5 Major × 2 + 9 Minor × 1)
 
