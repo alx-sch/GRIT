@@ -10,6 +10,7 @@ import {
 import { InviteStatus } from '@grit/schema';
 import { env } from '@/config/env';
 import { randomUUID } from 'crypto';
+import { invitesCursorFilter, invitesEncodeCursor } from './invites.utils';
 
 @Injectable()
 export class InvitesService {
@@ -280,35 +281,64 @@ export class InvitesService {
   }
 
   /**
-   * List all incoming event invites
-   * @returns An array of user's incoming event invites
+   * List all incoming event invites with pagination
+   * @returns Paginated array of user's incoming event invites
    */
-  async listIncoming(userId: number) {
-    return await this.prisma.eventInvite.findMany({
-      where: { receiverId: userId },
+  async listIncoming(userId: number, input: { limit?: number; cursor?: string }) {
+    const limit = input.limit ?? 20;
+    const cursorFilter = invitesCursorFilter(input);
+
+    const invites = await this.prisma.eventInvite.findMany({
+      where: { receiverId: userId, ...cursorFilter },
       include: {
         event: { select: { id: true, title: true, imageKey: true } },
         sender: { select: { id: true, name: true, avatarKey: true } },
         receiver: { select: { id: true, name: true, avatarKey: true } },
       },
       orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+      take: limit + 1,
     });
+
+    const hasMore = invites.length > limit;
+    const slicedData = hasMore ? invites.slice(0, limit) : invites;
+
+    return {
+      data: slicedData,
+      pagination: {
+        nextCursor: hasMore
+          ? invitesEncodeCursor(
+              slicedData[slicedData.length - 1].createdAt,
+              slicedData[slicedData.length - 1].id
+            )
+          : null,
+        hasMore,
+      },
+    };
   }
 
   /**
-   * List all outgoing event invites
-   * @returns An array of user's outgoing event invites
+   * List all outgoing event invites with pagination
+   * @returns Paginated array of user's outgoing event invites
    */
-  async listOutgoing(userId: number, idOrSlug?: string) {
+  async listOutgoing(
+    userId: number,
+    idOrSlug?: string,
+    input?: { limit?: number; cursor?: string }
+  ) {
     let eventId: number | undefined;
 
     if (idOrSlug) {
       eventId = await this.eventService.resolveEventId(idOrSlug);
     }
-    const invites = this.prisma.eventInvite.findMany({
+
+    const limit = input?.limit ?? 20;
+    const cursorFilter = invitesCursorFilter(input ?? {});
+
+    const invites = await this.prisma.eventInvite.findMany({
       where: {
         senderId: userId,
         ...(eventId && { eventId }), // If eventId is defined -> also filter by eventId.
+        ...cursorFilter,
       },
       include: {
         event: { select: { id: true, title: true, imageKey: true } },
@@ -316,8 +346,23 @@ export class InvitesService {
         receiver: { select: { id: true, name: true, avatarKey: true } },
       },
       orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+      take: limit + 1,
     });
 
-    return invites;
+    const hasMore = invites.length > limit;
+    const slicedData = hasMore ? invites.slice(0, limit) : invites;
+
+    return {
+      data: slicedData,
+      pagination: {
+        nextCursor: hasMore
+          ? invitesEncodeCursor(
+              slicedData[slicedData.length - 1].createdAt,
+              slicedData[slicedData.length - 1].id
+            )
+          : null,
+        hasMore,
+      },
+    };
   }
 }

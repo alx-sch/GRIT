@@ -162,3 +162,29 @@ export function eventGenerateSlug(title: string): string {
   // and makes the "anonymous link" secure enough.
   return `${prefix}-${generateNanoId()}`;
 }
+
+/**
+ * Encodes a cursor for user events pagination (ordered by startAt ASC for upcoming events)
+ */
+export function userEventEncodeCursor(startAt: Date, id: number): string {
+  return eventEncodeCursor(startAt, id);
+}
+
+/**
+ * Decodes cursor for user events pagination
+ */
+export function userEventCursorFilter(input: { cursor?: string }): Prisma.EventWhereInput {
+  if (!input.cursor) return {};
+
+  try {
+    const { startAt, id } = eventDecodeCursor(input.cursor);
+    if (!(startAt instanceof Date) || isNaN(startAt.getTime()) || typeof id !== 'number') {
+      throw new Error('Invalid cursor');
+    }
+    return {
+      OR: [{ startAt: { gt: startAt } }, { startAt, id: { gt: id } }],
+    };
+  } catch {
+    throw new BadRequestException('Invalid cursor provided');
+  }
+}

@@ -11,8 +11,17 @@ export const conversationService = {
     return conversation.data;
   },
 
-  getMany: async (): Promise<ResConversationOverview> => {
-    const conversations = await api.get<ResConversationOverview>('/conversation');
+  getMany: async (params?: {
+    limit?: string;
+    cursor?: string;
+  }): Promise<ResConversationOverview> => {
+    const queryParams = new URLSearchParams();
+    if (params?.limit) queryParams.set('limit', params.limit);
+    if (params?.cursor) queryParams.set('cursor', params.cursor);
+
+    const queryString = queryParams.toString();
+    const url = queryString ? `/conversation?${queryString}` : '/conversation';
+    const conversations = await api.get<ResConversationOverview>(url);
     return conversations.data;
   },
 };

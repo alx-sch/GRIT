@@ -92,20 +92,34 @@ describe('My Events Page', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(userService.getMyInvitedEvents).mockResolvedValue([] as never);
+    vi.mocked(userService.getMyInvitedEvents).mockResolvedValue({
+      data: [],
+      pagination: { nextCursor: null, hasMore: false },
+    } as never);
     vi.mocked(friendService.listFriends).mockResolvedValue({ data: [] } as never);
     vi.mocked(inviteService.listOutgoingInvites).mockResolvedValue([] as never);
   });
 
   const renderPage = async (events: ResMyEvents = []) => {
-    vi.mocked(userService.getMyEvents).mockResolvedValue(events);
+    const paginatedResponse = {
+      data: events,
+      pagination: { nextCursor: null, hasMore: false },
+    };
+
+    vi.mocked(userService.getMyEvents).mockResolvedValue(paginatedResponse as never);
 
     const router = createMemoryRouter(
       [
         {
           path: '/my-events',
           element: <Page />,
-          loader: () => Promise.resolve(events),
+          loader: () =>
+            Promise.resolve({
+              myEvents: events,
+              myEventsPagination: { nextCursor: null, hasMore: false },
+              invitedEvents: [],
+              invitedEventsPagination: { nextCursor: null, hasMore: false },
+            }),
           HydrateFallback: () => <div>Loading...</div>,
         },
       ],

@@ -72,3 +72,12 @@ export type ResConversationSingle = z.infer<typeof ResConversationSingleSchema>;
 
 export const ResConversationOverviewSchema = z.array(ResConversationSingleSchema);
 export type ResConversationOverview = z.infer<typeof ResConversationOverviewSchema>;
+
+export const ResConversationPaginatedSchema = z.object({
+  data: z.array(ResConversationSingleSchema),
+  pagination: z.object({
+    nextCursor: z.string().nullable(),
+    hasMore: z.boolean(),
+  }),
+});
+export type ResConversationPaginated = z.infer<typeof ResConversationPaginatedSchema>;

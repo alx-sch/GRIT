@@ -208,25 +208,42 @@ export const useEventPage = () => {
     return success;
   };
 
-  // Fetch friends
+  // Fetch ALL friends with pagination
   useEffect(() => {
-    const fetchFriends = async () => {
+    const fetchAllFriends = async () => {
       try {
-        const response = await friendService.listFriends();
-        // Map the response to extract just the friend data
-        const friendsList = response.data.map((friendship) => ({
-          id: friendship.friend.id,
-          name: friendship.friend.name,
-          avatarKey: friendship.friend.avatarKey ?? undefined,
-        }));
-        setFriends(friendsList);
+        let allFriends: { id: number; name: string; avatarKey?: string }[] = [];
+        let cursor: string | null = null;
+        let hasMore = true;
+
+        // Keep fetching until we have all friends
+        while (hasMore) {
+          const response = await friendService.listFriends({
+            limit: '50',
+            cursor: cursor ?? undefined,
+          });
+
+          // Map the response to extract just the friend data
+          const friendsList = response.data.map((friendship) => ({
+            id: friendship.friend.id,
+            name: friendship.friend.name,
+            avatarKey: friendship.friend.avatarKey ?? undefined,
+          }));
+
+          allFriends = [...allFriends, ...friendsList];
+
+          hasMore = response.pagination.hasMore;
+          cursor = response.pagination.nextCursor;
+        }
+
+        setFriends(allFriends);
       } catch (error) {
         console.error('Failed to fetch friends', error);
       }
     };
 
     if (currentUser) {
-      void fetchFriends();
+      void fetchAllFriends();
     }
   }, [currentUser?.id]);
 
@@ -262,8 +279,8 @@ export const useEventPage = () => {
 
       setIsInviteCheckLoading(true);
       try {
-        const invites = await userService.getMyInvitedEvents();
-        const eventInvite = invites.find((inv) => inv.id === event.id);
+        const response = await userService.getMyInvitedEvents();
+        const eventInvite = response.data.find((inv) => inv.id === event.id);
 
         if (eventInvite?.invite) {
           setIsInvited(true);

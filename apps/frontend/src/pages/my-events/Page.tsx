@@ -7,41 +7,86 @@ import { CalendarDays, Plus } from 'lucide-react';
 import { userService } from '@/services/userService';
 import { useNavigate } from 'react-router-dom';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
+import { useInfiniteScroll, Pagination } from '@/hooks/useInfiniteScroll';
 import type { ResMyEvents, ResMyInvitedEvents } from '@grit/schema';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { EmptyState } from './components/EmptyState';
 import { MyEventsSortDropdown, SortMode } from './components/MyEventsSortDropdown';
 import { MyEventCard } from './components/MyEventCard';
 import { useEventActions } from './hooks/useEventActions';
 import { Text } from '@/components/ui/typography';
+import { toast } from 'sonner';
 
 type ResMyEvent = ResMyEvents[number];
 type ResMyInvitedEvent = ResMyInvitedEvents[number];
 
-export const myEventsLoader = async () => {
-  return userService.getMyEvents();
+interface MyEventsLoaderData {
+  myEvents: ResMyEvents;
+  myEventsPagination: Pagination;
+  invitedEvents: ResMyInvitedEvents;
+  invitedEventsPagination: Pagination;
+}
+
+const PAGE_SIZE = '20';
+
+export const myEventsLoader = async (): Promise<MyEventsLoaderData> => {
+  const [myEventsResponse, invitedEventsResponse] = await Promise.all([
+    userService.getMyEvents({ limit: PAGE_SIZE }),
+    userService.getMyInvitedEvents({ limit: PAGE_SIZE }),
+  ]);
+
+  return {
+    myEvents: myEventsResponse.data,
+    myEventsPagination: myEventsResponse.pagination,
+    invitedEvents: invitedEventsResponse.data,
+    invitedEventsPagination: invitedEventsResponse.pagination,
+  };
 };
 
 export function Page() {
-  const events = useTypedLoaderData<ResMyEvents>();
+  const loaderData = useTypedLoaderData<MyEventsLoaderData>();
   const navigate = useNavigate();
   const [sortMode, setSortMode] = useState<SortMode>('drafts-first');
-  const [invitedEvents, setInvitedEvents] = useState<ResMyInvitedEvents>([]);
   const { publishEvent, unpublishEvent, optimisticUpdates } = useEventActions();
-  const { acceptInvite } = useEventActions();
-  const { declineInvite } = useEventActions();
+  const { acceptInvite, declineInvite } = useEventActions();
 
-  useEffect(() => {
-    const loadInvitedEvents = async () => {
-      try {
-        const data = await userService.getMyInvitedEvents();
-        setInvitedEvents(data);
-      } catch (error) {
-        console.error('Failed to load invited events:', error);
-      }
-    };
-    void loadInvitedEvents();
-  }, []);
+  // Infinite scroll for my events
+  const {
+    items: events,
+    sentinelRef: eventsSentinelRef,
+    isLoading: eventsLoading,
+  } = useInfiniteScroll<ResMyEvent>(
+    loaderData.myEvents,
+    loaderData.myEventsPagination,
+    async (cursor) => {
+      const response = await userService.getMyEvents({ limit: PAGE_SIZE, cursor });
+      return response;
+    },
+    [],
+    (error) => {
+      console.error('Failed to load more events', error);
+      toast.error('Failed to load more events');
+    }
+  );
+
+  // Infinite scroll for invited events
+  const {
+    items: invitedEvents,
+    sentinelRef: invitedSentinelRef,
+    isLoading: invitedLoading,
+  } = useInfiniteScroll<ResMyInvitedEvent>(
+    loaderData.invitedEvents,
+    loaderData.invitedEventsPagination,
+    async (cursor) => {
+      const response = await userService.getMyInvitedEvents({ limit: PAGE_SIZE, cursor });
+      return response;
+    },
+    [],
+    (error) => {
+      console.error('Failed to load more invited events', error);
+      toast.error('Failed to load more invited events');
+    }
+  );
 
   const now = new Date();
 
@@ -142,10 +187,10 @@ export function Page() {
             onAccept={acceptInvite}
             onDecline={declineInvite}
             onAcceptSuccess={() => {
-              setInvitedEvents((prev) => prev.filter((e) => e.id !== event.id));
+              // Event accepted - it will be removed from invites and show in My Events on next load
             }}
             onDeclineSuccess={() => {
-              setInvitedEvents((prev) => prev.filter((e) => e.id !== event.id));
+              // Event declined - it will be removed from invites on next load
             }}
             onViewDetails={(slug) => void navigate(`/events/${slug}`)}
           />
@@ -208,18 +253,34 @@ export function Page() {
 
           <TabsContent value="upcoming" className="mt-6">
             {renderEventsList(upcomingEvents)}
+            <div ref={eventsSentinelRef} className="h-4" />
+            {eventsLoading && (
+              <Text className="text-center text-muted-foreground">Loading more...</Text>
+            )}
           </TabsContent>
 
           <TabsContent value="past" className="mt-6">
             {renderEventsList(pastEvents)}
+            <div ref={eventsSentinelRef} className="h-4" />
+            {eventsLoading && (
+              <Text className="text-center text-muted-foreground">Loading more...</Text>
+            )}
           </TabsContent>
 
           <TabsContent value="organizing" className="mt-6">
             {renderEventsList(organizingEvents)}
+            <div ref={eventsSentinelRef} className="h-4" />
+            {eventsLoading && (
+              <Text className="text-center text-muted-foreground">Loading more...</Text>
+            )}
           </TabsContent>
 
           <TabsContent value="invitations" className="mt-6">
             {renderInvitationsList(invitedEvents)}
+            <div ref={invitedSentinelRef} className="h-4" />
+            {invitedLoading && (
+              <Text className="text-center text-muted-foreground">Loading more...</Text>
+            )}
           </TabsContent>
         </Tabs>
       )}

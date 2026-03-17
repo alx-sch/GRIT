@@ -7,11 +7,12 @@ import { userService } from '@/services/userService';
 import { useAuthStore } from '@/store/authStore';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import type { FriendshipStatus } from '@/types/friends';
-import { UserResponse } from '@/types/user';
-import { useMemo, useState } from 'react';
-import { LoaderFunctionArgs } from 'react-router-dom';
+import type { UserResponse } from '@/types/user';
+import { useCallback, useEffect, useState } from 'react';
+import { LoaderFunctionArgs, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { UserCardWithActions } from './components/UserCardWithActions';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface UsersLoaderData {
   users: UserResponse;
@@ -23,7 +24,8 @@ export const usersLoader = async ({ request }: LoaderFunctionArgs): Promise<User
   const url = new URL(request.url);
   const limit = url.searchParams.get('limit') ?? undefined;
   const cursor = url.searchParams.get('cursor') ?? undefined;
-  const users = await userService.getUsers({ limit, cursor });
+  const search = url.searchParams.get('search') ?? undefined;
+  const users = await userService.getUsers({ limit, cursor, search });
   const token = useAuthStore.getState().token;
 
   const friendshipStatuses: Record<number, FriendshipStatus> = {};
@@ -57,24 +59,52 @@ export const usersLoader = async ({ request }: LoaderFunctionArgs): Promise<User
 
 export default function Users() {
   const {
-    users,
+    users: initialUsers,
     friendshipStatuses: initialStatuses,
     requestIds: initialRequestIds,
   } = useTypedLoaderData<UsersLoaderData>();
   const currentUser = useCurrentUserStore((s) => s.user);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') ?? '');
+  const [users, setUsers] = useState(initialUsers);
   const [friendshipStatuses, setFriendshipStatuses] =
     useState<Record<number, FriendshipStatus>>(initialStatuses);
   const [requestIds, setRequestIds] = useState<Record<number, string>>(initialRequestIds);
   const [loadingUsers, setLoadingUsers] = useState<Record<number, boolean>>({});
+  const [isSearching, setIsSearching] = useState(false);
 
-  const filteredUsers = useMemo(() => {
-    if (!searchTerm) return users.data;
-    return users.data.filter((user) =>
-      (user.name ?? '').toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [users, searchTerm]);
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  // Fetch users from backend when search term changes
+  const fetchUsers = useCallback(
+    async (search: string) => {
+      setIsSearching(true);
+      try {
+        const result = await userService.getUsers({ search: search || undefined });
+        setUsers(result);
+
+        // Update URL with search param
+        const newSearchParams = new URLSearchParams(searchParams);
+        if (search) {
+          newSearchParams.set('search', search);
+        } else {
+          newSearchParams.delete('search');
+        }
+        navigate(`?${newSearchParams.toString()}`, { replace: true });
+      } catch (error) {
+        toast.error('Failed to search users');
+      } finally {
+        setIsSearching(false);
+      }
+    },
+    [navigate, searchParams]
+  );
+
+  useEffect(() => {
+    void fetchUsers(debouncedSearchTerm);
+  }, [debouncedSearchTerm, fetchUsers]);
 
   const handleAddFriend = async (userId: number) => {
     setLoadingUsers((prev) => ({ ...prev, [userId]: true }));
@@ -124,9 +154,11 @@ export default function Users() {
           }}
         />
 
-        {filteredUsers.length > 0 ? (
+        {isSearching ? (
+          <div className="text-center py-8 text-muted-foreground">Searching...</div>
+        ) : users.data.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredUsers.map((user) => (
+            {users.data.map((user) => (
               <UserCardWithActions
                 key={user.id}
                 user={user}

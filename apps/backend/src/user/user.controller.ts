@@ -33,6 +33,7 @@ import {
   ResMyInvitedEventsDto,
   ResUserDeleteSchema,
   ResUserPatchSchema,
+  ReqUserEventsGetAllDto,
 } from '@/user/user.schema';
 import { UserService } from '@/user/user.service';
 import { ResUserGetAllSchema, ResUserAdminGetAllSchema } from '@grit/schema';
@@ -85,8 +86,11 @@ export class UserController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResMyEventsDto)
-  async getMyEvents(@GetUser('id') userId: number) {
-    return await this.userService.userGetEvents(userId);
+  async getMyEvents(@GetUser('id') userId: number, @Query() query: ReqUserEventsGetAllDto) {
+    return await this.userService.userGetEvents(userId, {
+      limit: query.limit,
+      cursor: query.cursor,
+    });
   }
 
   // Get user invited events
@@ -94,8 +98,11 @@ export class UserController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResMyInvitedEventsDto)
-  async getMyInvitedEvents(@GetUser('id') userId: number) {
-    return await this.userService.userGetInvitedEvents(userId);
+  async getMyInvitedEvents(@GetUser('id') userId: number, @Query() query: ReqUserEventsGetAllDto) {
+    return await this.userService.userGetInvitedEvents(userId, {
+      limit: query.limit,
+      cursor: query.cursor,
+    });
   }
 
   // Delete logged in user

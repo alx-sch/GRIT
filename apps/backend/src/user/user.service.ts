@@ -527,21 +527,33 @@ export class UserService {
   }
 
   /**
-   * Get events user is attending or owns
-   * (Public events only)
+   * Get events user is attending or owns (with pagination)
+   * Note: Returns all events (published and unpublished) for the user
    */
-  async userGetEvents(userId: number) {
+  async userGetEvents(userId: number, input: { limit?: number; cursor?: string }) {
+    const limit = input.limit ?? 20;
+    const cursorFilter = input.cursor
+      ? await import('../event/event.utils').then((m) =>
+          m.userEventCursorFilter({ cursor: input.cursor })
+        )
+      : {};
+
     const events = await this.prisma.event.findMany({
       where: {
-        OR: [
+        AND: [
           {
-            attendees: {
-              some: { userId: userId },
-            },
+            OR: [
+              {
+                attendees: {
+                  some: { userId: userId },
+                },
+              },
+              {
+                authorId: userId,
+              },
+            ],
           },
-          {
-            authorId: userId,
-          },
+          cursorFilter,
         ],
       },
       include: {
@@ -559,37 +571,63 @@ export class UserService {
           },
         },
       },
-      orderBy: {
-        startAt: 'asc',
-      },
+      orderBy: [{ startAt: 'asc' }, { id: 'asc' }],
+      take: limit + 1,
     });
 
-    return events.map((e) => ({
-      id: e.id,
-      title: e.title,
-      slug: e.slug,
-      startAt: e.startAt.toISOString(),
-      endAt: e.endAt.toISOString(),
-      isOrganizer: e.authorId === userId,
-      imageKey: e.imageKey,
-      location: e.location,
-      conversationId: e.conversation?.id,
-      isPublished: e.isPublished,
-      isPublic: e.isPublic,
-      author: e.author,
-    }));
+    const hasMore = events.length > limit;
+    const slicedData = hasMore ? events.slice(0, limit) : events;
+    const { userEventEncodeCursor } = await import('../event/event.utils');
+
+    return {
+      data: slicedData.map((e) => ({
+        id: e.id,
+        title: e.title,
+        slug: e.slug,
+        startAt: e.startAt.toISOString(),
+        endAt: e.endAt.toISOString(),
+        isOrganizer: e.authorId === userId,
+        imageKey: e.imageKey,
+        location: e.location,
+        conversationId: e.conversation?.id,
+        isPublished: e.isPublished,
+        isPublic: e.isPublic,
+        author: e.author,
+      })),
+      pagination: {
+        nextCursor: hasMore
+          ? userEventEncodeCursor(
+              slicedData[slicedData.length - 1].startAt,
+              slicedData[slicedData.length - 1].id
+            )
+          : null,
+        hasMore,
+      },
+    };
   }
 
   /**
-   * Get events user is invited to
+   * Get events user is invited to (with pagination)
    * (Can be public or private)
    */
-  async userGetInvitedEvents(userId: number) {
+  async userGetInvitedEvents(userId: number, input: { limit?: number; cursor?: string }) {
+    const limit = input.limit ?? 20;
+    const cursorFilter = input.cursor
+      ? await import('../event/event.utils').then((m) =>
+          m.userEventCursorFilter({ cursor: input.cursor })
+        )
+      : {};
+
     const events = await this.prisma.event.findMany({
       where: {
-        invites: {
-          some: { receiverId: userId },
-        },
+        AND: [
+          {
+            invites: {
+              some: { receiverId: userId },
+            },
+          },
+          cursorFilter,
+        ],
       },
       include: {
         location: true,
@@ -613,26 +651,40 @@ export class UserService {
           },
         },
       },
-      orderBy: {
-        startAt: 'asc',
-      },
+      orderBy: [{ startAt: 'asc' }, { id: 'asc' }],
+      take: limit + 1,
     });
 
-    return events.map((e) => ({
-      id: e.id,
-      title: e.title,
-      slug: e.slug,
-      startAt: e.startAt.toISOString(),
-      endAt: e.endAt.toISOString(),
-      isOrganizer: e.authorId === userId,
-      imageKey: e.imageKey,
-      location: e.location,
-      conversationId: e.conversation?.id,
-      isPublished: e.isPublished,
-      isPublic: e.isPublic,
-      author: e.author,
-      invite: e.invites[0] ?? null,
-    }));
+    const hasMore = events.length > limit;
+    const slicedData = hasMore ? events.slice(0, limit) : events;
+    const { userEventEncodeCursor } = await import('../event/event.utils');
+
+    return {
+      data: slicedData.map((e) => ({
+        id: e.id,
+        title: e.title,
+        slug: e.slug,
+        startAt: e.startAt.toISOString(),
+        endAt: e.endAt.toISOString(),
+        isOrganizer: e.authorId === userId,
+        imageKey: e.imageKey,
+        location: e.location,
+        conversationId: e.conversation?.id,
+        isPublished: e.isPublished,
+        isPublic: e.isPublic,
+        author: e.author,
+        invite: e.invites[0] ?? null,
+      })),
+      pagination: {
+        nextCursor: hasMore
+          ? userEventEncodeCursor(
+              slicedData[slicedData.length - 1].startAt,
+              slicedData[slicedData.length - 1].id
+            )
+          : null,
+        hasMore,
+      },
+    };
   }
 
   async userDeleteMe(user: User) {
