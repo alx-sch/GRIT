@@ -1,8 +1,8 @@
 export const ToSPage = () => {
   return (
     <div className="legalPages max-w-3xl">
-      <h2>Terms of Service</h2>
-      <p>Last updated: March 16, 2026</p>
+      <h1>Terms of Service</h1>
+      <p>Last updated: March 17, 2026</p>
       <p>Please read these terms and conditions carefully before using Our Service.</p>
 
       <p>

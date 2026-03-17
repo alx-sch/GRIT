@@ -221,7 +221,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // In case an event was deleted we send a message to all users in the current chat
   async handleConversationDeletion(conversationId: string) {
-    const sockets = await this.server.in(conversationId).fetchSockets();
+    await this.server.in(conversationId).fetchSockets();
     this.server.to(conversationId).emit('chat_deleted', 'This chat was deleted');
   }
 
