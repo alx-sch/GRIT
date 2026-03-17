@@ -63,7 +63,7 @@ export const eventService = {
       formData,
       {
         headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: 0,
+        timeout: 5 * 60 * 1000,
         onUploadProgress: (e) => onProgress?.(Math.round((e.loaded * 100) / (e.total ?? 1))),
       }
     );
@@ -85,7 +85,7 @@ export const eventService = {
 
     const response = await api.post<EventBase>(`/events/${String(eventId)}/files`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
-      timeout: 0,
+      timeout: 5 * 60 * 1000,
       onUploadProgress: (e) => onProgress?.(Math.round((e.loaded * 100) / (e.total ?? 1))),
     });
     return response.data;
