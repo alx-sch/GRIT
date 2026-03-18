@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { useInfiniteScroll, Pagination } from '@/hooks/useInfiniteScroll';
 import type { ResMyEvents, ResMyInvitedEvents } from '@grit/schema';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { EmptyState } from './components/EmptyState';
 import { MyEventsSortDropdown, SortMode } from './components/MyEventsSortDropdown';
 import { MyEventCard } from './components/MyEventCard';
@@ -36,7 +36,7 @@ const PAGE_SIZE = '20';
 
 export const myEventsLoader = async (): Promise<MyEventsLoaderData> => {
   const [myEventsResponse, invitedEventsResponse] = await Promise.all([
-    userService.getMyEvents({ limit: PAGE_SIZE }),
+    userService.getMyEvents({ limit: PAGE_SIZE, sort: 'drafts-first' }),
     userService.getMyInvitedEvents({ limit: PAGE_SIZE }),
   ]);
 
@@ -55,19 +55,56 @@ export function Page() {
   const { publishEvent, unpublishEvent, optimisticUpdates } = useEventActions();
   const { acceptInvite, declineInvite } = useEventActions();
 
+  // State to hold sorted events data that will be passed to infinite scroll
+  const [sortedEventsData, setSortedEventsData] = useState<{
+    data: ResMyEvents;
+    pagination: Pagination & {
+      total?: number;
+      totalUpcoming?: number;
+      totalPast?: number;
+      totalOrganizing?: number;
+    };
+  }>({
+    data: loaderData.myEvents,
+    pagination: loaderData.myEventsPagination,
+  });
+
+  // Fetch new data when sort mode changes
+  useEffect(() => {
+    const fetchSortedData = async () => {
+      try {
+        console.log('Fetching events with sort mode:', sortMode);
+        const response = await userService.getMyEvents({ limit: PAGE_SIZE, sort: sortMode });
+        console.log('Received events:', response.data.length, 'First event:', response.data[0]);
+        setSortedEventsData({
+          data: response.data,
+          pagination: response.pagination,
+        });
+      } catch (error) {
+        console.error('Failed to fetch sorted events', error);
+        toast.error('Failed to sort events');
+      }
+    };
+    void fetchSortedData();
+  }, [sortMode]);
+
   // Infinite scroll for my events
   const {
     items: events,
     sentinelRef: eventsSentinelRef,
     isLoading: eventsLoading,
   } = useInfiniteScroll<ResMyEvent>(
-    loaderData.myEvents,
-    loaderData.myEventsPagination,
+    sortedEventsData.data,
+    sortedEventsData.pagination,
     async (cursor) => {
-      const response = await userService.getMyEvents({ limit: PAGE_SIZE, cursor });
+      const response = await userService.getMyEvents({
+        limit: PAGE_SIZE,
+        cursor,
+        sort: sortMode,
+      });
       return response;
     },
-    [],
+    [sortMode, sortedEventsData],
     (error) => {
       console.error('Failed to load more events', error);
       toast.error('Failed to load more events');
@@ -95,28 +132,7 @@ export function Page() {
 
   const now = new Date();
 
-  const sortEvents = (eventsToSort: ResMyEvents, isPastTab = false) => {
-    return [...eventsToSort].sort((a, b) => {
-      const aPublished = optimisticUpdates[a.id]?.isPublished ?? a.isPublished;
-      const bPublished = optimisticUpdates[b.id]?.isPublished ?? b.isPublished;
-
-      if (sortMode === 'drafts-first') {
-        const aIsDraft = a.isOrganizer && !aPublished;
-        const bIsDraft = b.isOrganizer && !bPublished;
-        if (aIsDraft !== bIsDraft) {
-          return aIsDraft ? -1 : 1;
-        }
-        const timeA = new Date(a.startAt).getTime();
-        const timeB = new Date(b.startAt).getTime();
-        return isPastTab ? timeB - timeA : timeA - timeB;
-      } else if (sortMode === 'furthest') {
-        return new Date(b.startAt).getTime() - new Date(a.startAt).getTime();
-      } else {
-        return new Date(a.startAt).getTime() - new Date(b.startAt).getTime();
-      }
-    });
-  };
-
+  // Apply optimistic updates to events
   const getUpdatedEvents = () => {
     return events.map((event) => ({
       ...event,
@@ -125,18 +141,11 @@ export function Page() {
   };
 
   const updatedEvents = getUpdatedEvents();
-  const upcomingEvents = sortEvents(
-    updatedEvents.filter((event) => new Date(event.startAt) >= now),
-    false
-  );
-  const pastEvents = sortEvents(
-    updatedEvents.filter((event) => new Date(event.startAt) < now),
-    true
-  );
-  const organizingEvents = sortEvents(
-    updatedEvents.filter((event) => event.isOrganizer),
-    false
-  );
+
+  // Filter events by category (no client-side sorting needed, backend handles it)
+  const upcomingEvents = updatedEvents.filter((event) => new Date(event.startAt) >= now);
+  const pastEvents = updatedEvents.filter((event) => new Date(event.startAt) < now);
+  const organizingEvents = updatedEvents.filter((event) => event.isOrganizer);
 
   const renderEventsList = (filteredEvents: ResMyEvent[]) => {
     if (filteredEvents.length === 0) {
@@ -232,14 +241,15 @@ export function Page() {
                 variant="brutalist"
                 className="text-xs md:text-sm shrink-0"
               >
-                Upcoming ({loaderData.myEventsPagination.totalUpcoming ?? upcomingEvents.length})
+                Upcoming ({sortedEventsData.pagination.totalUpcoming ?? upcomingEvents.length})
               </TabsTrigger>
               <TabsTrigger
                 value="organizing"
                 variant="brutalist"
                 className="text-xs md:text-sm shrink-0"
               >
-                Organizing ({loaderData.myEventsPagination.totalOrganizing ?? organizingEvents.length})
+                Organizing ({sortedEventsData.pagination.totalOrganizing ?? organizingEvents.length}
+                )
               </TabsTrigger>
               <TabsTrigger
                 value="invitations"
@@ -249,11 +259,17 @@ export function Page() {
                 Invitations ({loaderData.invitedEventsPagination.total ?? invitedEvents.length})
               </TabsTrigger>
               <TabsTrigger value="past" variant="brutalist" className="text-xs md:text-sm shrink-0">
-                Past ({loaderData.myEventsPagination.totalPast ?? pastEvents.length})
+                Past ({sortedEventsData.pagination.totalPast ?? pastEvents.length})
               </TabsTrigger>
             </TabsList>
 
-            <MyEventsSortDropdown value={sortMode} onChange={setSortMode} />
+            <MyEventsSortDropdown
+              value={sortMode}
+              onChange={(newSort) => {
+                console.log('Sort dropdown changed from', sortMode, 'to', newSort);
+                setSortMode(newSort);
+              }}
+            />
           </div>
 
           <TabsContent value="upcoming" className="mt-6">

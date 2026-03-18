@@ -530,11 +530,24 @@ export class UserService {
    * Get events user is attending or owns (with pagination)
    * Note: Returns all events (published and unpublished) for the user
    */
-  async userGetEvents(userId: number, input: { limit?: number; cursor?: string }) {
+  async userGetEvents(userId: number, input: { limit?: number; cursor?: string; sort?: string }) {
     const limit = input.limit ?? 20;
+    const sort = input.sort ?? 'drafts-first';
+
+    // Determine order based on sort mode
+    let orderBy: Prisma.EventOrderByWithRelationInput[];
+    if (sort === 'furthest') {
+      orderBy = [{ startAt: 'desc' }, { id: 'desc' }];
+    } else if (sort === 'soonest') {
+      orderBy = [{ startAt: 'asc' }, { id: 'asc' }];
+    } else {
+      // drafts-first: unpublished first, then by date ascending
+      orderBy = [{ isPublished: 'asc' }, { startAt: 'asc' }, { id: 'asc' }];
+    }
+
     const cursorFilter = input.cursor
       ? await import('../event/event.utils').then((m) =>
-          m.userEventCursorFilter({ cursor: input.cursor })
+          m.userEventCursorFilter({ cursor: input.cursor, sort })
         )
       : {};
 
@@ -593,7 +606,7 @@ export class UserService {
           },
         },
       },
-      orderBy: [{ startAt: 'asc' }, { id: 'asc' }],
+      orderBy,
       take: limit + 1,
     });
 
@@ -620,7 +633,9 @@ export class UserService {
         nextCursor: hasMore
           ? userEventEncodeCursor(
               slicedData[slicedData.length - 1].startAt,
-              slicedData[slicedData.length - 1].id
+              slicedData[slicedData.length - 1].id,
+              slicedData[slicedData.length - 1].isPublished,
+              sort
             )
           : null,
         hasMore,
@@ -687,7 +702,7 @@ export class UserService {
 
     const hasMore = events.length > limit;
     const slicedData = hasMore ? events.slice(0, limit) : events;
-    const { userEventEncodeCursor } = await import('../event/event.utils');
+    const { eventEncodeCursor } = await import('../event/event.utils');
 
     return {
       data: slicedData.map((e) => ({
@@ -707,7 +722,7 @@ export class UserService {
       })),
       pagination: {
         nextCursor: hasMore
-          ? userEventEncodeCursor(
+          ? eventEncodeCursor(
               slicedData[slicedData.length - 1].startAt,
               slicedData[slicedData.length - 1].id
             )

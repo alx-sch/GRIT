@@ -252,7 +252,7 @@ export const useEventPage = () => {
     const fetchOutgoingInvites = async () => {
       try {
         setInvitesLoading(true);
-        const invites = await inviteService.listOutgoingInvites(String(event.id));
+        const { data: invites } = await inviteService.listOutgoingInvites(event.id);
         const sentFriendIds = new Set(invites.map((invite) => invite.receiverId));
         setSentInvites(sentFriendIds);
       } catch (error) {

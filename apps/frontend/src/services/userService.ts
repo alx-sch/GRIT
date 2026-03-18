@@ -37,10 +37,12 @@ export const userService = {
   getMyEvents: async (params?: {
     limit?: string;
     cursor?: string;
+    sort?: string;
   }): Promise<ResMyEventsPaginated> => {
     const queryParams = new URLSearchParams();
     if (params?.limit) queryParams.set('limit', params.limit);
     if (params?.cursor) queryParams.set('cursor', params.cursor);
+    if (params?.sort) queryParams.set('sort', params.sort);
 
     const queryString = queryParams.toString();
     const url = queryString ? `users/me/events?${queryString}` : 'users/me/events';

@@ -31,6 +31,7 @@ export const ReqUserGetAllSchema = z.strictObject({
 export const ReqUserEventsGetAllSchema = z.strictObject({
   limit: z.coerce.number().int().positive().max(100).default(20),
   cursor: z.string().optional(),
+  sort: z.enum(['soonest', 'furthest', 'drafts-first']).default('drafts-first'),
 });
 
 // Post a new user draft

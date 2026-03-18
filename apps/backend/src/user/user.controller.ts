@@ -91,6 +91,7 @@ export class UserController {
     return await this.userService.userGetEvents(userId, {
       limit: query.limit,
       cursor: query.cursor,
+      sort: query.sort,
     });
   }
 
