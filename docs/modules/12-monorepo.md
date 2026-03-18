@@ -18,7 +18,24 @@ A monorepo architecture using **pnpm workspaces** and **Turborepo**, hosting the
 
 ## Justification
 
-A monorepo is the right choice when multiple projects share code and need to stay in sync. In GRIT, both the frontend and backend consume the same Zod validation schemas. Without a monorepo, keeping these schemas synchronized requires publishing a package or copy-pasting — both error-prone. With a monorepo, a schema change in `@grit/schema` immediately affects both apps, and a TypeScript compile error in either is caught before merging.
+### Why we chose this module
+
+GRIT is a full-stack application where the frontend and backend share a contract: every API request and response has a shape that both sides must agree on. In a standard multi-repo setup this contract is either duplicated (copy-paste) or published as a versioned package — both approaches introduce drift, lag, and human error. A monorepo with a shared package eliminates the problem entirely.
+
+### Technical challenges it addresses
+
+**Schema synchronization across the stack.** Both the NestJS backend and the React frontend import from `@grit/schema`, a shared Zod package. A single field rename in a schema produces a TypeScript compile error in both apps simultaneously — it is impossible to ship a breaking API change without fixing both sides first. This would be unachievable in a multi-repo setup without a cumbersome publish-and-bump cycle.
+
+**Production Docker builds with pnpm workspaces.** Standard `COPY . .` Docker patterns break when workspace packages use symlinks. Solving this required using `pnpm deploy` to produce a flat, symlink-free `node_modules` for the backend image — a non-trivial build engineering problem specific to the monorepo architecture.
+
+**Coordinated tooling across packages.** Turborepo's dependency graph (`"dependsOn": ["^build"]`) ensures `@grit/schema` is always compiled before any app attempts to build or typecheck, preventing a whole class of CI failures that occur when build order is undefined.
+
+### Value added to the project
+
+- **Type safety across the entire stack** — validated at compile time, not at runtime
+- **Single source of truth** for all API contracts — one change propagates everywhere
+- **Unified developer experience** — one `pnpm install`, one lint command, one CI pipeline covering all packages
+- **Faster CI** via Turborepo remote caching, which skips redundant builds when inputs have not changed
 
 ---
 

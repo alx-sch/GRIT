@@ -19,7 +19,24 @@ Google Maps integration for creating locations with address search and geocoding
 
 ## Justification
 
-Events happen at real places. Storing coordinates (latitude/longitude) enables precise location display and navigation. Rather than requiring users to manually enter coordinates, Google Maps geocoding automatically resolves an address to coordinates. The map preview on the event page gives attendees a clear sense of where the event is and provides one-click directions.
+### Why we chose this module
+
+GRIT is a platform for real-world, in-person events. Location is not an optional metadata field — it is central to whether a user decides to attend. A plain text address field is not enough: users need to find events near them, visualise where they are going, and get directions. The Google Maps Platform was the only integration that covered all three needs (geocoding, map rendering, and navigation handoff) with a production-grade, well-documented API.
+
+### Technical challenges it addresses
+
+**Geocoding and reverse geocoding in a form context.** The location creation form uses the Google Places Autocomplete API to resolve a free-text address into structured fields (name, city, country, postal code) and precise `(latitude, longitude)` coordinates. When a user drags the map marker, reverse geocoding updates all address fields accordingly. Keeping the form state, the map state, and the Places API in sync required careful coordination between React Hook Form, the `@vis.gl/react-google-maps` library, and geocoder callbacks.
+
+**API key security for a client-side key.** Because `VITE_GOOGLE_MAPS_API` is embedded in the compiled frontend bundle, it is inherently public. Mitigating abuse required configuring HTTP referrer restrictions in Google Cloud Console, limiting the key to specific APIs (Maps JavaScript API and Places API only), and setting quota caps — a real-world API security challenge beyond simply plugging in a key.
+
+**Graceful degradation.** The form remains fully functional when the Maps API key is unavailable (CI, staging, local dev without a key). Default coordinates (Berlin centre) are used as a fallback so the form can still be tested and submitted in all environments.
+
+### Value added to the project
+
+- **Accuracy** — coordinates are geocoded, not hand-typed, eliminating invalid or imprecise locations
+- **Usability** — users find and confirm a location in seconds via autocomplete rather than filling in five fields manually
+- **Discoverability** — stored coordinates enable future proximity-based event search
+- **Attendee experience** — one-click directions from the event page reduce friction for people unfamiliar with the venue
 
 ---
 

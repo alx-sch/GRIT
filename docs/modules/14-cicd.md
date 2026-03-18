@@ -18,7 +18,28 @@ A fully automated CI/CD pipeline using GitHub Actions: a 3-stage quality assuran
 
 ## Justification
 
-Manual deployments are error-prone and time-consuming. A CI/CD pipeline enforces code quality (all tests must pass before merging), reduces deployment friction (one push = live update), and gives the team confidence to merge frequently. In a 5-person team working in parallel branches, catching regressions automatically is essential.
+### Why we chose this module
+
+GRIT is developed by a 5-person team working in parallel feature branches. Without automated quality gates, broken code reaches `main` silently, regressions go undetected until manual testing, and deployments require someone to SSH into the server and run commands by hand. A CI/CD pipeline was not a convenience — it was a prerequisite for the team to work at speed without constantly breaking each other's work.
+
+### Technical challenges it addresses
+
+**Multi-stage CI with strict sequencing.** The pipeline runs three sequential stages — lint/typecheck, then unit/integration tests, then E2E tests — where a failure in any stage blocks all later stages. This required careful separation of test types: frontend integration tests (Vitest) and frontend E2E tests (Playwright) run in separate CI jobs to prevent Playwright from executing twice, which was a real bug in an earlier version of the pipeline.
+
+**Reliable PostgreSQL readiness checks in CI.** The backend E2E tests require a running, authenticated PostgreSQL instance. Using `pg_isready` (the common solution) only confirms TCP connectivity, not that the server accepts authenticated connections. The pipeline uses `psql -c '\q'` instead, which verifies a full authenticated connection — a subtle but important distinction that prevented flaky test runs.
+
+**Playwright cross-browser in a headless Linux CI environment.** Running Playwright on Linux requires specific system library dependencies. The pipeline runs `playwright install --with-deps` unconditionally (rather than guarding with `ldconfig`) to ensure no system library is silently missing, which would cause tests to fail with cryptic errors.
+
+**Zero-downtime continuous deployment.** The CD pipeline SSHs into the Hetzner production server, hard-resets to `origin/main`, rebuilds Docker images, applies pending Prisma migrations, and restarts all services — all in a single automated sequence triggered by every push to `main`. Coordinating migration application with container restart (migrations must run before the new backend starts serving traffic) required careful ordering in the `Makefile`.
+
+**Isolated test database.** Backend E2E tests run against a dedicated test database that is initialised from scratch on each CI run. This prevents test pollution from affecting the development database and ensures tests are fully reproducible.
+
+### Value added to the project
+
+- **Merge confidence** — no code reaches `main` without passing lint, type checking, unit, integration, and E2E tests
+- **Deployment safety** — every production deployment is identical and reproducible; no manual steps, no forgotten environment variables
+- **Team velocity** — 5 developers can merge independently without a manual integration phase
+- **Regression detection** — Playwright HTML reports are uploaded as artifacts on both pass and fail, making failures immediately diagnosable
 
 ---
 
