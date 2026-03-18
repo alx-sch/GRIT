@@ -11,7 +11,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { type EventFormFields } from '@/schema/event';
 import { EventBase } from '@/types/event';
 import { LocationBase, LocationSummary } from '@/types/location';
-import { AlertCircleIcon, PlusIcon, X } from 'lucide-react';
+import { AlertCircleIcon, LoaderCircle, PlusIcon, X } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { Control, Controller, useWatch } from 'react-hook-form';
 import { useEventForm } from './useEventForm';
@@ -69,6 +69,7 @@ export default function EventForm({
     filesUploadProgress,
     existingFiles,
     handleRemoveExistingFile,
+    uploadStatus,
     startAtValue,
     endAtValue,
     getTimeFromDate,
@@ -314,10 +315,19 @@ export default function EventForm({
             <AlertTitle className="text-sm">{rootErrorMessage}</AlertTitle>
           </Alert>
         )}
+        {uploadStatus.uploading && (
+          <div className="flex items-center gap-3 rounded-lg border border-border bg-muted px-4 py-3 text-sm">
+            <LoaderCircle className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
+            <span>
+              Uploading files… {uploadStatus.done}/{uploadStatus.total} done
+            </span>
+          </div>
+        )}
         <div className="flex flex-row gap-4 md:gap-12 max-[400px]:flex-col">
           <Button
             type="button"
             variant="secondary"
+            disabled={isSubmitting || uploadStatus.uploading}
             onClick={() => {
               setValue('isPublished', false);
               void handleSubmit(onSubmit)();
@@ -328,7 +338,7 @@ export default function EventForm({
           </Button>
           <Button
             type="button"
-            disabled={isSubmitting}
+            disabled={isSubmitting || uploadStatus.uploading}
             onClick={() => {
               setValue('isPublished', true);
               void handleSubmit(onSubmit)();

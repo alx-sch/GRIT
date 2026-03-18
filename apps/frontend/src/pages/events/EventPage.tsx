@@ -48,7 +48,8 @@ export const EventPage = () => {
     setSelectedImageIndex,
     shareOpen,
     setShareOpen,
-    formattedDate,
+    dateLine,
+    timeLine,
     location,
     locationText,
     imageFiles,
@@ -90,7 +91,6 @@ export const EventPage = () => {
   const handleBackClick = () => {
     void navigate('/events');
   };
-
   return (
     <div className="space-y-8">
       <BackButton onClick={handleBackClick} />
@@ -178,7 +178,16 @@ export const EventPage = () => {
               <Heading level={4} className="uppercase">
                 Date
               </Heading>
-              <Text className="text-lg text-right md:text-left">{formattedDate}</Text>
+
+              <div className="flex flex-col items-end md:items-start gap-1">
+                <Text className="text-lg font-medium text-right md:text-left leading-tight">
+                  {dateLine}
+                </Text>
+
+                <Text className="text-sm text-muted-foreground text-right md:text-left leading-tight">
+                  {timeLine}
+                </Text>
+              </div>
             </div>
 
             {/* Host */}
@@ -188,8 +197,13 @@ export const EventPage = () => {
                 Host
               </Heading>
               {event.author && (
-                <Link to={`/users/${event.author.id}`} className="min-w-0 max-w-full">
-                  <Text className="text-lg hover:underline truncate">{event.author.name}</Text>
+                <Link
+                  to={`/users/${event.author.id}`}
+                  className="group min-w-0 max-w-full flex items-center gap-1.5 text-left cursor-pointer"
+                >
+                  <Text className="text-lg truncate md:underline decoration-dashed underline-offset-4 group-hover:decoration-solid transition-all">
+                    {event.author.name}
+                  </Text>
                 </Link>
               )}
               {!event.author && <Text className="text-lg">Unknown</Text>}
@@ -268,7 +282,7 @@ export const EventPage = () => {
               }}
               copied={copied}
               eventTitle={event.title}
-              eventDate={formattedDate}
+              eventDate={dateLine}
               eventLocation={location?.name ?? 'TBA'}
               shareText={shareText}
               shareUrl={shareUrl}

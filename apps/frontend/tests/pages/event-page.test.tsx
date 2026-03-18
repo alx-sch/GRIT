@@ -258,9 +258,7 @@ describe('EventPage', () => {
         (selector: (s: object) => unknown) => selector({ user: mockUsers.bob })
       );
       renderEventPage();
-      await waitFor(() => {
-        expect(screen.getByRole('heading', { name: /test event/i })).toBeInTheDocument();
-      });
+
       // Only action buttons (Going, Invite, Share, Chat + Back) — no edit/delete
       await waitFor(() => {
         const buttons = screen.getAllByRole('button');

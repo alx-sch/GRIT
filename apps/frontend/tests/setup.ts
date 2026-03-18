@@ -1,5 +1,15 @@
 import '@testing-library/jest-dom/vitest';
 
+// Polyfill ResizeObserver (used by cmdk's CommandList internally; not implemented in jsdom)
+global.ResizeObserver = class ResizeObserver {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  observe() {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  unobserve() {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  disconnect() {}
+};
+
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,

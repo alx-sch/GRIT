@@ -15,6 +15,8 @@
     "dev:e2e": "vite --port 5173 --clearScreen false"
   },
   "dependencies": {
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/space-grotesk": "^5.2.10",
     "@grit/schema": "workspace:^",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-alert-dialog": "^1.1.15",

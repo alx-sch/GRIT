@@ -353,7 +353,7 @@ start-postgres: install-be
 	@echo "$(BOLD)$(YELLOW)--- Waiting for Postgres to accept connections...$(RESET)"
 	@RETRIES=10; \
 	PG_CONTAINER=$$($(DC) ps -q postgres-db); \
-	until docker exec $$PG_CONTAINER psql -U $(POSTGRES_USER) -d postgres -c '\q' > /dev/null 2>&1; do \
+	until docker exec $$PG_CONTAINER psql -h 127.0.0.1 -U $(POSTGRES_USER) -d postgres -c '\q' > /dev/null 2>&1; do \
 		RETRIES=$$((RETRIES - 1)); \
 		if [ $$RETRIES -eq 0 ]; then \
 			echo "$(RED)Timeout waiting for Postgres.$(RESET)"; \

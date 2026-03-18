@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getEventImageUrl } from '@/lib/image_utils';
+import { formatEventDate } from '@/lib/time_utils';
 import type { ResUserPublicEvents } from '@grit/schema';
 import { format } from 'date-fns';
 
@@ -20,7 +21,7 @@ export function PublicEventCard({ event }: { event: ResUserPublicEvents[number] 
             className="font-heading font-medium text-base md:text-xl line-clamp-2 min-w-0"
             title={`${format(event.startAt, 'EEE, MMM d')} @ ${event.location?.name ?? event.location?.city ?? 'TBA'}`}
           >
-            {format(event.startAt, 'EEE, MMM d')} @{' '}
+            {formatEventDate(event.startAt, 'withDay')} @{' '}
             {event.location?.name ?? event.location?.city ?? 'TBA'}
           </CardDescription>
         </CardContent>
