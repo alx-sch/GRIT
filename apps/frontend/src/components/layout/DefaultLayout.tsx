@@ -6,6 +6,7 @@ import { env } from '@/config/env';
 import { useRouteToasts } from '@/hooks/useRouteToast';
 import { SocketProvider } from '@/providers/socketProvider';
 import { Container } from './Container';
+import { Footer } from './Footer';
 
 NProgress.configure({ showSpinner: false, speed: 400 });
 
@@ -51,6 +52,7 @@ export function DefaultLayout() {
             <Outlet />
           </Container>
         </main>
+        <Footer />
       </SocketProvider>
     </div>
   );
