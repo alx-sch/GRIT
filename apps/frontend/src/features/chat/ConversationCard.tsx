@@ -16,11 +16,9 @@ export const ConversationCard = ({ conversation, isActive }: ConversationCardPro
   const navigate = useNavigate();
 
   const currentUser = useCurrentUserStore((s) => s.user);
-  if (!currentUser) return ''; // Narrowing for Typesafety only
+  const conversationState = chatStore((s) => s.conversations[conversation.id]);
 
-  const conversationState = chatStore((s) => {
-    return s.conversations[conversation.id];
-  });
+  if (!currentUser) return '';
 
   const { title, lastMessageText, lastMessageAuthor, lastMessageCreatedAt, hasUnread, eventStart } =
     mapConversationToCard(conversation, conversationState, currentUser);
