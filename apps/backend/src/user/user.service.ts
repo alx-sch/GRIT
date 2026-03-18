@@ -538,23 +538,45 @@ export class UserService {
         )
       : {};
 
+    const baseWhere = {
+      OR: [
+        {
+          attendees: {
+            some: { userId: userId },
+          },
+        },
+        {
+          authorId: userId,
+        },
+      ],
+    };
+
+    // Get category counts (without cursor filter)
+    const now = new Date();
+    const [total, totalUpcoming, totalPast, totalOrganizing] = await Promise.all([
+      this.prisma.event.count({
+        where: baseWhere,
+      }),
+      this.prisma.event.count({
+        where: {
+          AND: [baseWhere, { startAt: { gte: now } }],
+        },
+      }),
+      this.prisma.event.count({
+        where: {
+          AND: [baseWhere, { startAt: { lt: now } }],
+        },
+      }),
+      this.prisma.event.count({
+        where: {
+          authorId: userId,
+        },
+      }),
+    ]);
+
     const events = await this.prisma.event.findMany({
       where: {
-        AND: [
-          {
-            OR: [
-              {
-                attendees: {
-                  some: { userId: userId },
-                },
-              },
-              {
-                authorId: userId,
-              },
-            ],
-          },
-          cursorFilter,
-        ],
+        AND: [baseWhere, cursorFilter],
       },
       include: {
         location: true,
@@ -602,6 +624,10 @@ export class UserService {
             )
           : null,
         hasMore,
+        total,
+        totalUpcoming,
+        totalPast,
+        totalOrganizing,
       },
     };
   }
@@ -618,16 +644,20 @@ export class UserService {
         )
       : {};
 
+    const baseWhere = {
+      invites: {
+        some: { receiverId: userId },
+      },
+    };
+
+    // Get total count (without cursor filter)
+    const total = await this.prisma.event.count({
+      where: baseWhere,
+    });
+
     const events = await this.prisma.event.findMany({
       where: {
-        AND: [
-          {
-            invites: {
-              some: { receiverId: userId },
-            },
-          },
-          cursorFilter,
-        ],
+        AND: [baseWhere, cursorFilter],
       },
       include: {
         location: true,
@@ -683,6 +713,7 @@ export class UserService {
             )
           : null,
         hasMore,
+        total,
       },
     };
   }

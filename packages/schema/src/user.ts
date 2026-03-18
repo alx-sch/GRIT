@@ -31,7 +31,14 @@ export type ResMyEvents = z.infer<typeof ResMyEventsSchema>;
 
 export const ResMyEventsPaginatedSchema = z.object({
   data: z.array(ResMyEventSchema),
-  pagination: z.object({ nextCursor: z.string().nullable(), hasMore: z.boolean() }),
+  pagination: z.object({
+    nextCursor: z.string().nullable(),
+    hasMore: z.boolean(),
+    total: z.number().int().nonnegative(),
+    totalUpcoming: z.number().int().nonnegative(),
+    totalPast: z.number().int().nonnegative(),
+    totalOrganizing: z.number().int().nonnegative(),
+  }),
 });
 export type ResMyEventsPaginated = z.infer<typeof ResMyEventsPaginatedSchema>;
 
@@ -65,7 +72,11 @@ export type ResMyInvitedEvents = z.infer<typeof ResMyInvitedEventsSchema>;
 
 export const ResMyInvitedEventsPaginatedSchema = z.object({
   data: z.array(ResMyInvitedEventSchema),
-  pagination: z.object({ nextCursor: z.string().nullable(), hasMore: z.boolean() }),
+  pagination: z.object({
+    nextCursor: z.string().nullable(),
+    hasMore: z.boolean(),
+    total: z.number().int().nonnegative(),
+  }),
 });
 export type ResMyInvitedEventsPaginated = z.infer<typeof ResMyInvitedEventsPaginatedSchema>;
 

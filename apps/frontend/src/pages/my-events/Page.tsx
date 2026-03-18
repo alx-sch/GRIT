@@ -22,9 +22,14 @@ type ResMyInvitedEvent = ResMyInvitedEvents[number];
 
 interface MyEventsLoaderData {
   myEvents: ResMyEvents;
-  myEventsPagination: Pagination;
+  myEventsPagination: Pagination & {
+    total?: number;
+    totalUpcoming?: number;
+    totalPast?: number;
+    totalOrganizing?: number;
+  };
   invitedEvents: ResMyInvitedEvents;
-  invitedEventsPagination: Pagination;
+  invitedEventsPagination: Pagination & { total?: number };
 }
 
 const PAGE_SIZE = '20';
@@ -227,24 +232,24 @@ export function Page() {
                 variant="brutalist"
                 className="text-xs md:text-sm shrink-0"
               >
-                Upcoming ({upcomingEvents.length})
+                Upcoming ({loaderData.myEventsPagination.totalUpcoming ?? upcomingEvents.length})
               </TabsTrigger>
               <TabsTrigger
                 value="organizing"
                 variant="brutalist"
                 className="text-xs md:text-sm shrink-0"
               >
-                Organizing ({organizingEvents.length})
+                Organizing ({loaderData.myEventsPagination.totalOrganizing ?? organizingEvents.length})
               </TabsTrigger>
               <TabsTrigger
                 value="invitations"
                 variant="brutalist"
                 className="text-xs md:text-sm shrink-0"
               >
-                Invitations ({invitedEvents.length})
+                Invitations ({loaderData.invitedEventsPagination.total ?? invitedEvents.length})
               </TabsTrigger>
               <TabsTrigger value="past" variant="brutalist" className="text-xs md:text-sm shrink-0">
-                Past ({pastEvents.length})
+                Past ({loaderData.myEventsPagination.totalPast ?? pastEvents.length})
               </TabsTrigger>
             </TabsList>
 

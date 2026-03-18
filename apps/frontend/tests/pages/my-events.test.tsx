@@ -94,7 +94,7 @@ describe('My Events Page', () => {
     vi.clearAllMocks();
     vi.mocked(userService.getMyInvitedEvents).mockResolvedValue({
       data: [],
-      pagination: { nextCursor: null, hasMore: false },
+      pagination: { nextCursor: null, hasMore: false, total: 0 },
     } as never);
     vi.mocked(friendService.listFriends).mockResolvedValue({ data: [] } as never);
     vi.mocked(inviteService.listOutgoingInvites).mockResolvedValue([] as never);
@@ -103,7 +103,14 @@ describe('My Events Page', () => {
   const renderPage = async (events: ResMyEvents = []) => {
     const paginatedResponse = {
       data: events,
-      pagination: { nextCursor: null, hasMore: false },
+      pagination: {
+        nextCursor: null,
+        hasMore: false,
+        total: events.length,
+        totalUpcoming: events.filter((e) => new Date(e.startAt) >= new Date()).length,
+        totalPast: events.filter((e) => new Date(e.startAt) < new Date()).length,
+        totalOrganizing: events.filter((e) => e.isOrganizer).length,
+      },
     };
 
     vi.mocked(userService.getMyEvents).mockResolvedValue(paginatedResponse as never);
@@ -116,9 +123,16 @@ describe('My Events Page', () => {
           loader: () =>
             Promise.resolve({
               myEvents: events,
-              myEventsPagination: { nextCursor: null, hasMore: false },
+              myEventsPagination: {
+                nextCursor: null,
+                hasMore: false,
+                total: events.length,
+                totalUpcoming: events.filter((e) => new Date(e.startAt) >= new Date()).length,
+                totalPast: events.filter((e) => new Date(e.startAt) < new Date()).length,
+                totalOrganizing: events.filter((e) => e.isOrganizer).length,
+              },
               invitedEvents: [],
-              invitedEventsPagination: { nextCursor: null, hasMore: false },
+              invitedEventsPagination: { nextCursor: null, hasMore: false, total: 0 },
             }),
           HydrateFallback: () => <div>Loading...</div>,
         },

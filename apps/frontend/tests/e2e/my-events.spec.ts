@@ -79,6 +79,9 @@ test.describe('My Events Page', () => {
             nextCursor: null,
             hasMore: false,
             total: 2,
+            totalUpcoming: 2,
+            totalPast: 0,
+            totalOrganizing: 2,
           },
         },
       });
@@ -380,7 +383,14 @@ test.describe('My Events Page', () => {
       await route.fulfill({
         json: {
           data: [],
-          pagination: { nextCursor: null, hasMore: false, total: 0 },
+          pagination: {
+            nextCursor: null,
+            hasMore: false,
+            total: 0,
+            totalUpcoming: 0,
+            totalPast: 0,
+            totalOrganizing: 0,
+          },
         },
       });
     });
