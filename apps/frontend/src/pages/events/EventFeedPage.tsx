@@ -16,6 +16,7 @@ import { EventResponse } from '@/types/event';
 import { LocationBase } from '@/types/location';
 import { format, parse } from 'date-fns';
 import { ArrowUpDown, MapPinIcon, Plus } from 'lucide-react';
+import React, { useRef } from 'react';
 import { useEffect, useState } from 'react';
 import { DateRange } from 'react-day-picker';
 import { LoaderFunctionArgs, useNavigate, useSearchParams } from 'react-router-dom';
@@ -111,18 +112,23 @@ export default function EventFeedPage() {
 
   const debouncedSearch = useDebounce(searchInput, 500);
 
+  const isInternalUpdate = useRef(false);
+
   useEffect(() => {
-    const urlSearch = searchParams.get('search') ?? '';
-    if (urlSearch !== searchInput) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSearchInput(urlSearch);
+    if (isInternalUpdate.current) {
+      isInternalUpdate.current = false;
+      return; // skip — we caused this change ourselves
     }
-  }, [searchParams.get('search')]); // Only react to the specific 'search' key
+    const urlSearch = searchParams.get('search') ?? '';
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSearchInput(urlSearch);
+  }, [searchParams.get('search')]);
 
   useEffect(() => {
     const urlSearch = searchParams.get('search') ?? '';
-
     if (debouncedSearch === urlSearch) return;
+
+    isInternalUpdate.current = true; // mark before updating params
 
     setSearchParams(
       (prev) => {

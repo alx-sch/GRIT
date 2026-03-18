@@ -19,6 +19,7 @@ import type { NavRoute } from '@/types/navroute';
 import { createBrowserRouter, redirect } from 'react-router-dom';
 import EditEventPage, { editEventLoader } from './pages/events/EditEventPage';
 import FriendsPage, { friendsLoader } from './pages/my-friends/Page';
+import { useCurrentUserStore } from './store/currentUserStore';
 
 export const useBaseNavConfig = (): NavRoute[] => {
   const user = useCurrentUserStore((s) => s.user);
