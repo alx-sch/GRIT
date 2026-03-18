@@ -218,7 +218,7 @@ export function Navbar() {
               </Link>
             )}
 
-            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            {isLoggedIn && <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="outline" size="icon">
                   <Menu className="h-5 w-5" />
@@ -351,7 +351,7 @@ export function Navbar() {
                   )}
                 </div>
               </SheetContent>
-            </Sheet>
+            </Sheet>}
           </div>
         </div>
       </Container>

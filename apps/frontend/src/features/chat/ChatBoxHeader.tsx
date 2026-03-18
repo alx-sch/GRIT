@@ -12,11 +12,9 @@ export const ChatBoxHeader = ({ conversation }: { conversation: ResConversationS
   const navigate = useNavigate();
 
   const currentUser = useCurrentUserStore((s) => s.user);
-  if (!currentUser) return ''; // Narrowing for Typesafety only
+  const conversationState = chatStore((s) => s.conversations[conversation.id]);
 
-  const conversationState = chatStore((s) => {
-    return s.conversations[conversation.id];
-  });
+  if (!currentUser) return '';
 
   const { title } = mapConversationToCard(conversation, conversationState, currentUser);
 
