@@ -9,13 +9,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { BackButton } from '@/components/ui/backButton';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/emptyState';
 import { Input } from '@/components/ui/input';
 import { Heading, Text } from '@/components/ui/typography';
-import { BackButton } from '@/components/ui/backButton';
 import { UserCard } from '@/components/ui/userCard';
-import { EmptyState } from '@/components/ui/emptyState';
-import { useDebounce } from '@/hooks/useDebounce';
+import { useSearchParam } from '@/hooks/useSearchParam';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { conversationService } from '@/services/conversationService';
 import { friendService } from '@/services/friendService';
@@ -29,17 +29,17 @@ import {
   ResUserPublic,
 } from '@grit/schema';
 import {
+  ArrowDownZA,
+  ArrowUpAZ,
   Check,
+  Eye,
   MessageCircleMore,
   UserPlus,
   UserX,
   X,
-  Eye,
-  ArrowUpAZ,
-  ArrowDownZA,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate, useRevalidator, Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useRevalidator } from 'react-router-dom';
 import { toast } from 'sonner';
 
 interface FriendsLoaderData {
@@ -78,34 +78,8 @@ export const friendsLoader = async (): Promise<FriendsLoaderData> => {
 export default function FriendsPage() {
   const friends = useTypedLoaderData<FriendsLoaderData>();
   const { revalidate } = useRevalidator();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '');
-  const debouncedSearch = useDebounce(searchInput, 500);
 
-  useEffect(() => {
-    const urlSearch = searchParams.get('search') ?? '';
-    if (urlSearch !== searchInput) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSearchInput(urlSearch);
-    }
-  }, [searchParams.get('search')]);
-
-  useEffect(() => {
-    const urlSearch = searchParams.get('search') ?? '';
-    if (debouncedSearch === urlSearch) return;
-    setSearchParams(
-      (prev) => {
-        const newParams = new URLSearchParams(prev);
-        if (debouncedSearch) {
-          newParams.set('search', debouncedSearch);
-        } else {
-          newParams.delete('search');
-        }
-        return newParams;
-      },
-      { replace: true }
-    );
-  }, [debouncedSearch]);
+  const [searchInput, setSearchInput, debouncedSearch] = useSearchParam('search');
 
   //Refetch every 30s to get updated list
   useEffect(() => {

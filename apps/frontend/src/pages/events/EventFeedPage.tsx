@@ -4,8 +4,8 @@ import { DatePicker } from '@/components/ui/datepicker';
 import { EmptyState } from '@/components/ui/emptyState';
 import { Input } from '@/components/ui/input';
 import { Heading } from '@/components/ui/typography';
-import { useDebounce } from '@/hooks/useDebounce';
 import { Pagination, useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import { useSearchParam } from '@/hooks/useSearchParam';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { EventCard } from '@/pages/events/components/EventCard';
 import { eventService } from '@/services/eventService';
@@ -16,8 +16,7 @@ import { EventResponse } from '@/types/event';
 import { LocationBase } from '@/types/location';
 import { format, parse } from 'date-fns';
 import { ArrowUpDown, MapPinIcon, Plus } from 'lucide-react';
-import React, { useRef } from 'react';
-import { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { DateRange } from 'react-day-picker';
 import { LoaderFunctionArgs, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -108,41 +107,7 @@ export default function EventFeedPage() {
   }>();
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '');
-
-  const debouncedSearch = useDebounce(searchInput, 500);
-
-  const isInternalUpdate = useRef(false);
-
-  useEffect(() => {
-    if (isInternalUpdate.current) {
-      isInternalUpdate.current = false;
-      return; // skip — we caused this change ourselves
-    }
-    const urlSearch = searchParams.get('search') ?? '';
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSearchInput(urlSearch);
-  }, [searchParams.get('search')]);
-
-  useEffect(() => {
-    const urlSearch = searchParams.get('search') ?? '';
-    if (debouncedSearch === urlSearch) return;
-
-    isInternalUpdate.current = true; // mark before updating params
-
-    setSearchParams(
-      (prev) => {
-        const newParams = new URLSearchParams(prev);
-        if (debouncedSearch) {
-          newParams.set('search', debouncedSearch);
-        } else {
-          newParams.delete('search');
-        }
-        return newParams;
-      },
-      { replace: true }
-    );
-  }, [debouncedSearch]);
+  const [searchInput, setSearchInput] = useSearchParam('search');
   const navigate = useNavigate();
 
   // Events infinite scroll
