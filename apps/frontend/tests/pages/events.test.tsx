@@ -385,6 +385,42 @@ describe('Event Feed Page', () => {
       const searchInput = await screen.findByPlaceholderText('Search events...');
       expect(searchInput).toHaveValue('beer');
     });
+
+    it('syncs search input when URL search param changes via SPA navigation', async () => {
+      const { router } = renderEventFeed();
+
+      await waitFor(() => {
+        expect(screen.getByText(/Upcoming events/i)).toBeInTheDocument();
+      });
+
+      const searchInput = screen.getByPlaceholderText('Search events...');
+      expect(searchInput).toHaveValue('');
+
+      // Simulate GlobalSearch "See all" navigation: pushes ?search=yoga without remounting
+      await router.navigate('/events?search=yoga');
+
+      await waitFor(() => {
+        expect(searchInput).toHaveValue('yoga');
+      });
+    });
+
+    it('calls getEvents with search param from URL after SPA navigation', async () => {
+      const { router } = renderEventFeed();
+
+      await waitFor(() => {
+        expect(screen.getByText(/Upcoming events/i)).toBeInTheDocument();
+      });
+
+      vi.clearAllMocks();
+
+      await router.navigate('/events?search=yoga');
+
+      await waitFor(() => {
+        expect(eventService.getEvents).toHaveBeenCalledWith(
+          expect.objectContaining({ search: 'yoga' })
+        );
+      });
+    });
   });
 
   describe('Date Filtering', () => {

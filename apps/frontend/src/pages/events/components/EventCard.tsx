@@ -10,11 +10,11 @@ import {
 import { Text } from '@/components/ui/typography';
 import { UserAvatar } from '@/components/ui/user-avatar';
 import { getEventImageUrl } from '@/lib/image_utils';
+import { formatEventDate } from '@/lib/time_utils';
 import { userService } from '@/services/userService';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import { EventBase } from '@/types/event';
 import type { CurrentUser } from '@/types/user';
-import { format } from 'date-fns';
 import { User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -90,10 +90,11 @@ export function EventCard({ event, friendsIds }: EventCardProps) {
             {event.title}
           </CardTitle>
           <CardDescription
-            className="font-heading font-medium text-xl line-clamp-2 min-w-0"
-            title={`${format(event.startAt, 'EEE, MMM d')} @ ${event.location?.name ?? 'TBA'}`}
+            className="font-heading font-medium text-xl min-w-0 flex flex-col gap-0.5"
+            title={`${formatEventDate(event.startAt, 'withDay')} - ${event.location?.name ?? 'TBA'}`}
           >
-            {format(event.startAt, 'EEE, MMM d')} @ {event.location?.name ?? 'TBA'}
+            <span className="truncate">{formatEventDate(event.startAt, 'withDay')}</span>
+            <span className="truncate">{event.location?.name ?? 'TBA'}</span>
           </CardDescription>
           <div className="flex items-center gap-2 text-base font-normal text-muted-foreground">
             <User className="h-5 w-5 text-primary" strokeWidth={2} />

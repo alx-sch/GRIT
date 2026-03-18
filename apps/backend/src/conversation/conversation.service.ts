@@ -38,6 +38,21 @@ export class ConversationService {
     });
     if (existing?.participants.length === 2) return existing;
 
+    // Check if the directId is in the friends list of the user
+    const friendship = await this.prisma.friends.findFirst({
+      where: {
+        OR: [
+          { userId, friendId: directId },
+          { userId: directId, friendId: userId },
+        ],
+      },
+    });
+    const areFriends = !!friendship;
+    if (!areFriends)
+      throw new ForbiddenException(
+        'You cannot create a chat with this user since you are not friends'
+      );
+
     // Otherwise create the DIRECT conversation
     const newConversation = await this.prisma.conversation.create({
       data: {

@@ -19,6 +19,8 @@ import {
 import { AlertCircleIcon, Trash2 } from 'lucide-react';
 import { useSocket } from '@/providers/socketProvider';
 import { chatStore } from '@/store/chatStore';
+import { useNavigate } from 'react-router-dom';
+import { BackButton } from '@/components/ui/backButton';
 
 export const ChatBox = ({ conversationId }: { conversationId: string }) => {
   const {
@@ -42,6 +44,10 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
   const isInitialLoad = useRef(true);
   const socket = useSocket();
   const messagesRef = useRef(messages);
+  const loadMoreDebounceRef = useRef<number | null>(null);
+  const previousScrollHeightRef = useRef<number | null>(null);
+
+  const navigate = useNavigate();
 
   // We are creating a stable reference to the updated messages so that event listeners don't work on outdated data.
   useEffect(() => {
@@ -54,6 +60,23 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
     sendNewLastReadAt(conversationId);
     chatStore.getState().setLastReadAt(conversationId);
   };
+
+  // Helper function for debounced load more
+  const debouncedLoadMore = (oldest: { createdAt: string; id: string }) => {
+    if (loadMoreDebounceRef.current) clearTimeout(loadMoreDebounceRef.current);
+    loadMoreDebounceRef.current = window.setTimeout(() => {
+      loadMore(oldest);
+    }, 200);
+  };
+
+  // Clear out the timer for debounce when the component unmounts
+  useEffect(() => {
+    return () => {
+      if (loadMoreDebounceRef.current !== null) {
+        clearTimeout(loadMoreDebounceRef.current);
+      }
+    };
+  }, []);
 
   // At first mount we update that the user has read the conversation
   useEffect(() => {
@@ -77,6 +100,15 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
     }
     // If the messages array changed from loading more chat history, don't scroll but set the isLoadingMoreHistory flag to false
     else if (isLoadingMoreHistory.current) {
+      const viewport = viewportRef.current;
+
+      if (viewport && previousScrollHeightRef.current !== null) {
+        const newScrollHeight = viewport.scrollHeight;
+        const heightDiff = newScrollHeight - previousScrollHeightRef.current;
+        viewport.scrollTop = heightDiff;
+      }
+
+      previousScrollHeightRef.current = null;
       isLoadingMoreHistory.current = false;
     }
     // Else the messages array was changed because of a new incoming message
@@ -111,9 +143,7 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
     // Event handler
     const onScroll = () => {
       // Don't do anything while we are in the initial loading phase
-      if (isInitialLoad.current) {
-        return;
-      }
+      if (isInitialLoad.current) return;
 
       // Calcs
       const distanceFromBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight;
@@ -134,11 +164,17 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
         !isLoadingMoreHistory.current
       ) {
         isLoadingMoreHistory.current = true;
+        isLoadingMoreHistory.current = true;
+
         const currentMessages = messagesRef.current;
         if (!currentMessages.length) return;
 
         const oldest = currentMessages[0];
-        loadMore({
+
+        // store scroll height BEFORE loading
+        previousScrollHeightRef.current = viewport.scrollHeight;
+
+        debouncedLoadMore({
           createdAt: oldest.createdAt,
           id: oldest.id,
         });
@@ -161,7 +197,7 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
       isLoadingMoreHistory.current = true;
       const oldest = messages[0];
       if (oldest) {
-        loadMore({
+        debouncedLoadMore({
           createdAt: oldest.createdAt,
           id: oldest.id,
         });
@@ -188,11 +224,18 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
 
   if (errorMessage) {
     return (
-      <Alert variant={'destructive'}>
-        <AlertCircleIcon />
-        <AlertTitle>Error!</AlertTitle>
-        <AlertDescription>{errorMessage}</AlertDescription>
-      </Alert>
+      <>
+        <Alert variant={'destructive'}>
+          <AlertCircleIcon />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{errorMessage}</AlertDescription>
+        </Alert>
+        <BackButton
+          className="w-"
+          label="Back to all Chats"
+          onClick={() => void navigate('/chat')}
+        />
+      </>
     );
   }
 

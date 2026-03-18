@@ -11,6 +11,7 @@ interface GetEventsParams {
   cursor?: string;
   locationId?: string;
   sort?: string;
+  signal?: AbortSignal;
 }
 
 export const eventService = {
@@ -26,7 +27,7 @@ export const eventService = {
     if (params?.sort) queryParams.set('sort', params.sort);
     const queryString = queryParams.toString();
     const url = queryString ? `events?${queryString}` : '/events';
-    const response = await api.get<EventResponse>(url);
+    const response = await api.get<EventResponse>(url, { signal: params?.signal });
     return response.data;
   },
 
@@ -63,6 +64,7 @@ export const eventService = {
       formData,
       {
         headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 5 * 60 * 1000,
         onUploadProgress: (e) => onProgress?.(Math.round((e.loaded * 100) / (e.total ?? 1))),
       }
     );
@@ -84,6 +86,7 @@ export const eventService = {
 
     const response = await api.post<EventBase>(`/events/${String(eventId)}/files`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 5 * 60 * 1000,
       onUploadProgress: (e) => onProgress?.(Math.round((e.loaded * 100) / (e.total ?? 1))),
     });
     return response.data;

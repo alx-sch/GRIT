@@ -172,3 +172,18 @@
 #nprogress .spinner {
   display: none !important;
 }
+
+.legalPages h1,
+.legalPages h2,
+.legalPages h3,
+.legalPages p,
+.legalPages ul,
+.legalPages ol {
+  margin-bottom: 1rem;
+}
+
+.legalPages li {
+  list-style: disc;
+  margin-bottom: 0.3em;
+  margin-left: 17px;
+}
