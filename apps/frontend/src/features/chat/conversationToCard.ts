@@ -17,7 +17,7 @@ export function mapConversationToCard(
 
   // Title
   const findTitle = () => {
-    if (conversation.type === 'DIRECT') return otherUser?.name;
+    if (conversation.type === 'DIRECT') return otherUser?.name ?? 'Unknown User';
     else if (conversation.type === 'GROUP') return conversation.title;
     else if (conversation.type === 'EVENT') return conversation.event?.title ?? 'Event';
     else return 'Conversation';
