@@ -141,14 +141,21 @@ export class FriendsService {
     const cursorFilter = friendNameCursorFilter(input);
     const { limit } = input;
 
-    const friends = await this.prisma.friends.findMany({
-      where: { userId: id, ...cursorFilter },
-      orderBy: [{ friend: { name: 'asc' } }, { id: 'asc' }],
-      take: limit + 1,
-      include: {
-        friend: { select: { id: true, name: true, avatarKey: true } },
-      },
-    });
+    // Run both the paginated fetch AND the total count concurrently
+    const [friends, totalCount] = await Promise.all([
+      this.prisma.friends.findMany({
+        where: { userId: id, ...cursorFilter },
+        orderBy: [{ friend: { name: 'asc' } }, { id: 'asc' }],
+        take: limit + 1,
+        include: {
+          friend: { select: { id: true, name: true, avatarKey: true } },
+        },
+      }),
+      // Count all friends for this user (ignoring the pagination cursor)
+      this.prisma.friends.count({
+        where: { userId: id },
+      }),
+    ]);
 
     const hasMore = friends.length > limit;
     const slicedData = hasMore ? friends.slice(0, limit) : friends;
@@ -171,6 +178,7 @@ export class FriendsService {
             )
           : null,
         hasMore,
+        total: totalCount,
       },
     };
   }

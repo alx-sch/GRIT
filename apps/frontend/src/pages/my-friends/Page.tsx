@@ -48,6 +48,7 @@ interface FriendsLoaderData {
   pendingOutgoing: FriendRequestResponse;
   friendsList: ResFriendBase[];
   friendsPagination: Pagination;
+  totalFriends: number;
 }
 
 const PAGE_SIZE = '20';
@@ -63,6 +64,7 @@ export const friendsLoader = async (): Promise<FriendsLoaderData> => {
     pendingOutgoing,
     friendsList: friendsResponse.data,
     friendsPagination: friendsResponse.pagination,
+    totalFriends: friendsResponse.pagination.total ?? 0,
   };
 };
 
@@ -168,6 +170,7 @@ export default function FriendsPage() {
       <FriendsSection
         initialFriends={friends.friendsList}
         initialPagination={friends.friendsPagination}
+        totalFriends={friends.totalFriends}
         onChat={startChat}
         onRemove={remove}
       />
@@ -345,6 +348,7 @@ function OutgoingSection({ requests, onCancel }: OutgoingSectionProps) {
 interface FriendsSectionProps {
   initialFriends: ResFriendBase[];
   initialPagination: Pagination;
+  totalFriends: number;
   onChat: (friendUserId: number) => Promise<void>;
   onRemove: (friendId: number) => Promise<void>;
 }
@@ -352,6 +356,7 @@ interface FriendsSectionProps {
 function FriendsSection({
   initialFriends,
   initialPagination,
+  totalFriends,
   onChat,
   onRemove,
 }: FriendsSectionProps) {
@@ -402,7 +407,7 @@ function FriendsSection({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <Heading level={3}>All Friends ({friends.length})</Heading>
+        <Heading level={3}>All Friends ({totalFriends})</Heading>
         <Button
           variant="outline"
           size="sm"
