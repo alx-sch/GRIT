@@ -108,7 +108,7 @@ async function uploadToBucket(bucketName: string, localFilePath: string, origina
 async function main() {
   console.log('--- Seeding database...');
 
-  const TEST_RECORD_COUNT = 1000;
+  const TEST_RECORD_COUNT = 30;
   const DEFAULT_TEST_PASSWORD = 'password123';
   const AVATAR_BUCKET = 'user-avatars';
   const EVENT_BUCKET = 'event-images';
@@ -367,7 +367,7 @@ async function main() {
     const testEventsData = [];
 
     for (let i = 1; i <= TEST_RECORD_COUNT; i++) {
-      const startDate = new Date('2025-12-01T18:00:00Z');
+      const startDate = new Date('2026-04-01T18:00:00Z');
       startDate.setDate(startDate.getDate() + i);
       const endDate = new Date(startDate);
       endDate.setHours(startDate.getHours() + 4);
