@@ -24,6 +24,7 @@ import { Heading } from '@/components/ui/typography';
 import type { EventBase } from '@/types/event';
 import type { ResUserPublic } from '@grit/schema';
 import { formatEventDate } from '@/lib/time_utils';
+import { format } from 'date-fns';
 
 function formatUserLocation(user: ResUserPublic): string {
   if (user.city && user.country) return `${user.city}, ${user.country}`;
@@ -85,6 +86,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
         search: debouncedQuery,
         limit: String(RESULT_LIMIT),
         signal: controller.signal,
+        startFrom: format(new Date(), 'yyyy-MM-dd'),
       }),
       userService.getUsers({
         search: debouncedQuery,
@@ -244,7 +246,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                       <UserAvatar user={user} size="xs" className="shrink-0" />
                       <span className="truncate font-medium">{user.name}</span>
                       {location ? (
-                        <span className="ml-auto shrink-0 text-xs text-muted-foreground">
+                        <span className="ml-auto shrink-0 text-xs text-muted-foreground max-w-40 truncate">
                           {location}
                         </span>
                       ) : (

@@ -34,6 +34,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatedUnderline } from '../ui/animatedUnderline';
 import { UserAvatar } from '../ui/user-avatar';
 import { Container } from './Container';
+import { Logo } from '../common/logo';
 
 export function Navbar() {
   const navConfig: NavRoute[] = [...useBaseNavConfig()];
@@ -76,8 +77,14 @@ export function Navbar() {
   return (
     <div className="border-b-2 border-border bg-card sticky top-0 z-50 py-4">
       <Container className="flex justify-between items-center">
-        <Link to="/">
-          <div className="font-bold text-xl uppercase tracking-wider">Grit</div>
+        <Link
+          to="/"
+          className="flex items-center shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <Logo
+            className="h-6 md:h-8 w-auto text-foreground hover:opacity-80 transition-opacity"
+            aria-label="Grit Home"
+          />
         </Link>
 
         {/* Right-side controls — GlobalSearch dialog rendered once to avoid duplicate keyboard listeners */}
