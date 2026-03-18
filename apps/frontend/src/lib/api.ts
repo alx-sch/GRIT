@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useAuthStore } from '@/store/authStore';
+import { router } from '@/router';
 
 /**
  * The global Axios instance for making HTTP requests.
@@ -28,6 +29,8 @@ api.interceptors.response.use(
     if (axios.isAxiosError(error)) {
       if (error.response?.status === 401) {
         console.warn('Unauthorized! Redirecting to login...');
+        useAuthStore.getState().clearAuthenticated();
+        void router.navigate('/login');
       }
       return Promise.reject(error);
     }
