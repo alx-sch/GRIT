@@ -73,9 +73,7 @@ export function Page() {
   useEffect(() => {
     const fetchSortedData = async () => {
       try {
-        console.log('Fetching events with sort mode:', sortMode);
         const response = await userService.getMyEvents({ limit: PAGE_SIZE, sort: sortMode });
-        console.log('Received events:', response.data.length, 'First event:', response.data[0]);
         setSortedEventsData({
           data: response.data,
           pagination: response.pagination,
@@ -266,7 +264,6 @@ export function Page() {
             <MyEventsSortDropdown
               value={sortMode}
               onChange={(newSort) => {
-                console.log('Sort dropdown changed from', sortMode, 'to', newSort);
                 setSortMode(newSort);
               }}
             />

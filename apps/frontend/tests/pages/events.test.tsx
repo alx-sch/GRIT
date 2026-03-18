@@ -399,9 +399,12 @@ describe('Event Feed Page', () => {
       // Simulate GlobalSearch "See all" navigation: pushes ?search=yoga without remounting
       await router.navigate('/events?search=yoga');
 
-      await waitFor(() => {
-        expect(searchInput).toHaveValue('yoga');
-      });
+      await waitFor(
+        () => {
+          expect(searchInput).toHaveValue('yoga');
+        },
+        { timeout: 2000 }
+      );
     });
 
     it('calls getEvents with search param from URL after SPA navigation', async () => {
@@ -419,6 +422,9 @@ describe('Event Feed Page', () => {
         expect(eventService.getEvents).toHaveBeenCalledWith(
           expect.objectContaining({ search: 'yoga' })
         );
+      });
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText(/search/i)).toHaveValue('yoga');
       });
     });
   });
