@@ -218,140 +218,144 @@ export function Navbar() {
               </Link>
             )}
 
-            {isLoggedIn && <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Toggle menu</span>
-                </Button>
-              </SheetTrigger>
+            {isLoggedIn && (
+              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <Menu className="h-5 w-5" />
+                    <span className="sr-only">Toggle menu</span>
+                  </Button>
+                </SheetTrigger>
 
-              <SheetContent
-                side="right"
-                className="w-75 border-l-2 border-border sm:w-100 [&>button]:hidden"
-              >
-                <SheetHeader className="flex flex-row items-center justify-between pb-4 mb-4 space-y-0 text-left -mt-2">
-                  <SheetTitle className="font-bold uppercase tracking-wider">Menu</SheetTitle>
-                  <SheetClose asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <X className="h-8 w-8" strokeWidth={3} />
-                      <span className="sr-only">Close</span>
-                    </Button>
-                  </SheetClose>
-                </SheetHeader>
+                <SheetContent
+                  side="right"
+                  className="w-75 border-l-2 border-border sm:w-100 [&>button]:hidden"
+                >
+                  <SheetHeader className="flex flex-row items-center justify-between pb-4 mb-4 space-y-0 text-left -mt-2">
+                    <SheetTitle className="font-bold uppercase tracking-wider">Menu</SheetTitle>
+                    <SheetClose asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <X className="h-8 w-8" strokeWidth={3} />
+                        <span className="sr-only">Close</span>
+                      </Button>
+                    </SheetClose>
+                  </SheetHeader>
 
-                <div className="flex flex-col gap-4">
-                  {navConfig
-                    .filter((link) => !['Login', 'Logout'].includes(link.label))
-                    .map((link) => (
-                      <SheetClose asChild key={link.label}>
-                        <Link
-                          to={link.path}
-                          className={cn(
-                            'text-xl font-bold px-2 py-2 transition-all',
-                            isActive(link.path)
-                              ? 'bg-foreground text-background'
-                              : 'hover:underline underline-offset-4'
-                          )}
-                        >
-                          {link.label}
-                        </Link>
-                      </SheetClose>
-                    ))}
-
-                  {isLoggedIn && (
-                    <>
-                      {/* Profile subsection */}
-                      <div className="border-t border-border pt-4 mt-2 flex flex-col gap-4">
-                        {/* User identity header */}
-                        <div className="flex items-center gap-3 px-2">
-                          <div className="relative">
-                            <UserAvatar user={user ?? {}} size="sm" />
-                            {isAvatarTransitioning && (
-                              <div className="absolute inset-0 bg-black/80 rounded-full flex items-center justify-center">
-                                <Loader2 className="w-4 h-4 text-white animate-spin" />
-                              </div>
+                  <div className="flex flex-col gap-4">
+                    {navConfig
+                      .filter((link) => !['Login', 'Logout'].includes(link.label))
+                      .map((link) => (
+                        <SheetClose asChild key={link.label}>
+                          <Link
+                            to={link.path}
+                            className={cn(
+                              'text-xl font-bold px-2 py-2 transition-all',
+                              isActive(link.path)
+                                ? 'bg-foreground text-background'
+                                : 'hover:underline underline-offset-4'
                             )}
+                          >
+                            {link.label}
+                          </Link>
+                        </SheetClose>
+                      ))}
+
+                    {isLoggedIn && (
+                      <>
+                        {/* Profile subsection */}
+                        <div className="border-t border-border pt-4 mt-2 flex flex-col gap-4">
+                          {/* User identity header */}
+                          <div className="flex items-center gap-3 px-2">
+                            <div className="relative">
+                              <UserAvatar user={user ?? {}} size="sm" />
+                              {isAvatarTransitioning && (
+                                <div className="absolute inset-0 bg-black/80 rounded-full flex items-center justify-center">
+                                  <Loader2 className="w-4 h-4 text-white animate-spin" />
+                                </div>
+                              )}
+                            </div>
+                            <span className="font-semibold">{displayName}</span>
                           </div>
-                          <span className="font-semibold">{displayName}</span>
+
+                          <SheetClose asChild>
+                            <Link
+                              to="/chat"
+                              className={cn(
+                                'text-xl font-bold px-2 py-2 transition-all relative',
+                                location.pathname.startsWith('/chat')
+                                  ? 'bg-foreground text-background'
+                                  : 'hover:underline underline-offset-4'
+                              )}
+                            >
+                              <span className="flex items-center gap-2">
+                                <MessageSquare className="h-5 w-5" />
+                                Chat
+                                {hasUnread && (
+                                  <div className="bg-primary w-2 h-2 rounded-full"></div>
+                                )}
+                              </span>
+                            </Link>
+                          </SheetClose>
+
+                          <SheetClose asChild>
+                            <Link
+                              to="/profile"
+                              className={cn(
+                                'text-xl font-bold px-2 py-2 transition-all flex items-center gap-2',
+                                isActive('/profile')
+                                  ? 'bg-foreground text-background'
+                                  : 'hover:underline underline-offset-4'
+                              )}
+                            >
+                              <User className="h-5 w-5" />
+                              Profile
+                            </Link>
+                          </SheetClose>
+                          <SheetClose asChild>
+                            <Link
+                              to="/profile/my-events"
+                              className={cn(
+                                'text-xl font-bold px-2 py-2 transition-all flex items-center gap-2',
+                                isActive('/profile/my-events')
+                                  ? 'bg-foreground text-background'
+                                  : 'hover:underline underline-offset-4'
+                              )}
+                            >
+                              <Calendar className="h-5 w-5" />
+                              My Events
+                            </Link>
+                          </SheetClose>
+                          <SheetClose asChild>
+                            <Link
+                              to="/profile/my-friends"
+                              className={cn(
+                                'text-xl font-bold px-2 py-2 transition-all flex items-center gap-2',
+                                isActive('/profile/my-friends')
+                                  ? 'bg-foreground text-background'
+                                  : 'hover:underline underline-offset-4'
+                              )}
+                            >
+                              <Users className="h-5 w-5" />
+                              My Friends
+                            </Link>
+                          </SheetClose>
+                          <button
+                            onClick={() => {
+                              setMobileMenuOpen(false);
+                              handleLogout();
+                            }}
+                            className="text-xl font-bold px-2 py-2 transition-all flex items-center gap-2 text-red-600 hover:underline underline-offset-4 text-left"
+                          >
+                            <LogOut className="h-5 w-5" />
+                            Logout
+                          </button>
                         </div>
-
-                        <SheetClose asChild>
-                          <Link
-                            to="/chat"
-                            className={cn(
-                              'text-xl font-bold px-2 py-2 transition-all relative',
-                              location.pathname.startsWith('/chat')
-                                ? 'bg-foreground text-background'
-                                : 'hover:underline underline-offset-4'
-                            )}
-                          >
-                            <span className="flex items-center gap-2">
-                              <MessageSquare className="h-5 w-5" />
-                              Chat
-                              {hasUnread && <div className="bg-primary w-2 h-2 rounded-full"></div>}
-                            </span>
-                          </Link>
-                        </SheetClose>
-
-                        <SheetClose asChild>
-                          <Link
-                            to="/profile"
-                            className={cn(
-                              'text-xl font-bold px-2 py-2 transition-all flex items-center gap-2',
-                              isActive('/profile')
-                                ? 'bg-foreground text-background'
-                                : 'hover:underline underline-offset-4'
-                            )}
-                          >
-                            <User className="h-5 w-5" />
-                            Profile
-                          </Link>
-                        </SheetClose>
-                        <SheetClose asChild>
-                          <Link
-                            to="/profile/my-events"
-                            className={cn(
-                              'text-xl font-bold px-2 py-2 transition-all flex items-center gap-2',
-                              isActive('/profile/my-events')
-                                ? 'bg-foreground text-background'
-                                : 'hover:underline underline-offset-4'
-                            )}
-                          >
-                            <Calendar className="h-5 w-5" />
-                            My Events
-                          </Link>
-                        </SheetClose>
-                        <SheetClose asChild>
-                          <Link
-                            to="/profile/my-friends"
-                            className={cn(
-                              'text-xl font-bold px-2 py-2 transition-all flex items-center gap-2',
-                              isActive('/profile/my-friends')
-                                ? 'bg-foreground text-background'
-                                : 'hover:underline underline-offset-4'
-                            )}
-                          >
-                            <Users className="h-5 w-5" />
-                            My Friends
-                          </Link>
-                        </SheetClose>
-                        <button
-                          onClick={() => {
-                            setMobileMenuOpen(false);
-                            handleLogout();
-                          }}
-                          className="text-xl font-bold px-2 py-2 transition-all flex items-center gap-2 text-red-600 hover:underline underline-offset-4 text-left"
-                        >
-                          <LogOut className="h-5 w-5" />
-                          Logout
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </SheetContent>
-            </Sheet>}
+                      </>
+                    )}
+                  </div>
+                </SheetContent>
+              </Sheet>
+            )}
           </div>
         </div>
       </Container>

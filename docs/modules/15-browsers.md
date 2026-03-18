@@ -1,13 +1,13 @@
 # Module 15 — Support for Additional Browsers
 
-| Attribute | Value |
-|---|---|
-| **Category** | IV.2 |
-| **Type** | Minor |
-| **Points** | 1 |
-| **Status** | Done |
-| **Notes** | 2 additional browsers |
-| **Developers** | TBD |
+| Attribute      | Value                 |
+| -------------- | --------------------- |
+| **Category**   | IV.2                  |
+| **Type**       | Minor                 |
+| **Points**     | 1                     |
+| **Status**     | Done                  |
+| **Notes**      | 2 additional browsers |
+| **Developers** | TBD                   |
 
 ---
 
@@ -25,11 +25,11 @@ Web standards are implemented with slight variations across browser engines. A s
 
 ## Target Browsers
 
-| Browser | Engine | Status |
-|---|---|---|
-| Chrome / Chromium | Blink | Primary (tested throughout development) |
-| Firefox | Gecko | Done |
-| Safari / WebKit | WebKit | Done |
+| Browser           | Engine | Status                                  |
+| ----------------- | ------ | --------------------------------------- |
+| Chrome / Chromium | Blink  | Primary (tested throughout development) |
+| Firefox           | Gecko  | Done                                    |
+| Safari / WebKit   | WebKit | Done                                    |
 
 ---
 
@@ -38,6 +38,7 @@ Web standards are implemented with slight variations across browser engines. A s
 ### CSS Compatibility
 
 TailwindCSS v4 with OKLCH colors requires browser support for `oklch()`:
+
 - Chrome 111+ ✓
 - Firefox 113+ ✓
 - Safari 15.4+ ✓
