@@ -153,7 +153,10 @@ export class EventService {
         nextCursor: hasMore
           ? eventEncodeCursor(
               slicedData[slicedData.length - 1].startAt,
-              slicedData[slicedData.length - 1].id
+              slicedData[slicedData.length - 1].id,
+              sort ?? 'date-asc',
+              slicedData[slicedData.length - 1].title,
+              slicedData[slicedData.length - 1].attendees.length
             )
           : null,
         hasMore,

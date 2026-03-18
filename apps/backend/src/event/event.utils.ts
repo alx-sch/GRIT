@@ -23,14 +23,27 @@ import { ReqEventGetPublishedDto } from './event.schema';
  * GET /events?limit=20&cursor=MjAyNS0wMS0yMlQxMDowMDowMFo=
  */
 
-export function eventEncodeCursor(startAt: Date, id: number) {
-  const str = `${startAt.toISOString()}|${String(id)}`;
+export function eventEncodeCursor(startAt: Date, id: number, sort: string, title?: string, attendeeCount?: number) {
+  const str = `${startAt.toISOString()}|${String(id)}|${sort}|${title ?? ''}|${String(attendeeCount ?? 0)}`;
   return Buffer.from(str).toString('base64');
 }
 
-export function eventDecodeCursor(cursor: string): { startAt: Date; id: number } {
-  const [startAtStr, idStr] = Buffer.from(cursor, 'base64').toString('utf-8').split('|');
-  return { startAt: new Date(startAtStr), id: parseInt(idStr, 10) };
+export function eventDecodeCursor(cursor: string): { 
+  startAt: Date; 
+  id: number; 
+  sort: string; 
+  title?: string;
+  attendeeCount?: number;
+} {
+  const parts = Buffer.from(cursor, 'base64').toString('utf-8').split('|');
+  const [startAtStr, idStr, sort, title, attendeeCountStr] = parts;
+  return { 
+    startAt: new Date(startAtStr), 
+    id: parseInt(idStr, 10),
+    sort: sort || 'date-asc',
+    title: title || undefined,
+    attendeeCount: attendeeCountStr ? parseInt(attendeeCountStr, 10) : undefined,
+  };
 }
 
 /**
@@ -86,32 +99,74 @@ export function eventSearchFilter(input: ReqEventGetPublishedDto, userId?: numbe
 /* *
  * Constructs a Prisma-compatible filter for cursor-based pagination.
  *
- * When fetching published events, `getPublishedEvents()` sorts events by:
- *   1. `startAt` ascending (earliest events first)
- *   2. `id` ascending as a "tie-breaker" for events with identical start times
- *
- * The `cursor` represents the point where the previous page ended. This
- * function validates and converts it into a filter that ensures the next
- * query resumes fetching events after the last event seen.
+ * Handles different sort modes with appropriate comparison operators.
+ * The cursor encodes the last item seen and the sort mode used.
  * */
-export function eventCursorFilter(input: ReqEventGetPublishedDto) {
-  const { cursor } = input;
-  let cursorFilter = {};
+export function eventCursorFilter(input: ReqEventGetPublishedDto): Prisma.EventWhereInput {
+  const { cursor, sort } = input;
+  
+  if (!cursor) return {};
 
-  if (cursor) {
-    try {
-      const { startAt, id } = eventDecodeCursor(cursor);
-      if (!(startAt instanceof Date) || isNaN(startAt.getTime()) || typeof id !== 'number') {
-        throw new Error('Invalid cursor');
-      }
-      cursorFilter = {
-        OR: [{ startAt: { gt: startAt } }, { startAt, id: { gt: id } }],
-      };
-    } catch {
-      throw new BadRequestException('Invalid cursor provided');
+  try {
+    const decoded = eventDecodeCursor(cursor);
+    const { startAt, id, title, attendeeCount } = decoded;
+    const cursorSort = decoded.sort || sort || 'date-asc';
+
+    if (!(startAt instanceof Date) || isNaN(startAt.getTime()) || typeof id !== 'number') {
+      throw new Error('Invalid cursor');
     }
+
+    // Build filter based on sort mode
+    switch (cursorSort) {
+      case 'date-dsc':
+        // Descending by date: get events with earlier dates
+        return {
+          OR: [{ startAt: { lt: startAt } }, { startAt, id: { lt: id } }],
+        };
+
+      case 'alpha-asc':
+        // Ascending by title: get events with titles after current
+        if (!title) {
+          throw new Error('Title missing from cursor for alpha-asc sort');
+        }
+        return {
+          OR: [
+            { title: { gt: title, mode: 'insensitive' } },
+            { title: { equals: title, mode: 'insensitive' }, startAt: { gt: startAt } },
+            { title: { equals: title, mode: 'insensitive' }, startAt, id: { gt: id } },
+          ],
+        };
+
+      case 'alpha-dsc':
+        // Descending by title: get events with titles before current
+        if (!title) {
+          throw new Error('Title missing from cursor for alpha-dsc sort');
+        }
+        return {
+          OR: [
+            { title: { lt: title, mode: 'insensitive' } },
+            { title: { equals: title, mode: 'insensitive' }, startAt: { gt: startAt } },
+            { title: { equals: title, mode: 'insensitive' }, startAt, id: { gt: id } },
+          ],
+        };
+
+      case 'popularity':
+        // For popularity, we can't efficiently filter by _count in WHERE clause
+        // So we use ID-based cursor as a simpler fallback
+        return {
+          id: { gt: id },
+        };
+
+      case 'date-asc':
+      default:
+        // Ascending by date (default): get events with later dates
+        return {
+          OR: [{ startAt: { gt: startAt } }, { startAt, id: { gt: id } }],
+        };
+    }
+  } catch {
+    throw new BadRequestException('Invalid cursor provided');
   }
-  return cursorFilter;
 }
 
 /**

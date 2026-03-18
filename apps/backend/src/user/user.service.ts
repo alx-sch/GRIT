@@ -724,7 +724,10 @@ export class UserService {
         nextCursor: hasMore
           ? eventEncodeCursor(
               slicedData[slicedData.length - 1].startAt,
-              slicedData[slicedData.length - 1].id
+              slicedData[slicedData.length - 1].id,
+              'date-asc',
+              slicedData[slicedData.length - 1].title,
+              0
             )
           : null,
         hasMore,
