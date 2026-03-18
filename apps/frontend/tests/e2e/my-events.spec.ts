@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('My Events Page', () => {
+  // Set auth state
   test.beforeEach(async ({ page }) => {
-    // Set auth token in localStorage
     await page.goto('/');
     await page.evaluate(() => {
       localStorage.setItem('auth', JSON.stringify({ state: { token: 'fake-token' }, version: 0 }));
@@ -11,91 +11,115 @@ test.describe('My Events Page', () => {
     // Mock auth
     await page.route('**/api/auth/me', async (route) => {
       await route.fulfill({
+        json: { id: 1, name: 'Test User', email: 'test@example.com', avatarKey: null },
+      });
+    });
+
+    // Mock the general /events route
+    await page.route('**/api/events*', async (route) => {
+      await route.fulfill({
+        json: { data: [], pagination: { nextCursor: null, hasMore: false, total: 0 } },
+      });
+    });
+
+    // Mock My Events endpoint (organizing/attending)
+    await page.route('**/api/users/me/events?*', async (route) => {
+      await route.fulfill({
         json: {
-          id: 1,
-          name: 'Test User',
-          email: 'test@example.com',
-          avatarKey: null,
+          data: [
+            {
+              id: 1,
+              slug: 'draft-event',
+              title: 'My Draft Event',
+              startAt: '2026-12-01T18:00:00Z',
+              endAt: '2026-12-01T20:00:00Z',
+              imageKey: null,
+              location: {
+                id: 1,
+                authorId: 1,
+                name: 'Test Venue',
+                address: '123 Test St',
+                city: 'Test City',
+                postalCode: '12345',
+                country: 'Test Country',
+                latitude: 40.7128,
+                longitude: -74.006,
+                isPublic: true,
+              },
+              isOrganizer: true,
+              isPublished: false,
+              isPublic: true,
+            },
+            {
+              id: 2,
+              slug: 'published-event',
+              title: 'My Published Event',
+              startAt: '2026-12-15T18:00:00Z',
+              endAt: '2026-12-15T20:00:00Z',
+              imageKey: null,
+              location: {
+                id: 2,
+                authorId: 1,
+                name: 'Another Venue',
+                address: '456 Another St',
+                city: 'Another City',
+                postalCode: '67890',
+                country: 'Test Country',
+                latitude: 40.7589,
+                longitude: -73.9851,
+                isPublic: false,
+              },
+              isOrganizer: true,
+              isPublished: true,
+              isPublic: false,
+              conversationId: '123',
+            },
+          ],
+          pagination: {
+            nextCursor: null,
+            hasMore: false,
+            total: 2,
+          },
         },
       });
     });
 
-    // Mock user events endpoint
-    await page.route('**/api/users/me/events', async (route) => {
+    // Mock Invited Events endpoint
+    await page.route('**/api/users/me/events/invited?*', async (route) => {
       await route.fulfill({
-        json: [
-          {
-            id: 1,
-            slug: 'draft-event',
-            title: 'My Draft Event',
-            startAt: '2026-12-01T18:00:00Z',
-            endAt: '2026-12-01T20:00:00Z',
-            imageKey: null,
-            location: {
-              id: 1,
-              authorId: 1,
-              name: 'Test Venue',
-              address: '123 Test St',
-              city: 'Test City',
-              postalCode: '12345',
-              country: 'Test Country',
-              latitude: 40.7128,
-              longitude: -74.006,
-              isPublic: true,
-            },
-            isOrganizer: true,
-            isPublished: false,
-            isPublic: true,
-          },
-          {
-            id: 2,
-            slug: 'published-event',
-            title: 'My Published Event',
-            startAt: '2026-12-15T18:00:00Z',
-            endAt: '2026-12-15T20:00:00Z',
-            imageKey: null,
-            location: {
-              id: 2,
-              authorId: 1,
-              name: 'Another Venue',
-              address: '456 Another St',
-              city: 'Another City',
-              postalCode: '67890',
-              country: 'Test Country',
-              latitude: 40.7589,
-              longitude: -73.9851,
-              isPublic: false,
-            },
-            isOrganizer: true,
-            isPublished: true,
-            isPublic: false,
-            conversationId: '123',
-          },
-          {
-            id: 3,
-            slug: 'attending-event',
-            title: "Event I'm Attending",
-            startAt: '2026-11-20T18:00:00Z',
-            endAt: '2026-11-20T20:00:00Z',
-            imageKey: null,
-            location: {
+        json: {
+          data: [
+            {
               id: 3,
-              authorId: 2,
-              name: 'Third Venue',
-              address: '789 Third St',
-              city: 'Third City',
-              postalCode: '11111',
-              country: 'Test Country',
-              latitude: 40.7489,
-              longitude: -73.968,
+              slug: 'attending-event',
+              title: "Event I'm Attending",
+              startAt: '2026-11-20T18:00:00Z',
+              endAt: '2026-11-20T20:00:00Z',
+              imageKey: null,
+              location: {
+                id: 3,
+                authorId: 2,
+                name: 'Third Venue',
+                address: '789 Third St',
+                city: 'Third City',
+                postalCode: '11111',
+                country: 'Test Country',
+                latitude: 40.7489,
+                longitude: -73.968,
+                isPublic: true,
+              },
+              isOrganizer: false,
+              isPublished: true,
               isPublic: true,
+              conversationId: '456',
             },
-            isOrganizer: false,
-            isPublished: true,
-            isPublic: true,
-            conversationId: '456',
+          ],
+          pagination: {
+            nextCursor: null,
+            hasMore: false,
+            total: 1,
           },
-        ],
+        },
       });
     });
   });
@@ -103,9 +127,11 @@ test.describe('My Events Page', () => {
   test('should display all events with correct badges', async ({ page }) => {
     await page.goto('/profile/my-events');
 
-    // Check attending event in Upcoming tab (default)
+    // Switch to Invitations tab to see invited events
+    await page.getByRole('tab', { name: /invitations/i }).click();
+
+    // Check invited event
     await expect(page.getByText("Event I'm Attending")).toBeVisible();
-    await expect(page.getByText('Going')).toBeVisible();
 
     // Switch to Organizing tab to see organizer events
     await page.getByRole('tab', { name: /organizing/i }).click();
@@ -249,7 +275,7 @@ test.describe('My Events Page', () => {
   });
 
   test('should unpublish event when confirmed', async ({ page }) => {
-    await page.route(/.*\/api\/events\/\d+/, async (route) => {
+    await page.route(/.*\/api\/events\/\d+$/, async (route) => {
       if (route.request().method() === 'PATCH') {
         const postData = route.request().postData();
         const requestBody: unknown = postData ? JSON.parse(postData) : {};
@@ -284,8 +310,13 @@ test.describe('My Events Page', () => {
   test('should show Edit button only for organizer events', async ({ page }) => {
     await page.goto('/profile/my-events');
 
-    // First check attending event in Upcoming tab (should NOT have Edit button)
+    // Switch to Invitations tab to check invited event (should NOT have Edit button)
+    await page.getByRole('tab', { name: /invitations/i }).click();
     await expect(page.getByText("Event I'm Attending")).toBeVisible();
+
+    // Invited events should not have Edit buttons
+    const invitedEditButtons = page.getByRole('button', { name: /edit/i });
+    expect(await invitedEditButtons.count()).toBe(0);
 
     // Switch to Organizing tab to see organizer events
     await page.getByRole('tab', { name: /organizing/i }).click();
@@ -344,9 +375,23 @@ test.describe('My Events Page', () => {
   });
 
   test('should display empty state when no events', async ({ page }) => {
-    // Override the mock to return empty array
-    await page.route('**/api/users/me/events', async (route) => {
-      await route.fulfill({ json: [] });
+    // Override the mocks to return empty paginated responses
+    await page.route('**/api/users/me/events?*', async (route) => {
+      await route.fulfill({
+        json: {
+          data: [],
+          pagination: { nextCursor: null, hasMore: false, total: 0 },
+        },
+      });
+    });
+
+    await page.route('**/api/users/me/events/invited?*', async (route) => {
+      await route.fulfill({
+        json: {
+          data: [],
+          pagination: { nextCursor: null, hasMore: false, total: 0 },
+        },
+      });
     });
 
     await page.goto('/profile/my-events');
