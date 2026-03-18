@@ -12,14 +12,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Cache Turbo
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .turbo
           key: ${{ runner.os }}-turbo-${{ github.job }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-turbo-${{ github.job }}-
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: 'pnpm'
@@ -42,14 +42,14 @@ jobs:
         name: Check out code
 
       - name: Cache Turbo
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .turbo
           key: ${{ runner.os }}-turbo-${{ github.job }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-turbo-${{ github.job }}-
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: 'pnpm'
@@ -67,7 +67,7 @@ jobs:
         name: Check out code
 
       - name: Cache Turbo
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .turbo
           key: ${{ runner.os }}-turbo-${{ github.job }}-${{ github.sha }}
@@ -75,7 +75,7 @@ jobs:
             ${{ runner.os }}-turbo-${{ github.job }}-
 
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: 'pnpm'
@@ -99,14 +99,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Cache Playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('**/package.json') }}
           restore-keys: |
             ${{ runner.os }}-playwright-
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: 'pnpm'
@@ -123,7 +123,7 @@ jobs:
         run: make test-fe-e2e
 
       - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: playwright-report

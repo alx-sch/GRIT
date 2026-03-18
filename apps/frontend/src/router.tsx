@@ -15,12 +15,11 @@ import { Page as MyEventsPage, myEventsLoader } from '@/pages/my-events/Page';
 import { Page as ProfilePage, profileLoader } from '@/pages/profile/Page';
 import PublicProfilePage, { publicProfileLoader } from '@/pages/public-profile/Page';
 import { RegisterPage, registerPageAction, registerPageLoader } from '@/pages/register/Page';
-import Users, { usersLoader } from '@/pages/users/Page';
-import { useCurrentUserStore } from '@/store/currentUserStore';
 import type { NavRoute } from '@/types/navroute';
 import { createBrowserRouter, redirect } from 'react-router-dom';
 import EditEventPage, { editEventLoader } from './pages/events/EditEventPage';
 import FriendsPage, { friendsLoader } from './pages/my-friends/Page';
+import { useCurrentUserStore } from './store/currentUserStore';
 import { ToSPage } from './pages/legal/ToSPages';
 import { ImprintPage } from './pages/legal/ImprintPage';
 import { DataPrivacyPage } from './pages/legal/DataPrivacyPage';
@@ -28,11 +27,7 @@ import { DataPrivacyPage } from './pages/legal/DataPrivacyPage';
 export const useBaseNavConfig = (): NavRoute[] => {
   const user = useCurrentUserStore((s) => s.user);
 
-  // NOTE: let's define single source of truth for our routes here.
-  const baseNavConfig: NavRoute[] = [
-    { path: '/users', label: 'Users' },
-    { path: '/events', label: 'Events' },
-  ];
+  const baseNavConfig: NavRoute[] = [];
 
   // Only show admin tab if user is admin.
   if (user?.isAdmin) {
@@ -71,12 +66,6 @@ export const router = createBrowserRouter([
       {
         path: 'users',
         children: [
-          {
-            index: true,
-            Component: Users,
-            loader: usersLoader,
-            handle: { title: 'Users' },
-          },
           {
             path: ':id',
             Component: PublicProfilePage,

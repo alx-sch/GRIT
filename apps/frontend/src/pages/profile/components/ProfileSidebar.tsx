@@ -186,20 +186,30 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
           )}
         </div>
 
-        <div className="text-center space-y-1">
-          <Text className="text-xl font-semibold">{user.name ?? 'Anonymous'}</Text>
-          <Text className="text-sm text-muted-foreground">{user.email ?? ''}</Text>
+        <div className="text-center space-y-1 w-full overflow-hidden px-2">
+          <Text className="text-xl font-semibold truncate block" title={user.name ?? 'Anonymous'}>
+            {user.name ?? 'Anonymous'}
+          </Text>
+
+          <Text className="text-sm text-muted-foreground truncate block" title={user.email ?? ''}>
+            {user.email ?? ''}
+          </Text>
+
           {(user.city ?? user.country) && (
             <div className="flex items-center justify-center gap-1 text-muted-foreground">
-              <MapPin className="w-3 h-3" />
-              <Text className="text-sm">
+              <MapPin className="w-3 h-3 shrink-0" />
+              <Text
+                className="text-sm truncate"
+                title={[user.city, user.country].filter(Boolean).join(', ')}
+              >
                 {[user.city, user.country].filter(Boolean).join(', ')}
               </Text>
             </div>
           )}
+
           <div className="flex items-center justify-center gap-1 text-muted-foreground">
-            <Calendar className="w-3 h-3" />
-            <Text className="text-sm">Member since {formatDate(user.createdAt)}</Text>
+            <Calendar className="w-3 h-3 shrink-0" />
+            <Text className="text-sm truncate">Member since {formatDate(user.createdAt)}</Text>
           </div>
         </div>
       </div>

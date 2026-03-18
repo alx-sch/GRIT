@@ -1,5 +1,3 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,10 +9,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { adminService, AdminEvent } from '@/services/adminService';
-import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { formatEventDate } from '@/lib/time_utils';
+import { AdminEvent, adminService } from '@/services/adminService';
 import { Trash2 } from 'lucide-react';
-import { format } from 'date-fns';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface AdminEventsTableProps {
   initialEvents: AdminEvent[];
@@ -62,12 +62,12 @@ export function AdminEventsTable({ initialEvents }: AdminEventsTableProps) {
                   <div>
                     <p className="font-medium truncate">{event.title}</p>
                     <p className="text-xs text-muted-foreground sm:hidden">
-                      {format(new Date(event.startAt), 'MMM d')}
+                      {formatEventDate(event.startAt)}
                     </p>
                   </div>
                 </td>
                 <td className="px-2 sm:px-4 py-2 hidden sm:table-cell">
-                  {format(new Date(event.startAt), 'MMM d, yyyy')}
+                  {formatEventDate(event.startAt, 'shortWithYear')}
                 </td>
                 <td className="px-2 sm:px-4 py-2 hidden md:table-cell">
                   <span

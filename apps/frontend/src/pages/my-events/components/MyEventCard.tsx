@@ -19,6 +19,7 @@ import { Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getEventBadges } from '../utils/eventBadges';
 import { LocationButton } from './LocationButton';
+import { formatEventDate } from '@/lib/time_utils';
 
 type ResMyEvent = ResMyEvents[number];
 type ResMyInvitedEvent = ResMyInvitedEvents[number];
@@ -58,16 +59,6 @@ export function MyEventCard({
   const isDraft = event.isOrganizer && !isPublished;
 
   const badges = getEventBadges(event, isPublished, isPublic, !onEdit && !event.isOrganizer);
-
-  const formatEventDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString(undefined, {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-  };
 
   function isInvitedEvent(
     event: EventType
@@ -146,7 +137,7 @@ export function MyEventCard({
                 <Text className="font-semibold text-lg break-words mb-3">{event.title}</Text>
 
                 <Text className="text-sm text-muted-foreground mb-2 truncate">
-                  {formatEventDate(event.startAt)}
+                  {formatEventDate(event.startAt, 'dateTime')}
                 </Text>
 
                 <div className="min-w-0 overflow-hidden">

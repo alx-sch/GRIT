@@ -9,13 +9,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { BackButton } from '@/components/ui/backButton';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/emptyState';
 import { Input } from '@/components/ui/input';
 import { Heading, Text } from '@/components/ui/typography';
-import { BackButton } from '@/components/ui/backButton';
 import { UserCard } from '@/components/ui/userCard';
-import { EmptyState } from '@/components/ui/emptyState';
-import { useDebounce } from '@/hooks/useDebounce';
+import { useSearchParam } from '@/hooks/useSearchParam';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
 import { conversationService } from '@/services/conversationService';
 import { friendService } from '@/services/friendService';
@@ -29,17 +29,17 @@ import {
   ResUserPublic,
 } from '@grit/schema';
 import {
+  ArrowDownZA,
+  ArrowUpAZ,
   Check,
+  Eye,
   MessageCircleMore,
   UserPlus,
   UserX,
   X,
-  Eye,
-  ArrowUpAZ,
-  ArrowDownZA,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate, useRevalidator, Link } from 'react-router-dom';
+import { Link, useNavigate, useRevalidator } from 'react-router-dom';
 import { toast } from 'sonner';
 
 interface FriendsLoaderData {
@@ -78,6 +78,8 @@ export const friendsLoader = async (): Promise<FriendsLoaderData> => {
 export default function FriendsPage() {
   const friends = useTypedLoaderData<FriendsLoaderData>();
   const { revalidate } = useRevalidator();
+
+  const [searchInput, setSearchInput, debouncedSearch] = useSearchParam('search');
 
   //Refetch every 30s to get updated list
   useEffect(() => {
@@ -163,6 +165,9 @@ export default function FriendsPage() {
         <Heading>My Friends</Heading>
       </div>
       <FriendSearch
+        searchInput={searchInput}
+        setSearchInput={setSearchInput}
+        debouncedSearch={debouncedSearch}
         friendIds={friendIds}
         outgoingIds={outgoingIds}
         incomingIds={incomingIds}
@@ -182,29 +187,42 @@ export default function FriendsPage() {
 //Sub-components
 
 interface FriendSearchProps {
+  searchInput: string;
+  setSearchInput: (v: string) => void;
+  debouncedSearch: string;
   friendIds: Set<number>;
   outgoingIds: Set<number>;
   incomingIds: Set<number>;
   onSendRequest: (userId: number) => Promise<void>;
 }
 
-function FriendSearch({ friendIds, outgoingIds, incomingIds, onSendRequest }: FriendSearchProps) {
+function FriendSearch({
+  searchInput,
+  setSearchInput,
+  debouncedSearch,
+  friendIds,
+  outgoingIds,
+  incomingIds,
+  onSendRequest,
+}: FriendSearchProps) {
   const [users, setUsers] = useState<ResUserPublic[]>([]);
-  const [searchInput, setSearchInput] = useState('');
   const [fetchedFor, setFetchedFor] = useState<string | null>(null);
-  const debouncedSearch = useDebounce(searchInput, 500);
-  const searchDone =
-    !!debouncedSearch && fetchedFor === debouncedSearch && debouncedSearch === searchInput;
   const currentUser = useCurrentUserStore((s) => s.user);
 
   useEffect(() => {
-    if (!debouncedSearch) return;
+    if (!debouncedSearch) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setUsers([]);
+      return;
+    }
     void userService.getUsers({ search: debouncedSearch, limit: '50' }).then((res) => {
       setUsers(res.data);
       setFetchedFor(debouncedSearch);
     });
   }, [debouncedSearch]);
 
+  const searchDone =
+    !!debouncedSearch && fetchedFor === debouncedSearch && debouncedSearch === searchInput;
   const filteredUsers = users.filter((u) => u.id !== currentUser?.id && !friendIds.has(u.id));
 
   return (
