@@ -34,6 +34,7 @@ import {
   ResUserDeleteSchema,
   ResUserPatchSchema,
   ReqUserEventsGetAllDto,
+  ResUserEventsDto,
 } from '@/user/user.schema';
 import { UserService } from '@/user/user.service';
 import { ResUserGetAllSchema, ResUserAdminGetAllSchema } from '@grit/schema';
@@ -222,6 +223,7 @@ export class UserController {
 
   @Get(':id/events')
   @UseGuards(JwtAuthOptionalGuard)
+  @ZodSerializerDto(ResUserEventsDto)
   async getUserEvents(@Param('id') id: string, @GetUser('id') requestingUserId?: number) {
     const userId = parseInt(id, 10);
     if (isNaN(userId)) {

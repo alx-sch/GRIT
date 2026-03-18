@@ -872,6 +872,7 @@ export class UserService {
       startAt: event.startAt.toISOString(),
       imageKey: event.imageKey,
       location: event.location,
+      isOrganizer: true,
     }));
   }
 }

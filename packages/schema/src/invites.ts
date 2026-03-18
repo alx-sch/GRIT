@@ -57,5 +57,11 @@ export const ResInviteSchema = z.strictObject({
 export type ResInvite = z.infer<typeof ResInviteSchema>;
 
 // List event invites
-export const ResListInvitesSchema = z.array(ResInviteSchema);
+export const ResListInvitesSchema = z.object({
+  data: z.array(ResInviteSchema),
+  pagination: z.object({
+    nextCursor: z.string().nullable(),
+    hasMore: z.boolean(),
+  }),
+});
 export type ResListInvites = z.infer<typeof ResListInvitesSchema>;
