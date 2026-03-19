@@ -192,21 +192,28 @@ export const EventPage = () => {
 
             {/* Host */}
             <div className="flex flex-col gap-2 order-3 md:order-2 items-start">
-              <HomeIcon className="h-6 w-6 text-primary md:hidden flex-shrink-0" />
+              {/* Desktop-only Heading */}
               <Heading level={4} className="uppercase hidden md:block">
                 Host
               </Heading>
-              {event.author && (
-                <Link
-                  to={`/users/${event.author.id}`}
-                  className="group min-w-0 max-w-full flex items-center gap-1.5 text-left cursor-pointer"
-                >
-                  <Text className="text-lg truncate md:underline decoration-dashed underline-offset-4 group-hover:decoration-solid transition-all">
-                    {event.author.name}
-                  </Text>
-                </Link>
-              )}
-              {!event.author && <Text className="text-lg">Unknown</Text>}
+
+              {/* Icon and Name wrapper */}
+              <div className="flex flex-row items-center md:items-start gap-2">
+                <HomeIcon className="h-6 w-6 text-primary md:hidden flex-shrink-0" />
+
+                {event.author ? (
+                  <Link
+                    to={`/users/${event.author.id}`}
+                    className="group min-w-0 max-w-full flex items-center gap-1.5 text-left cursor-pointer"
+                  >
+                    <Text className="text-lg truncate md:underline decoration-dashed underline-offset-4 group-hover:decoration-solid transition-all">
+                      {event.author.name}
+                    </Text>
+                  </Link>
+                ) : (
+                  <Text className="text-lg">Unknown</Text>
+                )}
+              </div>
             </div>
 
             {/* Going */}
