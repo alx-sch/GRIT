@@ -113,13 +113,13 @@ export const userService = {
     await api.delete('users/me');
   },
 
-  getUserById: async (id: number) => {
-    const response = await api.get(`/users/${id}`);
+  getUserByName: async (username: string) => {
+    const response = await api.get(`/users/${username}`);
     return ResUserPublicSchema.parse(response.data);
   },
 
-  getUserEvents: async (id: number) => {
-    const response = await api.get(`/users/${id}/events`);
+  getUserEventsByName: async (username: string) => {
+    const response = await api.get(`/users/${username}/events`);
     return ResUserPublicEventsSchema.parse(response.data);
   },
 

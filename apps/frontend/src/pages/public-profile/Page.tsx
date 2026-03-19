@@ -35,17 +35,17 @@ const fetchAllRequests = async <T,>(
 };
 
 export const publicProfileLoader = async ({ params }: LoaderFunctionArgs) => {
-  const id = parseInt(params.id ?? '', 10);
-  if (isNaN(id)) {
+  const username = params.username ?? '';
+  if (!username) {
     throw new Response('User not found', { status: 404 });
   }
 
-  const user = await userService.getUserById(id);
+  const user = await userService.getUserByName(username);
 
   // Only fetch events if profile is public (or the field is not set, for backwards compatibility)
   let events: ResUserPublicEvents = [];
   if (user.isProfilePublic !== false) {
-    events = await userService.getUserEvents(id);
+    events = await userService.getUserEventsByName(username);
   }
 
   // Only fetch friendship status if user is logged in
@@ -54,13 +54,13 @@ export const publicProfileLoader = async ({ params }: LoaderFunctionArgs) => {
   const token = useAuthStore.getState().token;
   if (token) {
     try {
-      const status = await userService.getFriendshipStatus(id);
+      const status = await userService.getFriendshipStatus(user.id);
       friendshipStatus = status;
 
       // If there's a pending received request, fetch the request details to get the ID
       if (status === 'pending_received') {
         const incomingRequests = await fetchAllRequests(friendService.listIncomingRequests);
-        const request = incomingRequests.find((req) => req.requesterId === id);
+        const request = incomingRequests.find((req) => req.requesterId === user.id);
         if (request) {
           friendRequestId = request.id;
         }
@@ -69,7 +69,7 @@ export const publicProfileLoader = async ({ params }: LoaderFunctionArgs) => {
       // If there's a pending sent request, fetch the request details to get the ID
       if (status === 'pending_sent') {
         const outgoingRequests = await fetchAllRequests(friendService.listOutgoingRequests);
-        const request = outgoingRequests.find((req) => req.receiverId === id);
+        const request = outgoingRequests.find((req) => req.receiverId === user.id);
         if (request) {
           friendRequestId = request.id;
         }

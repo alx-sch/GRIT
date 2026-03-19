@@ -67,7 +67,7 @@ export const router = createBrowserRouter([
         path: 'users',
         children: [
           {
-            path: ':id',
+            path: ':username',
             Component: PublicProfilePage,
             loader: publicProfileLoader,
             handle: { title: 'Profile' },
