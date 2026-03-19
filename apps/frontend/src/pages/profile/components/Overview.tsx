@@ -18,7 +18,7 @@ export function Overview({ user }: OverviewProps) {
     const loadFriends = async () => {
       try {
         const response = await friendService.listFriends();
-        setFriendsCount(response.data.length);
+        setFriendsCount(response.pagination.total ?? 0);
       } catch {
         setFriendsCount(0);
       } finally {
