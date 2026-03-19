@@ -96,8 +96,15 @@ export const ResUserPublicEventSchema = z.object({
   imageKey: z.string().nullable().optional(),
   location: ResEventLocationSchema.nullable().optional(),
 });
+export type ResUserPublicEvent = z.infer<typeof ResUserPublicEventSchema>;
 export const ResUserPublicEventsSchema = z.array(ResUserPublicEventSchema);
 export type ResUserPublicEvents = z.infer<typeof ResUserPublicEventsSchema>;
+
+export const ResUserPublicEventsPaginatedSchema = z.object({
+  data: ResUserPublicEventsSchema,
+  pagination: z.object({ nextCursor: z.string().nullable(), hasMore: z.boolean() }),
+});
+export type ResUserPublicEventsPaginated = z.infer<typeof ResUserPublicEventsPaginatedSchema>;
 
 export const FriendshipStatusSchema = z.enum([
   'none',
