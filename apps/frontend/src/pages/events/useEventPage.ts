@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import { useLoaderData, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import type { eventLoader } from './EventPage';
+import type { ResFriendBase } from '@grit/schema';
 
 export const useEventPage = () => {
   const event = useLoaderData<typeof eventLoader>();
@@ -54,7 +55,7 @@ export const useEventPage = () => {
 
   const imageFiles = event.files.filter((f) => f.mimeType.startsWith('image/'));
   const otherFiles = event.files.filter((f) => !f.mimeType.startsWith('image/'));
-  const [friends, setFriends] = useState<{ id: number; name: string; avatarKey?: string }[]>([]);
+  const [invitableFriends, setInvitableFriends] = useState<ResFriendBase[]>([]);
 
   const handlePrev = () => {
     setSelectedImageIndex((i) => {
@@ -208,43 +209,35 @@ export const useEventPage = () => {
     return success;
   };
 
-  // Fetch ALL friends with pagination
+  // Fetch all friends at once (load all pages)
   useEffect(() => {
     const fetchAllFriends = async () => {
+      if (!currentUser) return;
+
       try {
-        let allFriends: { id: number; name: string; avatarKey?: string }[] = [];
+        const allFriends: ResFriendBase[] = [];
         let cursor: string | null = null;
         let hasMore = true;
 
-        // Keep fetching until we have all friends
+        // Paginate through all friends
         while (hasMore) {
           const response = await friendService.listFriends({
             limit: '50',
-            cursor: cursor ?? undefined,
+            ...(cursor && { cursor }),
           });
-
-          // Map the response to extract just the friend data
-          const friendsList = response.data.map((friendship) => ({
-            id: friendship.friend.id,
-            name: friendship.friend.name,
-            avatarKey: friendship.friend.avatarKey ?? undefined,
-          }));
-
-          allFriends = [...allFriends, ...friendsList];
-
-          hasMore = response.pagination.hasMore;
+          allFriends.push(...response.data);
           cursor = response.pagination.nextCursor;
+          hasMore = response.pagination.hasMore;
         }
 
-        setFriends(allFriends);
+        setInvitableFriends(allFriends);
       } catch (error) {
         console.error('Failed to fetch friends', error);
+        toast.error('Failed to load friends');
       }
     };
 
-    if (currentUser) {
-      void fetchAllFriends();
-    }
+    void fetchAllFriends();
   }, [currentUser?.id]);
 
   // Fetch which friends have already been invited to this event
@@ -344,6 +337,6 @@ export const useEventPage = () => {
     shareText,
     shareUrl,
     copied,
-    invitableFriends: friends,
+    invitableFriends,
   };
 };
