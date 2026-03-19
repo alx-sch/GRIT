@@ -4,7 +4,6 @@ import { ConversationType } from '@prisma/client';
 import { ForbiddenException } from '@nestjs/common';
 import { ReqConversationCreate } from '@grit/schema';
 import { ChatGateway } from '@/chat/chat.gateway';
-import { conversationCursorFilter, conversationEncodeCursor } from './conversation.utils';
 
 @Injectable()
 export class ConversationService {
@@ -75,9 +74,6 @@ export class ConversationService {
   // async conversationGetOrCreateForGroup(groupIds: number[], userId: number) {}
 
   async conversationGetMany(userId: number, input?: { limit?: number; cursor?: string }) {
-    const limit = input?.limit ?? 20;
-    const cursorFilter = conversationCursorFilter(input ?? {});
-
     const conversations = await this.prisma.conversation.findMany({
       where: {
         participants: {
@@ -93,7 +89,6 @@ export class ConversationService {
             },
           },
         ],
-        ...cursorFilter,
       },
       select: {
         id: true,
@@ -124,23 +119,7 @@ export class ConversationService {
       orderBy: {
         updatedAt: 'desc',
       },
-      take: limit + 1,
     });
-
-    const hasMore = conversations.length > limit;
-    const slicedData = hasMore ? conversations.slice(0, limit) : conversations;
-
-    return {
-      data: slicedData,
-      pagination: {
-        nextCursor: hasMore
-          ? conversationEncodeCursor(
-              slicedData[slicedData.length - 1].updatedAt,
-              slicedData[slicedData.length - 1].id
-            )
-          : null,
-        hasMore,
-      },
-    };
+    return conversations;
   }
 }

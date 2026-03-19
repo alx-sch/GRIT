@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { ConversationService } from './conversation.service';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
@@ -22,14 +22,7 @@ export class ConversationController {
   @Get()
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  conversationGetMany(
-    @GetUser('id') userId: number,
-    @Query('limit') limit?: string,
-    @Query('cursor') cursor?: string
-  ) {
-    return this.conversationService.conversationGetMany(userId, {
-      limit: limit ? parseInt(limit, 10) : undefined,
-      cursor,
-    });
+  conversationGetMany(@GetUser('id') userId: number) {
+    return this.conversationService.conversationGetMany(userId);
   }
 }
