@@ -27,9 +27,6 @@ type ResMyInvitedEvent = ResMyInvitedEvents[number];
 
 const PAGE_SIZE = '20';
 
-type ApiSort = 'asc' | 'desc';
-const sortToApi = (mode: SortMode): ApiSort => (mode === 'furthest' ? 'desc' : 'asc');
-
 interface MyEventsLoaderData {
   upcoming: ResMyEventsPaginated;
   past: ResMyEventsPaginated;
@@ -67,9 +64,8 @@ export function Page() {
         tab: 'upcoming',
         limit: PAGE_SIZE,
         cursor,
-        sort: sortToApi(sortMode),
       }),
-    [activeTab, sortMode],
+    [activeTab],
     () => toast.error('Failed to load more upcoming events')
   );
 
@@ -80,9 +76,8 @@ export function Page() {
   } = useInfiniteScroll<ResMyEvent>(
     loaderData.past.data,
     loaderData.past.pagination,
-    async (cursor) =>
-      userService.getMyEvents({ tab: 'past', limit: PAGE_SIZE, cursor, sort: sortToApi(sortMode) }),
-    [activeTab, sortMode],
+    async (cursor) => userService.getMyEvents({ tab: 'past', limit: PAGE_SIZE, cursor }),
+    [activeTab],
     () => toast.error('Failed to load more past events')
   );
 
@@ -98,9 +93,8 @@ export function Page() {
         tab: 'organizing',
         limit: PAGE_SIZE,
         cursor,
-        sort: sortToApi(sortMode),
       }),
-    [activeTab, sortMode],
+    [activeTab],
     () => toast.error('Failed to load more organizing events')
   );
 
@@ -111,9 +105,8 @@ export function Page() {
   } = useInfiniteScroll<ResMyInvitedEvent>(
     loaderData.invited.data,
     loaderData.invited.pagination,
-    async (cursor) =>
-      userService.getMyInvitedEvents({ limit: PAGE_SIZE, cursor, sort: sortToApi(sortMode) }),
-    [activeTab, sortMode],
+    async (cursor) => userService.getMyInvitedEvents({ limit: PAGE_SIZE, cursor }),
+    [activeTab],
     () => toast.error('Failed to load more invitations')
   );
 

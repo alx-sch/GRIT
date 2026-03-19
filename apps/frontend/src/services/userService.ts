@@ -39,25 +39,18 @@ export const userService = {
     tab: Exclude<MyEventsTab, 'invited'>;
     limit?: string;
     cursor?: string;
-    sort?: 'asc' | 'desc';
   }) => {
     const query = new URLSearchParams({ tab: params.tab });
     if (params.limit) query.set('limit', params.limit);
     if (params.cursor) query.set('cursor', params.cursor);
-    if (params.sort) query.set('sort', params.sort);
     const response = await api.get(`users/me/events?${query.toString()}`);
     return ResMyEventsPaginatedSchema.parse(response.data);
   },
 
-  getMyInvitedEvents: async (params?: {
-    limit?: string;
-    cursor?: string;
-    sort?: 'asc' | 'desc';
-  }) => {
+  getMyInvitedEvents: async (params?: { limit?: string; cursor?: string }) => {
     const query = new URLSearchParams({ tab: 'invited' });
     if (params?.limit) query.set('limit', params.limit);
     if (params?.cursor) query.set('cursor', params.cursor);
-    if (params?.sort) query.set('sort', params.sort);
     const response = await api.get(`users/me/events?${query.toString()}`);
     return ResMyInvitedEventsPaginatedSchema.parse(response.data);
   },

@@ -106,7 +106,6 @@ export const ReqMyEventsSchema = z.strictObject({
   tab: MyEventsTabSchema,
   limit: z.coerce.number().int().positive().max(100).default(20),
   cursor: z.string().optional(),
-  sort: z.enum(['asc', 'desc']).default('asc'),
 });
 
 // --- DTO classes ---

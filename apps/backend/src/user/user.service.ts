@@ -590,20 +590,13 @@ export class UserService {
     };
   }
 
-  async userGetMyEvents(
-    userId: number,
-    tab: MyEventsTab,
-    limit = 20,
-    cursor?: string,
-    sort: 'asc' | 'desc' = 'asc'
-  ) {
+  async userGetMyEvents(userId: number, tab: MyEventsTab, limit = 20, cursor?: string) {
     const now = new Date();
     const isPast = tab === 'past';
-    const sortDir = isPast ? 'desc' : sort;
     const cursorFilter = cursor
-      ? sortDir === 'asc'
-        ? userEventCursorAsc(cursor)
-        : userEventCursorDesc(cursor)
+      ? isPast
+        ? userEventCursorDesc(cursor)
+        : userEventCursorAsc(cursor)
       : {};
 
     const baseInclude = {
@@ -639,10 +632,9 @@ export class UserService {
       ? { AND: [tabFilter, cursorFilter] }
       : tabFilter;
 
-    const orderBy: Prisma.EventOrderByWithRelationInput[] = [
-      { startAt: sortDir },
-      { id: sortDir === 'asc' ? 'asc' : 'desc' },
-    ];
+    const orderBy: Prisma.EventOrderByWithRelationInput[] = isPast
+      ? [{ startAt: 'desc' }, { id: 'desc' }]
+      : [{ startAt: 'asc' }, { id: 'asc' }];
 
     if (tab === 'invited') {
       const [events, total] = await this.prisma.$transaction([

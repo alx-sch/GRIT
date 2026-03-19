@@ -85,13 +85,7 @@ export class UserController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   async getMyEvents(@GetUser('id') userId: number, @Query() query: ReqMyEventsDto) {
-    return await this.userService.userGetMyEvents(
-      userId,
-      query.tab,
-      query.limit,
-      query.cursor,
-      query.sort
-    );
+    return await this.userService.userGetMyEvents(userId, query.tab, query.limit, query.cursor);
   }
 
   // Delete logged in user
