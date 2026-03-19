@@ -8,18 +8,20 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/typography';
+import { UserAvatar } from '@/components/ui/user-avatar';
 import { FaFacebook, FaTelegram, FaWhatsapp, FaXTwitter } from 'react-icons/fa6';
 import { QRCodeSVG } from 'qrcode.react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
+import type { ResFriendBase } from '@grit/schema';
 
 interface EventPageActionsProps {
   isAttending: boolean | null;
   isLoading: boolean;
   shareOpen: boolean;
   inviteOpen: boolean;
-  invitableFriends: { id: number; name: string; avatarKey?: string }[];
+  invitableFriends: ResFriendBase[];
   sentInvites: Set<number>;
   invitingIds: Set<number>;
   eventAttendees?: { id: number }[];
@@ -69,9 +71,14 @@ export const EventPageActions = ({
 }: EventPageActionsProps) => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredFriends = invitableFriends.filter((friend) =>
-    friend.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Only filter when there's a search query, otherwise show all loaded friends
+  const friendsToShow = searchQuery
+    ? invitableFriends.filter((friendship) =>
+        friendship.friend.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : invitableFriends;
+
+  const isSearching = searchQuery.trim().length > 0;
 
   // For each friend, determine their status
   const getFriendStatus = (friendId: number) => {
@@ -158,7 +165,7 @@ export const EventPageActions = ({
               level="H" // High error correction allows for a logo in the center
               marginSize={4}
               imageSettings={{
-                src: '/GRIT-logo.png', // USE REAL LOGO, fine to be just 400 x 400 px
+                src: '/favicon-32x32.png',
                 x: undefined,
                 y: undefined,
                 height: 40,
@@ -221,8 +228,8 @@ export const EventPageActions = ({
       </Dialog>
       {/* INVITE DIALOG */}
       <Dialog open={inviteOpen} onOpenChange={onInviteOpenChange}>
-        <DialogContent className="max-w-sm flex flex-col gap-4 p-4 max-h-[90vh]">
-          <DialogHeader>
+        <DialogContent className="max-w-sm flex flex-col p-4 max-h-[90vh]">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle className="text-[12px] uppercase tracking-[0.3em] opacity-50 font-sans font-bold">
               Invite friends
             </DialogTitle>
@@ -237,31 +244,34 @@ export const EventPageActions = ({
             onChange={(e) => {
               setSearchQuery(e.target.value);
             }}
-            className="text-sm"
+            className="text-sm flex-shrink-0"
           />
 
-          <div className="flex-1 overflow-y-auto flex flex-col gap-2">
-            {filteredFriends.length === 0 ? (
-              <div className="text-center py-8 text-sm opacity-50">No friends</div>
+          <div className="flex-1 overflow-y-auto flex flex-col gap-2 min-h-0">
+            {friendsToShow.length === 0 ? (
+              <div className="text-center py-8 text-sm opacity-50">
+                {isSearching ? 'No friends match your search' : 'No friends'}
+              </div>
             ) : (
-              filteredFriends.map((friend) => {
-                const status = getFriendStatus(friend.id);
+              friendsToShow.map((friendship) => {
+                const status = getFriendStatus(friendship.friend.id);
                 const isDisabled = status !== 'NOT_INVITED';
 
                 return (
                   <div
-                    key={friend.id}
+                    key={friendship.id}
                     className={cn(
-                      'flex items-center justify-between p-3 rounded border border-border hover:bg-accent transition-colors',
+                      'flex items-center gap-3 p-3 rounded border border-border hover:bg-accent transition-colors',
                       isDisabled && 'opacity-60 bg-muted'
                     )}
                   >
-                    <Text className="font-medium">{friend.name}</Text>
+                    <UserAvatar user={friendship.friend} size="sm" />
+                    <Text className="font-medium flex-1">{friendship.friend.name}</Text>
                     <Button
                       size="sm"
                       disabled={isDisabled}
                       variant={isDisabled ? 'outline' : 'default'}
-                      onClick={() => void onInviteFriend(friend.id)}
+                      onClick={() => void onInviteFriend(friendship.friend.id)}
                     >
                       {status === 'ATTENDING' && 'Already Going ✓'}
                       {status === 'INVITED' && 'Invited ✓'}

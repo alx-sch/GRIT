@@ -171,7 +171,7 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
                 void handleRandomAvatar();
               }}
               className={cn(
-                'absolute bottom-0 right-0 w-7 h-7 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center border-2 border-background transition-all',
+                'absolute -bottom-1 -right-3 md:bottom-0 md:right-0 w-12 h-12 md:w-8 md:h-8 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center border-2 border-background transition-all',
                 isAvatarTransitioning ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary/90'
               )}
               title="Generate random avatar"

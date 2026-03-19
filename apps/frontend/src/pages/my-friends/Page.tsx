@@ -17,6 +17,7 @@ import { Heading, Text } from '@/components/ui/typography';
 import { UserCard } from '@/components/ui/userCard';
 import { useSearchParam } from '@/hooks/useSearchParam';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
+import { useInfiniteScroll, Pagination } from '@/hooks/useInfiniteScroll';
 import { conversationService } from '@/services/conversationService';
 import { friendService } from '@/services/friendService';
 import { userService } from '@/services/userService';
@@ -46,33 +47,43 @@ interface FriendsLoaderData {
   pendingIncoming: FriendRequestResponse;
   pendingOutgoing: FriendRequestResponse;
   friendsList: ResFriendBase[];
+  friendsPagination: Pagination;
+  totalFriends: number;
+  allFriendIds: number[];
 }
 
-const PAGE_SIZE = '100';
+const PAGE_SIZE = '20';
 
-// Helper function to fetch all friends recursively
-async function fetchAllFriends(): Promise<ResFriendBase[]> {
-  const allFriends: ResFriendBase[] = [];
+async function fetchAllFriends(): Promise<number[]> {
+  const allFriendIds: number[] = [];
   let cursor: string | undefined;
   let hasMore = true;
 
   while (hasMore) {
-    const result = await friendService.listFriends({ limit: PAGE_SIZE, cursor });
-    allFriends.push(...result.data);
+    const result = await friendService.listFriends({ limit: '100', cursor });
+    allFriendIds.push(...result.data.map((f) => f.friendId));
     hasMore = result.pagination.hasMore;
     cursor = result.pagination.nextCursor ?? undefined;
   }
 
-  return allFriends;
+  return allFriendIds;
 }
 
 export const friendsLoader = async (): Promise<FriendsLoaderData> => {
-  const [pendingIncoming, pendingOutgoing, friendsList] = await Promise.all([
-    friendService.listIncomingRequests({ limit: PAGE_SIZE }),
-    friendService.listOutgoingRequests({ limit: PAGE_SIZE }),
+  const [pendingIncoming, pendingOutgoing, friendsResponse, allFriendIds] = await Promise.all([
+    friendService.listIncomingRequests({ limit: '50' }),
+    friendService.listOutgoingRequests({ limit: '50' }),
+    friendService.listFriends({ limit: PAGE_SIZE }),
     fetchAllFriends(),
   ]);
-  return { pendingIncoming, pendingOutgoing, friendsList };
+  return {
+    pendingIncoming,
+    pendingOutgoing,
+    friendsList: friendsResponse.data,
+    friendsPagination: friendsResponse.pagination,
+    totalFriends: friendsResponse.pagination.total ?? 0,
+    allFriendIds,
+  };
 };
 
 export default function FriendsPage() {
@@ -90,7 +101,7 @@ export default function FriendsPage() {
   }, []);
 
   //Cross-reference users to determine User Card actions
-  const friendIds = new Set(friends.friendsList.map((f) => f.friendId));
+  const friendIds = new Set(friends.allFriendIds);
   const outgoingIds = new Set(friends.pendingOutgoing.data.map((r) => r.receiverId));
   const incomingIds = new Set(friends.pendingIncoming.data.map((r) => r.requesterId));
 
@@ -179,7 +190,13 @@ export default function FriendsPage() {
         onDecline={decline}
       />
       <OutgoingSection requests={friends.pendingOutgoing.data} onCancel={cancel} />
-      <FriendsSection friends={friends.friendsList} onChat={startChat} onRemove={remove} />
+      <FriendsSection
+        initialFriends={friends.friendsList}
+        initialPagination={friends.friendsPagination}
+        totalFriends={friends.totalFriends}
+        onChat={startChat}
+        onRemove={remove}
+      />
     </div>
   );
 }
@@ -365,13 +382,39 @@ function OutgoingSection({ requests, onCancel }: OutgoingSectionProps) {
 }
 
 interface FriendsSectionProps {
-  friends: ResFriendBase[];
+  initialFriends: ResFriendBase[];
+  initialPagination: Pagination;
+  totalFriends: number;
   onChat: (friendUserId: number) => Promise<void>;
   onRemove: (friendId: number) => Promise<void>;
 }
 
-function FriendsSection({ friends, onChat, onRemove }: FriendsSectionProps) {
+function FriendsSection({
+  initialFriends,
+  initialPagination,
+  totalFriends,
+  onChat,
+  onRemove,
+}: FriendsSectionProps) {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+  const {
+    items: friends,
+    sentinelRef,
+    isLoading,
+  } = useInfiniteScroll<ResFriendBase>(
+    initialFriends,
+    initialPagination,
+    async (cursor) => {
+      const response = await friendService.listFriends({ limit: PAGE_SIZE, cursor });
+      return response;
+    },
+    [],
+    (error) => {
+      console.error('Failed to load more friends', error);
+      toast.error('Failed to load more friends');
+    }
+  );
 
   if (friends.length === 0) {
     return (
@@ -400,7 +443,7 @@ function FriendsSection({ friends, onChat, onRemove }: FriendsSectionProps) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <Heading level={3}>All Friends ({friends.length})</Heading>
+        <Heading level={3}>All Friends ({totalFriends})</Heading>
         <Button
           variant="outline"
           size="sm"
@@ -469,6 +512,9 @@ function FriendsSection({ friends, onChat, onRemove }: FriendsSectionProps) {
           />
         ))}
       </UserGrid>
+      {/* Sentinel for infinite scroll */}
+      <div ref={sentinelRef} className="h-4" />
+      {isLoading && <Text className="text-center text-muted-foreground">Loading more...</Text>}
     </div>
   );
 }

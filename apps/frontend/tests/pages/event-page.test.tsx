@@ -119,8 +119,14 @@ describe('EventPage', () => {
     vi.clearAllMocks();
     vi.mocked(eventService.getEvent).mockResolvedValue(mockEvent as never);
     vi.mocked(userService.getMyInvitedEvents).mockResolvedValue([] as never);
-    vi.mocked(friendService.listFriends).mockResolvedValue({ data: [] } as never);
-    vi.mocked(inviteService.listOutgoingInvites).mockResolvedValue([] as never);
+    vi.mocked(friendService.listFriends).mockResolvedValue({
+      data: [],
+      pagination: { hasMore: false, nextCursor: null },
+    } as never);
+    vi.mocked(inviteService.listOutgoingInvites).mockResolvedValue({
+      data: [],
+      pagination: { hasMore: false, nextCursor: null },
+    } as never);
     mockCurrentUserStore.useCurrentUserStore.mockImplementation(
       (selector: (s: object) => unknown) => selector({ user: null })
     );

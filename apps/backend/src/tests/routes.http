@@ -39,8 +39,8 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-	"email": "cindy@example.com",
-	"password": "0123456789"
+	"email": "alice@example.com",
+	"password": "password123"
 }
 ###
 
@@ -197,7 +197,7 @@ Authorization: Bearer {{token}}
 content-type: application/json
 
 {
-	"receiverId": 2
+	"receiverId": 6
 
 }
 ###

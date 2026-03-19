@@ -58,3 +58,69 @@ export function friendsCursorFilter(input: ReqFriendsGetAllDto) {
 
   return cursorFilter;
 }
+
+/**
+ * ==================================================
+ * CURSOR ENCODING / DECODING FOR ALPHABETICAL SORTING
+ * ==================================================
+ *
+ * Encodes: name|id
+ * Example: "Alice|550e8400-e29b-41d4-a716-446655440000"
+ */
+
+export function friendNameEncodeCursor(name: string, id: string) {
+  const str = `${name}|${id}`;
+  return Buffer.from(str).toString('base64');
+}
+
+export function friendNameDecodeCursor(cursor: string): { name: string; id: string } {
+  const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
+
+  // Find the last pipe in case a user's name somehow contains a pipe
+  const lastPipeIndex = decoded.lastIndexOf('|');
+  if (lastPipeIndex === -1) {
+    throw new Error('Invalid cursor format');
+  }
+
+  const name = decoded.substring(0, lastPipeIndex);
+  const id = decoded.substring(lastPipeIndex + 1);
+  return { name, id };
+}
+
+/**
+ * Constructs a Prisma-compatible filter for alphabetical cursor-based pagination.
+ *
+ * Sorts friends by:
+ * 1. friend.name ascending (A to Z)
+ * 2. id ascending as a tie-breaker
+ */
+export function friendNameCursorFilter(input: ReqFriendsGetAllDto) {
+  const { cursor } = input;
+  let cursorFilter = {};
+
+  if (cursor) {
+    try {
+      const { name, id } = friendNameDecodeCursor(cursor);
+
+      if (!name || typeof name !== 'string') {
+        throw new Error('Invalid cursor: name must be a valid string');
+      }
+      if (!id || typeof id !== 'string') {
+        throw new Error('Invalid cursor: id must be a string');
+      }
+
+      cursorFilter = {
+        OR: [
+          // Name is alphabetically greater (comes after)
+          { friend: { name: { gt: name } } },
+          // Name is identical, break tie with ID
+          { friend: { name }, id: { gt: id } },
+        ],
+      };
+    } catch {
+      throw new BadRequestException('Invalid cursor provided');
+    }
+  }
+
+  return cursorFilter;
+}

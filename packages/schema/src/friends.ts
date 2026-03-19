@@ -71,6 +71,7 @@ export const ResListFriendSchema = z.strictObject({
   pagination: z.object({
     nextCursor: z.string().nullable(),
     hasMore: z.boolean(),
+    total: z.number().optional(),
   }),
 });
 

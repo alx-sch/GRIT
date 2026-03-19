@@ -78,30 +78,31 @@ model EventFile {
 
 model Event {
   // Primary key
-  id           Int             @id @default(autoincrement())
+  id            Int             @id @default(autoincrement())
   // Core data
-  content      String?
-  endAt        DateTime
-  imageKey     String?
-  startAt      DateTime
-  title        String
-  slug         String          @unique
-  files        EventFile[]
+  content       String?
+  endAt         DateTime
+  imageKey      String?
+  startAt       DateTime
+  title         String
+  slug          String          @unique
+  files         EventFile[]
+  attendeeCount Int             @default(0)
   // Status flags
-  isPublished  Boolean         @default(false)
-  isPublic     Boolean         @default(true)
+  isPublished   Boolean         @default(false)
+  isPublic      Boolean         @default(true)
   // Foreign keys
-  authorId     Int?
-  locationId   Int?
+  authorId      Int?
+  locationId    Int?
   // Relations
-  author       User?           @relation("EventAuthor", fields: [authorId], references: [id], onDelete: SetNull) // If author is deleted, event shows authorId NULL
-  location     Location?       @relation(fields: [locationId], references: [id], onDelete: SetNull) // // If location is deleted, location shows locationId NULL
-  conversation Conversation?
-  attendees    EventAttendee[]
+  author        User?           @relation("EventAuthor", fields: [authorId], references: [id], onDelete: SetNull) // If author is deleted, event shows authorId NULL
+  location      Location?       @relation(fields: [locationId], references: [id], onDelete: SetNull) // // If location is deleted, location shows locationId NULL
+  conversation  Conversation?
+  attendees     EventAttendee[]
   // Time Stamps
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-  invites      EventInvite[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  invites       EventInvite[]
 }
 
 enum ConversationType {

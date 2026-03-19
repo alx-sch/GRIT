@@ -113,7 +113,7 @@ export class EventService {
       'date-dsc': [{ startAt: 'desc' }, { id: 'desc' }],
       'alpha-asc': [{ title: 'asc' }, { startAt: 'asc' }, { id: 'asc' }],
       'alpha-dsc': [{ title: 'desc' }, { startAt: 'asc' }, { id: 'asc' }],
-      popularity: [{ attendees: { _count: 'desc' } }, { startAt: 'asc' }, { id: 'asc' }],
+      popularity: [{ attendeeCount: 'desc' }, { startAt: 'asc' }, { id: 'asc' }],
     };
     const orderBy = orderByMap[sort ?? 'date-asc'];
 
@@ -153,7 +153,10 @@ export class EventService {
         nextCursor: hasMore
           ? eventEncodeCursor(
               slicedData[slicedData.length - 1].startAt,
-              slicedData[slicedData.length - 1].id
+              slicedData[slicedData.length - 1].id,
+              sort ?? 'date-asc',
+              slicedData[slicedData.length - 1].title,
+              slicedData[slicedData.length - 1].attendees.length
             )
           : null,
         hasMore,
@@ -502,6 +505,7 @@ export class EventService {
             isPublic: data.isPublic,
             isPublished: data.isPublished,
             imageKey: data.imageKey,
+            attendeeCount: 1,
             attendees: {
               create: {
                 userId: data.authorId,

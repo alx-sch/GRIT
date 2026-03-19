@@ -43,14 +43,29 @@ export class InvitesController {
   // List incoming event invites
   @Get('incoming')
   @ZodSerializerDto(ResListInvitesDto)
-  listIncoming(@GetUser('id') userId: number) {
-    return this.invitesService.listIncoming(userId);
+  listIncoming(
+    @GetUser('id') userId: number,
+    @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string
+  ) {
+    return this.invitesService.listIncoming(userId, {
+      limit: limit ? parseInt(limit, 10) : undefined,
+      cursor,
+    });
   }
 
   // List outgoing event invites
   @Get('outgoing')
   @ZodSerializerDto(ResListInvitesDto)
-  listOutgoing(@GetUser('id') userId: number, @Query('eventId') idOrSlug?: string) {
-    return this.invitesService.listOutgoing(userId, idOrSlug);
+  listOutgoing(
+    @GetUser('id') userId: number,
+    @Query('eventId') idOrSlug?: string,
+    @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string
+  ) {
+    return this.invitesService.listOutgoing(userId, idOrSlug, {
+      limit: limit ? parseInt(limit, 10) : undefined,
+      cursor,
+    });
   }
 }
