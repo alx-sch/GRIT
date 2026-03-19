@@ -73,7 +73,7 @@ export class ConversationService {
 
   // async conversationGetOrCreateForGroup(groupIds: number[], userId: number) {}
 
-  async conversationGetMany(userId: number, input?: { limit?: number; cursor?: string }) {
+  async conversationGetMany(userId: number) {
     const conversations = await this.prisma.conversation.findMany({
       where: {
         participants: {
