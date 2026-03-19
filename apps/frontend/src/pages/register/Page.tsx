@@ -165,12 +165,11 @@ export const RegisterPage = () => {
                 </Field>
 
                 <Field>
-                  <FieldLabel htmlFor="name">Name</FieldLabel>
+                  <FieldLabel htmlFor="name">Username</FieldLabel>
                   <Input
-                    id="name"
                     type="text"
                     autoComplete="name"
-                    placeholder="Enter your name"
+                    placeholder="Enter your username"
                     error={!!errors.name}
                     {...register('name')}
                   />
