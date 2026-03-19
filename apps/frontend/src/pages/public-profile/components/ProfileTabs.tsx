@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useInfiniteScroll, type Pagination } from '@/hooks/useInfiniteScroll';
 import { userService } from '@/services/userService';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -19,6 +20,8 @@ export function ProfileTabs({
   initialEvents,
   initialPagination,
 }: ProfileTabsProps) {
+  const [activeTab, setActiveTab] = useState('info');
+
   const {
     items: events,
     sentinelRef,
@@ -30,14 +33,14 @@ export function ProfileTabs({
       const result = await userService.getUserEventsByName({ username, cursor });
       return result;
     },
-    [],
+    [activeTab], // recreate observer when tab becomes visible
     () => {
       toast.error('Failed to load more events');
     }
   );
 
   return (
-    <Tabs defaultValue="info" className="w-full">
+    <Tabs defaultValue="info" className="w-full" onValueChange={setActiveTab}>
       <TabsList variant="brutalist" className="w-full md:w-auto">
         <TabsTrigger value="info" variant="brutalist" className="text-xs md:text-sm">
           Info
