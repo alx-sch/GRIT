@@ -27,7 +27,13 @@ export class AuthService {
 
   // Logic for verifying user credentials
   async validateUser(loginDto: LoginInput): Promise<ResAuthMeDto> {
-    const user = await this.userService.userGetByEmail(loginDto.email);
+    // Determine if the input is an email or username
+    const isEmail = loginDto.emailOrUsername.includes('@');
+    
+    // Query by email or username accordingly
+    const user = isEmail
+      ? await this.userService.userGetByEmail(loginDto.emailOrUsername)
+      : await this.userService.userGetByName(loginDto.emailOrUsername);
 
     if (!user?.password) {
       throw new UnauthorizedException('Invalid email or password');

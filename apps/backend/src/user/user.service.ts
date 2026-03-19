@@ -146,6 +146,39 @@ export class UserService {
     };
   }
 
+  async userGetByName(name: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { name },
+      include: {
+        attending: {
+          include: {
+            event: {
+              include: { location: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    return {
+      ...user,
+      createdAt: user.createdAt.toISOString(),
+      attending: user.attending.map((a) => ({
+        id: a.event.id,
+        title: a.event.title,
+        slug: a.event.slug,
+        startAt: a.event.startAt.toISOString(),
+        isOrganizer: a.event.authorId === user.id,
+        imageKey: a.event.imageKey,
+        location: a.event.location,
+      })),
+    };
+  }
+
   async userPost(data: ReqUserPostDto): Promise<ResUserPostDto> {
     const token = randomBytes(32).toString('hex');
 
