@@ -135,7 +135,7 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
     {
       label: 'Public Profile',
       icon: Eye,
-      href: `/users/${user.id}`,
+      href: `/users/${user.name}`,
     },
   ];
 
