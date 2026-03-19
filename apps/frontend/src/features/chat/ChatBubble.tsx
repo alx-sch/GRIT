@@ -29,7 +29,12 @@ const renderMessageWithLinks = (text: string) => {
 
 export const ChatBubble = ({ message }: { message: ResChatMessage }) => {
   const currentUser = useCurrentUserStore((s) => s.user);
-  const author = message.author ?? { id: null, name: 'Unknown', displayName: 'Unknown', avatarKey: null };
+  const author = message.author ?? {
+    id: null,
+    name: 'Unknown',
+    displayName: 'Unknown',
+    avatarKey: null,
+  };
   const isFromCurrentUser = currentUser?.id === author.id;
   const align = isFromCurrentUser ? 'justify-end' : 'justify-start';
   const isDeletedUser = author.id === null;

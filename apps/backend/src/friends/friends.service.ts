@@ -208,7 +208,9 @@ export class FriendsService {
           userId: userId,
           friendId: friendRequest.requesterId,
         },
-        include: { friend: { select: { id: true, name: true, displayName: true, avatarKey: true } } },
+        include: {
+          friend: { select: { id: true, name: true, displayName: true, avatarKey: true } },
+        },
       }),
       this.prisma.friends.create({
         data: {

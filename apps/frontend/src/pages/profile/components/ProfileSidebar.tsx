@@ -187,7 +187,10 @@ export function ProfileSidebar({ user, avatarUrl, onAvatarUpdate }: ProfileSideb
         </div>
 
         <div className="text-center space-y-1 w-full overflow-hidden px-2">
-          <Text className="text-xl font-semibold truncate block" title={user.displayName ?? user.name ?? 'Anonymous'}>
+          <Text
+            className="text-xl font-semibold truncate block"
+            title={user.displayName ?? user.name ?? 'Anonymous'}
+          >
             {user.displayName ?? user.name ?? 'Anonymous'}
           </Text>
 

@@ -155,7 +155,9 @@ export const LoginPage = () => {
       <Card className="w-full max-w-md mx-4 sm:mx-auto">
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
-          <CardDescription>Enter your email or username and password to access your account.</CardDescription>
+          <CardDescription>
+            Enter your email or username and password to access your account.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Form

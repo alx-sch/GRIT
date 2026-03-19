@@ -58,7 +58,7 @@ export function AdminUsersTable({ initialUsers }: AdminUsersTableProps) {
               <tr key={user.id} className="border-t hover:bg-muted/50">
                 <td className="px-2 sm:px-4 py-2">
                   <div>
-                    <p className="font-medium">{user.displayName ?? user.name ?? 'N/A'}</p>
+                    <p className="font-medium">{user.name ?? 'N/A'}</p>
                     <p className="text-xs text-muted-foreground sm:hidden">{user.email}</p>
                   </div>
                 </td>
@@ -77,7 +77,7 @@ export function AdminUsersTable({ initialUsers }: AdminUsersTableProps) {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Delete user?</AlertDialogTitle>
                             <AlertDialogDescription>
-                              This will permanently delete {user.displayName ?? user.name ?? user.email}. This action
+                              This will permanently delete {user.name ?? user.email}. This action
                               cannot be undone.
                             </AlertDialogDescription>
                           </AlertDialogHeader>

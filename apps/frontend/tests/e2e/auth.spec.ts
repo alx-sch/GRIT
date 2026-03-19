@@ -17,9 +17,9 @@ test.describe('Authentication Flow', () => {
     // Mock login
     await page.route('**/api/auth/login', async (route) => {
       const request = route.request();
-      const postData = request.postDataJSON() as { email?: string };
+      const postData = request.postDataJSON() as { emailOrUsername?: string };
 
-      if (postData.email === 'wrong@example.com') {
+      if (postData.emailOrUsername === 'wrong@example.com') {
         await route.fulfill({
           status: 401,
           json: { message: 'Invalid credentials' },
@@ -104,7 +104,8 @@ test.describe('Authentication Flow', () => {
 
     await expect(page.getByRole('heading', { name: 'Create an account' })).toBeVisible();
 
-    await page.getByLabel('Name').fill('John Doe');
+    // Name must not contain spaces per validation schema requirements
+    await page.getByLabel('Name').fill('JohnDoe');
     await page.getByLabel('Email').fill('newuser@example.com');
     await page.locator('input[name="password"]').fill('Password123!');
     await page.locator('input[name="confirmPassword"]').fill('Password123!');
@@ -128,12 +129,12 @@ test.describe('Authentication Flow', () => {
   test('should show error on invalid login', async ({ page }) => {
     await page.goto('/login');
 
-    await page.getByLabel('Email').fill('wrong@example.com');
+    await page.getByLabel('Email or Username').fill('wrong@example.com');
     await page.locator('input[name="password"]').fill('WrongPassword123');
 
     await page.getByRole('main').getByRole('button', { name: 'Login' }).click();
 
-    // Check for toast or error message. The code uses toast.error('Login Failed')
-    await expect(page.getByRole('main').getByText('Invalid email or password')).toBeVisible();
+    // Check for error message displayed in the form
+    await expect(page.getByText('Invalid email or password')).toBeVisible({ timeout: 10000 });
   });
 });

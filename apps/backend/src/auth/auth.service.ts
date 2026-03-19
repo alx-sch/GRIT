@@ -29,7 +29,7 @@ export class AuthService {
   async validateUser(loginDto: LoginInput): Promise<ResAuthMeDto> {
     // Determine if the input is an email or username
     const isEmail = loginDto.emailOrUsername.includes('@');
-    
+
     // Query by email or username accordingly
     const user = isEmail
       ? await this.userService.userGetByEmail(loginDto.emailOrUsername)

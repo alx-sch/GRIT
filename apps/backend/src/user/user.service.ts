@@ -150,7 +150,7 @@ export class UserService {
   async userGetByName(name: string) {
     // Normalize to lowercase for case-insensitive lookup (uses DB index!)
     const normalizedName = name.toLowerCase();
-    
+
     const user = await this.prisma.user.findUnique({
       where: { name: normalizedName },
       include: {
@@ -185,7 +185,7 @@ export class UserService {
 
   async userPost(data: ReqUserPostDto): Promise<ResUserPostDto> {
     const token = randomBytes(32).toString('hex');
-    
+
     // Normalize username to lowercase for case-insensitive uniqueness
     const normalizedName = data.name.toLowerCase();
 
@@ -425,9 +425,8 @@ export class UserService {
       if (data.name !== undefined) {
         // Normalize username to lowercase
         const normalizedName = data.name.toLowerCase();
-        
-        if (normalizedName === 'unknown')
-          throw new ConflictException('Username already taken');
+
+        if (normalizedName === 'unknown') throw new ConflictException('Username already taken');
 
         // Check if name already exists (case-insensitive via normalized value)
         const existingName = await tx.user.findFirst({

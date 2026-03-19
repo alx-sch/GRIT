@@ -90,7 +90,7 @@ describe('Auth E2E', () => {
     it('returns user info and accessToken upon successful login', async () => {
       const res = await request(app.getHttpServer())
         .post('/auth/login')
-        .send({ email: user.email, password: 'Password123' })
+        .send({ emailOrUsername: user.email, password: 'Password123' })
         .expect(201);
 
       expect(res.body).toHaveProperty('accessToken');
@@ -100,7 +100,7 @@ describe('Auth E2E', () => {
     it('returns 401 for unauthorized access (wrong password)', async () => {
       const res = await request(app.getHttpServer())
         .post('/auth/login')
-        .send({ email: user.email, password: 'WrongPassword123' })
+        .send({ emailOrUsername: user.email, password: 'WrongPassword123' })
         .expect(401);
       expect(res.body.message).toBe('Invalid email or password');
     });
@@ -108,7 +108,7 @@ describe('Auth E2E', () => {
     it('returns 401 for unauthorized access (wrong email)', async () => {
       const res = await request(app.getHttpServer())
         .post('/auth/login')
-        .send({ email: 'wrong@email.com', password: 'Password123' })
+        .send({ emailOrUsername: 'wrong@email.com', password: 'Password123' })
         .expect(401);
 
       expect(res.body.message).toBe('Invalid email or password');
@@ -127,6 +127,7 @@ describe('Auth E2E', () => {
 
       expect(res.body).toStrictEqual({
         avatarKey: user.avatarKey,
+        displayName: user.displayName ?? null,
         email: user.email,
         id: user.id,
         isAdmin: user.isAdmin,
