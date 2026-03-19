@@ -70,7 +70,8 @@ const mockEvents = [
 const mockUsers = [
   {
     id: 10,
-    name: 'Alice Müller',
+    name: 'alice-abc',
+    displayName: 'Alice Müller',
     avatarKey: null,
     bio: null,
     city: 'Berlin',
@@ -80,7 +81,8 @@ const mockUsers = [
   },
   {
     id: 11,
-    name: 'Bob Smith',
+    name: 'bob-xyz',
+    displayName: 'Bob Smith',
     avatarKey: null,
     bio: null,
     city: null,
@@ -115,7 +117,7 @@ function renderGlobalSearch() {
     [
       { path: '/', Component: Wrapper },
       { path: '/events/:id', Component: () => <div>Event Page</div> },
-      { path: '/users/:id', Component: () => <div>User Page</div> },
+      { path: '/users/:username', Component: () => <div>User Page</div> },
     ],
     { initialEntries: ['/'] }
   );
@@ -342,7 +344,7 @@ describe('GlobalSearch', () => {
       });
       await user.click(screen.getByText('Alice Müller'));
       await waitFor(() => {
-        expect(router.state.location.pathname).toBe('/users/10');
+        expect(router.state.location.pathname).toBe('/users/alice-abc');
         expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
       });
     });
