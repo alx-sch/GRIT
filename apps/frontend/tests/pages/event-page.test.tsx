@@ -118,10 +118,7 @@ describe('EventPage', () => {
     user = userEvent.setup();
     vi.clearAllMocks();
     vi.mocked(eventService.getEvent).mockResolvedValue(mockEvent as never);
-    vi.mocked(userService.getMyInvitedEvents).mockResolvedValue({
-      data: [],
-      pagination: { hasMore: false, nextCursor: null },
-    } as never);
+    vi.mocked(userService.getMyInvitedEvents).mockResolvedValue([] as never);
     vi.mocked(friendService.listFriends).mockResolvedValue({
       data: [],
       pagination: { hasMore: false, nextCursor: null },

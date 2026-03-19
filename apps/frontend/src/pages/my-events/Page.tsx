@@ -7,7 +7,6 @@ import { CalendarDays, Plus } from 'lucide-react';
 import { userService } from '@/services/userService';
 import { useNavigate } from 'react-router-dom';
 import { useTypedLoaderData } from '@/hooks/useTypedLoaderData';
-import { useInfiniteScroll, Pagination } from '@/hooks/useInfiniteScroll';
 import type { ResMyEvents, ResMyInvitedEvents } from '@grit/schema';
 import { useState, useEffect } from 'react';
 import { EmptyState } from './components/EmptyState';
@@ -15,122 +14,59 @@ import { MyEventsSortDropdown, SortMode } from './components/MyEventsSortDropdow
 import { MyEventCard } from './components/MyEventCard';
 import { useEventActions } from './hooks/useEventActions';
 import { Text } from '@/components/ui/typography';
-import { toast } from 'sonner';
 
 type ResMyEvent = ResMyEvents[number];
 type ResMyInvitedEvent = ResMyInvitedEvents[number];
 
-interface MyEventsLoaderData {
-  myEvents: ResMyEvents;
-  myEventsPagination: Pagination & {
-    total?: number;
-    totalUpcoming?: number;
-    totalPast?: number;
-    totalOrganizing?: number;
-  };
-  invitedEvents: ResMyInvitedEvents;
-  invitedEventsPagination: Pagination & { total?: number };
-}
-
-const PAGE_SIZE = '20';
-
-export const myEventsLoader = async (): Promise<MyEventsLoaderData> => {
-  const [myEventsResponse, invitedEventsResponse] = await Promise.all([
-    userService.getMyEvents({ limit: PAGE_SIZE, sort: 'drafts-first' }),
-    userService.getMyInvitedEvents({ limit: PAGE_SIZE }),
-  ]);
-
-  return {
-    myEvents: myEventsResponse.data,
-    myEventsPagination: myEventsResponse.pagination,
-    invitedEvents: invitedEventsResponse.data,
-    invitedEventsPagination: invitedEventsResponse.pagination,
-  };
+export const myEventsLoader = async () => {
+  return userService.getMyEvents();
 };
 
 export function Page() {
-  const loaderData = useTypedLoaderData<MyEventsLoaderData>();
+  const events = useTypedLoaderData<ResMyEvents>();
   const navigate = useNavigate();
   const [sortMode, setSortMode] = useState<SortMode>('drafts-first');
+  const [invitedEvents, setInvitedEvents] = useState<ResMyInvitedEvents>([]);
   const { publishEvent, unpublishEvent, optimisticUpdates } = useEventActions();
-  const { acceptInvite, declineInvite } = useEventActions();
+  const { acceptInvite } = useEventActions();
+  const { declineInvite } = useEventActions();
 
-  // State to hold sorted events data that will be passed to infinite scroll
-  const [sortedEventsData, setSortedEventsData] = useState<{
-    data: ResMyEvents;
-    pagination: Pagination & {
-      total?: number;
-      totalUpcoming?: number;
-      totalPast?: number;
-      totalOrganizing?: number;
-    };
-  }>({
-    data: loaderData.myEvents,
-    pagination: loaderData.myEventsPagination,
-  });
-
-  // Fetch new data when sort mode changes
   useEffect(() => {
-    const fetchSortedData = async () => {
+    const loadInvitedEvents = async () => {
       try {
-        const response = await userService.getMyEvents({ limit: PAGE_SIZE, sort: sortMode });
-        setSortedEventsData({
-          data: response.data,
-          pagination: response.pagination,
-        });
+        const data = await userService.getMyInvitedEvents();
+        setInvitedEvents(data);
       } catch (error) {
-        console.error('Failed to fetch sorted events', error);
-        toast.error('Failed to sort events');
+        console.error('Failed to load invited events:', error);
       }
     };
-    void fetchSortedData();
-  }, [sortMode]);
-
-  // Infinite scroll for my events
-  const {
-    items: events,
-    sentinelRef: eventsSentinelRef,
-    isLoading: eventsLoading,
-  } = useInfiniteScroll<ResMyEvent>(
-    sortedEventsData.data,
-    sortedEventsData.pagination,
-    async (cursor) => {
-      const response = await userService.getMyEvents({
-        limit: PAGE_SIZE,
-        cursor,
-        sort: sortMode,
-      });
-      return response;
-    },
-    [sortMode, sortedEventsData],
-    (error) => {
-      console.error('Failed to load more events', error);
-      toast.error('Failed to load more events');
-    }
-  );
-
-  // Infinite scroll for invited events
-  const {
-    items: invitedEvents,
-    sentinelRef: invitedSentinelRef,
-    isLoading: invitedLoading,
-  } = useInfiniteScroll<ResMyInvitedEvent>(
-    loaderData.invitedEvents,
-    loaderData.invitedEventsPagination,
-    async (cursor) => {
-      const response = await userService.getMyInvitedEvents({ limit: PAGE_SIZE, cursor });
-      return response;
-    },
-    [],
-    (error) => {
-      console.error('Failed to load more invited events', error);
-      toast.error('Failed to load more invited events');
-    }
-  );
+    void loadInvitedEvents();
+  }, []);
 
   const now = new Date();
 
-  // Apply optimistic updates to events
+  const sortEvents = (eventsToSort: ResMyEvents, isPastTab = false) => {
+    return [...eventsToSort].sort((a, b) => {
+      const aPublished = optimisticUpdates[a.id]?.isPublished ?? a.isPublished;
+      const bPublished = optimisticUpdates[b.id]?.isPublished ?? b.isPublished;
+
+      if (sortMode === 'drafts-first') {
+        const aIsDraft = a.isOrganizer && !aPublished;
+        const bIsDraft = b.isOrganizer && !bPublished;
+        if (aIsDraft !== bIsDraft) {
+          return aIsDraft ? -1 : 1;
+        }
+        const timeA = new Date(a.startAt).getTime();
+        const timeB = new Date(b.startAt).getTime();
+        return isPastTab ? timeB - timeA : timeA - timeB;
+      } else if (sortMode === 'furthest') {
+        return new Date(b.startAt).getTime() - new Date(a.startAt).getTime();
+      } else {
+        return new Date(a.startAt).getTime() - new Date(b.startAt).getTime();
+      }
+    });
+  };
+
   const getUpdatedEvents = () => {
     return events.map((event) => ({
       ...event,
@@ -139,11 +75,18 @@ export function Page() {
   };
 
   const updatedEvents = getUpdatedEvents();
-
-  // Filter events by category (no client-side sorting needed, backend handles it)
-  const upcomingEvents = updatedEvents.filter((event) => new Date(event.startAt) >= now);
-  const pastEvents = updatedEvents.filter((event) => new Date(event.startAt) < now);
-  const organizingEvents = updatedEvents.filter((event) => event.isOrganizer);
+  const upcomingEvents = sortEvents(
+    updatedEvents.filter((event) => new Date(event.startAt) >= now),
+    false
+  );
+  const pastEvents = sortEvents(
+    updatedEvents.filter((event) => new Date(event.startAt) < now),
+    true
+  );
+  const organizingEvents = sortEvents(
+    updatedEvents.filter((event) => event.isOrganizer),
+    false
+  );
 
   const renderEventsList = (filteredEvents: ResMyEvent[]) => {
     if (filteredEvents.length === 0) {
@@ -199,10 +142,10 @@ export function Page() {
             onAccept={acceptInvite}
             onDecline={declineInvite}
             onAcceptSuccess={() => {
-              // Event accepted - it will be removed from invites and show in My Events on next load
+              setInvitedEvents((prev) => prev.filter((e) => e.id !== event.id));
             }}
             onDeclineSuccess={() => {
-              // Event declined - it will be removed from invites on next load
+              setInvitedEvents((prev) => prev.filter((e) => e.id !== event.id));
             }}
             onViewDetails={(slug) => void navigate(`/events/${slug}`)}
           />
@@ -239,66 +182,44 @@ export function Page() {
                 variant="brutalist"
                 className="text-xs md:text-sm shrink-0"
               >
-                Upcoming ({sortedEventsData.pagination.totalUpcoming ?? upcomingEvents.length})
+                Upcoming ({upcomingEvents.length})
               </TabsTrigger>
               <TabsTrigger
                 value="organizing"
                 variant="brutalist"
                 className="text-xs md:text-sm shrink-0"
               >
-                Organizing ({sortedEventsData.pagination.totalOrganizing ?? organizingEvents.length}
-                )
+                Organizing ({organizingEvents.length})
               </TabsTrigger>
               <TabsTrigger
                 value="invitations"
                 variant="brutalist"
                 className="text-xs md:text-sm shrink-0"
               >
-                Invitations ({loaderData.invitedEventsPagination.total ?? invitedEvents.length})
+                Invitations ({invitedEvents.length})
               </TabsTrigger>
               <TabsTrigger value="past" variant="brutalist" className="text-xs md:text-sm shrink-0">
-                Past ({sortedEventsData.pagination.totalPast ?? pastEvents.length})
+                Past ({pastEvents.length})
               </TabsTrigger>
             </TabsList>
 
-            <MyEventsSortDropdown
-              value={sortMode}
-              onChange={(newSort) => {
-                setSortMode(newSort);
-              }}
-            />
+            <MyEventsSortDropdown value={sortMode} onChange={setSortMode} />
           </div>
 
           <TabsContent value="upcoming" className="mt-6">
             {renderEventsList(upcomingEvents)}
-            <div ref={eventsSentinelRef} className="h-4" />
-            {eventsLoading && (
-              <Text className="text-center text-muted-foreground">Loading more...</Text>
-            )}
           </TabsContent>
 
           <TabsContent value="past" className="mt-6">
             {renderEventsList(pastEvents)}
-            <div ref={eventsSentinelRef} className="h-4" />
-            {eventsLoading && (
-              <Text className="text-center text-muted-foreground">Loading more...</Text>
-            )}
           </TabsContent>
 
           <TabsContent value="organizing" className="mt-6">
             {renderEventsList(organizingEvents)}
-            <div ref={eventsSentinelRef} className="h-4" />
-            {eventsLoading && (
-              <Text className="text-center text-muted-foreground">Loading more...</Text>
-            )}
           </TabsContent>
 
           <TabsContent value="invitations" className="mt-6">
             {renderInvitationsList(invitedEvents)}
-            <div ref={invitedSentinelRef} className="h-4" />
-            {invitedLoading && (
-              <Text className="text-center text-muted-foreground">Loading more...</Text>
-            )}
           </TabsContent>
         </Tabs>
       )}

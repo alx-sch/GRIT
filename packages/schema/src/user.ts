@@ -29,19 +29,6 @@ export const ResMyEventSchema = z.object({
 export const ResMyEventsSchema = z.array(ResMyEventSchema);
 export type ResMyEvents = z.infer<typeof ResMyEventsSchema>;
 
-export const ResMyEventsPaginatedSchema = z.object({
-  data: z.array(ResMyEventSchema),
-  pagination: z.object({
-    nextCursor: z.string().nullable(),
-    hasMore: z.boolean(),
-    total: z.number().int().nonnegative(),
-    totalUpcoming: z.number().int().nonnegative(),
-    totalPast: z.number().int().nonnegative(),
-    totalOrganizing: z.number().int().nonnegative(),
-  }),
-});
-export type ResMyEventsPaginated = z.infer<typeof ResMyEventsPaginatedSchema>;
-
 export const ResMyInvitedEventSchema = z.object({
   id: z.number().int().positive(),
   title: z.string(),
@@ -69,16 +56,6 @@ export const ResMyInvitedEventSchema = z.object({
 });
 export const ResMyInvitedEventsSchema = z.array(ResMyInvitedEventSchema);
 export type ResMyInvitedEvents = z.infer<typeof ResMyInvitedEventsSchema>;
-
-export const ResMyInvitedEventsPaginatedSchema = z.object({
-  data: z.array(ResMyInvitedEventSchema),
-  pagination: z.object({
-    nextCursor: z.string().nullable(),
-    hasMore: z.boolean(),
-    total: z.number().int().nonnegative(),
-  }),
-});
-export type ResMyInvitedEventsPaginated = z.infer<typeof ResMyInvitedEventsPaginatedSchema>;
 
 export const ResUserBaseSchema = z.object({
   id: z.number().int().positive(),

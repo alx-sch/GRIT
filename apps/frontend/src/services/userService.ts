@@ -1,11 +1,11 @@
 import api from '@/lib/api';
 import type { UserBase, UserResponse } from '@/types/user';
 import {
+  ResMyEvents,
+  ResMyInvitedEvents,
   ResUserPublicSchema,
   ResUserPublicEventsSchema,
   ResFriendshipStatusSchema,
-  ResMyEventsPaginated,
-  ResMyInvitedEventsPaginated,
 } from '@grit/schema';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 
@@ -34,33 +34,13 @@ export const userService = {
     return response.data;
   },
 
-  getMyEvents: async (params?: {
-    limit?: string;
-    cursor?: string;
-    sort?: string;
-  }): Promise<ResMyEventsPaginated> => {
-    const queryParams = new URLSearchParams();
-    if (params?.limit) queryParams.set('limit', params.limit);
-    if (params?.cursor) queryParams.set('cursor', params.cursor);
-    if (params?.sort) queryParams.set('sort', params.sort);
-
-    const queryString = queryParams.toString();
-    const url = queryString ? `users/me/events?${queryString}` : 'users/me/events';
-    const response = await api.get<ResMyEventsPaginated>(url);
+  getMyEvents: async (): Promise<ResMyEvents> => {
+    const response = await api.get<ResMyEvents>('users/me/events');
     return response.data;
   },
 
-  getMyInvitedEvents: async (params?: {
-    limit?: string;
-    cursor?: string;
-  }): Promise<ResMyInvitedEventsPaginated> => {
-    const queryParams = new URLSearchParams();
-    if (params?.limit) queryParams.set('limit', params.limit);
-    if (params?.cursor) queryParams.set('cursor', params.cursor);
-
-    const queryString = queryParams.toString();
-    const url = queryString ? `users/me/events/invited?${queryString}` : 'users/me/events/invited';
-    const response = await api.get<ResMyInvitedEventsPaginated>(url);
+  getMyInvitedEvents: async (): Promise<ResMyInvitedEvents> => {
+    const response = await api.get<ResMyInvitedEvents>('users/me/events/invited');
     return response.data;
   },
 

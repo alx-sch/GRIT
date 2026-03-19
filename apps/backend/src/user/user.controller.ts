@@ -33,8 +33,6 @@ import {
   ResMyInvitedEventsDto,
   ResUserDeleteSchema,
   ResUserPatchSchema,
-  ReqUserEventsGetAllDto,
-  ResUserEventsDto,
 } from '@/user/user.schema';
 import { UserService } from '@/user/user.service';
 import { ResUserGetAllSchema, ResUserAdminGetAllSchema } from '@grit/schema';
@@ -87,12 +85,8 @@ export class UserController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResMyEventsDto)
-  async getMyEvents(@GetUser('id') userId: number, @Query() query: ReqUserEventsGetAllDto) {
-    return await this.userService.userGetEvents(userId, {
-      limit: query.limit,
-      cursor: query.cursor,
-      sort: query.sort,
-    });
+  async getMyEvents(@GetUser('id') userId: number) {
+    return await this.userService.userGetEvents(userId);
   }
 
   // Get user invited events
@@ -100,11 +94,8 @@ export class UserController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ZodSerializerDto(ResMyInvitedEventsDto)
-  async getMyInvitedEvents(@GetUser('id') userId: number, @Query() query: ReqUserEventsGetAllDto) {
-    return await this.userService.userGetInvitedEvents(userId, {
-      limit: query.limit,
-      cursor: query.cursor,
-    });
+  async getMyInvitedEvents(@GetUser('id') userId: number) {
+    return await this.userService.userGetInvitedEvents(userId);
   }
 
   // Delete logged in user
@@ -224,7 +215,6 @@ export class UserController {
 
   @Get(':id/events')
   @UseGuards(JwtAuthOptionalGuard)
-  @ZodSerializerDto(ResUserEventsDto)
   async getUserEvents(@Param('id') id: string, @GetUser('id') requestingUserId?: number) {
     const userId = parseInt(id, 10);
     if (isNaN(userId)) {
