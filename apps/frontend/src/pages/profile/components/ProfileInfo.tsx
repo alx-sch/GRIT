@@ -108,16 +108,22 @@ export function ProfileInfo({ user, onProfileUpdate }: ProfileInfoProps) {
           <div className="space-y-2">
             <Label htmlFor="name">
               <User className="w-4 h-4 inline mr-2" />
-              Name
+              Username
             </Label>
             <Input
               id="name"
               {...register('name')}
               disabled={!isEditing || isSubmitting}
-              placeholder="Enter your name"
+              placeholder="Enter your username"
               clearable={isEditing && !isSubmitting}
             />
-            {errors.name && <Text className="text-sm text-destructive">{errors.name.message}</Text>}
+            {errors.name ? (
+              <Text className="text-sm text-destructive">{errors.name.message}</Text>
+            ) : (
+              <Text className="text-sm text-muted-foreground">
+                Your unique handle. Will be stored in lowercase.
+              </Text>
+            )}
           </div>
 
           <div className="space-y-2">

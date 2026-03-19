@@ -100,6 +100,8 @@ export class AuthService {
 
     while (attempts < maxAttempts) {
       try {
+        const nanoId = this.generateNanoId();
+        const baseName = `${firstName}-${nanoId}`;
         const user = await this.prisma.user.upsert({
           where: { email },
           update: {
@@ -108,8 +110,8 @@ export class AuthService {
           },
           create: {
             email,
-            name: `${firstName}-${this.generateNanoId()}`.toLowerCase(),
-            displayName: `${firstName}-${this.generateNanoId()}`, // Original casing
+            name: baseName.toLowerCase(),
+            displayName: baseName,
             googleId: providerId,
             isConfirmed: true,
             password: null,
