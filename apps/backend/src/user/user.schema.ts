@@ -27,6 +27,12 @@ export const ReqUserGetAllSchema = z.strictObject({
   search: z.string().min(1).optional(),
 });
 
+// Query params for paginated public user events
+export const ReqUserPublicEventsSchema = z.strictObject({
+  limit: z.coerce.number().int().positive().max(100).default(12),
+  cursor: z.string().optional(),
+});
+
 // Post a new user draft
 export const ReqUserPostSchema = z.object({
   name: z.string(),
@@ -106,3 +112,4 @@ export class ReqUserDeleteAvatarDto extends createZodDto(ReqUserDeleteAvatarSche
 export class ReqUserDeleteByIdDto extends createZodDto(ReqUserDeleteByIdSchema) {}
 export class ReqUserPatchDto extends createZodDto(ReqUserPatchSchema) {}
 export class ReqUserPatchByIdDto extends createZodDto(ReqUserPatchByIdSchema) {}
+export class ReqUserPublicEventsDto extends createZodDto(ReqUserPublicEventsSchema) {}

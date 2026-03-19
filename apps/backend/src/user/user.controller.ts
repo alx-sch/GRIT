@@ -33,6 +33,7 @@ import {
   ResMyInvitedEventsDto,
   ResUserDeleteSchema,
   ResUserPatchSchema,
+  ReqUserPublicEventsDto,
 } from '@/user/user.schema';
 import { UserService } from '@/user/user.service';
 import { ResUserGetAllSchema, ResUserAdminGetAllSchema } from '@grit/schema';
@@ -216,9 +217,15 @@ export class UserController {
   @UseGuards(JwtAuthOptionalGuard)
   async getUserEventsByUsername(
     @Param('username') username: string,
+    @Query() query: ReqUserPublicEventsDto,
     @GetUser('id') requestingUserId?: number
   ) {
-    const events = await this.userService.userGetPublicEventsByName(username, requestingUserId);
+    const events = await this.userService.userGetPublicEventsByName(
+      username,
+      requestingUserId,
+      query.limit,
+      query.cursor
+    );
     if (events === null) {
       throw new NotFoundException('User not found');
     }
