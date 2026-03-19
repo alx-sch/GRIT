@@ -109,10 +109,6 @@ export function ImageCropControls({
           <RefreshCw className="h-4 w-4" />
         </Button>
       </div>
-
-      {rotation !== 0 && (
-        <div className="text-xs text-center font-mono text-muted-foreground">{rotation}°</div>
-      )}
     </div>
   );
 }

@@ -84,7 +84,7 @@ test.describe('Authentication Flow', () => {
 
     await expect(page.getByRole('heading', { name: 'Login' })).toBeVisible();
 
-    await page.getByLabel('Email').fill('test@example.com');
+    await page.getByLabel('Email or Username').fill('test@example.com');
     await page.locator('input[name="password"]').fill('Password123');
 
     await page.getByRole('main').getByRole('button', { name: 'Login' }).click();
@@ -104,8 +104,8 @@ test.describe('Authentication Flow', () => {
 
     await expect(page.getByRole('heading', { name: 'Create an account' })).toBeVisible();
 
-    // Name must not contain spaces per validation schema requirements
-    await page.getByLabel('Name').fill('JohnDoe');
+    // Username must not contain spaces per validation schema requirements
+    await page.locator('input[name="name"]').fill('JohnDoe');
     await page.getByLabel('Email').fill('newuser@example.com');
     await page.locator('input[name="password"]').fill('Password123!');
     await page.locator('input[name="confirmPassword"]').fill('Password123!');
