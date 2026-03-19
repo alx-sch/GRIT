@@ -35,7 +35,7 @@ export function ProfileHeader({
 
       <div className="flex-1 space-y-2">
         <div className="flex flex-col md:flex-row md:items-center gap-4 justify-between">
-          <Heading level={2}>{user.name}</Heading>
+          <Heading level={2}>{user.displayName ?? user.name}</Heading>
 
           {showFriendButton && friendshipStatus && onAddFriend && (
             <FriendButton

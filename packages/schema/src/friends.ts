@@ -24,6 +24,7 @@ export const ReqFriendsGetAllSchema = z.strictObject({
 const ResFriendUserSchema = z.object({
   id: z.number().int().positive(),
   name: z.string(),
+  displayName: z.string().nullable().optional(),
   avatarKey: z.string().nullable().optional(),
   onlineStatus: z.boolean().nullable().optional(),
 });

@@ -29,7 +29,7 @@ const renderMessageWithLinks = (text: string) => {
 
 export const ChatBubble = ({ message }: { message: ResChatMessage }) => {
   const currentUser = useCurrentUserStore((s) => s.user);
-  const author = message.author ?? { id: null, name: 'Unknown', avatarKey: null };
+  const author = message.author ?? { id: null, name: 'Unknown', displayName: 'Unknown', avatarKey: null };
   const isFromCurrentUser = currentUser?.id === author.id;
   const align = isFromCurrentUser ? 'justify-end' : 'justify-start';
   const isDeletedUser = author.id === null;
@@ -53,10 +53,10 @@ export const ChatBubble = ({ message }: { message: ResChatMessage }) => {
             {!isFromCurrentUser && (
               <div className="font-bold uppercase text-xs block">
                 {isDeletedUser ? (
-                  <span>{author.name}</span>
+                  <span>{author.displayName ?? author.name}</span>
                 ) : (
                   <Link to={`/users/${author.id}`} className="hover:underline">
-                    {author.name}
+                    {author.displayName ?? author.name}
                   </Link>
                 )}
               </div>

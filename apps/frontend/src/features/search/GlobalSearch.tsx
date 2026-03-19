@@ -244,7 +244,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                       }}
                     >
                       <UserAvatar user={user} size="xs" className="shrink-0" />
-                      <span className="truncate font-medium">{user.name}</span>
+                      <span className="truncate font-medium">{user.displayName ?? user.name}</span>
                       {location ? (
                         <span className="ml-auto shrink-0 text-xs text-muted-foreground max-w-40 truncate">
                           {location}

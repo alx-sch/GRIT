@@ -77,8 +77,8 @@ export class InvitesService {
       },
       include: {
         event: { select: { id: true, title: true, imageKey: true } },
-        sender: { select: { id: true, name: true, avatarKey: true } },
-        receiver: { select: { id: true, name: true, avatarKey: true } },
+        sender: { select: { id: true, name: true, displayName: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, displayName: true, avatarKey: true } },
       },
     });
 
@@ -191,8 +191,8 @@ export class InvitesService {
           where: { id },
           include: {
             event: { select: { id: true, title: true, imageKey: true, isPublic: true } },
-            sender: { select: { id: true, name: true, avatarKey: true } },
-            receiver: { select: { id: true, name: true, avatarKey: true } },
+            sender: { select: { id: true, name: true, displayName: true, avatarKey: true } },
+            receiver: { select: { id: true, name: true, displayName: true, avatarKey: true } },
           },
         });
 
@@ -243,8 +243,8 @@ export class InvitesService {
         where: { id },
         include: {
           event: { select: { id: true, title: true, imageKey: true, isPublic: true } },
-          sender: { select: { id: true, name: true, avatarKey: true } },
-          receiver: { select: { id: true, name: true, avatarKey: true } },
+          sender: { select: { id: true, name: true, displayName: true, avatarKey: true } },
+          receiver: { select: { id: true, name: true, displayName: true, avatarKey: true } },
         },
       });
     }
@@ -254,8 +254,8 @@ export class InvitesService {
       where: { id },
       include: {
         event: { select: { id: true, title: true, imageKey: true, isPublic: true } },
-        sender: { select: { id: true, name: true, avatarKey: true } },
-        receiver: { select: { id: true, name: true, avatarKey: true } },
+        sender: { select: { id: true, name: true, displayName: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, displayName: true, avatarKey: true } },
       },
     });
   }
@@ -274,8 +274,8 @@ export class InvitesService {
       where: { id },
       include: {
         event: { select: { id: true, title: true, imageKey: true, isPublic: true } },
-        sender: { select: { id: true, name: true, avatarKey: true } },
-        receiver: { select: { id: true, name: true, avatarKey: true } },
+        sender: { select: { id: true, name: true, displayName: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, displayName: true, avatarKey: true } },
       },
     });
   }
@@ -292,8 +292,8 @@ export class InvitesService {
       where: { receiverId: userId, ...cursorFilter },
       include: {
         event: { select: { id: true, title: true, imageKey: true } },
-        sender: { select: { id: true, name: true, avatarKey: true } },
-        receiver: { select: { id: true, name: true, avatarKey: true } },
+        sender: { select: { id: true, name: true, displayName: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, displayName: true, avatarKey: true } },
       },
       orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
       take: limit + 1,
@@ -342,8 +342,8 @@ export class InvitesService {
       },
       include: {
         event: { select: { id: true, title: true, imageKey: true } },
-        sender: { select: { id: true, name: true, avatarKey: true } },
-        receiver: { select: { id: true, name: true, avatarKey: true } },
+        sender: { select: { id: true, name: true, displayName: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, displayName: true, avatarKey: true } },
       },
       orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
       take: limit + 1,

@@ -67,8 +67,8 @@ export class FriendsService {
         receiverId,
       },
       include: {
-        requester: { select: { id: true, name: true, avatarKey: true } },
-        receiver: { select: { id: true, name: true, avatarKey: true } },
+        requester: { select: { id: true, name: true, displayName: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, displayName: true, avatarKey: true } },
       },
     });
 
@@ -84,8 +84,8 @@ export class FriendsService {
       orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
       take: limit + 1,
       include: {
-        requester: { select: { id: true, name: true, avatarKey: true } },
-        receiver: { select: { id: true, name: true, avatarKey: true } },
+        requester: { select: { id: true, name: true, displayName: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, displayName: true, avatarKey: true } },
       },
     });
 
@@ -115,8 +115,8 @@ export class FriendsService {
       orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
       take: limit + 1,
       include: {
-        requester: { select: { id: true, name: true, avatarKey: true } },
-        receiver: { select: { id: true, name: true, avatarKey: true } },
+        requester: { select: { id: true, name: true, displayName: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, displayName: true, avatarKey: true } },
       },
     });
 
@@ -148,7 +148,7 @@ export class FriendsService {
         orderBy: [{ friend: { name: 'asc' } }, { id: 'asc' }],
         take: limit + 1,
         include: {
-          friend: { select: { id: true, name: true, avatarKey: true } },
+          friend: { select: { id: true, name: true, displayName: true, avatarKey: true } },
         },
       }),
       // Count all friends for this user (ignoring the pagination cursor)
@@ -188,8 +188,8 @@ export class FriendsService {
     const friendRequest = await this.prisma.friendRequest.findFirst({
       where: { id: id },
       include: {
-        requester: { select: { id: true, name: true, avatarKey: true } },
-        receiver: { select: { id: true, name: true, avatarKey: true } },
+        requester: { select: { id: true, name: true, displayName: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, displayName: true, avatarKey: true } },
       },
     });
 
@@ -208,7 +208,7 @@ export class FriendsService {
           userId: userId,
           friendId: friendRequest.requesterId,
         },
-        include: { friend: { select: { id: true, name: true, avatarKey: true } } },
+        include: { friend: { select: { id: true, name: true, displayName: true, avatarKey: true } } },
       }),
       this.prisma.friends.create({
         data: {
@@ -230,8 +230,8 @@ export class FriendsService {
     const friendRequest = await this.prisma.friendRequest.findFirst({
       where: { id: id },
       include: {
-        requester: { select: { id: true, name: true, avatarKey: true } },
-        receiver: { select: { id: true, name: true, avatarKey: true } },
+        requester: { select: { id: true, name: true, displayName: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, displayName: true, avatarKey: true } },
       },
     });
 
@@ -247,8 +247,8 @@ export class FriendsService {
     return await this.prisma.friendRequest.delete({
       where: { id },
       include: {
-        requester: { select: { id: true, name: true, avatarKey: true } },
-        receiver: { select: { id: true, name: true, avatarKey: true } },
+        requester: { select: { id: true, name: true, displayName: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, displayName: true, avatarKey: true } },
       },
     });
   }
@@ -258,8 +258,8 @@ export class FriendsService {
     const friendRequest = await this.prisma.friendRequest.findFirst({
       where: { id: id },
       include: {
-        requester: { select: { id: true, name: true, avatarKey: true } },
-        receiver: { select: { id: true, name: true, avatarKey: true } },
+        requester: { select: { id: true, name: true, displayName: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, displayName: true, avatarKey: true } },
       },
     });
 
@@ -275,8 +275,8 @@ export class FriendsService {
     return await this.prisma.friendRequest.delete({
       where: { id },
       include: {
-        requester: { select: { id: true, name: true, avatarKey: true } },
-        receiver: { select: { id: true, name: true, avatarKey: true } },
+        requester: { select: { id: true, name: true, displayName: true, avatarKey: true } },
+        receiver: { select: { id: true, name: true, displayName: true, avatarKey: true } },
       },
     });
   }
@@ -292,7 +292,7 @@ export class FriendsService {
         userId: userId,
         friendId: friendId,
       },
-      include: { friend: { select: { id: true, name: true, avatarKey: true } } },
+      include: { friend: { select: { id: true, name: true, displayName: true, avatarKey: true } } },
     });
     if (!friendship) throw new BadRequestException('Friendship does not exist.');
 

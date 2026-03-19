@@ -21,6 +21,7 @@ export const ResChatMessageSchema = z.object({
     .object({
       id: z.number().int().positive(),
       name: z.string().nullable().optional(),
+      displayName: z.string().nullable().optional(),
       avatarKey: z.string().nullable().optional(),
     })
     .nullable(),

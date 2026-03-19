@@ -41,7 +41,7 @@ export function Navbar() {
   const isLoggedIn = useAuthStore((s) => !!s.token);
   const user = useCurrentUserStore((s) => s.user);
   const isAvatarTransitioning = useCurrentUserStore((s) => s.isAvatarTransitioning);
-  const displayName = user?.name ?? user?.email ?? 'User';
+  const displayName = user?.displayName ?? user?.name ?? user?.email ?? 'User';
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 

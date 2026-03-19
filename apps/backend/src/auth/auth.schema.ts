@@ -6,6 +6,7 @@ export const ResAuthMeSchema = z.object({
   id: z.number().int().positive(),
   email: z.email(),
   name: z.string().nullable(),
+  displayName: z.string().nullable().optional(),
   avatarKey: z.string().nullable().optional(),
   isConfirmed: z.boolean().default(false),
   isAdmin: z.boolean().default(false),

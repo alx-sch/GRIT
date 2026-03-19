@@ -83,6 +83,7 @@ export type ResMyInvitedEventsPaginated = z.infer<typeof ResMyInvitedEventsPagin
 export const ResUserBaseSchema = z.object({
   id: z.number().int().positive(),
   name: z.string(),
+  displayName: z.string().nullable().optional(),
   email: z.email(),
   avatarKey: z.string().nullable().optional(),
   bio: z.string().max(150).nullable().optional(),
@@ -99,6 +100,7 @@ export type ResUserBase = z.infer<typeof ResUserBaseSchema>;
 export const ResUserPublicSchema = z.object({
   id: z.number().int().positive(),
   name: z.string(),
+  displayName: z.string().nullable().optional(),
   avatarKey: z.string().nullable().optional(),
   bio: z.string().max(150).nullable().optional(),
   city: z.string().nullable().optional(),

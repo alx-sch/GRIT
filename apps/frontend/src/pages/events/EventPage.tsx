@@ -207,7 +207,7 @@ export const EventPage = () => {
                     className="group min-w-0 max-w-full flex items-center gap-1.5 text-left cursor-pointer"
                   >
                     <Text className="text-lg truncate md:underline decoration-dashed underline-offset-4 group-hover:decoration-solid transition-all">
-                      {event.author.name}
+                      {event.author.displayName ?? event.author.name}
                     </Text>
                   </Link>
                 ) : (

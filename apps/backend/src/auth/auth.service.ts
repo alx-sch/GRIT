@@ -51,6 +51,7 @@ export class AuthService {
       id: user.id,
       email: user.email,
       name: user.name,
+      displayName: user.displayName,
       avatarKey: user.avatarKey,
       isConfirmed: user.isConfirmed,
       isAdmin: user.isAdmin,
@@ -75,6 +76,7 @@ export class AuthService {
       id: user.id,
       email: user.email,
       name: user.name,
+      displayName: user.displayName,
       avatarKey: user.avatarKey,
       isConfirmed: user.isConfirmed,
       isAdmin: user.isAdmin,
@@ -106,7 +108,8 @@ export class AuthService {
           },
           create: {
             email,
-            name: `${firstName}-${this.generateNanoId()}`,
+            name: `${firstName}-${this.generateNanoId()}`.toLowerCase(),
+            displayName: `${firstName}-${this.generateNanoId()}`, // Original casing
             googleId: providerId,
             isConfirmed: true,
             password: null,

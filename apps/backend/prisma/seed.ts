@@ -108,7 +108,7 @@ async function uploadToBucket(bucketName: string, localFilePath: string, origina
 async function main() {
   console.log('--- Seeding database...');
 
-  const TEST_RECORD_COUNT = 30;
+  const TEST_RECORD_COUNT = 1000;
   const DEFAULT_TEST_PASSWORD = 'password123';
   const AVATAR_BUCKET = 'user-avatars';
   const EVENT_BUCKET = 'event-images';
@@ -123,20 +123,35 @@ async function main() {
   console.log('--- Seeding Users...');
 
   const coreUsers = [
-    { email: 'admin@example.com', name: 'Admin', password: 'admin123', image: null, isAdmin: true },
+    {
+      email: 'admin@example.com',
+      name: 'admin',
+      displayName: 'Admin',
+      password: 'admin123',
+      image: null,
+      isAdmin: true,
+    },
     {
       email: 'alice@example.com',
-      name: 'Alice',
+      name: 'alice',
+      displayName: 'Alice',
       password: DEFAULT_TEST_PASSWORD,
       image: 'avatar-1.jpg',
     },
     {
       email: 'bob@example.com',
-      name: 'Bob',
+      name: 'bob',
+      displayName: 'Bob',
       password: DEFAULT_TEST_PASSWORD,
       image: 'avatar-2.jpg',
     },
-    { email: 'cindy@example.com', name: 'Cindy', password: DEFAULT_TEST_PASSWORD, image: null },
+    {
+      email: 'cindy@example.com',
+      name: 'cindy',
+      displayName: 'Cindy',
+      password: DEFAULT_TEST_PASSWORD,
+      image: null,
+    },
   ];
 
   // Process Core Users (Since they need avatars and specific upserts)
@@ -144,10 +159,16 @@ async function main() {
     const hashedPassword = await bcrypt.hash(u.password, 10);
     const user = await prisma.user.upsert({
       where: { email: u.email },
-      update: { name: u.name, password: hashedPassword, isConfirmed: true },
+      update: {
+        name: u.name,
+        displayName: u.displayName,
+        password: hashedPassword,
+        isConfirmed: true,
+      },
       create: {
         email: u.email,
         name: u.name,
+        displayName: u.displayName,
         password: hashedPassword,
         isConfirmed: true,
         isAdmin: u.isAdmin ?? false,
@@ -178,7 +199,8 @@ async function main() {
     for (let i = 1; i <= TEST_RECORD_COUNT; i++) {
       testUsersData.push({
         email: `test${String(i)}@example.com`,
-        name: `TestUser${String(i)}`,
+        name: `testuser${String(i)}`,
+        displayName: `TestUser${String(i)}`,
         password: testHashedPassword, // use pre-calculated hash to save time
         isConfirmed: true,
         isAdmin: false,

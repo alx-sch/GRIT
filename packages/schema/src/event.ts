@@ -8,10 +8,15 @@ export const EVENT_CONFIG = {
 };
 
 // Sub-schemas for nested objects in event response
-export const ResEventAuthorSchema = z.object({ id: z.number(), name: z.string() });
+export const ResEventAuthorSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  displayName: z.string().nullable().optional(),
+});
 export const ResEventAttendeeSchema = z.object({
   id: z.number(),
   name: z.string(),
+  displayName: z.string().nullable().optional(),
   avatarKey: z.string().nullable(),
 });
 export const ResEventLocationSchema = z.object({
