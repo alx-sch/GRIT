@@ -130,6 +130,7 @@ export class EventService {
               select: {
                 id: true,
                 name: true,
+                displayName: true,
                 avatarKey: true,
               },
             },
@@ -182,7 +183,9 @@ export class EventService {
         location: true,
         files: true,
         attendees: {
-          select: { user: { select: { id: true, name: true, avatarKey: true } } },
+          select: {
+            user: { select: { id: true, name: true, displayName: true, avatarKey: true } },
+          },
         },
         conversation: { select: { id: true } },
         invites: {
@@ -301,6 +304,7 @@ export class EventService {
                 select: {
                   id: true,
                   name: true,
+                  displayName: true,
                   avatarKey: true,
                 },
               },
@@ -356,6 +360,7 @@ export class EventService {
               select: {
                 id: true,
                 name: true,
+                displayName: true,
                 avatarKey: true,
               },
             },
@@ -415,6 +420,7 @@ export class EventService {
                 select: {
                   id: true,
                   name: true,
+                  displayName: true,
                   avatarKey: true,
                 },
               },
@@ -468,6 +474,7 @@ export class EventService {
               select: {
                 id: true,
                 name: true,
+                displayName: true,
                 avatarKey: true,
               },
             },

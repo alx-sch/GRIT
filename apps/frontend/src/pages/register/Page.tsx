@@ -60,7 +60,10 @@ export async function registerPageAction({ request }: { request: Request }) {
     await authService.register(registerData);
 
     // Log in
-    const loginData = await authService.login(parsedData.data);
+    const loginData = await authService.login({
+      emailOrUsername: parsedData.data.email,
+      password: parsedData.data.password,
+    });
     useAuthStore.getState().setAuthenticated(loginData.accessToken);
     useCurrentUserStore.getState().setUser(loginData.user);
 

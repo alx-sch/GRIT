@@ -23,6 +23,7 @@ type AvatarSize = keyof typeof SIZE_CLASSES;
 interface UserAvatarUser {
   id?: number | null;
   name?: string | null;
+  displayName?: string | null;
   email?: string | null;
   avatarKey?: string | null;
 }
@@ -70,7 +71,7 @@ export function UserAvatar({
     seed = user.name ?? user.email ?? 'user';
   }
 
-  const displayName = user.name ?? user.email ?? undefined;
+  const displayName = user.displayName ?? user.name ?? user.email ?? undefined;
 
   return (
     <Avatar className={cn(SIZE_CLASSES[size], className)}>

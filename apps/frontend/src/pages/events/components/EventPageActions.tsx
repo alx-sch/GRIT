@@ -73,9 +73,10 @@ export const EventPageActions = ({
 
   // Only filter when there's a search query, otherwise show all loaded friends
   const friendsToShow = searchQuery
-    ? invitableFriends.filter((friendship) =>
-        friendship.friend.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+    ? invitableFriends.filter((friendship) => {
+        const displayName = friendship.friend.displayName ?? friendship.friend.name;
+        return displayName.toLowerCase().includes(searchQuery.toLowerCase());
+      })
     : invitableFriends;
 
   const isSearching = searchQuery.trim().length > 0;
@@ -266,7 +267,9 @@ export const EventPageActions = ({
                     )}
                   >
                     <UserAvatar user={friendship.friend} size="sm" />
-                    <Text className="font-medium flex-1">{friendship.friend.name}</Text>
+                    <Text className="font-medium flex-1">
+                      {friendship.friend.displayName ?? friendship.friend.name}
+                    </Text>
                     <Button
                       size="sm"
                       disabled={isDisabled}

@@ -13,6 +13,7 @@ export type CurrentUser = Partial<ResUserBase> & {
   email: string;
   avatarKey?: string | null;
   name?: string | null;
+  displayName?: string | null;
   createdAt?: string;
   isAdmin?: boolean;
 };

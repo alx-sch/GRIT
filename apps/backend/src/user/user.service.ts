@@ -62,6 +62,7 @@ export class UserService {
       data: slicedData.map((user) => ({
         id: user.id,
         name: user.name,
+        displayName: user.displayName,
         avatarKey: user.avatarKey,
         bio: user.bio,
         city: user.city,
@@ -146,11 +147,50 @@ export class UserService {
     };
   }
 
+  async userGetByName(name: string) {
+    // Normalize to lowercase for case-insensitive lookup (uses DB index!)
+    const normalizedName = name.toLowerCase();
+
+    const user = await this.prisma.user.findUnique({
+      where: { name: normalizedName },
+      include: {
+        attending: {
+          include: {
+            event: {
+              include: { location: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    return {
+      ...user,
+      createdAt: user.createdAt.toISOString(),
+      attending: user.attending.map((a) => ({
+        id: a.event.id,
+        title: a.event.title,
+        slug: a.event.slug,
+        startAt: a.event.startAt.toISOString(),
+        isOrganizer: a.event.authorId === user.id,
+        imageKey: a.event.imageKey,
+        location: a.event.location,
+      })),
+    };
+  }
+
   async userPost(data: ReqUserPostDto): Promise<ResUserPostDto> {
     const token = randomBytes(32).toString('hex');
 
+    // Normalize username to lowercase for case-insensitive uniqueness
+    const normalizedName = data.name.toLowerCase();
+
     // A hard-coded check (since we use the name 'Unknown' for deleted users).
-    if (data.name.toUpperCase() === 'UNKNOWN') {
+    if (normalizedName === 'unknown') {
       throw new ConflictException('Name unknown is reserved for deleted users');
     }
 
@@ -163,9 +203,9 @@ export class UserService {
       throw new ConflictException('Email already in use');
     }
 
-    // Check if name already exists
-    const existingName = await this.prisma.user.findFirst({
-      where: { name: data.name },
+    // Check if name already exists (case-insensitive via exact match on normalized value)
+    const existingName = await this.prisma.user.findUnique({
+      where: { name: normalizedName },
     });
 
     if (existingName) {
@@ -174,7 +214,8 @@ export class UserService {
 
     const user = await this.prisma.user.create({
       data: {
-        name: data.name,
+        name: normalizedName,
+        displayName: data.name, // Store original casing for display
         email: data.email,
         password: await bcrypt.hash(data.password, 10),
         isConfirmed: false,
@@ -382,18 +423,21 @@ export class UserService {
       const newData: Prisma.UserUpdateInput = {};
 
       if (data.name !== undefined) {
-        if (data.name.toUpperCase() === 'UNKNOWN')
-          throw new ConflictException('Username already taken');
+        // Normalize username to lowercase
+        const normalizedName = data.name.toLowerCase();
 
-        // Check if name already exists
+        if (normalizedName === 'unknown') throw new ConflictException('Username already taken');
+
+        // Check if name already exists (case-insensitive via normalized value)
         const existingName = await tx.user.findFirst({
-          where: { name: data.name, id: { not: userId } },
+          where: { name: normalizedName, id: { not: userId } },
         });
 
         if (existingName) {
           throw new ConflictException('Username already taken');
         }
-        newData.name = data.name;
+        newData.name = normalizedName;
+        newData.displayName = data.name; // Store original casing for display
       }
       if (data.bio !== undefined) newData.bio = data.bio;
       if (data.city !== undefined) newData.city = data.city;
@@ -555,6 +599,7 @@ export class UserService {
           select: {
             id: true,
             name: true,
+            displayName: true,
             avatarKey: true,
           },
         },
@@ -609,6 +654,7 @@ export class UserService {
           select: {
             id: true,
             name: true,
+            displayName: true,
             avatarKey: true,
           },
         },
@@ -707,6 +753,7 @@ export class UserService {
       select: {
         id: true,
         name: true,
+        displayName: true,
         avatarKey: true,
         createdAt: true,
         bio: true,
@@ -745,6 +792,7 @@ export class UserService {
         return {
           id: user.id,
           name: user.name,
+          displayName: user.displayName,
           avatarKey: user.avatarKey,
           createdAt: user.createdAt.toISOString(),
           bio: null,
@@ -758,6 +806,7 @@ export class UserService {
     return {
       id: user.id,
       name: user.name,
+      displayName: user.displayName,
       avatarKey: user.avatarKey,
       createdAt: user.createdAt.toISOString(),
       bio: user.bio,

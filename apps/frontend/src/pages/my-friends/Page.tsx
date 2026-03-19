@@ -427,8 +427,8 @@ function FriendsSection({
 
   // Sort friends alphabetically by name
   const sortedFriends = [...friends].sort((a, b) => {
-    const nameA = a.friend.name.toLowerCase();
-    const nameB = b.friend.name.toLowerCase();
+    const nameA = (a.friend.displayName ?? a.friend.name).toLowerCase();
+    const nameB = (b.friend.displayName ?? b.friend.name).toLowerCase();
     if (sortDirection === 'asc') {
       return nameA.localeCompare(nameB);
     } else {
@@ -491,8 +491,8 @@ function FriendsSection({
                     <AlertDialogHeader>
                       <AlertDialogTitle>Remove this friend?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        This action cannot be undone. This will remove {friend.friend.name} from
-                        your friends.
+                        This action cannot be undone. This will remove{' '}
+                        {friend.friend.displayName ?? friend.friend.name} from your friends.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

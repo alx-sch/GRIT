@@ -129,7 +129,7 @@ export const useEventPage = () => {
         await userService.attendEvent(event.id);
         setIsAttending(true);
         setCountAttending((prev) => prev + 1);
-        toast.info('You\u2019re going to "' + event.title + '".');
+        toast.success('You\u2019re going to "' + event.title + '".');
       } catch (error) {
         toast.error('Something went wrong:' + String(error));
       } finally {

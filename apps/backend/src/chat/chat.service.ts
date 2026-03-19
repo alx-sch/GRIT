@@ -50,6 +50,7 @@ export class ChatService {
           select: {
             id: true,
             name: true,
+            displayName: true,
             avatarKey: true,
           },
         },

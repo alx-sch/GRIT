@@ -22,18 +22,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
-
-const LocalLoginSchema = z.object({
-  email: z.email('Please enter a valid email address'),
-  password: z.string().min(1, 'Password is required'),
-});
+import { LoginSchema } from '@grit/schema';
 
 export async function loginPageAction({ request }: { request: Request }) {
   const formData = await request.formData();
 
   // Checking login data before submitting for validity
-  const parsedData = LocalLoginSchema.safeParse({
-    email: formData.get('email'),
+  const parsedData = LoginSchema.safeParse({
+    emailOrUsername: formData.get('emailOrUsername'),
     password: formData.get('password'),
   });
   if (!parsedData.success) {
@@ -128,7 +124,7 @@ export const LoginPage = () => {
     clearErrors,
     formState: { errors, isValid },
   } = useForm<LoginInput>({
-    resolver: zodResolver(LocalLoginSchema),
+    resolver: zodResolver(LoginSchema),
     mode: 'onChange',
   });
 
@@ -159,7 +155,9 @@ export const LoginPage = () => {
       <Card className="w-full max-w-md mx-4 sm:mx-auto">
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
-          <CardDescription>Enter your email and password to access your account.</CardDescription>
+          <CardDescription>
+            Enter your email or username and password to access your account.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Form
@@ -184,16 +182,16 @@ export const LoginPage = () => {
             <FieldSet>
               <FieldGroup>
                 <Field>
-                  <FieldLabel htmlFor="email">Email</FieldLabel>
+                  <FieldLabel htmlFor="emailOrUsername">Email or Username</FieldLabel>
                   <Input
-                    id="email"
-                    type="email"
-                    autoComplete="email"
-                    placeholder="Enter your email..."
-                    error={!!errors.email}
-                    {...register('email')}
+                    id="emailOrUsername"
+                    type="text"
+                    autoComplete="username"
+                    placeholder="Enter your email or username..."
+                    error={!!errors.emailOrUsername}
+                    {...register('emailOrUsername')}
                   />
-                  <FieldError errors={[errors.email]} />
+                  <FieldError errors={[errors.emailOrUsername]} />
                 </Field>
 
                 <Field>

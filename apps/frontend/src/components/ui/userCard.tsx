@@ -4,13 +4,14 @@ import { UserAvatar } from '@/components/ui/user-avatar';
 interface UserCardUser {
   id: number;
   name: string;
+  displayName?: string | null;
   avatarKey?: string | null;
   createdAt?: string;
   onlineStatus?: boolean | null | undefined;
 }
 
 export const UserCard = ({ user, actions }: { user: UserCardUser; actions?: React.ReactNode }) => {
-  const displayName = user.name ?? 'User';
+  const displayName = user.displayName ?? user.name ?? 'User';
 
   return (
     <>

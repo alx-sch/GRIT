@@ -27,7 +27,13 @@ export class AuthService {
 
   // Logic for verifying user credentials
   async validateUser(loginDto: LoginInput): Promise<ResAuthMeDto> {
-    const user = await this.userService.userGetByEmail(loginDto.email);
+    // Determine if the input is an email or username
+    const isEmail = loginDto.emailOrUsername.includes('@');
+
+    // Query by email or username accordingly
+    const user = isEmail
+      ? await this.userService.userGetByEmail(loginDto.emailOrUsername)
+      : await this.userService.userGetByName(loginDto.emailOrUsername);
 
     if (!user?.password) {
       throw new UnauthorizedException('Invalid email or password');
@@ -45,6 +51,7 @@ export class AuthService {
       id: user.id,
       email: user.email,
       name: user.name,
+      displayName: user.displayName,
       avatarKey: user.avatarKey,
       isConfirmed: user.isConfirmed,
       isAdmin: user.isAdmin,
@@ -69,6 +76,7 @@ export class AuthService {
       id: user.id,
       email: user.email,
       name: user.name,
+      displayName: user.displayName,
       avatarKey: user.avatarKey,
       isConfirmed: user.isConfirmed,
       isAdmin: user.isAdmin,
@@ -92,6 +100,8 @@ export class AuthService {
 
     while (attempts < maxAttempts) {
       try {
+        const nanoId = this.generateNanoId();
+        const baseName = `${firstName}-${nanoId}`;
         const user = await this.prisma.user.upsert({
           where: { email },
           update: {
@@ -100,7 +110,8 @@ export class AuthService {
           },
           create: {
             email,
-            name: `${firstName}-${this.generateNanoId()}`,
+            name: baseName.toLowerCase(),
+            displayName: baseName,
             googleId: providerId,
             isConfirmed: true,
             password: null,
