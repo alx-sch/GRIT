@@ -747,6 +747,31 @@ export class UserService {
     };
   }
 
+  async userGetPublicByName(name: string, requestingUserId?: number) {
+    const normalized = name.toLowerCase();
+    const user = await this.prisma.user.findUnique({
+      where: { name: normalized },
+      select: { id: true },
+    });
+    if (!user) return null;
+    return this.userGetPublic(user.id, requestingUserId);
+  }
+
+  async userGetPublicEventsByName(
+    name: string,
+    requestingUserId?: number,
+    limit = 12,
+    cursor?: string
+  ) {
+    const normalized = name.toLowerCase();
+    const user = await this.prisma.user.findUnique({
+      where: { name: normalized },
+      select: { id: true },
+    });
+    if (!user) return null;
+    return this.userGetPublicEvents(user.id, requestingUserId, limit, cursor);
+  }
+
   async userGetPublic(id: number, requestingUserId?: number) {
     const user = await this.prisma.user.findUnique({
       where: { id },
@@ -816,7 +841,12 @@ export class UserService {
     };
   }
 
-  async userGetPublicEvents(userId: number, requestingUserId?: number) {
+  async userGetPublicEvents(
+    userId: number,
+    requestingUserId?: number,
+    limit = 12,
+    cursor?: string
+  ) {
     // First check if the user's profile is accessible
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -848,27 +878,55 @@ export class UserService {
       }
     }
 
+    // Decode cursor: encodes startAt (ISO) + id, e.g. "2026-01-01T00:00:00.000Z|42"
+    let cursorFilter: Prisma.EventWhereInput = {};
+    if (cursor) {
+      try {
+        const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
+        const [startAtStr, idStr] = decoded.split('|');
+        const startAt = new Date(startAtStr);
+        const id = parseInt(idStr, 10);
+        if (isNaN(startAt.getTime()) || isNaN(id)) throw new Error('bad cursor');
+        // ordered by startAt desc, id desc — so "after cursor" means earlier startAt, or same startAt with smaller id
+        cursorFilter = {
+          OR: [{ startAt: { lt: startAt } }, { startAt, id: { lt: id } }],
+        };
+      } catch {
+        throw new BadRequestException('Invalid cursor provided');
+      }
+    }
+
     const events = await this.prisma.event.findMany({
       where: {
         authorId: userId,
         isPublished: true,
         isPublic: true,
+        ...cursorFilter,
       },
       include: {
         location: true,
       },
-      orderBy: {
-        startAt: 'desc',
-      },
+      orderBy: [{ startAt: 'desc' }, { id: 'desc' }],
+      take: limit + 1,
     });
 
-    return events.map((event) => ({
-      id: event.id,
-      title: event.title,
-      slug: event.slug,
-      startAt: event.startAt.toISOString(),
-      imageKey: event.imageKey,
-      location: event.location,
-    }));
+    const hasMore = events.length > limit;
+    const sliced = hasMore ? events.slice(0, limit) : events;
+    const last = sliced[sliced.length - 1];
+    const nextCursor = hasMore
+      ? Buffer.from(`${last.startAt.toISOString()}|${String(last.id)}`).toString('base64')
+      : null;
+
+    return {
+      data: sliced.map((event) => ({
+        id: event.id,
+        title: event.title,
+        slug: event.slug,
+        startAt: event.startAt.toISOString(),
+        imageKey: event.imageKey,
+        location: event.location,
+      })),
+      pagination: { nextCursor, hasMore },
+    };
   }
 }

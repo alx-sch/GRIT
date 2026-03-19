@@ -7,7 +7,7 @@ test.describe('Public Profile', () => {
       await route.fulfill({
         json: {
           id: 1,
-          name: 'Test User',
+          name: 'test-user',
           email: 'test@example.com',
           avatarKey: null,
         },
@@ -26,12 +26,12 @@ test.describe('Public Profile', () => {
   });
 
   test('should display public profile with user info', async ({ page }) => {
-    // Mock user profile with bio and location
-    await page.route(/\/api\/users\/2$/, async (route) => {
+    await page.route(/\/api\/users\/alice-johnson$/, async (route) => {
       await route.fulfill({
         json: {
           id: 2,
-          name: 'Alice Johnson',
+          name: 'alice-johnson',
+          displayName: 'Alice Johnson',
           avatarKey: null,
           bio: 'Event organizer',
           city: 'New York',
@@ -41,15 +41,17 @@ test.describe('Public Profile', () => {
       });
     });
 
-    await page.route(/\/api\/users\/2\/events/, async (route) => {
-      await route.fulfill({ json: [] });
+    await page.route(/\/api\/users\/alice-johnson\/events/, async (route) => {
+      await route.fulfill({
+        json: { data: [], pagination: { nextCursor: null, hasMore: false } },
+      });
     });
 
     await page.route(/\/api\/users\/me\/friends\/status\/2/, async (route) => {
       await route.fulfill({ json: { status: 'none' } });
     });
 
-    await page.goto('/users/2');
+    await page.goto('/users/alice-johnson');
     await page.waitForLoadState('networkidle');
 
     // Verify user info is displayed
@@ -63,11 +65,12 @@ test.describe('Public Profile', () => {
   });
 
   test('should show empty bio message when no bio', async ({ page }) => {
-    await page.route(/\/api\/users\/3$/, async (route) => {
+    await page.route(/\/api\/users\/bob-smith$/, async (route) => {
       await route.fulfill({
         json: {
           id: 3,
-          name: 'Bob Smith',
+          name: 'bob-smith',
+          displayName: 'Bob Smith',
           avatarKey: null,
           bio: null,
           city: null,
@@ -77,15 +80,17 @@ test.describe('Public Profile', () => {
       });
     });
 
-    await page.route(/\/api\/users\/3\/events/, async (route) => {
-      await route.fulfill({ json: [] });
+    await page.route(/\/api\/users\/bob-smith\/events/, async (route) => {
+      await route.fulfill({
+        json: { data: [], pagination: { nextCursor: null, hasMore: false } },
+      });
     });
 
     await page.route(/\/api\/users\/me\/friends\/status\/3/, async (route) => {
       await route.fulfill({ json: { status: 'none' } });
     });
 
-    await page.goto('/users/3');
+    await page.goto('/users/bob-smith');
     await page.waitForLoadState('networkidle');
 
     await expect(page.locator('h2:has-text("Bob Smith")')).toBeVisible();
@@ -96,11 +101,12 @@ test.describe('Public Profile', () => {
   });
 
   test('should show hosted events', async ({ page }) => {
-    await page.route(/\/api\/users\/4$/, async (route) => {
+    await page.route(/\/api\/users\/charlie-day$/, async (route) => {
       await route.fulfill({
         json: {
           id: 4,
-          name: 'Charlie Day',
+          name: 'charlie-day',
+          displayName: 'Charlie Day',
           avatarKey: null,
           bio: 'Party host',
           city: 'Chicago',
@@ -110,29 +116,32 @@ test.describe('Public Profile', () => {
       });
     });
 
-    await page.route(/\/api\/users\/4\/events/, async (route) => {
+    await page.route(/\/api\/users\/charlie-day\/events/, async (route) => {
       await route.fulfill({
-        json: [
-          {
-            id: 10,
-            title: 'New Year Party',
-            slug: 'new-year-party',
-            startAt: '2026-12-31T21:00:00Z',
-            imageKey: null,
-            location: {
+        json: {
+          data: [
+            {
               id: 10,
-              authorId: 4,
-              name: 'My House',
-              address: '123 Main St',
-              city: 'Chicago',
-              country: 'USA',
-              postalCode: '60601',
-              isPublic: true,
-              longitude: -87.6298,
-              latitude: 41.8781,
+              title: 'New Year Party',
+              slug: 'new-year-party',
+              startAt: '2026-12-31T21:00:00Z',
+              imageKey: null,
+              location: {
+                id: 10,
+                authorId: 4,
+                name: 'My House',
+                address: '123 Main St',
+                city: 'Chicago',
+                country: 'USA',
+                postalCode: '60601',
+                isPublic: true,
+                longitude: -87.6298,
+                latitude: 41.8781,
+              },
             },
-          },
-        ],
+          ],
+          pagination: { nextCursor: null, hasMore: false },
+        },
       });
     });
 
@@ -140,7 +149,7 @@ test.describe('Public Profile', () => {
       await route.fulfill({ json: { status: 'none' } });
     });
 
-    await page.goto('/users/4');
+    await page.goto('/users/charlie-day');
     await page.waitForLoadState('networkidle');
 
     // Click on Events tab
