@@ -33,6 +33,7 @@ import {
   ResMyInvitedEventsDto,
   ResUserDeleteSchema,
   ResUserPatchSchema,
+  ReqUserPublicEventsDto,
 } from '@/user/user.schema';
 import { UserService } from '@/user/user.service';
 import { ResUserGetAllSchema, ResUserAdminGetAllSchema } from '@grit/schema';
@@ -199,28 +200,32 @@ export class UserController {
     return this.userService.userDelete(param.id, user);
   }
 
-  @Get(':id')
+  @Get(':username')
   @UseGuards(JwtAuthOptionalGuard)
-  async getUserById(@Param('id') id: string, @GetUser('id') requestingUserId?: number) {
-    const userId = parseInt(id, 10);
-    if (isNaN(userId)) {
-      throw new NotFoundException('User not found');
-    }
-    const user = await this.userService.userGetPublic(userId, requestingUserId);
+  async getUserByUsername(
+    @Param('username') username: string,
+    @GetUser('id') requestingUserId?: number
+  ) {
+    const user = await this.userService.userGetPublicByName(username, requestingUserId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
     return user;
   }
 
-  @Get(':id/events')
+  @Get(':username/events')
   @UseGuards(JwtAuthOptionalGuard)
-  async getUserEvents(@Param('id') id: string, @GetUser('id') requestingUserId?: number) {
-    const userId = parseInt(id, 10);
-    if (isNaN(userId)) {
-      throw new NotFoundException('User not found');
-    }
-    const events = await this.userService.userGetPublicEvents(userId, requestingUserId);
+  async getUserEventsByUsername(
+    @Param('username') username: string,
+    @Query() query: ReqUserPublicEventsDto,
+    @GetUser('id') requestingUserId?: number
+  ) {
+    const events = await this.userService.userGetPublicEventsByName(
+      username,
+      requestingUserId,
+      query.limit,
+      query.cursor
+    );
     if (events === null) {
       throw new NotFoundException('User not found');
     }

@@ -80,7 +80,7 @@ export const ConversationCard = ({ conversation, isActive }: ConversationCardPro
               )}
             </div>
             {isDirect && isValidOtherUser ? (
-              <Link to={`/users/${otherUser.id}`}>{avatarEl}</Link>
+              <Link to={`/users/${otherUser.name}`}>{avatarEl}</Link>
             ) : hasEvent ? (
               <Link to={`/events/${eventSlug}`}>{avatarEl}</Link>
             ) : (
@@ -90,7 +90,7 @@ export const ConversationCard = ({ conversation, isActive }: ConversationCardPro
           <div className="w-full">
             {isDirect && isValidOtherUser ? (
               <Link
-                to={`/users/${otherUser.id}`}
+                to={`/users/${otherUser.name}`}
                 className="font-medium flex items-center leading-tight hover:underline"
               >
                 {title}

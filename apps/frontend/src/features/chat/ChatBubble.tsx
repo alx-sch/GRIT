@@ -48,7 +48,7 @@ export const ChatBubble = ({ message }: { message: ResChatMessage }) => {
               {isDeletedUser ? (
                 <UserAvatar user={author} size="xs" />
               ) : (
-                <Link to={`/users/${author.id}`}>
+                <Link to={`/users/${author.name}`}>
                   <UserAvatar user={author} size="xs" />
                 </Link>
               )}
@@ -60,7 +60,7 @@ export const ChatBubble = ({ message }: { message: ResChatMessage }) => {
                 {isDeletedUser ? (
                   <span>{author.displayName ?? author.name}</span>
                 ) : (
-                  <Link to={`/users/${author.id}`} className="hover:underline">
+                  <Link to={`/users/${author.name}`} className="hover:underline">
                     {author.displayName ?? author.name}
                   </Link>
                 )}

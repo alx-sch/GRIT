@@ -126,10 +126,10 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     });
   };
 
-  const handleSelectUser = (id: number) => {
+  const handleSelectUser = (name: string) => {
     onOpenChange(false);
     requestAnimationFrame(() => {
-      void navigate(`/users/${String(id)}`);
+      void navigate(`/users/${name}`);
     });
   };
 
@@ -240,7 +240,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                       key={user.id}
                       value={`user-${String(user.id)}-${user.name}`}
                       onSelect={() => {
-                        handleSelectUser(user.id);
+                        handleSelectUser(user.name);
                       }}
                     >
                       <UserAvatar user={user} size="xs" className="shrink-0" />
