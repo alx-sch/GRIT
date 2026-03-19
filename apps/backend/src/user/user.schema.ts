@@ -3,6 +3,9 @@ import {
   ResUserEventsSchema,
   ResMyEventsSchema,
   ResMyInvitedEventsSchema,
+  ResMyEventsPaginatedSchema,
+  ResMyInvitedEventsPaginatedSchema,
+  MyEventsTabSchema,
 } from '@grit/schema';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
@@ -25,6 +28,12 @@ export const ReqUserGetAllSchema = z.strictObject({
   limit: z.coerce.number().int().positive().max(100).default(20),
   cursor: z.string().optional(),
   search: z.string().min(1).optional(),
+});
+
+// Query params for paginated public user events
+export const ReqUserPublicEventsSchema = z.strictObject({
+  limit: z.coerce.number().int().positive().max(100).default(12),
+  cursor: z.string().optional(),
 });
 
 // Post a new user draft
@@ -92,6 +101,13 @@ export const ReqUserDeleteAvatarSchema = z.strictObject({
   id: z.coerce.number().int().positive(),
 });
 
+// Query params for GET /users/me/events?tab=...&limit=...&cursor=...
+export const ReqMyEventsSchema = z.strictObject({
+  tab: MyEventsTabSchema,
+  limit: z.coerce.number().int().positive().max(100).default(20),
+  cursor: z.string().optional(),
+});
+
 // --- DTO classes ---
 export class ResUserBaseDto extends createZodDto(ResUserBaseSchema) {}
 export class ReqUserGetAllDto extends createZodDto(ReqUserGetAllSchema) {}
@@ -106,3 +122,9 @@ export class ReqUserDeleteAvatarDto extends createZodDto(ReqUserDeleteAvatarSche
 export class ReqUserDeleteByIdDto extends createZodDto(ReqUserDeleteByIdSchema) {}
 export class ReqUserPatchDto extends createZodDto(ReqUserPatchSchema) {}
 export class ReqUserPatchByIdDto extends createZodDto(ReqUserPatchByIdSchema) {}
+export class ReqUserPublicEventsDto extends createZodDto(ReqUserPublicEventsSchema) {}
+export class ReqMyEventsDto extends createZodDto(ReqMyEventsSchema) {}
+export class ResMyEventsPaginatedDto extends createZodDto(ResMyEventsPaginatedSchema) {}
+export class ResMyInvitedEventsPaginatedDto extends createZodDto(
+  ResMyInvitedEventsPaginatedSchema
+) {}

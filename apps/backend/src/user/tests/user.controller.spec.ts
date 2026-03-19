@@ -20,6 +20,29 @@ const allUsers = [
   { id: 3, createdAt: mockDate, email: 'cindy@example.com', name: 'Cindy' },
 ];
 
+const mockPublicUser = {
+  id: 1,
+  name: 'alice',
+  displayName: 'Alice',
+  avatarKey: null,
+  createdAt: mockDate.toISOString(),
+  bio: null,
+  city: null,
+  country: null,
+  isProfilePublic: true,
+};
+
+const mockPublicEvents = [
+  {
+    id: 1,
+    title: 'Test Event',
+    slug: 'test-event',
+    startAt: mockDate.toISOString(),
+    imageKey: null,
+    location: null,
+  },
+];
+
 // Create a mock user service
 const mockUserService = {
   userGet: jest.fn().mockResolvedValue(allUsers),
@@ -28,6 +51,8 @@ const mockUserService = {
     createdAt: mockDate,
     ...data,
   })),
+  userGetPublicByName: jest.fn().mockResolvedValue(mockPublicUser),
+  userGetPublicEventsByName: jest.fn().mockResolvedValue(mockPublicEvents),
 };
 
 // Create the Nest testing module and replace the real UserService with a mock.
@@ -62,6 +87,48 @@ describe('UserController', () => {
     it('should return users from service', async () => {
       const result = await userController.userGetAll({ limit: 20 });
       expect(result).toEqual(allUsers);
+    });
+  });
+
+  // Tests for getUserByUsername controller path.
+  describe('Get public user by username', () => {
+    it('should call userService.userGetPublicByName() with the username param', async () => {
+      const spy = jest.spyOn(userService, 'userGetPublicByName');
+      await userController.getUserByUsername('alice');
+      expect(spy).toHaveBeenCalledWith('alice', undefined);
+    });
+
+    it('should return the user from service', async () => {
+      const result = await userController.getUserByUsername('alice');
+      expect(result).toEqual(mockPublicUser);
+    });
+
+    it('should throw NotFoundException when user does not exist', async () => {
+      jest.spyOn(userService, 'userGetPublicByName').mockResolvedValueOnce(null);
+      await expect(userController.getUserByUsername('nobody')).rejects.toThrow('User not found');
+    });
+  });
+
+  // Tests for getUserEventsByUsername controller path.
+  describe('Get public user events by username', () => {
+    const defaultQuery = { limit: 12, cursor: undefined };
+
+    it('should call userService.userGetPublicEventsByName() with the username and query params', async () => {
+      const spy = jest.spyOn(userService, 'userGetPublicEventsByName');
+      await userController.getUserEventsByUsername('alice', defaultQuery);
+      expect(spy).toHaveBeenCalledWith('alice', undefined, 12, undefined);
+    });
+
+    it('should return events from service', async () => {
+      const result = await userController.getUserEventsByUsername('alice', defaultQuery);
+      expect(result).toEqual(mockPublicEvents);
+    });
+
+    it('should throw NotFoundException when user does not exist', async () => {
+      jest.spyOn(userService, 'userGetPublicEventsByName').mockResolvedValueOnce(null);
+      await expect(userController.getUserEventsByUsername('nobody', defaultQuery)).rejects.toThrow(
+        'User not found'
+      );
     });
   });
 

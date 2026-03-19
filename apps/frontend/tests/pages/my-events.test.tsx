@@ -7,7 +7,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { vi } from 'vitest';
-import type { ResMyEvents } from '@grit/schema';
+import type { ResMyEvents, ResMyEventsPaginated, ResMyInvitedEventsPaginated } from '@grit/schema';
 
 vi.mock('@/services/userService', () => ({
   userService: {
@@ -90,22 +90,40 @@ describe('My Events Page', () => {
     isPublished: true,
   };
 
+  const emptyPagination = { nextCursor: null, hasMore: false, total: 0 };
+
+  const makeEventsPage = (events: ResMyEvents): ResMyEventsPaginated => ({
+    data: events,
+    pagination: { ...emptyPagination, total: events.length },
+  });
+
+  const emptyInvited: ResMyInvitedEventsPaginated = { data: [], pagination: emptyPagination };
+
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(userService.getMyInvitedEvents).mockResolvedValue([] as never);
+    vi.mocked(userService.getMyInvitedEvents).mockResolvedValue(emptyInvited as never);
     vi.mocked(friendService.listFriends).mockResolvedValue({ data: [] } as never);
     vi.mocked(inviteService.listOutgoingInvites).mockResolvedValue([] as never);
   });
 
   const renderPage = async (events: ResMyEvents = []) => {
-    vi.mocked(userService.getMyEvents).mockResolvedValue(events);
+    const eventsPage = makeEventsPage(events);
+    // getMyEvents is called per tab — return the same page for all tabs for simplicity
+    vi.mocked(userService.getMyEvents).mockResolvedValue(eventsPage as never);
+
+    const loaderData = {
+      upcoming: makeEventsPage(events.filter((e) => new Date(e.startAt) >= new Date())),
+      past: makeEventsPage(events.filter((e) => new Date(e.startAt) < new Date())),
+      organizing: makeEventsPage(events.filter((e) => e.isOrganizer)),
+      invited: emptyInvited,
+    };
 
     const router = createMemoryRouter(
       [
         {
           path: '/my-events',
           element: <Page />,
-          loader: () => Promise.resolve(events),
+          loader: () => Promise.resolve(loaderData),
           HydrateFallback: () => <div>Loading...</div>,
         },
       ],

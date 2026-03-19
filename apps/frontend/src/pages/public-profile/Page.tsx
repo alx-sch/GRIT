@@ -4,7 +4,7 @@ import { userService } from '@/services/userService';
 import { useAuthStore } from '@/store/authStore';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import type { FriendshipStatus } from '@/types/friends';
-import type { ResUserPublicEvents } from '@grit/schema';
+import type { ResUserPublicEventsPaginated } from '@grit/schema';
 import { useState } from 'react';
 import { LoaderFunctionArgs, useLoaderData } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -35,17 +35,20 @@ const fetchAllRequests = async <T,>(
 };
 
 export const publicProfileLoader = async ({ params }: LoaderFunctionArgs) => {
-  const id = parseInt(params.id ?? '', 10);
-  if (isNaN(id)) {
+  const username = params.username ?? '';
+  if (!username) {
     throw new Response('User not found', { status: 404 });
   }
 
-  const user = await userService.getUserById(id);
+  const user = await userService.getUserByName(username);
 
   // Only fetch events if profile is public (or the field is not set, for backwards compatibility)
-  let events: ResUserPublicEvents = [];
+  let eventPage: ResUserPublicEventsPaginated = {
+    data: [],
+    pagination: { hasMore: false, nextCursor: null },
+  };
   if (user.isProfilePublic !== false) {
-    events = await userService.getUserEvents(id);
+    eventPage = await userService.getUserEventsByName({ username });
   }
 
   // Only fetch friendship status if user is logged in
@@ -54,13 +57,13 @@ export const publicProfileLoader = async ({ params }: LoaderFunctionArgs) => {
   const token = useAuthStore.getState().token;
   if (token) {
     try {
-      const status = await userService.getFriendshipStatus(id);
+      const status = await userService.getFriendshipStatus(user.id);
       friendshipStatus = status;
 
       // If there's a pending received request, fetch the request details to get the ID
       if (status === 'pending_received') {
         const incomingRequests = await fetchAllRequests(friendService.listIncomingRequests);
-        const request = incomingRequests.find((req) => req.requesterId === id);
+        const request = incomingRequests.find((req) => req.requesterId === user.id);
         if (request) {
           friendRequestId = request.id;
         }
@@ -69,7 +72,7 @@ export const publicProfileLoader = async ({ params }: LoaderFunctionArgs) => {
       // If there's a pending sent request, fetch the request details to get the ID
       if (status === 'pending_sent') {
         const outgoingRequests = await fetchAllRequests(friendService.listOutgoingRequests);
-        const request = outgoingRequests.find((req) => req.receiverId === id);
+        const request = outgoingRequests.find((req) => req.receiverId === user.id);
         if (request) {
           friendRequestId = request.id;
         }
@@ -80,7 +83,7 @@ export const publicProfileLoader = async ({ params }: LoaderFunctionArgs) => {
     }
   }
 
-  return { user, events, friendshipStatus, friendRequestId };
+  return { user, eventPage, friendshipStatus, friendRequestId };
 };
 
 export default function PublicProfilePage() {
@@ -205,7 +208,12 @@ export default function PublicProfilePage() {
           void handleCancelRequest();
         }}
       />
-      <ProfileTabs user={data.user} events={data.events} />
+      <ProfileTabs
+        user={data.user}
+        username={data.user.name}
+        initialEvents={data.eventPage.data}
+        initialPagination={data.eventPage.pagination}
+      />
     </div>
   );
 }

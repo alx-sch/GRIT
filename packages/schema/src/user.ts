@@ -29,6 +29,21 @@ export const ResMyEventSchema = z.object({
 export const ResMyEventsSchema = z.array(ResMyEventSchema);
 export type ResMyEvents = z.infer<typeof ResMyEventsSchema>;
 
+const PaginationSchema = z.object({
+  nextCursor: z.string().nullable(),
+  hasMore: z.boolean(),
+  total: z.number().int().nonnegative(),
+});
+
+export const MyEventsTabSchema = z.enum(['upcoming', 'past', 'organizing', 'invited']);
+export type MyEventsTab = z.infer<typeof MyEventsTabSchema>;
+
+export const ResMyEventsPaginatedSchema = z.object({
+  data: ResMyEventsSchema,
+  pagination: PaginationSchema,
+});
+export type ResMyEventsPaginated = z.infer<typeof ResMyEventsPaginatedSchema>;
+
 export const ResMyInvitedEventSchema = z.object({
   id: z.number().int().positive(),
   title: z.string(),
@@ -56,6 +71,12 @@ export const ResMyInvitedEventSchema = z.object({
 });
 export const ResMyInvitedEventsSchema = z.array(ResMyInvitedEventSchema);
 export type ResMyInvitedEvents = z.infer<typeof ResMyInvitedEventsSchema>;
+
+export const ResMyInvitedEventsPaginatedSchema = z.object({
+  data: ResMyInvitedEventsSchema,
+  pagination: PaginationSchema,
+});
+export type ResMyInvitedEventsPaginated = z.infer<typeof ResMyInvitedEventsPaginatedSchema>;
 
 export const ResUserBaseSchema = z.object({
   id: z.number().int().positive(),
@@ -96,8 +117,15 @@ export const ResUserPublicEventSchema = z.object({
   imageKey: z.string().nullable().optional(),
   location: ResEventLocationSchema.nullable().optional(),
 });
+export type ResUserPublicEvent = z.infer<typeof ResUserPublicEventSchema>;
 export const ResUserPublicEventsSchema = z.array(ResUserPublicEventSchema);
 export type ResUserPublicEvents = z.infer<typeof ResUserPublicEventsSchema>;
+
+export const ResUserPublicEventsPaginatedSchema = z.object({
+  data: ResUserPublicEventsSchema,
+  pagination: z.object({ nextCursor: z.string().nullable(), hasMore: z.boolean() }),
+});
+export type ResUserPublicEventsPaginated = z.infer<typeof ResUserPublicEventsPaginatedSchema>;
 
 export const FriendshipStatusSchema = z.enum([
   'none',

@@ -29,10 +29,10 @@ import {
   ReqUserDeleteByIdDto,
   ReqUserPatchByIdDto,
   ReqUserDeleteAvatarDto,
-  ResMyEventsDto,
-  ResMyInvitedEventsDto,
   ResUserDeleteSchema,
   ResUserPatchSchema,
+  ReqUserPublicEventsDto,
+  ReqMyEventsDto,
 } from '@/user/user.schema';
 import { UserService } from '@/user/user.service';
 import { ResUserGetAllSchema, ResUserAdminGetAllSchema } from '@grit/schema';
@@ -80,22 +80,12 @@ export class UserController {
     return user;
   }
 
-  // Get user events
+  // Get user events — tab param selects upcoming | past | organizing | invited
   @Get('me/events')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @ZodSerializerDto(ResMyEventsDto)
-  async getMyEvents(@GetUser('id') userId: number) {
-    return await this.userService.userGetEvents(userId);
-  }
-
-  // Get user invited events
-  @Get('me/events/invited')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @ZodSerializerDto(ResMyInvitedEventsDto)
-  async getMyInvitedEvents(@GetUser('id') userId: number) {
-    return await this.userService.userGetInvitedEvents(userId);
+  async getMyEvents(@GetUser('id') userId: number, @Query() query: ReqMyEventsDto) {
+    return await this.userService.userGetMyEvents(userId, query.tab, query.limit, query.cursor);
   }
 
   // Delete logged in user
@@ -199,28 +189,32 @@ export class UserController {
     return this.userService.userDelete(param.id, user);
   }
 
-  @Get(':id')
+  @Get(':username')
   @UseGuards(JwtAuthOptionalGuard)
-  async getUserById(@Param('id') id: string, @GetUser('id') requestingUserId?: number) {
-    const userId = parseInt(id, 10);
-    if (isNaN(userId)) {
-      throw new NotFoundException('User not found');
-    }
-    const user = await this.userService.userGetPublic(userId, requestingUserId);
+  async getUserByUsername(
+    @Param('username') username: string,
+    @GetUser('id') requestingUserId?: number
+  ) {
+    const user = await this.userService.userGetPublicByName(username, requestingUserId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
     return user;
   }
 
-  @Get(':id/events')
+  @Get(':username/events')
   @UseGuards(JwtAuthOptionalGuard)
-  async getUserEvents(@Param('id') id: string, @GetUser('id') requestingUserId?: number) {
-    const userId = parseInt(id, 10);
-    if (isNaN(userId)) {
-      throw new NotFoundException('User not found');
-    }
-    const events = await this.userService.userGetPublicEvents(userId, requestingUserId);
+  async getUserEventsByUsername(
+    @Param('username') username: string,
+    @Query() query: ReqUserPublicEventsDto,
+    @GetUser('id') requestingUserId?: number
+  ) {
+    const events = await this.userService.userGetPublicEventsByName(
+      username,
+      requestingUserId,
+      query.limit,
+      query.cursor
+    );
     if (events === null) {
       throw new NotFoundException('User not found');
     }

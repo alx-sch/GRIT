@@ -45,7 +45,8 @@ const mockEvents = [
 const mockUsers = [
   {
     id: 10,
-    name: 'Alice Müller',
+    name: 'alice-abc',
+    displayName: 'Alice Müller',
     avatarKey: null,
     bio: null,
     city: 'Berlin',
@@ -55,7 +56,8 @@ const mockUsers = [
   },
   {
     id: 11,
-    name: 'Bob Smith',
+    name: 'bob-xyz',
+    displayName: 'Bob Smith',
     avatarKey: null,
     bio: null,
     city: null,
@@ -249,11 +251,13 @@ test.describe('Global Search', () => {
       await page.route('**/api/events/berlin-techno-night-abc123', async (route) => {
         await route.fulfill({ json: mockEvents[0] });
       });
-      await page.route('**/api/users/10', async (route) => {
+      await page.route('**/api/users/alice-abc', async (route) => {
         await route.fulfill({ json: mockUsers[0] });
       });
-      await page.route('**/api/users/10/events', async (route) => {
-        await route.fulfill({ json: [] });
+      await page.route('**/api/users/alice-abc/events', async (route) => {
+        await route.fulfill({
+          json: { data: [], pagination: { nextCursor: null, hasMore: false } },
+        });
       });
       await page.route('**/api/users/me/friends/status/10', async (route) => {
         await route.fulfill({ json: { status: 'none' } });
@@ -296,7 +300,7 @@ test.describe('Global Search', () => {
       await searchInput(page).fill('alice');
       await expect(page.getByText('Alice Müller')).toBeVisible({ timeout: 2000 });
       await page.getByText('Alice Müller').click();
-      await expect(page).toHaveURL('/users/10');
+      await expect(page).toHaveURL('/users/alice-abc');
     });
   });
 

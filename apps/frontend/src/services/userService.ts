@@ -1,11 +1,12 @@
 import api from '@/lib/api';
 import type { UserBase, UserResponse } from '@/types/user';
 import {
-  ResMyEvents,
-  ResMyInvitedEvents,
   ResUserPublicSchema,
-  ResUserPublicEventsSchema,
+  ResUserPublicEventsPaginatedSchema,
+  ResMyEventsPaginatedSchema,
+  ResMyInvitedEventsPaginatedSchema,
   ResFriendshipStatusSchema,
+  type MyEventsTab,
 } from '@grit/schema';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 
@@ -34,14 +35,24 @@ export const userService = {
     return response.data;
   },
 
-  getMyEvents: async (): Promise<ResMyEvents> => {
-    const response = await api.get<ResMyEvents>('users/me/events');
-    return response.data;
+  getMyEvents: async (params: {
+    tab: Exclude<MyEventsTab, 'invited'>;
+    limit?: string;
+    cursor?: string;
+  }) => {
+    const query = new URLSearchParams({ tab: params.tab });
+    if (params.limit) query.set('limit', params.limit);
+    if (params.cursor) query.set('cursor', params.cursor);
+    const response = await api.get(`users/me/events?${query.toString()}`);
+    return ResMyEventsPaginatedSchema.parse(response.data);
   },
 
-  getMyInvitedEvents: async (): Promise<ResMyInvitedEvents> => {
-    const response = await api.get<ResMyInvitedEvents>('users/me/events/invited');
-    return response.data;
+  getMyInvitedEvents: async (params?: { limit?: string; cursor?: string }) => {
+    const query = new URLSearchParams({ tab: 'invited' });
+    if (params?.limit) query.set('limit', params.limit);
+    if (params?.cursor) query.set('cursor', params.cursor);
+    const response = await api.get(`users/me/events?${query.toString()}`);
+    return ResMyInvitedEventsPaginatedSchema.parse(response.data);
   },
 
   attendEvent: async (eventId: number): Promise<UserBase> => {
@@ -113,14 +124,17 @@ export const userService = {
     await api.delete('users/me');
   },
 
-  getUserById: async (id: number) => {
-    const response = await api.get(`/users/${id}`);
+  getUserByName: async (username: string) => {
+    const response = await api.get(`/users/${username}`);
     return ResUserPublicSchema.parse(response.data);
   },
 
-  getUserEvents: async (id: number) => {
-    const response = await api.get(`/users/${id}/events`);
-    return ResUserPublicEventsSchema.parse(response.data);
+  getUserEventsByName: async (params: { username: string; limit?: number; cursor?: string }) => {
+    const { username, limit = 12, cursor } = params;
+    const query = new URLSearchParams({ limit: String(limit) });
+    if (cursor) query.set('cursor', cursor);
+    const response = await api.get(`/users/${username}/events?${query.toString()}`);
+    return ResUserPublicEventsPaginatedSchema.parse(response.data);
   },
 
   getFriendshipStatus: async (id: number) => {

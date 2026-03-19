@@ -203,7 +203,7 @@ export const EventPage = () => {
 
                 {event.author ? (
                   <Link
-                    to={`/users/${event.author.id}`}
+                    to={`/users/${event.author.name}`}
                     className="group min-w-0 max-w-full flex items-center gap-1.5 text-left cursor-pointer"
                   >
                     <Text className="text-lg truncate md:underline decoration-dashed underline-offset-4 group-hover:decoration-solid transition-all">

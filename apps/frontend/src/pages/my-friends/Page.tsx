@@ -269,7 +269,7 @@ function FriendSearch({
                 actions={
                   <>
                     <Button variant="outline" size="sm" asChild>
-                      <Link to={`/users/${user.id}`}>
+                      <Link to={`/users/${user.name}`}>
                         <Eye className="h-4 w-4" />
                       </Link>
                     </Button>
@@ -328,7 +328,7 @@ function PendingSection({ requests, onAccept, onDecline }: PendingSectionProps) 
             actions={
               <>
                 <Button variant="outline" size="sm" asChild>
-                  <Link to={`/users/${req.requester.id}`}>
+                  <Link to={`/users/${req.requester.name}`}>
                     <Eye className="h-4 w-4" />
                   </Link>
                 </Button>
@@ -365,7 +365,7 @@ function OutgoingSection({ requests, onCancel }: OutgoingSectionProps) {
             actions={
               <>
                 <Button variant="outline" size="sm" asChild>
-                  <Link to={`/users/${req.receiver.id}`}>
+                  <Link to={`/users/${req.receiver.name}`}>
                     <Eye className="h-4 w-4" />
                   </Link>
                 </Button>
@@ -469,7 +469,7 @@ function FriendsSection({
             actions={
               <>
                 <Button variant="outline" size="sm" asChild>
-                  <Link to={`/users/${friend.friend.id}`}>
+                  <Link to={`/users/${friend.friend.name}`}>
                     <Eye className="h-4 w-4" />
                   </Link>
                 </Button>

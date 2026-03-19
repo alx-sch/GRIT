@@ -184,6 +184,44 @@ export function eventCursorFilter(input: ReqEventGetPublishedDto): Prisma.EventW
 
 /**
  * ==================================================
+ * CURSOR HELPERS FOR USER EVENT TABS (me/events/*)
+ * ==================================================
+ *
+ * Simpler cursor encoding than the public feed — encodes only startAt + id.
+ * Used by upcoming, past, organizing, and invited tab endpoints.
+ */
+
+export function userEventEncodeCursor(startAt: Date, id: number): string {
+  return Buffer.from(`${startAt.toISOString()}|${String(id)}`).toString('base64');
+}
+
+export function userEventDecodeCursor(cursor: string): { startAt: Date; id: number } {
+  try {
+    const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
+    const [startAtStr, idStr] = decoded.split('|');
+    const startAt = new Date(startAtStr);
+    const id = parseInt(idStr, 10);
+    if (isNaN(startAt.getTime()) || isNaN(id)) throw new Error('bad cursor');
+    return { startAt, id };
+  } catch {
+    throw new BadRequestException('Invalid cursor provided');
+  }
+}
+
+// ascending (upcoming / organizing / invited) — "after cursor" means later startAt or same + higher id
+export function userEventCursorAsc(cursor: string): Prisma.EventWhereInput {
+  const { startAt, id } = userEventDecodeCursor(cursor);
+  return { OR: [{ startAt: { gt: startAt } }, { startAt, id: { gt: id } }] };
+}
+
+// descending (past) — "after cursor" means earlier startAt or same + lower id
+export function userEventCursorDesc(cursor: string): Prisma.EventWhereInput {
+  const { startAt, id } = userEventDecodeCursor(cursor);
+  return { OR: [{ startAt: { lt: startAt } }, { startAt, id: { lt: id } }] };
+}
+
+/**
+ * ==================================================
  * HELPER FUNCTIONS (GENERAL)
  * ==================================================
  */
