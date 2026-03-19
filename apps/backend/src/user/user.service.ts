@@ -20,6 +20,13 @@ import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { userCursorFilter, userEncodeCursor } from './user.utils';
+import {
+  userEventEncodeCursor,
+  userEventCursorAsc,
+  userEventCursorDesc,
+} from '@/event/event.utils';
+
+export type MyEventsTab = 'upcoming' | 'past' | 'organizing' | 'invited';
 import { User } from '@/auth/interfaces/user.interface';
 import { ChatGateway } from '@/chat/chat.gateway';
 
@@ -570,115 +577,134 @@ export class UserService {
     });
   }
 
-  /**
-   * Get events user is attending or owns
-   * (Public events only)
-   */
-  async userGetEvents(userId: number) {
-    const events = await this.prisma.event.findMany({
-      where: {
-        OR: [
-          {
-            attendees: {
-              some: { userId: userId },
-            },
-          },
-          {
-            authorId: userId,
-          },
-        ],
+  private paginateMyEvents<T extends { startAt: Date; id: number }>(events: T[], limit: number) {
+    const hasMore = events.length > limit;
+    const sliced = hasMore ? events.slice(0, limit) : events;
+    const last = sliced[sliced.length - 1];
+    return {
+      sliced,
+      pagination: {
+        nextCursor: hasMore ? userEventEncodeCursor(last.startAt, last.id) : null,
+        hasMore,
       },
-      include: {
-        location: true,
-        conversation: {
-          select: {
-            id: true,
-          },
-        },
-        author: {
-          select: {
-            id: true,
-            name: true,
-            displayName: true,
-            avatarKey: true,
-          },
-        },
-      },
-      orderBy: {
-        startAt: 'asc',
-      },
-    });
-
-    return events.map((e) => ({
-      id: e.id,
-      title: e.title,
-      slug: e.slug,
-      startAt: e.startAt.toISOString(),
-      endAt: e.endAt.toISOString(),
-      isOrganizer: e.authorId === userId,
-      imageKey: e.imageKey,
-      location: e.location,
-      conversationId: e.conversation?.id,
-      isPublished: e.isPublished,
-      isPublic: e.isPublic,
-      author: e.author,
-    }));
+    };
   }
 
-  /**
-   * Get events user is invited to
-   * (Can be public or private)
-   */
-  async userGetInvitedEvents(userId: number) {
-    const events = await this.prisma.event.findMany({
-      where: {
-        invites: {
-          some: { receiverId: userId },
-        },
-      },
-      include: {
-        location: true,
-        conversation: {
-          select: {
-            id: true,
-          },
-        },
-        invites: {
-          where: { receiverId: userId },
-          select: {
-            id: true,
-            status: true,
-          },
-        },
-        author: {
-          select: {
-            id: true,
-            name: true,
-            displayName: true,
-            avatarKey: true,
-          },
-        },
-      },
-      orderBy: {
-        startAt: 'asc',
-      },
-    });
+  async userGetMyEvents(
+    userId: number,
+    tab: MyEventsTab,
+    limit = 20,
+    cursor?: string,
+    sort: 'asc' | 'desc' = 'asc'
+  ) {
+    const now = new Date();
+    const isPast = tab === 'past';
+    const sortDir = isPast ? 'desc' : sort;
+    const cursorFilter = cursor
+      ? sortDir === 'asc'
+        ? userEventCursorAsc(cursor)
+        : userEventCursorDesc(cursor)
+      : {};
 
-    return events.map((e) => ({
-      id: e.id,
-      title: e.title,
-      slug: e.slug,
-      startAt: e.startAt.toISOString(),
-      endAt: e.endAt.toISOString(),
-      isOrganizer: e.authorId === userId,
-      imageKey: e.imageKey,
-      location: e.location,
-      conversationId: e.conversation?.id,
-      isPublished: e.isPublished,
-      isPublic: e.isPublic,
-      author: e.author,
-      invite: e.invites[0] ?? null,
-    }));
+    const baseInclude = {
+      location: true,
+      conversation: { select: { id: true } },
+      author: { select: { id: true, name: true, displayName: true, avatarKey: true } },
+    } as const;
+
+    const tabFilter: Prisma.EventWhereInput = (() => {
+      switch (tab) {
+        case 'upcoming':
+          return {
+            AND: [
+              { OR: [{ attendees: { some: { userId } } }, { authorId: userId }] },
+              { startAt: { gte: now } },
+            ],
+          };
+        case 'past':
+          return {
+            AND: [
+              { OR: [{ attendees: { some: { userId } } }, { authorId: userId }] },
+              { startAt: { lt: now } },
+            ],
+          };
+        case 'organizing':
+          return { authorId: userId };
+        case 'invited':
+          return { invites: { some: { receiverId: userId } } };
+      }
+    })();
+
+    const pageWhere: Prisma.EventWhereInput = cursor
+      ? { AND: [tabFilter, cursorFilter] }
+      : tabFilter;
+
+    const orderBy: Prisma.EventOrderByWithRelationInput[] = [
+      { startAt: sortDir },
+      { id: sortDir === 'asc' ? 'asc' : 'desc' },
+    ];
+
+    if (tab === 'invited') {
+      const [events, total] = await this.prisma.$transaction([
+        this.prisma.event.findMany({
+          where: pageWhere,
+          include: {
+            ...baseInclude,
+            invites: { where: { receiverId: userId }, select: { id: true, status: true } },
+          },
+          orderBy,
+          take: limit + 1,
+        }),
+        this.prisma.event.count({ where: tabFilter }),
+      ]);
+      const { sliced, pagination } = this.paginateMyEvents(events, limit);
+      return {
+        data: sliced.map((e) => ({
+          id: e.id,
+          title: e.title,
+          slug: e.slug,
+          startAt: e.startAt.toISOString(),
+          endAt: e.endAt.toISOString(),
+          isOrganizer: e.authorId === userId,
+          imageKey: e.imageKey,
+          location: e.location,
+          conversationId: e.conversation?.id,
+          isPublished: e.isPublished,
+          isPublic: e.isPublic,
+          author: e.author,
+          invite: e.invites[0] ?? null,
+        })),
+        pagination: { ...pagination, total },
+      };
+    }
+
+    const [events, total] = await this.prisma.$transaction([
+      this.prisma.event.findMany({
+        where: pageWhere,
+        include: baseInclude,
+        orderBy,
+        take: limit + 1,
+      }),
+      this.prisma.event.count({ where: tabFilter }),
+    ]);
+    const { sliced, pagination } = this.paginateMyEvents(events, limit);
+    return {
+      data: sliced.map((e) => ({
+        id: e.id,
+        title: e.title,
+        slug: e.slug,
+        startAt: e.startAt.toISOString(),
+        endAt: e.endAt.toISOString(),
+        isOrganizer: e.authorId === userId,
+        imageKey: e.imageKey,
+        location: e.location,
+        conversationId: e.conversation?.id,
+        isPublished: e.isPublished,
+        isPublic: e.isPublic,
+        author: e.author,
+      })),
+      pagination: { ...pagination, total },
+    };
   }
 
   async userDeleteMe(user: User) {

@@ -3,6 +3,9 @@ import {
   ResUserEventsSchema,
   ResMyEventsSchema,
   ResMyInvitedEventsSchema,
+  ResMyEventsPaginatedSchema,
+  ResMyInvitedEventsPaginatedSchema,
+  MyEventsTabSchema,
 } from '@grit/schema';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
@@ -98,6 +101,14 @@ export const ReqUserDeleteAvatarSchema = z.strictObject({
   id: z.coerce.number().int().positive(),
 });
 
+// Query params for GET /users/me/events?tab=...&limit=...&cursor=...
+export const ReqMyEventsSchema = z.strictObject({
+  tab: MyEventsTabSchema,
+  limit: z.coerce.number().int().positive().max(100).default(20),
+  cursor: z.string().optional(),
+  sort: z.enum(['asc', 'desc']).default('asc'),
+});
+
 // --- DTO classes ---
 export class ResUserBaseDto extends createZodDto(ResUserBaseSchema) {}
 export class ReqUserGetAllDto extends createZodDto(ReqUserGetAllSchema) {}
@@ -113,3 +124,8 @@ export class ReqUserDeleteByIdDto extends createZodDto(ReqUserDeleteByIdSchema) 
 export class ReqUserPatchDto extends createZodDto(ReqUserPatchSchema) {}
 export class ReqUserPatchByIdDto extends createZodDto(ReqUserPatchByIdSchema) {}
 export class ReqUserPublicEventsDto extends createZodDto(ReqUserPublicEventsSchema) {}
+export class ReqMyEventsDto extends createZodDto(ReqMyEventsSchema) {}
+export class ResMyEventsPaginatedDto extends createZodDto(ResMyEventsPaginatedSchema) {}
+export class ResMyInvitedEventsPaginatedDto extends createZodDto(
+  ResMyInvitedEventsPaginatedSchema
+) {}
