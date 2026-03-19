@@ -419,7 +419,8 @@ export class UserService {
   async userPatch(userId: number, data: ReqUserPatchDto) {
     // Wrap everything in a transaction (if one call fails, then they all roll back - making every
     // call to the DB dependent on each other)
-    return await this.prisma.$transaction(async (tx) => {
+
+    const res = await this.prisma.$transaction(async (tx) => {
       const newData: Prisma.UserUpdateInput = {};
 
       if (data.name !== undefined) {
@@ -551,9 +552,6 @@ export class UserService {
         },
       });
 
-      // After updating the user we need to resync the chat rooms he is in
-      await this.chatGateway.resyncUserRooms(userId);
-
       return {
         ...user_raw,
         createdAt: user_raw.createdAt.toISOString(),
@@ -568,6 +566,10 @@ export class UserService {
         })),
       };
     });
+
+    // After updating the user we need to resync the chat rooms he is in
+    await this.chatGateway.resyncUserRooms(userId);
+    return res;
   }
 
   /**
