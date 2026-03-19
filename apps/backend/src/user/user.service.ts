@@ -747,6 +747,26 @@ export class UserService {
     };
   }
 
+  async userGetPublicByName(name: string, requestingUserId?: number) {
+    const normalized = name.toLowerCase();
+    const user = await this.prisma.user.findUnique({
+      where: { name: normalized },
+      select: { id: true },
+    });
+    if (!user) return null;
+    return this.userGetPublic(user.id, requestingUserId);
+  }
+
+  async userGetPublicEventsByName(name: string, requestingUserId?: number) {
+    const normalized = name.toLowerCase();
+    const user = await this.prisma.user.findUnique({
+      where: { name: normalized },
+      select: { id: true },
+    });
+    if (!user) return null;
+    return this.userGetPublicEvents(user.id, requestingUserId);
+  }
+
   async userGetPublic(id: number, requestingUserId?: number) {
     const user = await this.prisma.user.findUnique({
       where: { id },
