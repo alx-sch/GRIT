@@ -191,7 +191,7 @@ export const EventPage = () => {
             </div>
 
             {/* Host */}
-            <div className="flex flex-row md:flex-col gap-2 order-3 md:order-2 items-center md:items-start">
+            <div className="flex flex-col gap-2 order-3 md:order-2 items-start">
               <HomeIcon className="h-6 w-6 text-primary md:hidden flex-shrink-0" />
               <Heading level={4} className="uppercase hidden md:block">
                 Host
