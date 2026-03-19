@@ -160,10 +160,9 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
       if (
         viewport.scrollTop < 100 &&
         hasMore &&
-        messages.length > 0 &&
+        messages.length >= 10 && // initial load value
         !isLoadingMoreHistory.current
       ) {
-        isLoadingMoreHistory.current = true;
         isLoadingMoreHistory.current = true;
 
         const currentMessages = messagesRef.current;
@@ -192,7 +191,7 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
       hasMore &&
       !isInitialLoad.current &&
       !isLoadingMoreHistory.current &&
-      messages.length > 0
+      messages.length >= 10 // initial load value
     ) {
       isLoadingMoreHistory.current = true;
       const oldest = messages[0];
@@ -230,11 +229,7 @@ export const ChatBox = ({ conversationId }: { conversationId: string }) => {
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>{errorMessage}</AlertDescription>
         </Alert>
-        <BackButton
-          className="w-"
-          label="Back to all Chats"
-          onClick={() => void navigate('/chat')}
-        />
+        <BackButton label="Back to all Chats" onClick={() => void navigate('/chat')} />
       </>
     );
   }
