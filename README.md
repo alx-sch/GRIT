@@ -60,7 +60,7 @@ Build a production-grade social web application for organizing and attending eve
 **Alexander Schenk — Project Manager / DevOps**
 Responsible for the overall backend architecture, monorepo setup, authentication system (JWT, Google OAuth, email confirmation), infrastructure (Docker, Caddy reverse proxy, MinIO), environment configuration, production deployment pipeline, shared `@grit/schema` Zod validation package, performance-oriented bulk seeding, and frontend test suite cleanup.
 
-**Dovi Musulas — Product Owner / Frontend Developer**
+**Dovy Musulas — Product Owner / Frontend Developer**
 Led frontend architecture (Turborepo monorepo, routing, design system, OKLCH color scheme), the login/auth UI, public user profiles with privacy controls, the My Events page redesign, the global search feature (Ctrl+K), avatar image cropping, and Prisma migration workflow improvements.
 
 **Johannes Dach — Tech Lead / Full-Stack Developer**
@@ -564,7 +564,7 @@ Google OAuth redirection required careful env var design. The root cause was `FR
 
 ---
 
-### Dovi Musulas (`dovy-mus` / `dmusulas`)
+### Dovy Musulas (`dovy-mus` / `dmusulas`)
 
 **Frontend Architecture**
 - Set up Turborepo monorepo with Vite, React Router v7, TailwindCSS v4 (OKLCH color system), centralized routing
