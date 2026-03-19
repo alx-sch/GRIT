@@ -4,7 +4,7 @@ import {
   ResMyEvents,
   ResMyInvitedEvents,
   ResUserPublicSchema,
-  ResUserPublicEventsSchema,
+  ResUserPublicEventsPaginatedSchema,
   ResFriendshipStatusSchema,
 } from '@grit/schema';
 import { useCurrentUserStore } from '@/store/currentUserStore';
@@ -118,9 +118,12 @@ export const userService = {
     return ResUserPublicSchema.parse(response.data);
   },
 
-  getUserEventsByName: async (username: string) => {
-    const response = await api.get(`/users/${username}/events`);
-    return ResUserPublicEventsSchema.parse(response.data);
+  getUserEventsByName: async (params: { username: string; limit?: number; cursor?: string }) => {
+    const { username, limit = 12, cursor } = params;
+    const query = new URLSearchParams({ limit: String(limit) });
+    if (cursor) query.set('cursor', cursor);
+    const response = await api.get(`/users/${username}/events?${query.toString()}`);
+    return ResUserPublicEventsPaginatedSchema.parse(response.data);
   },
 
   getFriendshipStatus: async (id: number) => {

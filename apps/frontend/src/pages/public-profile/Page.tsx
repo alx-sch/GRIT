@@ -4,7 +4,7 @@ import { userService } from '@/services/userService';
 import { useAuthStore } from '@/store/authStore';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import type { FriendshipStatus } from '@/types/friends';
-import type { ResUserPublicEvents } from '@grit/schema';
+import type { ResUserPublicEventsPaginated } from '@grit/schema';
 import { useState } from 'react';
 import { LoaderFunctionArgs, useLoaderData } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -43,9 +43,12 @@ export const publicProfileLoader = async ({ params }: LoaderFunctionArgs) => {
   const user = await userService.getUserByName(username);
 
   // Only fetch events if profile is public (or the field is not set, for backwards compatibility)
-  let events: ResUserPublicEvents = [];
+  let eventPage: ResUserPublicEventsPaginated = {
+    data: [],
+    pagination: { hasMore: false, nextCursor: null },
+  };
   if (user.isProfilePublic !== false) {
-    events = await userService.getUserEventsByName(username);
+    eventPage = await userService.getUserEventsByName({ username });
   }
 
   // Only fetch friendship status if user is logged in
@@ -80,7 +83,7 @@ export const publicProfileLoader = async ({ params }: LoaderFunctionArgs) => {
     }
   }
 
-  return { user, events, friendshipStatus, friendRequestId };
+  return { user, eventPage, friendshipStatus, friendRequestId };
 };
 
 export default function PublicProfilePage() {
@@ -205,7 +208,12 @@ export default function PublicProfilePage() {
           void handleCancelRequest();
         }}
       />
-      <ProfileTabs user={data.user} events={data.events} />
+      <ProfileTabs
+        user={data.user}
+        username={data.user.name}
+        initialEvents={data.eventPage.data}
+        initialPagination={data.eventPage.pagination}
+      />
     </div>
   );
 }

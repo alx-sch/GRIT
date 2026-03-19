@@ -1,14 +1,41 @@
+import { useInfiniteScroll, type Pagination } from '@/hooks/useInfiniteScroll';
+import { userService } from '@/services/userService';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Heading, Text } from '@/components/ui/typography';
-import type { ResUserPublic, ResUserPublicEvents } from '@grit/schema';
+import type { ResUserPublic, ResUserPublicEvent } from '@grit/schema';
 import { PublicEventCard } from './PublicEventCard';
+import { toast } from 'sonner';
 
 interface ProfileTabsProps {
   user: ResUserPublic;
-  events: ResUserPublicEvents;
+  username: string;
+  initialEvents: ResUserPublicEvent[];
+  initialPagination: Pagination;
 }
 
-export function ProfileTabs({ user, events }: ProfileTabsProps) {
+export function ProfileTabs({
+  user,
+  username,
+  initialEvents,
+  initialPagination,
+}: ProfileTabsProps) {
+  const {
+    items: events,
+    sentinelRef,
+    isLoading,
+  } = useInfiniteScroll<ResUserPublicEvent>(
+    initialEvents,
+    initialPagination,
+    async (cursor) => {
+      const result = await userService.getUserEventsByName({ username, cursor });
+      return result;
+    },
+    [],
+    () => {
+      toast.error('Failed to load more events');
+    }
+  );
+
   return (
     <Tabs defaultValue="info" className="w-full">
       <TabsList variant="brutalist" className="w-full md:w-auto">
@@ -16,7 +43,7 @@ export function ProfileTabs({ user, events }: ProfileTabsProps) {
           Info
         </TabsTrigger>
         <TabsTrigger value="events" variant="brutalist" className="text-xs md:text-sm">
-          Events ({events.length})
+          Events {initialPagination.hasMore ? '' : `(${events.length})`}
         </TabsTrigger>
       </TabsList>
 
@@ -38,7 +65,7 @@ export function ProfileTabs({ user, events }: ProfileTabsProps) {
       </TabsContent>
 
       <TabsContent value="events" className="mt-6">
-        {events.length === 0 ? (
+        {events.length === 0 && !isLoading ? (
           <div className="bg-card rounded-lg border p-6 text-center">
             <Text className="text-muted-foreground">No public events hosted yet.</Text>
           </div>
@@ -48,6 +75,10 @@ export function ProfileTabs({ user, events }: ProfileTabsProps) {
               <PublicEventCard key={event.id} event={event} />
             ))}
           </div>
+        )}
+        <div ref={sentinelRef} className="h-4" />
+        {isLoading && (
+          <Text className="text-center text-muted-foreground mt-4">Loading more...</Text>
         )}
       </TabsContent>
     </Tabs>
