@@ -45,7 +45,8 @@ const mockEvents = [
 const mockUsers = [
   {
     id: 10,
-    name: 'Alice Müller',
+    name: 'alice-abc',
+    displayName: 'Alice Müller',
     avatarKey: null,
     bio: null,
     city: 'Berlin',
@@ -55,7 +56,8 @@ const mockUsers = [
   },
   {
     id: 11,
-    name: 'Bob Smith',
+    name: 'bob-xyz',
+    displayName: 'Bob Smith',
     avatarKey: null,
     bio: null,
     city: null,
@@ -296,7 +298,7 @@ test.describe('Global Search', () => {
       await searchInput(page).fill('alice');
       await expect(page.getByText('Alice Müller')).toBeVisible({ timeout: 2000 });
       await page.getByText('Alice Müller').click();
-      await expect(page).toHaveURL('/users/10');
+      await expect(page).toHaveURL('/users/alice-abc');
     });
   });
 
