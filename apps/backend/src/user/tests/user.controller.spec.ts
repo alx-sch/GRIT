@@ -111,20 +111,22 @@ describe('UserController', () => {
 
   // Tests for getUserEventsByUsername controller path.
   describe('Get public user events by username', () => {
-    it('should call userService.userGetPublicEventsByName() with the username param', async () => {
+    const defaultQuery = { limit: 12, cursor: undefined };
+
+    it('should call userService.userGetPublicEventsByName() with the username and query params', async () => {
       const spy = jest.spyOn(userService, 'userGetPublicEventsByName');
-      await userController.getUserEventsByUsername('alice');
-      expect(spy).toHaveBeenCalledWith('alice', undefined);
+      await userController.getUserEventsByUsername('alice', defaultQuery);
+      expect(spy).toHaveBeenCalledWith('alice', undefined, 12, undefined);
     });
 
     it('should return events from service', async () => {
-      const result = await userController.getUserEventsByUsername('alice');
+      const result = await userController.getUserEventsByUsername('alice', defaultQuery);
       expect(result).toEqual(mockPublicEvents);
     });
 
     it('should throw NotFoundException when user does not exist', async () => {
       jest.spyOn(userService, 'userGetPublicEventsByName').mockResolvedValueOnce(null);
-      await expect(userController.getUserEventsByUsername('nobody')).rejects.toThrow(
+      await expect(userController.getUserEventsByUsername('nobody', defaultQuery)).rejects.toThrow(
         'User not found'
       );
     });
