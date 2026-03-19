@@ -447,6 +447,16 @@ export class UserService {
               receiverId: userId,
             },
           });
+
+          // Increment attendeeCount for each event
+          await Promise.all(
+            data.attending.connect.map((eventId) =>
+              tx.event.update({
+                where: { id: eventId },
+                data: { attendeeCount: { increment: 1 } },
+              })
+            )
+          );
         }
 
         if (data.attending.disconnect?.length) {
@@ -478,6 +488,16 @@ export class UserService {
             conversationId: e.conversation.id,
             userId,
           }));
+
+          // Decrement attendeeCount for each event
+          await Promise.all(
+            data.attending.disconnect.map((eventId) =>
+              tx.event.update({
+                where: { id: eventId },
+                data: { attendeeCount: { decrement: 1 } },
+              })
+            )
+          );
         }
 
         if (Object.keys(attendingOps).length) {

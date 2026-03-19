@@ -158,7 +158,7 @@ export const EventPageActions = ({
               level="H" // High error correction allows for a logo in the center
               marginSize={4}
               imageSettings={{
-                src: '/GRIT-logo.png', // USE REAL LOGO, fine to be just 400 x 400 px
+                src: '/favicon-32x32.png',
                 x: undefined,
                 y: undefined,
                 height: 40,

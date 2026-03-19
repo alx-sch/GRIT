@@ -113,7 +113,7 @@ export class EventService {
       'date-dsc': [{ startAt: 'desc' }, { id: 'desc' }],
       'alpha-asc': [{ title: 'asc' }, { startAt: 'asc' }, { id: 'asc' }],
       'alpha-dsc': [{ title: 'desc' }, { startAt: 'asc' }, { id: 'asc' }],
-      popularity: [{ attendees: { _count: 'desc' } }, { startAt: 'asc' }, { id: 'asc' }],
+      popularity: [{ attendeeCount: 'desc' }, { startAt: 'asc' }, { id: 'asc' }],
     };
     const orderBy = orderByMap[sort ?? 'date-asc'];
 
@@ -505,6 +505,7 @@ export class EventService {
             isPublic: data.isPublic,
             isPublished: data.isPublished,
             imageKey: data.imageKey,
+            attendeeCount: 1,
             attendees: {
               create: {
                 userId: data.authorId,

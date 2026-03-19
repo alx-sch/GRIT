@@ -23,22 +23,28 @@ import { ReqEventGetPublishedDto } from './event.schema';
  * GET /events?limit=20&cursor=MjAyNS0wMS0yMlQxMDowMDowMFo=
  */
 
-export function eventEncodeCursor(startAt: Date, id: number, sort: string, title?: string, attendeeCount?: number) {
+export function eventEncodeCursor(
+  startAt: Date,
+  id: number,
+  sort: string,
+  title?: string,
+  attendeeCount?: number
+) {
   const str = `${startAt.toISOString()}|${String(id)}|${sort}|${title ?? ''}|${String(attendeeCount ?? 0)}`;
   return Buffer.from(str).toString('base64');
 }
 
-export function eventDecodeCursor(cursor: string): { 
-  startAt: Date; 
-  id: number; 
-  sort: string; 
+export function eventDecodeCursor(cursor: string): {
+  startAt: Date;
+  id: number;
+  sort: string;
   title?: string;
   attendeeCount?: number;
 } {
   const parts = Buffer.from(cursor, 'base64').toString('utf-8').split('|');
   const [startAtStr, idStr, sort, title, attendeeCountStr] = parts;
-  return { 
-    startAt: new Date(startAtStr), 
+  return {
+    startAt: new Date(startAtStr),
     id: parseInt(idStr, 10),
     sort: sort || 'date-asc',
     title: title || undefined,
@@ -104,13 +110,13 @@ export function eventSearchFilter(input: ReqEventGetPublishedDto, userId?: numbe
  * */
 export function eventCursorFilter(input: ReqEventGetPublishedDto): Prisma.EventWhereInput {
   const { cursor, sort } = input;
-  
+
   if (!cursor) return {};
 
   try {
     const decoded = eventDecodeCursor(cursor);
     const { startAt, id, title, attendeeCount } = decoded;
-    const cursorSort = decoded.sort || sort || 'date-asc';
+    const cursorSort = (decoded.sort || sort) ?? 'date-asc';
 
     if (!(startAt instanceof Date) || isNaN(startAt.getTime()) || typeof id !== 'number') {
       throw new Error('Invalid cursor');
@@ -151,10 +157,17 @@ export function eventCursorFilter(input: ReqEventGetPublishedDto): Prisma.EventW
         };
 
       case 'popularity':
-        // For popularity, we can't efficiently filter by _count in WHERE clause
-        // So we use ID-based cursor as a simpler fallback
+        // Descending by attendeeCount: get events with fewer attendees
+        // For ties, sort by startAt asc, then id asc
+        if (attendeeCount === undefined) {
+          throw new Error('Attendee count missing from cursor for popularity sort');
+        }
         return {
-          id: { gt: id },
+          OR: [
+            { attendeeCount: { lt: attendeeCount } },
+            { attendeeCount, startAt: { gt: startAt } },
+            { attendeeCount, startAt, id: { gt: id } },
+          ],
         };
 
       case 'date-asc':
