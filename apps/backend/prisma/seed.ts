@@ -109,7 +109,7 @@ async function main() {
   console.log('--- Seeding database...');
 
   const TEST_RECORD_COUNT = 1000;
-  const DEFAULT_TEST_PASSWORD = 'password123';
+  const DEFAULT_TEST_PASSWORD = 'Password123';
   const AVATAR_BUCKET = 'user-avatars';
   const EVENT_BUCKET = 'event-images';
 
