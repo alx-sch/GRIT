@@ -251,11 +251,13 @@ test.describe('Global Search', () => {
       await page.route('**/api/events/berlin-techno-night-abc123', async (route) => {
         await route.fulfill({ json: mockEvents[0] });
       });
-      await page.route('**/api/users/10', async (route) => {
+      await page.route('**/api/users/alice-abc', async (route) => {
         await route.fulfill({ json: mockUsers[0] });
       });
-      await page.route('**/api/users/10/events', async (route) => {
-        await route.fulfill({ json: [] });
+      await page.route('**/api/users/alice-abc/events', async (route) => {
+        await route.fulfill({
+          json: { data: [], pagination: { nextCursor: null, hasMore: false } },
+        });
       });
       await page.route('**/api/users/me/friends/status/10', async (route) => {
         await route.fulfill({ json: { status: 'none' } });
