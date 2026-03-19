@@ -49,15 +49,32 @@ interface FriendsLoaderData {
   friendsList: ResFriendBase[];
   friendsPagination: Pagination;
   totalFriends: number;
+  allFriendIds: number[];
 }
 
 const PAGE_SIZE = '20';
 
+async function fetchAllFriends(): Promise<number[]> {
+  const allFriendIds: number[] = [];
+  let cursor: string | undefined;
+  let hasMore = true;
+
+  while (hasMore) {
+    const result = await friendService.listFriends({ limit: '100', cursor });
+    allFriendIds.push(...result.data.map((f) => f.friendId));
+    hasMore = result.pagination.hasMore;
+    cursor = result.pagination.nextCursor ?? undefined;
+  }
+
+  return allFriendIds;
+}
+
 export const friendsLoader = async (): Promise<FriendsLoaderData> => {
-  const [pendingIncoming, pendingOutgoing, friendsResponse] = await Promise.all([
+  const [pendingIncoming, pendingOutgoing, friendsResponse, allFriendIds] = await Promise.all([
     friendService.listIncomingRequests({ limit: '50' }),
     friendService.listOutgoingRequests({ limit: '50' }),
     friendService.listFriends({ limit: PAGE_SIZE }),
+    fetchAllFriends(),
   ]);
   return {
     pendingIncoming,
@@ -65,6 +82,7 @@ export const friendsLoader = async (): Promise<FriendsLoaderData> => {
     friendsList: friendsResponse.data,
     friendsPagination: friendsResponse.pagination,
     totalFriends: friendsResponse.pagination.total ?? 0,
+    allFriendIds,
   };
 };
 
@@ -83,7 +101,7 @@ export default function FriendsPage() {
   }, []);
 
   //Cross-reference users to determine User Card actions
-  const friendIds = new Set(friends.friendsList.map((f) => f.friendId));
+  const friendIds = new Set(friends.allFriendIds);
   const outgoingIds = new Set(friends.pendingOutgoing.data.map((r) => r.receiverId));
   const incomingIds = new Set(friends.pendingIncoming.data.map((r) => r.requesterId));
 

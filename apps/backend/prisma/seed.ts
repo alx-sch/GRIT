@@ -482,6 +482,21 @@ async function main() {
         skipDuplicates: true,
       });
 
+      // Update attendeeCount for each test event based on actual attendees
+      const updatedTestEvents = await prisma.event.findMany({
+        where: { title: { startsWith: 'Test Party' } },
+        include: {
+          attendees: { select: { userId: true } },
+        },
+      });
+
+      for (const event of updatedTestEvents) {
+        await prisma.event.update({
+          where: { id: event.id },
+          data: { attendeeCount: event.attendees.length },
+        });
+      }
+
       await prisma.conversationParticipant.createMany({
         data: participantData,
         skipDuplicates: true,
@@ -523,6 +538,11 @@ async function main() {
         userId: attendee.id,
       })),
     skipDuplicates: true,
+  });
+
+  await prisma.event.update({
+    where: { id: party.id },
+    data: { attendeeCount: attendees.filter((a): a is User => a !== null).length },
   });
 
   // Additionally seed conversation participation for the same users

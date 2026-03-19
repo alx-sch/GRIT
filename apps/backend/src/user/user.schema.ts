@@ -1,8 +1,8 @@
 import {
   ResUserBaseSchema,
   ResUserEventsSchema,
-  ResMyEventsPaginatedSchema,
-  ResMyInvitedEventsPaginatedSchema,
+  ResMyEventsSchema,
+  ResMyInvitedEventsSchema,
 } from '@grit/schema';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
@@ -25,13 +25,6 @@ export const ReqUserGetAllSchema = z.strictObject({
   limit: z.coerce.number().int().positive().max(100).default(20),
   cursor: z.string().optional(),
   search: z.string().min(1).optional(),
-});
-
-// Get user events with pagination
-export const ReqUserEventsGetAllSchema = z.strictObject({
-  limit: z.coerce.number().int().positive().max(100).default(20),
-  cursor: z.string().optional(),
-  sort: z.enum(['soonest', 'furthest', 'drafts-first']).default('drafts-first'),
 });
 
 // Post a new user draft
@@ -105,12 +98,11 @@ export class ReqUserGetAllDto extends createZodDto(ReqUserGetAllSchema) {}
 export class ResUserPostDto extends createZodDto(ResUserPostSchema) {}
 export class ReqUserPostDto extends createZodDto(ReqUserPostSchema) {}
 export class ResUserEventsDto extends createZodDto(ResUserEventsSchema) {}
-export class ResMyEventsDto extends createZodDto(ResMyEventsPaginatedSchema) {}
-export class ResMyInvitedEventsDto extends createZodDto(ResMyInvitedEventsPaginatedSchema) {}
+export class ResMyEventsDto extends createZodDto(ResMyEventsSchema) {}
+export class ResMyInvitedEventsDto extends createZodDto(ResMyInvitedEventsSchema) {}
 export class ReqUserConfirmDto extends createZodDto(ReqUserConfirmSchema) {}
 export class ReqUserGetByIdDto extends createZodDto(ReqUserGetByIdSchema) {}
 export class ReqUserDeleteAvatarDto extends createZodDto(ReqUserDeleteAvatarSchema) {}
 export class ReqUserDeleteByIdDto extends createZodDto(ReqUserDeleteByIdSchema) {}
 export class ReqUserPatchDto extends createZodDto(ReqUserPatchSchema) {}
 export class ReqUserPatchByIdDto extends createZodDto(ReqUserPatchByIdSchema) {}
-export class ReqUserEventsGetAllDto extends createZodDto(ReqUserEventsGetAllSchema) {}

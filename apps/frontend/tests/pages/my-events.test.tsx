@@ -92,48 +92,20 @@ describe('My Events Page', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(userService.getMyInvitedEvents).mockResolvedValue({
-      data: [],
-      pagination: { nextCursor: null, hasMore: false, total: 0 },
-    } as never);
+    vi.mocked(userService.getMyInvitedEvents).mockResolvedValue([] as never);
     vi.mocked(friendService.listFriends).mockResolvedValue({ data: [] } as never);
     vi.mocked(inviteService.listOutgoingInvites).mockResolvedValue([] as never);
   });
 
   const renderPage = async (events: ResMyEvents = []) => {
-    const paginatedResponse = {
-      data: events,
-      pagination: {
-        nextCursor: null,
-        hasMore: false,
-        total: events.length,
-        totalUpcoming: events.filter((e) => new Date(e.startAt) >= new Date()).length,
-        totalPast: events.filter((e) => new Date(e.startAt) < new Date()).length,
-        totalOrganizing: events.filter((e) => e.isOrganizer).length,
-      },
-    };
-
-    vi.mocked(userService.getMyEvents).mockResolvedValue(paginatedResponse as never);
+    vi.mocked(userService.getMyEvents).mockResolvedValue(events);
 
     const router = createMemoryRouter(
       [
         {
           path: '/my-events',
           element: <Page />,
-          loader: () =>
-            Promise.resolve({
-              myEvents: events,
-              myEventsPagination: {
-                nextCursor: null,
-                hasMore: false,
-                total: events.length,
-                totalUpcoming: events.filter((e) => new Date(e.startAt) >= new Date()).length,
-                totalPast: events.filter((e) => new Date(e.startAt) < new Date()).length,
-                totalOrganizing: events.filter((e) => e.isOrganizer).length,
-              },
-              invitedEvents: [],
-              invitedEventsPagination: { nextCursor: null, hasMore: false, total: 0 },
-            }),
+          loader: () => Promise.resolve(events),
           HydrateFallback: () => <div>Loading...</div>,
         },
       ],
