@@ -7,6 +7,8 @@ interface PaginatedItem {
 export interface Pagination {
   nextCursor: string | null;
   hasMore: boolean;
+  /** Set on first page when API returns total (e.g. hosted events count). */
+  total?: number;
 }
 
 /**
