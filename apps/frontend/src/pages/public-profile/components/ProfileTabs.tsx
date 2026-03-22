@@ -39,6 +39,8 @@ export function ProfileTabs({
     }
   );
 
+  const eventsTabCount = initialPagination.total ?? events.length;
+
   return (
     <Tabs defaultValue="info" className="w-full" onValueChange={setActiveTab}>
       <TabsList variant="brutalist" className="w-full md:w-auto">
@@ -46,7 +48,7 @@ export function ProfileTabs({
           Info
         </TabsTrigger>
         <TabsTrigger value="events" variant="brutalist" className="text-xs md:text-sm">
-          Events {initialPagination.hasMore ? '' : `(${events.length})`}
+          Events ({eventsTabCount})
         </TabsTrigger>
       </TabsList>
 

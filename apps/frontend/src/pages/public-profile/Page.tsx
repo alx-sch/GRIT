@@ -5,8 +5,9 @@ import { useAuthStore } from '@/store/authStore';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import type { FriendshipStatus } from '@/types/friends';
 import type { ResUserPublicEventsPaginated } from '@grit/schema';
+import { Lock, Globe } from 'lucide-react';
 import { useState } from 'react';
-import { LoaderFunctionArgs, useLoaderData } from 'react-router-dom';
+import { Link, LoaderFunctionArgs, useLoaderData } from 'react-router-dom';
 import { toast } from 'sonner';
 import { PrivateProfileView } from './components/PrivateProfileView';
 import { ProfileHeader } from './components/ProfileHeader';
@@ -42,19 +43,12 @@ export const publicProfileLoader = async ({ params }: LoaderFunctionArgs) => {
 
   const user = await userService.getUserByName(username);
 
-  // Only fetch events if profile is public (or the field is not set, for backwards compatibility)
-  let eventPage: ResUserPublicEventsPaginated = {
-    data: [],
-    pagination: { hasMore: false, nextCursor: null },
-  };
-  if (user.isProfilePublic !== false) {
-    eventPage = await userService.getUserEventsByName({ username });
-  }
+  const token = useAuthStore.getState().token;
+  const currentUserId = useCurrentUserStore.getState().user?.id;
 
   // Only fetch friendship status if user is logged in
   let friendshipStatus: FriendshipStatus = 'none';
   let friendRequestId: string | null = null;
-  const token = useAuthStore.getState().token;
   if (token) {
     try {
       const status = await userService.getFriendshipStatus(user.id);
@@ -83,6 +77,20 @@ export const publicProfileLoader = async ({ params }: LoaderFunctionArgs) => {
     }
   }
 
+  const canSeeHostedEvents =
+    user.isProfilePublic !== false ||
+    (currentUserId !== undefined && currentUserId === user.id) ||
+    friendshipStatus === 'friends' ||
+    friendshipStatus === 'self';
+
+  let eventPage: ResUserPublicEventsPaginated = {
+    data: [],
+    pagination: { hasMore: false, nextCursor: null },
+  };
+  if (canSeeHostedEvents) {
+    eventPage = await userService.getUserEventsByName({ username });
+  }
+
   return { user, eventPage, friendshipStatus, friendRequestId };
 };
 
@@ -95,7 +103,10 @@ export default function PublicProfilePage() {
 
   const isViewingSelf = currentUser?.id === data.user.id;
   const isLoggedIn = !!currentUser;
-  const isPrivateProfile = data.user.isProfilePublic === false;
+  const canViewPrivateProfileAsViewer =
+    isViewingSelf || friendshipStatus === 'friends' || friendshipStatus === 'self';
+  const showPrivateProfileGate =
+    data.user.isProfilePublic === false && !canViewPrivateProfileAsViewer;
 
   const handleFriendAction = async () => {
     if (!isLoggedIn) return;
@@ -164,7 +175,7 @@ export default function PublicProfilePage() {
     }
   };
 
-  if (isPrivateProfile && !isViewingSelf) {
+  if (showPrivateProfileGate) {
     return (
       <PrivateProfileView
         user={data.user}
@@ -190,6 +201,35 @@ export default function PublicProfilePage() {
   return (
     <div className="space-y-8">
       <BackButton />
+      {isViewingSelf && (
+        <div
+          className="flex gap-3 rounded-lg border border-border bg-muted/50 px-4 py-3 text-sm"
+          role="status"
+        >
+          {data.user.isProfilePublic !== false ? (
+            <Globe className="size-4 shrink-0 text-muted-foreground mt-1.5" aria-hidden />
+          ) : (
+            <Lock className="size-4 shrink-0 text-muted-foreground mt-1.5" aria-hidden />
+          )}
+
+          <div className="space-y-1.5 min-w-0">
+            <p className="font-semibold text-foreground">
+              Your profile is {data.user.isProfilePublic !== false ? 'public' : 'private'}
+            </p>
+            <p className="text-muted-foreground leading-relaxed">
+              {data.user.isProfilePublic !== false
+                ? 'Anyone can see your bio, location, and hosted public events.'
+                : 'Only friends can see your bio, location, and hosted public events.'}
+            </p>
+            <Link
+              to="/profile#settings"
+              className="font-medium text-primary underline-offset-4 hover:underline inline-block"
+            >
+              Change in profile settings
+            </Link>
+          </div>
+        </div>
+      )}
       <ProfileHeader
         user={data.user}
         friendshipStatus={friendshipStatus}

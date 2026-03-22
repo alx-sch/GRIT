@@ -898,19 +898,45 @@ export class UserService {
       }
     }
 
-    const events = await this.prisma.event.findMany({
-      where: {
-        authorId: userId,
-        isPublished: true,
-        isPublic: true,
-        ...cursorFilter,
-      },
-      include: {
-        location: true,
-      },
-      orderBy: [{ startAt: 'desc' }, { id: 'desc' }],
-      take: limit + 1,
-    });
+    const pageWhere: Prisma.EventWhereInput = {
+      authorId: userId,
+      isPublished: true,
+      isPublic: true,
+      ...cursorFilter,
+    };
+    const countWhere: Prisma.EventWhereInput = {
+      authorId: userId,
+      isPublished: true,
+      isPublic: true,
+    };
+
+    let events;
+    let hostedPublicTotal: number | undefined;
+
+    if (!cursor) {
+      const [page, total] = await Promise.all([
+        this.prisma.event.findMany({
+          where: pageWhere,
+          include: {
+            location: true,
+          },
+          orderBy: [{ startAt: 'desc' }, { id: 'desc' }],
+          take: limit + 1,
+        }),
+        this.prisma.event.count({ where: countWhere }),
+      ]);
+      events = page;
+      hostedPublicTotal = total;
+    } else {
+      events = await this.prisma.event.findMany({
+        where: pageWhere,
+        include: {
+          location: true,
+        },
+        orderBy: [{ startAt: 'desc' }, { id: 'desc' }],
+        take: limit + 1,
+      });
+    }
 
     const hasMore = events.length > limit;
     const sliced = hasMore ? events.slice(0, limit) : events;
@@ -918,6 +944,15 @@ export class UserService {
     const nextCursor = hasMore
       ? Buffer.from(`${last.startAt.toISOString()}|${String(last.id)}`).toString('base64')
       : null;
+
+    const pagination: {
+      nextCursor: string | null;
+      hasMore: boolean;
+      total?: number;
+    } = { nextCursor, hasMore };
+    if (hostedPublicTotal !== undefined) {
+      pagination.total = hostedPublicTotal;
+    }
 
     return {
       data: sliced.map((event) => ({
@@ -928,7 +963,7 @@ export class UserService {
         imageKey: event.imageKey,
         location: event.location,
       })),
-      pagination: { nextCursor, hasMore },
+      pagination,
     };
   }
 }
