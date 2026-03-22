@@ -33,10 +33,7 @@ export const useAuthStore = create<AuthState>()(
         return {
           ...currentState,
           ...p,
-          token:
-            currentState.token != null && currentState.token !== ''
-              ? currentState.token
-              : (p.token ?? null),
+          token: currentState.token ?? p.token ?? null,
         };
       },
     }
