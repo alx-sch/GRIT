@@ -206,24 +206,24 @@ export default function PublicProfilePage() {
           className="flex gap-3 rounded-lg border border-border bg-muted/50 px-4 py-3 text-sm"
           role="status"
         >
-        {data.user.isProfilePublic !== false ? (
-          <Globe className="size-4 shrink-0 text-muted-foreground mt-1.5" aria-hidden />
-        ) : (
-          <Lock className="size-4 shrink-0 text-muted-foreground mt-1.5" aria-hidden />
-        )}
-        
-        <div className="space-y-1.5 min-w-0">
-          <p className="font-semibold text-foreground">
-            Your profile is {data.user.isProfilePublic !== false ? 'public' : 'private'}
-          </p>
-          <p className="text-muted-foreground leading-relaxed">
-            {data.user.isProfilePublic !== false 
-              ? 'Anyone can see your bio, location, and hosted public events.' 
-              : 'Only friends can see your bio, location, and hosted public events.'}
-          </p>
-          <Link
-            to="/profile#settings"
-            className="font-medium text-primary underline-offset-4 hover:underline inline-block"
+          {data.user.isProfilePublic !== false ? (
+            <Globe className="size-4 shrink-0 text-muted-foreground mt-1.5" aria-hidden />
+          ) : (
+            <Lock className="size-4 shrink-0 text-muted-foreground mt-1.5" aria-hidden />
+          )}
+
+          <div className="space-y-1.5 min-w-0">
+            <p className="font-semibold text-foreground">
+              Your profile is {data.user.isProfilePublic !== false ? 'public' : 'private'}
+            </p>
+            <p className="text-muted-foreground leading-relaxed">
+              {data.user.isProfilePublic !== false
+                ? 'Anyone can see your bio, location, and hosted public events.'
+                : 'Only friends can see your bio, location, and hosted public events.'}
+            </p>
+            <Link
+              to="/profile#settings"
+              className="font-medium text-primary underline-offset-4 hover:underline inline-block"
             >
               Change in profile settings
             </Link>
