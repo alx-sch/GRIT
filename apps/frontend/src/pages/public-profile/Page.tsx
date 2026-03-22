@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useCurrentUserStore } from '@/store/currentUserStore';
 import type { FriendshipStatus } from '@/types/friends';
 import type { ResUserPublicEventsPaginated } from '@grit/schema';
-import { Lock } from 'lucide-react';
+import { Lock, Globe } from 'lucide-react';
 import { useState } from 'react';
 import { Link, LoaderFunctionArgs, useLoaderData } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -201,20 +201,29 @@ export default function PublicProfilePage() {
   return (
     <div className="space-y-8">
       <BackButton />
-      {isViewingSelf && data.user.isProfilePublic === false && (
+      {isViewingSelf && (
         <div
           className="flex gap-3 rounded-lg border border-border bg-muted/50 px-4 py-3 text-sm"
           role="status"
         >
-          <Lock className="size-4 shrink-0 text-muted-foreground mt-0.5" aria-hidden />
-          <div className="space-y-1.5 min-w-0">
-            <p className="font-semibold text-foreground">Your profile is private</p>
-            <p className="text-muted-foreground leading-relaxed">
-              Only friends can see your bio, location and hosted public events.
-            </p>
-            <Link
-              to="/profile#settings"
-              className="font-medium text-primary underline-offset-4 hover:underline inline-block"
+        {data.user.isProfilePublic !== false ? (
+          <Globe className="size-4 shrink-0 text-muted-foreground mt-1.5" aria-hidden />
+        ) : (
+          <Lock className="size-4 shrink-0 text-muted-foreground mt-1.5" aria-hidden />
+        )}
+        
+        <div className="space-y-1.5 min-w-0">
+          <p className="font-semibold text-foreground">
+            Your profile is {data.user.isProfilePublic !== false ? 'public' : 'private'}
+          </p>
+          <p className="text-muted-foreground leading-relaxed">
+            {data.user.isProfilePublic !== false 
+              ? 'Anyone can see your bio, location, and hosted public events.' 
+              : 'Only friends can see your bio, location, and hosted public events.'}
+          </p>
+          <Link
+            to="/profile#settings"
+            className="font-medium text-primary underline-offset-4 hover:underline inline-block"
             >
               Change in profile settings
             </Link>
