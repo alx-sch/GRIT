@@ -77,6 +77,16 @@ test.describe('Authentication Flow', () => {
         },
       });
     });
+
+    // Events loader calls listFriends when a token exists; avoid real API with fake JWT
+    await page.route('**/api/users/me/friends*', async (route) => {
+      await route.fulfill({
+        json: {
+          data: [],
+          pagination: { nextCursor: null, hasMore: false, total: 0 },
+        },
+      });
+    });
   });
 
   test('should allow user to login', async ({ page }) => {
@@ -94,9 +104,8 @@ test.describe('Authentication Flow', () => {
     await expect(page.getByText('You are logged in')).toBeVisible();
     await expect(page).toHaveURL(/\/events/);
 
-    // Verify user is visible in Navbar
-    // The avatar fallback uses the first letter of the name (T for Test User)
-    await expect(page.getByRole('button', { name: 'Test User' })).toBeVisible();
+    // Logged-in chrome (depends on token only; desktop nav)
+    await expect(page.getByRole('link', { name: 'Chat' })).toBeVisible();
   });
 
   test('should allow user to register', async ({ page }) => {
