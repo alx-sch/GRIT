@@ -42,19 +42,12 @@ export const publicProfileLoader = async ({ params }: LoaderFunctionArgs) => {
 
   const user = await userService.getUserByName(username);
 
-  // Only fetch events if profile is public (or the field is not set, for backwards compatibility)
-  let eventPage: ResUserPublicEventsPaginated = {
-    data: [],
-    pagination: { hasMore: false, nextCursor: null },
-  };
-  if (user.isProfilePublic !== false) {
-    eventPage = await userService.getUserEventsByName({ username });
-  }
+  const token = useAuthStore.getState().token;
+  const currentUserId = useCurrentUserStore.getState().user?.id;
 
   // Only fetch friendship status if user is logged in
   let friendshipStatus: FriendshipStatus = 'none';
   let friendRequestId: string | null = null;
-  const token = useAuthStore.getState().token;
   if (token) {
     try {
       const status = await userService.getFriendshipStatus(user.id);
@@ -83,6 +76,20 @@ export const publicProfileLoader = async ({ params }: LoaderFunctionArgs) => {
     }
   }
 
+  const canSeeHostedEvents =
+    user.isProfilePublic !== false ||
+    (currentUserId !== undefined && currentUserId === user.id) ||
+    friendshipStatus === 'friends' ||
+    friendshipStatus === 'self';
+
+  let eventPage: ResUserPublicEventsPaginated = {
+    data: [],
+    pagination: { hasMore: false, nextCursor: null },
+  };
+  if (canSeeHostedEvents) {
+    eventPage = await userService.getUserEventsByName({ username });
+  }
+
   return { user, eventPage, friendshipStatus, friendRequestId };
 };
 
@@ -95,7 +102,10 @@ export default function PublicProfilePage() {
 
   const isViewingSelf = currentUser?.id === data.user.id;
   const isLoggedIn = !!currentUser;
-  const isPrivateProfile = data.user.isProfilePublic === false;
+  const canViewPrivateProfileAsViewer =
+    isViewingSelf || friendshipStatus === 'friends' || friendshipStatus === 'self';
+  const showPrivateProfileGate =
+    data.user.isProfilePublic === false && !canViewPrivateProfileAsViewer;
 
   const handleFriendAction = async () => {
     if (!isLoggedIn) return;
@@ -164,7 +174,7 @@ export default function PublicProfilePage() {
     }
   };
 
-  if (isPrivateProfile && !isViewingSelf) {
+  if (showPrivateProfileGate) {
     return (
       <PrivateProfileView
         user={data.user}
