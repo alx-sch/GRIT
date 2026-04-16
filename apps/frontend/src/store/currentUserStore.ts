@@ -27,6 +27,22 @@ export const useCurrentUserStore = create<CurrentUserState>()(
     }),
     {
       name: 'current-user',
+
+      // Prevent "The Vanishing User" Race Condition (seen in e2e tests)
+      // Standard merge prefers localStorage over memory. If a user logs in
+      // extremely fast, the async hydration from disk can finish AFTER the
+      // login, overwriting the fresh user data with 'null' from the old session.
+      // We only use the stored user if our current memory is empty.
+
+      partialize: (state) => ({ user: state.user }),
+      merge: (persistedState, currentState) => {
+        const p = (persistedState ?? {}) as { user?: CurrentUser | null };
+        return {
+          ...currentState,
+          ...p,
+          user: currentState.user ?? p.user ?? null,
+        };
+      },
     }
   )
 );

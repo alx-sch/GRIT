@@ -102,7 +102,11 @@ export type ResUserPublicEvents = z.infer<typeof ResUserPublicEventsSchema>;
 
 export const ResUserPublicEventsPaginatedSchema = z.object({
   data: ResUserPublicEventsSchema,
-  pagination: z.object({ nextCursor: z.string().nullable(), hasMore: z.boolean() }),
+  pagination: z.object({
+    nextCursor: z.string().nullable(),
+    hasMore: z.boolean(),
+    total: z.number().int().nonnegative().optional(),
+  }),
 });
 export type ResUserPublicEventsPaginated = z.infer<typeof ResUserPublicEventsPaginatedSchema>;
 
