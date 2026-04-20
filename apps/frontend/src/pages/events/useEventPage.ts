@@ -272,8 +272,8 @@ export const useEventPage = () => {
 
       setIsInviteCheckLoading(true);
       try {
-        const response = await userService.getMyInvitedEvents();
-        const eventInvite = response.find((inv) => inv.id === event.id);
+        const response = await userService.getMyInvitedEvents({ limit: '100' });
+        const eventInvite = response.data.find((inv) => inv.id === event.id);
 
         if (eventInvite?.invite) {
           setIsInvited(true);

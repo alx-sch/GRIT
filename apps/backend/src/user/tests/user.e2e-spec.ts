@@ -246,19 +246,21 @@ describe('User E2E', () => {
   describe('GET /users/me/events', () => {
     it('return 200 (user1 retrieves events successfully)', async () => {
       const res = await request(app.getHttpServer())
-        .get('/users/me/events')
+        .get('/users/me/events?tab=past')
         .set('Authorization', `Bearer ${token1}`)
         .expect(200);
-      expect(res.body).toMatchObject([
-        {
-          title: event.title,
-        },
-      ]);
+      expect(res.body).toMatchObject({
+        data: [{ title: event.title }],
+        pagination: expect.objectContaining({
+          hasMore: expect.any(Boolean),
+          total: expect.any(Number),
+        }),
+      });
     });
 
     it('return 401 unauthorized access (no valid accesstoken)', async () => {
       await request(app.getHttpServer())
-        .get('/users/me/events')
+        .get('/users/me/events?tab=past')
         .set('Authorization', `Bearer ${token2}`)
         .expect(401);
     });

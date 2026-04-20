@@ -21,81 +21,98 @@ test.describe('My Events Page', () => {
     });
 
     // Mock user events endpoint
-    await page.route('**/api/users/me/events', async (route) => {
-      await route.fulfill({
-        json: [
-          {
+    await page.route(/\/api\/users\/me\/events/, async (route) => {
+      const url = new URL(route.request().url());
+      const tab = url.searchParams.get('tab') ?? 'upcoming';
+
+      const allEvents = [
+        {
+          id: 1,
+          slug: 'draft-event',
+          title: 'My Draft Event',
+          startAt: '2027-12-01T18:00:00Z',
+          endAt: '2027-12-01T20:00:00Z',
+          imageKey: null,
+          location: {
             id: 1,
-            slug: 'draft-event',
-            title: 'My Draft Event',
-            startAt: '2026-12-01T18:00:00Z',
-            endAt: '2026-12-01T20:00:00Z',
-            imageKey: null,
-            location: {
-              id: 1,
-              authorId: 1,
-              name: 'Test Venue',
-              address: '123 Test St',
-              city: 'Test City',
-              postalCode: '12345',
-              country: 'Test Country',
-              latitude: 40.7128,
-              longitude: -74.006,
-              isPublic: true,
-            },
-            isOrganizer: true,
-            isPublished: false,
+            authorId: 1,
+            name: 'Test Venue',
+            address: '123 Test St',
+            city: 'Test City',
+            postalCode: '12345',
+            country: 'Test Country',
+            latitude: 40.7128,
+            longitude: -74.006,
             isPublic: true,
           },
-          {
+          isOrganizer: true,
+          isPublished: false,
+          isPublic: true,
+        },
+        {
+          id: 2,
+          slug: 'published-event',
+          title: 'My Published Event',
+          startAt: '2027-12-15T18:00:00Z',
+          endAt: '2027-12-15T20:00:00Z',
+          imageKey: null,
+          location: {
             id: 2,
-            slug: 'published-event',
-            title: 'My Published Event',
-            startAt: '2026-12-15T18:00:00Z',
-            endAt: '2026-12-15T20:00:00Z',
-            imageKey: null,
-            location: {
-              id: 2,
-              authorId: 1,
-              name: 'Another Venue',
-              address: '456 Another St',
-              city: 'Another City',
-              postalCode: '67890',
-              country: 'Test Country',
-              latitude: 40.7589,
-              longitude: -73.9851,
-              isPublic: false,
-            },
-            isOrganizer: true,
-            isPublished: true,
+            authorId: 1,
+            name: 'Another Venue',
+            address: '456 Another St',
+            city: 'Another City',
+            postalCode: '67890',
+            country: 'Test Country',
+            latitude: 40.7589,
+            longitude: -73.9851,
             isPublic: false,
-            conversationId: '123',
           },
-          {
+          isOrganizer: true,
+          isPublished: true,
+          isPublic: false,
+          conversationId: '123',
+        },
+        {
+          id: 3,
+          slug: 'attending-event',
+          title: "Event I'm Attending",
+          startAt: '2027-11-20T18:00:00Z',
+          endAt: '2027-11-20T20:00:00Z',
+          imageKey: null,
+          location: {
             id: 3,
-            slug: 'attending-event',
-            title: "Event I'm Attending",
-            startAt: '2026-11-20T18:00:00Z',
-            endAt: '2026-11-20T20:00:00Z',
-            imageKey: null,
-            location: {
-              id: 3,
-              authorId: 2,
-              name: 'Third Venue',
-              address: '789 Third St',
-              city: 'Third City',
-              postalCode: '11111',
-              country: 'Test Country',
-              latitude: 40.7489,
-              longitude: -73.968,
-              isPublic: true,
-            },
-            isOrganizer: false,
-            isPublished: true,
+            authorId: 2,
+            name: 'Third Venue',
+            address: '789 Third St',
+            city: 'Third City',
+            postalCode: '11111',
+            country: 'Test Country',
+            latitude: 40.7489,
+            longitude: -73.968,
             isPublic: true,
-            conversationId: '456',
           },
-        ],
+          isOrganizer: false,
+          isPublished: true,
+          isPublic: true,
+          conversationId: '456',
+        },
+      ];
+
+      const tabData: Record<string, { data: typeof allEvents; total: number }> = {
+        upcoming: { data: allEvents, total: allEvents.length },
+        past: { data: [], total: 0 },
+        organizing: { data: allEvents.filter((e) => e.isOrganizer), total: 2 },
+        invited: { data: [], total: 0 },
+      };
+
+      const { data, total } = tabData[tab] ?? { data: [], total: 0 };
+
+      await route.fulfill({
+        json: {
+          data,
+          pagination: { nextCursor: null, hasMore: false, total },
+        },
       });
     });
   });
@@ -344,9 +361,11 @@ test.describe('My Events Page', () => {
   });
 
   test('should display empty state when no events', async ({ page }) => {
-    // Override the mock to return empty array
-    await page.route('**/api/users/me/events', async (route) => {
-      await route.fulfill({ json: [] });
+    // Override the mock to return empty paginated response
+    await page.route(/\/api\/users\/me\/events/, async (route) => {
+      await route.fulfill({
+        json: { data: [], pagination: { nextCursor: null, hasMore: false, total: 0 } },
+      });
     });
 
     await page.goto('/profile/my-events');
